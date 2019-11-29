@@ -11,6 +11,7 @@
 
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Math/IntVector2.h"
+#include "Engine/Math/MathUtils.h"
 #include <math.h>
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** DEFINES ***
@@ -49,6 +50,7 @@ Vector2::Vector2(const Vector2& copy)
 {
 }
 
+
 //-------------------------------------------------------------------------------------------------
 Vector2::Vector2(float initialX, float initialY)
 	: x(initialX)
@@ -65,12 +67,14 @@ Vector2::Vector2(const IntVector2& copyFrom)
 	y = static_cast<float>(copyFrom.y);
 }
 
+
 //-------------------------------------------------------------------------------------------------
 Vector2::Vector2(int initialX, int initialY)
 	: x(static_cast<float>(initialX))
 	, y(static_cast<float>(initialY))
 {
 }
+
 
 //-------------------------------------------------------------------------------------------------
 Vector2::Vector2(float initialValue)
@@ -79,11 +83,13 @@ Vector2::Vector2(float initialValue)
 {
 }
 
+
 //-------------------------------------------------------------------------------------------------
 const Vector2 Vector2::operator + (const Vector2& vecToAdd) const
 {
 	return Vector2((x + vecToAdd.x), (y + vecToAdd.y));
 }
+
 
 //-------------------------------------------------------------------------------------------------
 const Vector2 Vector2::operator-(const Vector2& vecToSubtract) const
@@ -91,11 +97,13 @@ const Vector2 Vector2::operator-(const Vector2& vecToSubtract) const
 	return Vector2((x - vecToSubtract.x), (y - vecToSubtract.y));
 }
 
+
 //-------------------------------------------------------------------------------------------------
 const Vector2 Vector2::operator*(float uniformScale) const
 {
 	return Vector2((x * uniformScale), (y * uniformScale));
 }
+
 
 //-------------------------------------------------------------------------------------------------
 const Vector2 Vector2::operator/(float inverseScale) const
@@ -104,12 +112,14 @@ const Vector2 Vector2::operator/(float inverseScale) const
 	return Vector2((x * multScaler), (y * multScaler));
 }
 
+
 //-------------------------------------------------------------------------------------------------
 void Vector2::operator+=(const Vector2& vecToAdd)
 {
 	x += vecToAdd.x;
 	y += vecToAdd.y;
 }
+
 
 //-------------------------------------------------------------------------------------------------
 void Vector2::operator-=(const Vector2& vecToSubtract)
@@ -118,12 +128,14 @@ void Vector2::operator-=(const Vector2& vecToSubtract)
 	y -= vecToSubtract.y;
 }
 
+
 //-------------------------------------------------------------------------------------------------
 void Vector2::operator*=(const float uniformScale)
 {
 	x *= uniformScale;
 	y *= uniformScale;
 }
+
 
 //-------------------------------------------------------------------------------------------------
 void Vector2::operator/=(const float uniformDivisor)
@@ -134,6 +146,7 @@ void Vector2::operator/=(const float uniformDivisor)
 	y *= multScaler;
 }
 
+
 //-------------------------------------------------------------------------------------------------
 void Vector2::operator=(const Vector2& copyFrom)
 {
@@ -141,11 +154,13 @@ void Vector2::operator=(const Vector2& copyFrom)
 	y = copyFrom.y;
 }
 
+
 //-------------------------------------------------------------------------------------------------
 const Vector2 operator*(float uniformScale, const Vector2& vecToScale)
 {
 	return Vector2((vecToScale.x * uniformScale), (vecToScale.y * uniformScale));
 }
+
 
 //-------------------------------------------------------------------------------------------------
 bool Vector2::operator==(const Vector2& compare) const
@@ -156,6 +171,7 @@ bool Vector2::operator==(const Vector2& compare) const
 	return false;
 }
 
+
 //-------------------------------------------------------------------------------------------------
 bool Vector2::operator!=(const Vector2& compare) const
 {
@@ -165,17 +181,20 @@ bool Vector2::operator!=(const Vector2& compare) const
 	return false;
 }
 
+
 //-------------------------------------------------------------------------------------------------
 float Vector2::GetLength() const
 {
 	return sqrtf((x * x) + (y * y));
 }
 
+
 //-------------------------------------------------------------------------------------------------
 float Vector2::GetLengthSquared() const
 {
 	return (x * x) + (y * y);
 }
+
 
 //-------------------------------------------------------------------------------------------------
 float Vector2::Normalize()
@@ -191,6 +210,7 @@ float Vector2::Normalize()
 	return length;
 }
 
+
 //-------------------------------------------------------------------------------------------------
 Vector2 Vector2::GetNormalized() const
 {
@@ -200,6 +220,7 @@ Vector2 Vector2::GetNormalized() const
 	return normalizedForm;
 }
 
+
 //-------------------------------------------------------------------------------------------------
 float Vector2::GetOrientationDegrees() const
 {
@@ -207,6 +228,7 @@ float Vector2::GetOrientationDegrees() const
 	ASSERT_OR_DIE((x != 0.f || y != 0.f), Stringf("Error: Vector2::GetOrientationDegrees() called on a zero vector!"));
 	return Atan2Degrees(y, x);
 }
+
 
 //-------------------------------------------------------------------------------------------------
 Vector2 Vector2::MakeDirectionAtDegrees(float degrees)
@@ -219,17 +241,20 @@ Vector2 Vector2::MakeDirectionAtDegrees(float degrees)
 	return direction;
 }
 
+
 //-------------------------------------------------------------------------------------------------
 float GetDistance(const Vector2& a, const Vector2& b)
 {
 	return sqrtf(((a.x - b.x) * (a.x - b.x)) + ((a.y - b.y) * (a.y - b.y)));
 }
 
+
 //-------------------------------------------------------------------------------------------------
 float GetDistanceSquared(const Vector2& a, const Vector2& b)
 {
 	return ((a.x - b.x) * (a.x - b.x)) + ((a.y - b.y) * (a.y - b.y));
 }
+
 
 //-------------------------------------------------------------------------------------------------
 const Vector2 ProjectVector(const Vector2& vectorToProject, const Vector2& projectOnto)
@@ -241,6 +266,7 @@ const Vector2 ProjectVector(const Vector2& vectorToProject, const Vector2& proje
 
 	return (dotProdcut / projectOntoMagnitudeSquared) * projectOnto;
 }
+
 
 //-------------------------------------------------------------------------------------------------
 const Vector2 Reflect(const Vector2& vectorToReflect, const Vector2& normal)

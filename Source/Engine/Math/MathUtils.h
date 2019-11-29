@@ -83,6 +83,7 @@ float	GetAngularDisplacement(float startDegrees, float endDegrees);
 float	RotateToward(float currentDegrees, float goalDegrees, float maxTurnDegrees);
 
 
+//-------------------------------------------------------------------------------------------------
 // Random functions
 float	GetRandomFloatInRange(float minInclusive, float maxInclusive);
 int		GetRandomIntInRange(int minInclusive, int maxInclusive);
@@ -99,8 +100,8 @@ Vector3 GetRandomPointWithinUnitSphere();
 //-------------------------------------------------------------------------------------------------
 // Rounding and clamping
 int		RoundToNearestInt(float inValue);
-Vector2	ClampComponentwise(const Vector2& inValue, const Vector2& minInclusive, const Vector2& maxInclusive);
-Vector3 ClampComponentwise(const Vector3& inValue, float minInclusive, float maxInclusive);
+Vector2	Clamp(const Vector2& inValue, const Vector2& minInclusive, const Vector2& maxInclusive);
+Vector3 Clamp(const Vector3& inValue, float minInclusive, float maxInclusive);
 
 
 //-------------------------------------------------------------------------------------------------

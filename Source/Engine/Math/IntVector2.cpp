@@ -7,7 +7,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** INCLUDES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-
 #include "Engine/Math/IntVector2.h"
 
 #include "Engine/Math/Vector2.h"
@@ -28,7 +27,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                        *** GLOBALS AND STATICS ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-
 const IntVector2 IntVector2::ZERO = IntVector2(0, 0);
 const IntVector2 IntVector2::ONES = IntVector2(1, 1);
 
@@ -47,12 +45,14 @@ IntVector2::IntVector2(const IntVector2& copy)
 {
 }
 
+
 //-------------------------------------------------------------------------------------------------
 IntVector2::IntVector2(int initialX, int initialY)
 	: x(initialX)
 	, y(initialY)
 {
 }
+
 
 //-------------------------------------------------------------------------------------------------
 IntVector2::IntVector2(float initialX, float initialY)
@@ -61,6 +61,7 @@ IntVector2::IntVector2(float initialX, float initialY)
 {
 }
 
+
 //-------------------------------------------------------------------------------------------------
 IntVector2::IntVector2(const Vector2& floatVector)
 	: x(static_cast<int>(floatVector.x))
@@ -68,11 +69,13 @@ IntVector2::IntVector2(const Vector2& floatVector)
 {
 }
 
+
 //-------------------------------------------------------------------------------------------------
 IntVector2::IntVector2(int initialValue)
 	: x(initialValue), y(initialValue)
 {
 }
+
 
 //-------------------------------------------------------------------------------------------------
 const IntVector2 IntVector2::operator+(const IntVector2& addVector) const
@@ -80,11 +83,13 @@ const IntVector2 IntVector2::operator+(const IntVector2& addVector) const
 	return IntVector2((x + addVector.x), (y + addVector.y));
 }
 
+
 //-------------------------------------------------------------------------------------------------
 const IntVector2 IntVector2::operator-(const IntVector2& subVector) const
 {
 	return IntVector2((x - subVector.x), (y - subVector.y));
 }
+
 
 //-------------------------------------------------------------------------------------------------
 const IntVector2 IntVector2::operator*(int uniformScale) const
@@ -92,11 +97,13 @@ const IntVector2 IntVector2::operator*(int uniformScale) const
 	return IntVector2((x * uniformScale), (y * uniformScale));
 }
 
+
 //-------------------------------------------------------------------------------------------------
 const IntVector2 IntVector2::operator/(int divisor) const
 {
 	return IntVector2((x / divisor), (y / divisor));
 }
+
 
 //-------------------------------------------------------------------------------------------------
 void IntVector2::operator+=(const IntVector2& addVector)
@@ -105,12 +112,14 @@ void IntVector2::operator+=(const IntVector2& addVector)
 	y += addVector.y;
 }
 
+
 //-------------------------------------------------------------------------------------------------
 void IntVector2::operator-=(const IntVector2& subVector)
 {
 	x -= subVector.x;
 	y -= subVector.y;
 }
+
 
 //-------------------------------------------------------------------------------------------------
 void IntVector2::operator*=(const int uniformScaler)
@@ -119,6 +128,7 @@ void IntVector2::operator*=(const int uniformScaler)
 	y *= uniformScaler;
 }
 
+
 //-------------------------------------------------------------------------------------------------
 void IntVector2::operator=(const IntVector2& copyFrom)
 {
@@ -126,17 +136,20 @@ void IntVector2::operator=(const IntVector2& copyFrom)
 	y = copyFrom.y;
 }
 
+
 //-------------------------------------------------------------------------------------------------
 const IntVector2 operator*(int uniformScaler, const IntVector2& vecToScale)
 {
 	return vecToScale * uniformScaler;
 }
 
+
 //-------------------------------------------------------------------------------------------------
 bool IntVector2::operator==(const IntVector2& compare) const
 {
 	return (x == compare.x && y == compare.y);
 }
+
 
 //-------------------------------------------------------------------------------------------------
 bool IntVector2::operator!=(const IntVector2& compare) const

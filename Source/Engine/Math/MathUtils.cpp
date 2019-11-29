@@ -147,7 +147,7 @@ float CosDegrees(float degrees)
 //-------------------------------------------------------------------------------------------------
 float ACosDegrees(float ratio)
 {
-	ClampFloat(ratio, -1.f, 1.f);
+	Clamp(ratio, -1.f, 1.f);
 	float radians = acosf(ratio);
 
 	return RadiansToDegrees(radians);
@@ -166,7 +166,7 @@ float SinDegrees(float degrees)
 //-------------------------------------------------------------------------------------------------
 float ASinDegrees(float ratio)
 {
-	ratio = ClampFloat(ratio, -1.f, 1.f);
+	ratio = Clamp(ratio, -1.f, 1.f);
 	float radians = asinf(ratio);
 
 	return RadiansToDegrees(radians);
@@ -414,7 +414,7 @@ int RoundToNearestInt(float inValue)
 
 
 //-------------------------------------------------------------------------------------------------
-Vector2 ClampComponentwise(const Vector2& inValue, const Vector2& minInclusive, const Vector2& maxInclusive)
+Vector2 Clamp(const Vector2& inValue, const Vector2& minInclusive, const Vector2& maxInclusive)
 {
 	Vector2 result;
 	result.x = Clamp(inValue.x, minInclusive.x, maxInclusive.x);
@@ -425,7 +425,7 @@ Vector2 ClampComponentwise(const Vector2& inValue, const Vector2& minInclusive, 
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 ClampComponentwise(const Vector3& inValue, float minInclusive, float maxInclusive)
+Vector3 Clamp(const Vector3& inValue, float minInclusive, float maxInclusive)
 {
 	Vector3 result;
 	result.x = Clamp(inValue.x, minInclusive, maxInclusive);
@@ -441,6 +441,7 @@ float GetFractionInRange(float inValue, float rangeStart, float rangeEnd)
 {
 	float offsetIntoRange = (inValue - rangeStart);
 	float rangeSize = (rangeEnd - rangeStart);
+
 	return (offsetIntoRange / rangeSize);
 }
 
@@ -454,15 +455,11 @@ float RangeMapFloat(float inValue, float inStart, float inEnd, float outStart, f
 		return (outStart + outEnd) * 0.5f;
 	}
 
-	float inRange = inEnd - inStart;
-	float outRange = outEnd - outStart;
+	float fractionIntoInRange = GetFractionInRange(inValue, inStart, inEnd);
+	float outRangeSize = outEnd - outStart;
+	float amountIntoOutRange = fractionIntoInRange * outRangeSize;
 
-	float inRelativeToStart = inValue - inStart;
-
-	float fractionIntoRange = inRelativeToStart / inRange;
-	float outRelativeToStart = fractionIntoRange * outRange;
-
-	return outRelativeToStart + outStart;
+	return amountIntoOutRange + outStart;
 }
 
 
@@ -482,14 +479,14 @@ float GetAngularDisplacement(float startDegrees, float endDegrees)
 	float angularDisp = (endDegrees - startDegrees);
 
 	// Increment/decrement the displacement to represent the shorter turn direction
-	while (angularDisp > 180)
+	while (angularDisp > 180.f)
 	{
-		angularDisp -= 360;
+		angularDisp -= 360.f;
 	}
 
-	while (angularDisp < -180)
+	while (angularDisp < -180.f)
 	{
-		angularDisp += 360;
+		angularDisp += 360.f;
 	}
 
 	return angularDisp;
@@ -509,7 +506,7 @@ float RotateToward(float currentDegrees, float goalDegrees, float maxTurnDegrees
 		return goalDegrees;
 	}
 
-	float directionToTurn = (angularDisplacement / abs(angularDisplacement));
+	float directionToTurn = angularDisplacement > 0.f ? 1.0f : -1.0f;
 	float result = ((directionToTurn * maxTurnDegrees) + currentDegrees);
 
 	return result;
@@ -530,7 +527,6 @@ float DotProduct(const Vector3& a, const Vector3& b)
 }
 
 
-
 //-------------------------------------------------------------------------------------------------
 Vector3 CrossProduct(const Vector3& a, const Vector3& b)
 {
@@ -548,8 +544,7 @@ Vector3 CrossProduct(const Vector3& a, const Vector3& b)
 Vector3 Reflect(const Vector3& incidentVector, const Vector3& normal)
 {
 	Vector3 alongNormal = DotProduct(incidentVector, normal) * normal;
-
-	return incidentVector - 2 * alongNormal;
+	return incidentVector - 2.f * alongNormal;
 }
 
 
@@ -727,7 +722,7 @@ float Interpolate(float start, float end, float fractionTowardEnd)
 //-------------------------------------------------------------------------------------------------
 int Interpolate(int start, int end, float fractionTowardEnd)
 {
-	int range = (end - start);
+	float range = static_cast<float>(end - start);
 	return start + RoundToNearestInt(fractionTowardEnd * range);
 }
 
@@ -738,11 +733,14 @@ unsigned char Interpolate(unsigned char start, unsigned char end, float fraction
 	float range = static_cast<float>(end - start);
 
 	int change = RoundToNearestInt(fractionTowardEnd * range);
+
+	// Do the math as an int to allow clamping overflow to 255
 	int result = static_cast<int>(start) + change;
-	result = ClampInt(result, 0, 255);
+	result = Clamp(result, 0, 255);
 
 	return static_cast<unsigned char>(result);
 }
+
 
 //-------------------------------------------------------------------------------------------------
 const Vector2 Interpolate(const Vector2& start, const Vector2& end, float fractionTowardEnd)
@@ -753,6 +751,7 @@ const Vector2 Interpolate(const Vector2& start, const Vector2& end, float fracti
 	return Vector2(interpolatedX, interpolatedY);
 }
 
+
 //-------------------------------------------------------------------------------------------------
 const Vector3 Interpolate(const Vector3& start, const Vector3& end, float fractionTowardEnd)
 {
@@ -762,6 +761,7 @@ const Vector3 Interpolate(const Vector3& start, const Vector3& end, float fracti
 
 	return Vector3(interpolatedX, interpolatedY, interpolatedZ);
 }
+
 
 //-------------------------------------------------------------------------------------------------
 const IntVector2 Interpolate(const IntVector2& start, const IntVector2& end, float fractionTowardEnd)
@@ -783,30 +783,22 @@ bool SolveQuadratic(Vector2& out_solutions, float a, float b, float c)
 	// (-b +- sqrt(b^2 - 4ac)) / (2a)
 
 	// First determine the inside of the square root - if it is negative, then there are no real solutions
-	float insideSqrt = (b * b) - (4 * a * c);
+	float discriminant = (b * b) - (4 * a * c);
 
-	if (insideSqrt < 0)
+	if (discriminant < 0)
 	{
 		return false;
 	}
 
 	// There is at least one solution
-	float sqrtValue = sqrtf(insideSqrt);
+	float sqrtValue = sqrtf(discriminant);
 
 	float firstSolution = (-b + sqrtValue) / (2 * a);
 	float secondSolution = (-b - sqrtValue) / (2 * a);
 
 	// Order the solutions in order of magnitude
-	if (firstSolution < secondSolution)
-	{
-		out_solutions.x = firstSolution;
-		out_solutions.y = secondSolution;
-	}
-	else
-	{
-		out_solutions.x = secondSolution;
-		out_solutions.y = firstSolution;
-	}
+	out_solutions.x = Min(firstSolution, secondSolution);
+	out_solutions.y = Max(firstSolution, secondSolution);
 
 	return true;
 }
@@ -815,19 +807,16 @@ bool SolveQuadratic(Vector2& out_solutions, float a, float b, float c)
 //-------------------------------------------------------------------------------------------------
 int Abs(int inValue)
 {
-	if (inValue < 0)
-	{
-		inValue *= -1;
-	}
-
-	return inValue;
+	return abs(inValue);
 }
+
 
 //-------------------------------------------------------------------------------------------------
 float Abs(float inValue)
 {
 	return abs(inValue);
 }
+
 
 //-------------------------------------------------------------------------------------------------
 Vector2 Abs(const Vector2& inValue)
@@ -838,6 +827,7 @@ Vector2 Abs(const Vector2& inValue)
 
 	return result;
 }
+
 
 //-------------------------------------------------------------------------------------------------
 Vector3 Abs(const Vector3& inValue)
@@ -850,12 +840,14 @@ Vector3 Abs(const Vector3& inValue)
 	return result;
 }
 
+
 //-------------------------------------------------------------------------------------------------
 bool AreMostlyEqual(float a, float b, float epsilon /*= DEFAULT_EPSILON*/)
 {
 	float diff = b - a;
 	return (abs(diff) <= epsilon);
 }
+
 
 //-------------------------------------------------------------------------------------------------
 bool AreMostlyEqual(const Vector2& a, const Vector2& b, float epsilon /*= DEFAULT_EPSILON*/)
@@ -866,6 +858,7 @@ bool AreMostlyEqual(const Vector2& a, const Vector2& b, float epsilon /*= DEFAUL
 	return mostlyEqual;
 }
 
+
 //-------------------------------------------------------------------------------------------------
 bool AreMostlyEqual(const Vector3& a, const Vector3& b, float epsilon /*= DEFAULT_EPSILON*/)
 {
@@ -874,7 +867,6 @@ bool AreMostlyEqual(const Vector3& a, const Vector3& b, float epsilon /*= DEFAUL
 
 	return mostlyEqual;
 }
-
 
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

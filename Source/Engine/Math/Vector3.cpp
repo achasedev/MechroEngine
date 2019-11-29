@@ -53,6 +53,7 @@ Vector3::Vector3(const Vector3& copyFrom)
 {
 }
 
+
 //-------------------------------------------------------------------------------------------------
 Vector3::Vector3(float initialX, float initialY, float initialZ)
 	: x(initialX)
@@ -61,11 +62,13 @@ Vector3::Vector3(float initialX, float initialY, float initialZ)
 {
 }
 
+
 //-------------------------------------------------------------------------------------------------
 Vector3::Vector3(float value)
 	: x(value), y(value), z(value)
 {
 }
+
 
 //-------------------------------------------------------------------------------------------------
 Vector3::Vector3(int initialX, int initialY, int initialZ)
@@ -75,11 +78,13 @@ Vector3::Vector3(int initialX, int initialY, int initialZ)
 {
 }
 
+
 //-------------------------------------------------------------------------------------------------
 const Vector3 Vector3::operator+(const Vector3& addVector) const
 {
 	return Vector3((x + addVector.x), (y + addVector.y), (z + addVector.z));
 }
+
 
 //-------------------------------------------------------------------------------------------------
 const Vector3 Vector3::operator-(const Vector3& subVector) const
@@ -87,11 +92,13 @@ const Vector3 Vector3::operator-(const Vector3& subVector) const
 	return Vector3((x - subVector.x), (y - subVector.y), (z - subVector.z));
 }
 
+
 //-------------------------------------------------------------------------------------------------
 const Vector3 Vector3::operator*(float uniformScaler) const
 {
 	return Vector3((x * uniformScaler), (y * uniformScaler), (z * uniformScaler));
 }
+
 
 //-------------------------------------------------------------------------------------------------
 const Vector3 Vector3::operator/(float uniformDivisor) const
@@ -99,6 +106,7 @@ const Vector3 Vector3::operator/(float uniformDivisor) const
 	float multScaler = (1.f / uniformDivisor);
 	return Vector3((x * multScaler), (y * multScaler), (z * multScaler));
 }
+
 
 //-------------------------------------------------------------------------------------------------
 void Vector3::operator+=(const Vector3& addVector)
@@ -108,6 +116,7 @@ void Vector3::operator+=(const Vector3& addVector)
 	z += addVector.z;
 }
 
+
 //-------------------------------------------------------------------------------------------------
 void Vector3::operator-=(const Vector3& subVector)
 {
@@ -116,6 +125,7 @@ void Vector3::operator-=(const Vector3& subVector)
 	z -= subVector.z;
 }
 
+
 //-------------------------------------------------------------------------------------------------
 void Vector3::operator*=(const float uniformScaler)
 {
@@ -123,6 +133,7 @@ void Vector3::operator*=(const float uniformScaler)
 	y *= uniformScaler;
 	z *= uniformScaler;
 }
+
 
 //-------------------------------------------------------------------------------------------------
 void Vector3::operator/=(const float uniformDivisor)
@@ -134,6 +145,7 @@ void Vector3::operator/=(const float uniformDivisor)
 	z *= multScaler;
 }
 
+
 //-------------------------------------------------------------------------------------------------
 void Vector3::operator=(const Vector3& copyFrom)
 {
@@ -142,11 +154,13 @@ void Vector3::operator=(const Vector3& copyFrom)
 	z = copyFrom.z;
 }
 
+
 //-------------------------------------------------------------------------------------------------
 const Vector3 operator*(float uniformScaler, const Vector3& vecToScale)
 {
 	return Vector3((vecToScale.x * uniformScaler), (vecToScale.y * uniformScaler), (vecToScale.z * uniformScaler));
 }
+
 
 //-------------------------------------------------------------------------------------------------
 bool Vector3::operator==(const Vector3& compare) const
@@ -154,11 +168,13 @@ bool Vector3::operator==(const Vector3& compare) const
 	return (x == compare.x && y == compare.y && z == compare.z);
 }
 
+
 //-------------------------------------------------------------------------------------------------
 bool Vector3::operator!=(const Vector3& compare) const
 {
 	return (x != compare.x || y != compare.y || z != compare.z);
 }
+
 
 //-------------------------------------------------------------------------------------------------
 float Vector3::GetLength() const
@@ -166,11 +182,13 @@ float Vector3::GetLength() const
 	return sqrtf((x * x) + (y * y) + (z * z));
 }
 
+
 //-------------------------------------------------------------------------------------------------
 float Vector3::GetLengthSquared() const
 {
 	return (x * x) + (y * y) + (z * z);
 }
+
 
 //-------------------------------------------------------------------------------------------------
 float Vector3::Normalize()
@@ -187,6 +205,7 @@ float Vector3::Normalize()
 	return length;
 }
 
+
 //-------------------------------------------------------------------------------------------------
 Vector3 Vector3::GetNormalized() const
 {
@@ -196,11 +215,13 @@ Vector3 Vector3::GetNormalized() const
 	return normalizedForm;
 }
 
+
 //-------------------------------------------------------------------------------------------------
 Vector2 Vector3::XY() const
 {
 	return Vector2(x, y);
 }
+
 
 //-------------------------------------------------------------------------------------------------
 Vector2 Vector3::XZ() const
@@ -208,12 +229,13 @@ Vector2 Vector3::XZ() const
 	return Vector2(x, z);
 }
 
+
 //-------------------------------------------------------------------------------------------------
 Vector3 Vector3::Slerp(const Vector3& start, const Vector3& end, float percent)
 {
 	float dot = DotProduct(start, end);
 
-	dot = ClampFloat(dot, -1.0f, 1.0f);						// Clamp for safety
+	dot = Clamp(dot, -1.0f, 1.0f);							// Clamp for safety
 	float theta = acosf(dot) * percent;						// Angle between start and the result we want
 	Vector3 relative = (end - start * dot).GetNormalized(); // Direction we need to move towards result
 
