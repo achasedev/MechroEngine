@@ -1,16 +1,17 @@
 #pragma once
+#include <string>
 
 class Window
 {
 public:
 
-	Window() {}
-
 	void Initialize();
+
 
 private:
 
 	void* m_windowContext;
+	std::string m_windowTitle;
 
 };
 

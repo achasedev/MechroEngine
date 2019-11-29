@@ -10,34 +10,29 @@ LRESULT CALLBACK WindowsMessageHandlingProcedure(HWND windowHandle, UINT wmMessa
 {
 	switch (wmMessageCode)
 	{
-		// App close requested via "X" button, or right-click "Close Window" on task bar, or "Close" from system menu, or Alt-F4
 	case WM_CLOSE:
 	{
 		g_isQuitting = true;
-		return 0; // "Consumes" this message (tells Windows "okay, we handled it")
+		return 0;
 	}
 
-	// Raw physical keyboard "key-was-just-depressed" event (case-insensitive, not translated)
 	case WM_KEYDOWN:
 	{
 		unsigned char asKey = (unsigned char)wParam;
 		if (asKey == VK_ESCAPE)
 		{
 			g_isQuitting = true;
-			return 0; // "Consumes" this message (tells Windows "okay, we handled it")
+			return 0;
 		}
 		break;
 	}
 
-	// Raw physical keyboard "key-was-just-released" event (case-insensitive, not translated)
 	case WM_KEYUP:
 	{
-		//			unsigned char asKey = (unsigned char) wParam;
 		break;
 	}
 	}
 
-	// Send back to Windows any unhandled/unconsumed messages we want other apps to see (e.g. play/pause in music apps, etc.)
 	return DefWindowProc(windowHandle, wmMessageCode, wParam, lParam);
 }
 
@@ -48,11 +43,11 @@ WNDCLASSEX CreateWindowClassDescription()
 	memset(&wndClassDesc, 0, sizeof(wndClassDesc));
 
 	wndClassDesc.cbSize = sizeof(wndClassDesc);
-	wndClassDesc.style = CS_OWNDC; // Redraw on move, request own Display Context
+	wndClassDesc.style = CS_OWNDC;
 	wndClassDesc.lpfnWndProc = WindowsMessageHandlingProcedure;
 	wndClassDesc.hInstance = GetModuleHandle(NULL);
 	wndClassDesc.hIcon = NULL;
-	wndClassDesc.hCursor = NULL;
+	wndClassDesc.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wndClassDesc.lpszClassName = TEXT("Window Class");
 
 	RegisterClassEx(&wndClassDesc);
@@ -60,6 +55,7 @@ WNDCLASSEX CreateWindowClassDescription()
 	return wndClassDesc;
 }
 
+//-------------------------------------------------------------------------------------------------
 RECT DetermineWindowBounds(float clientAspect, const DWORD windowStyleFlags, const DWORD windowStyleExFlags)
 {
 	RECT desktopRect;
@@ -87,6 +83,7 @@ RECT DetermineWindowBounds(float clientAspect, const DWORD windowStyleFlags, con
 	// Calculate client rect bounds by centering the client area
 	float clientMarginX = 0.5f * (desktopWidth - clientWidth);
 	float clientMarginY = 0.5f * (desktopHeight - clientHeight);
+
 	RECT clientRect;
 	clientRect.left = (int)clientMarginX;
 	clientRect.right = clientRect.left + (int)clientWidth;
@@ -105,13 +102,14 @@ void Window::Initialize()
 {
 	WNDCLASSEX wndClassDesc = CreateWindowClassDescription();
 	
-	const DWORD windowStyleFlags = WS_OVERLAPPEDWINDOW; // | WS_MAXIMIZE;
+	const DWORD windowStyleFlags = WS_OVERLAPPEDWINDOW | WS_MAXIMIZE;
 	const DWORD windowStyleExFlags = WS_EX_APPWINDOW;
 
 	RECT windowRect = DetermineWindowBounds(1.77777f, windowStyleFlags, windowStyleExFlags);
+	memset(&windowRect, 0, sizeof(RECT));
 
 	WCHAR windowTitle[1024];
-	MultiByteToWideChar(GetACP(), 0, "Just a dummy name", -1, windowTitle, sizeof(windowTitle) / sizeof(windowTitle[0]));
+	MultiByteToWideChar(GetACP(), 0, m_windowTitle.c_str(), -1, windowTitle, sizeof(windowTitle) / sizeof(windowTitle[0]));
 	m_windowContext = CreateWindowEx(
 		windowStyleExFlags,
 		wndClassDesc.lpszClassName,
@@ -129,7 +127,4 @@ void Window::Initialize()
 	ShowWindow((HWND)m_windowContext, SW_SHOW);
 	SetForegroundWindow((HWND)m_windowContext);
 	SetFocus((HWND)m_windowContext);
-
-	HCURSOR cursor = LoadCursor(NULL, IDC_ARROW);
-	SetCursor(cursor);
 }

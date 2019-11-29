@@ -1,17 +1,18 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: November 28th, 2019
+/// Date Created: November 29th, 2019
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** INCLUDES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/Vector2.h"
+#include "Engine/Math/Vector3.h"
 
 #include "Engine/Framework/EngineCommon.h"
-#include "Engine/Math/IntVector2.h"
+#include "Engine/Math/MathUtils.h"
 #include <math.h>
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** DEFINES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -27,12 +28,14 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                        *** GLOBALS AND STATICS ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-const Vector2 Vector2::ZERO = Vector2(0.f, 0.f);
-const Vector2 Vector2::ONES = Vector2(1.f, 1.f);
-const Vector2 Vector2::X_AXIS = Vector2(1.0f, 0.f);
-const Vector2 Vector2::Y_AXIS = Vector2(0.f, 1.0f);
-const Vector2 Vector2::MINUS_X_AXIS = Vector2(-1.0f, 0.f);
-const Vector2 Vector2::MINUS_Y_AXIS = Vector2(0.f, -1.0f);
+const Vector3 Vector3::ZERO = Vector3(0.f, 0.f, 0.f);
+const Vector3 Vector3::ONES = Vector3(1.f, 1.f, 1.f);
+const Vector3 Vector3::X_AXIS = Vector3(1.0f, 0.f, 0.f);
+const Vector3 Vector3::Y_AXIS = Vector3(0.f, 1.0f, 0.f);
+const Vector3 Vector3::Z_AXIS = Vector3(0.f, 0.f, 1.f);
+const Vector3 Vector3::MINUS_X_AXIS = Vector3(-1.0f, 0.f, 0.f);
+const Vector3 Vector3::MINUS_Y_AXIS = Vector3(0.f, -1.0f, 0.f);
+const Vector3 Vector3::MINUS_Z_AXIS = Vector3(0.f, 0.f, -1.f);
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                           *** C FUNCTIONS ***
@@ -43,142 +46,134 @@ const Vector2 Vector2::MINUS_Y_AXIS = Vector2(0.f, -1.0f);
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-Vector2::Vector2(const Vector2& copy)
-	: x(copy.x)
-	, y(copy.y)
+Vector3::Vector3(const Vector3& copyFrom)
+	: x(copyFrom.x)
+	, y(copyFrom.y)
+	, z(copyFrom.z)
 {
 }
 
 //-------------------------------------------------------------------------------------------------
-Vector2::Vector2(float initialX, float initialY)
+Vector3::Vector3(float initialX, float initialY, float initialZ)
 	: x(initialX)
 	, y(initialY)
+	, z(initialZ)
 {
-}
-
-
-//-----------------------------------------------------------------------------------------------
-// IntVector2 constructor
-Vector2::Vector2(const IntVector2& copyFrom)
-{
-	x = static_cast<float>(copyFrom.x);
-	y = static_cast<float>(copyFrom.y);
 }
 
 //-------------------------------------------------------------------------------------------------
-Vector2::Vector2(int initialX, int initialY)
+Vector3::Vector3(float value)
+	: x(value), y(value), z(value)
+{
+}
+
+//-------------------------------------------------------------------------------------------------
+Vector3::Vector3(int initialX, int initialY, int initialZ)
 	: x(static_cast<float>(initialX))
 	, y(static_cast<float>(initialY))
+	, z(static_cast<float>(initialZ))
 {
 }
 
 //-------------------------------------------------------------------------------------------------
-Vector2::Vector2(float initialValue)
-	: x(initialValue)
-	, y(initialValue)
+const Vector3 Vector3::operator+(const Vector3& addVector) const
 {
+	return Vector3((x + addVector.x), (y + addVector.y), (z + addVector.z));
 }
 
 //-------------------------------------------------------------------------------------------------
-const Vector2 Vector2::operator + (const Vector2& vecToAdd) const
+const Vector3 Vector3::operator-(const Vector3& subVector) const
 {
-	return Vector2((x + vecToAdd.x), (y + vecToAdd.y));
+	return Vector3((x - subVector.x), (y - subVector.y), (z - subVector.z));
 }
 
 //-------------------------------------------------------------------------------------------------
-const Vector2 Vector2::operator-(const Vector2& vecToSubtract) const
+const Vector3 Vector3::operator*(float uniformScaler) const
 {
-	return Vector2((x - vecToSubtract.x), (y - vecToSubtract.y));
+	return Vector3((x * uniformScaler), (y * uniformScaler), (z * uniformScaler));
 }
 
 //-------------------------------------------------------------------------------------------------
-const Vector2 Vector2::operator*(float uniformScale) const
+const Vector3 Vector3::operator/(float uniformDivisor) const
 {
-	return Vector2((x * uniformScale), (y * uniformScale));
+	float multScaler = (1.f / uniformDivisor);
+	return Vector3((x * multScaler), (y * multScaler), (z * multScaler));
 }
 
 //-------------------------------------------------------------------------------------------------
-const Vector2 Vector2::operator/(float inverseScale) const
+void Vector3::operator+=(const Vector3& addVector)
 {
-	float multScaler = (1.f / inverseScale);
-	return Vector2((x * multScaler), (y * multScaler));
+	x += addVector.x;
+	y += addVector.y;
+	z += addVector.z;
 }
 
 //-------------------------------------------------------------------------------------------------
-void Vector2::operator+=(const Vector2& vecToAdd)
+void Vector3::operator-=(const Vector3& subVector)
 {
-	x += vecToAdd.x;
-	y += vecToAdd.y;
+	x -= subVector.x;
+	y -= subVector.y;
+	z -= subVector.z;
 }
 
 //-------------------------------------------------------------------------------------------------
-void Vector2::operator-=(const Vector2& vecToSubtract)
+void Vector3::operator*=(const float uniformScaler)
 {
-	x -= vecToSubtract.x;
-	y -= vecToSubtract.y;
+	x *= uniformScaler;
+	y *= uniformScaler;
+	z *= uniformScaler;
 }
 
 //-------------------------------------------------------------------------------------------------
-void Vector2::operator*=(const float uniformScale)
-{
-	x *= uniformScale;
-	y *= uniformScale;
-}
-
-//-------------------------------------------------------------------------------------------------
-void Vector2::operator/=(const float uniformDivisor)
+void Vector3::operator/=(const float uniformDivisor)
 {
 	float multScaler = (1.f / uniformDivisor);
 
 	x *= multScaler;
 	y *= multScaler;
+	z *= multScaler;
 }
 
 //-------------------------------------------------------------------------------------------------
-void Vector2::operator=(const Vector2& copyFrom)
+void Vector3::operator=(const Vector3& copyFrom)
 {
 	x = copyFrom.x;
 	y = copyFrom.y;
+	z = copyFrom.z;
 }
 
 //-------------------------------------------------------------------------------------------------
-const Vector2 operator*(float uniformScale, const Vector2& vecToScale)
+const Vector3 operator*(float uniformScaler, const Vector3& vecToScale)
 {
-	return Vector2((vecToScale.x * uniformScale), (vecToScale.y * uniformScale));
+	return Vector3((vecToScale.x * uniformScaler), (vecToScale.y * uniformScaler), (vecToScale.z * uniformScaler));
 }
 
 //-------------------------------------------------------------------------------------------------
-bool Vector2::operator==(const Vector2& compare) const
+bool Vector3::operator==(const Vector3& compare) const
 {
-	if (x == compare.x && y == compare.y) {
-		return true;
-	}
-	return false;
+	return (x == compare.x && y == compare.y && z == compare.z);
 }
 
 //-------------------------------------------------------------------------------------------------
-bool Vector2::operator!=(const Vector2& compare) const
+bool Vector3::operator!=(const Vector3& compare) const
 {
-	if (x != compare.x || y != compare.y) {
-		return true;
-	}
-	return false;
+	return (x != compare.x || y != compare.y || z != compare.z);
 }
 
 //-------------------------------------------------------------------------------------------------
-float Vector2::GetLength() const
+float Vector3::GetLength() const
 {
-	return sqrtf((x * x) + (y * y));
+	return sqrtf((x * x) + (y * y) + (z * z));
 }
 
 //-------------------------------------------------------------------------------------------------
-float Vector2::GetLengthSquared() const
+float Vector3::GetLengthSquared() const
 {
-	return (x * x) + (y * y);
+	return (x * x) + (y * y) + (z * z);
 }
 
 //-------------------------------------------------------------------------------------------------
-float Vector2::Normalize()
+float Vector3::Normalize()
 {
 	float length = GetLength();
 	ASSERT_OR_DIE(length > 0, "Vector2::Normalize() called on a zero vector!");
@@ -187,72 +182,41 @@ float Vector2::Normalize()
 
 	x *= oneOverLength;
 	y *= oneOverLength;
+	z *= oneOverLength;
 
 	return length;
 }
 
 //-------------------------------------------------------------------------------------------------
-Vector2 Vector2::GetNormalized() const
+Vector3 Vector3::GetNormalized() const
 {
-	Vector2 normalizedForm = *this;
+	Vector3 normalizedForm = *this;
 	normalizedForm.Normalize();
-	
+
 	return normalizedForm;
 }
 
 //-------------------------------------------------------------------------------------------------
-float Vector2::GetOrientationDegrees() const
+Vector2 Vector3::XY() const
 {
-	// Ensure we have a valid vector to calculate on
-	ASSERT_OR_DIE((x != 0.f || y != 0.f), Stringf("Error: Vector2::GetOrientationDegrees() called on a zero vector!"));
-	return Atan2Degrees(y, x);
+	return Vector2(x, y);
 }
 
 //-------------------------------------------------------------------------------------------------
-Vector2 Vector2::MakeDirectionAtDegrees(float degrees)
+Vector2 Vector3::XZ() const
 {
-	Vector2 direction;
-
-	direction.x = CosDegrees(degrees);
-	direction.y = SinDegrees(degrees);
-
-	return direction;
+	return Vector2(x, z);
 }
 
 //-------------------------------------------------------------------------------------------------
-float GetDistance(const Vector2& a, const Vector2& b)
+Vector3 Vector3::Slerp(const Vector3& start, const Vector3& end, float percent)
 {
-	return sqrtf(((a.x - b.x) * (a.x - b.x)) + ((a.y - b.y) * (a.y - b.y)));
-}
+	float dot = DotProduct(start, end);
 
-//-------------------------------------------------------------------------------------------------
-float GetDistanceSquared(const Vector2& a, const Vector2& b)
-{
-	return ((a.x - b.x) * (a.x - b.x)) + ((a.y - b.y) * (a.y - b.y));
-}
+	dot = ClampFloat(dot, -1.0f, 1.0f);						// Clamp for safety
+	float theta = acosf(dot) * percent;						// Angle between start and the result we want
+	Vector3 relative = (end - start * dot).GetNormalized(); // Direction we need to move towards result
 
-//-------------------------------------------------------------------------------------------------
-const Vector2 ProjectVector(const Vector2& vectorToProject, const Vector2& projectOnto)
-{
-	// Optimized for efficiency - using distance squared instead of distance
-	float projectOntoMagnitudeSquared = projectOnto.GetLengthSquared();
-
-	float dotProdcut = DotProduct(vectorToProject, projectOnto);
-
-	return (dotProdcut / projectOntoMagnitudeSquared) * projectOnto;
-}
-
-//-------------------------------------------------------------------------------------------------
-const Vector2 Reflect(const Vector2& vectorToReflect, const Vector2& normal)
-{
-	// Ensure normal is normalized
-	Vector2 normalDirection = normal.GetNormalized();
-
-	float magnitudeInNormalDirection = DotProduct(vectorToReflect, normalDirection);
-	Vector2 componentInNormalDirection = magnitudeInNormalDirection * normalDirection;
-
-	// Remove the normal, then add its inverse, essentially removing it twice
-	Vector2 reflectedResult = vectorToReflect - (2.f * componentInNormalDirection);
-
-	return reflectedResult;
+	Vector3 result = start * cosf(theta) + relative * sinf(theta);
+	return result;
 }
