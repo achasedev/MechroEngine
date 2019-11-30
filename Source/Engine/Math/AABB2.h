@@ -8,7 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** INCLUDES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include <string>
+#include "Engine/Math/Vector2.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** DEFINES ***
@@ -25,26 +25,57 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                        *** GLOBALS AND STATICS ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-extern bool g_isQuitting;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** CLASSES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------------------------------
-class Window
+class AABB2
 {
 public:
 
-	void Initialize();
+	AABB2() {}
+	explicit AABB2(float minX, float minY, float maxX, float maxY);
+	explicit AABB2(const Vector2& mins, const Vector2& maxs);
+	explicit AABB2(const Vector2& center, float radiusX, float radiusY);
+	~AABB2() {}
 
-private:
+	void	StretchToIncludePoint(float x, float y);
+	void	StretchToIncludePoint(const Vector2& point);
+	void	AddPaddingToSides(float xPaddingRadius, float yPaddingRadius);
+	void	Translate(const Vector2& translation);
+	void	Translate(float translationX, float TranslationY);
+	void	SetFromText(const char* text);
+	bool	IsPointInside(float x, float y) const;
+	bool	IsPointInside(const Vector2& point) const;
 
-	void* m_windowContext;
-	std::string m_windowTitle;
+	Vector2 GetDimensions() const;
+	Vector2 GetCenter() const;
+	Vector2 GetRandomPointInside() const;
+	Vector2 GetBottomLeft() const;
+	Vector2 GetBottomRight() const;
+	Vector2 GetTopRight() const;
+	Vector2 GetTopLeft() const;
+
+	void operator+=(const Vector2& translation);
+	void operator-=(const Vector2& antiTranslation);
+	AABB2 operator+(const Vector2& translation) const;
+	AABB2 operator-(const Vector2& antiTranslation) const;
+	AABB2 operator*(float scalar) const;
+
+
+public:
+
+	static const AABB2 NEGATIVE_ONE_TO_ONE;
+	static const AABB2 NEGATIVE_HALF_TO_HALF;
+	static const AABB2 ZERO_TO_ONE;
+
+
+public:
+
+	Vector2 mins;
+	Vector2 maxs;
 
 };
-
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                           *** C FUNCTIONS ***

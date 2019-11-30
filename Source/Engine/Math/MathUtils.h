@@ -8,9 +8,10 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** INCLUDES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Math/AABB2.h"
+#include "Engine/Math/IntVector2.h"
 #include "Engine/Math/Vector2.h"
 #include "Engine/Math/Vector3.h"
-#include "Engine/Math/IntVector2.h"
 #include <stdint.h>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -143,6 +144,7 @@ unsigned char		Interpolate(unsigned char start, unsigned char end, float fractio
 const Vector2		Interpolate(const Vector2& start, const Vector2& end, float t);
 const IntVector2	Interpolate(const IntVector2& start, const IntVector2& end, float fractionTowardEnd);
 const Vector3		Interpolate(const Vector3& start, const Vector3& end, float fractionTowardEnd);
+const AABB2			Interpolate(const AABB2& start, const AABB2& end, float fractionTowardEnd);		// Interpolates the mins/maxes of the boxes
 float				GetFractionInRange(float inValue, float rangeStart, float rangeEnd);
 float				RangeMapFloat(float inValue, float inStart, float inEnd, float outStart, float outEnd);
 Vector2				RangeMap(Vector2 inValue, Vector2 inStart, Vector2 inEnd, Vector2 outStart, Vector2 outEnd);
@@ -159,6 +161,9 @@ bool AreMostlyEqual(float a, float b, float epsilon = DEFAULT_EPSILON);
 bool AreMostlyEqual(const Vector2& a, const Vector2& b, float epsilon = DEFAULT_EPSILON);
 bool AreMostlyEqual(const Vector3& a, const Vector3& b, float epsilon = DEFAULT_EPSILON);
 
+//-------------------------------------------------------------------------------------------------
+// Overlapping
+bool DoAABB2sOverlap(const AABB2& boxOne, const AABB2& boxTwo);
 
 //-------------------------------------------------------------------------------------------------
 // Templates

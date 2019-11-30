@@ -773,7 +773,17 @@ const IntVector2 Interpolate(const IntVector2& start, const IntVector2& end, flo
 }
 
 
-//-----------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+const AABB2 Interpolate(const AABB2& start, const AABB2& end, float fractionTowardEnd)
+{
+	Vector2 interpolatedMins = Interpolate(start.mins, end.mins, fractionTowardEnd);
+	Vector2 interpolatedMaxs = Interpolate(start.maxs, end.maxs, fractionTowardEnd);
+
+	return AABB2(interpolatedMins, interpolatedMaxs);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 // Finds the roots of the quadratic function given by the coefficients a, b, and c, and stores them
 // in solutions
 // Returns true if roots were found, false otherwise
