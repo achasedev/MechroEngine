@@ -42,19 +42,18 @@ LRESULT CALLBACK WindowsMessageHandlingProcedure(HWND windowHandle, UINT wmMessa
 	//  Give the custom handlers a chance to run first; 
 	Window* window = Window::GetInstance();
 	if (!window)
-		return 0;
+		return DefWindowProc(windowHandle, wmMessageCode, wParam, lParam);
 
 	const std::vector<WindowsMessageHandler>& handlers = window->GetHandlers();
 
-	bool returnDefaultProc = true;
+	bool msgConsumed = false;
 	for (int i = 0; i < static_cast<int>(handlers.size()); ++i)
 	{
-		// If any return true then do default windows behavior
-		returnDefaultProc = handlers[i](wmMessageCode, wParam, lParam) && returnDefaultProc;
+		bool handlerConsumedMsg = handlers[i](wmMessageCode, wParam, lParam);
+		msgConsumed = msgConsumed || handlerConsumedMsg;
 	}
 	
-
-	if (returnDefaultProc)
+	if (!msgConsumed)
 	{
 		return DefWindowProc(windowHandle, wmMessageCode, wParam, lParam);
 	}
@@ -135,7 +134,7 @@ Window::Window(float aspect, const char* windowTitle)
 {
 	WNDCLASSEX wndClassDesc = CreateWindowClassDescription();
 
-	const DWORD windowStyleFlags = WS_OVERLAPPEDWINDOW | WS_MAXIMIZE;
+	const DWORD windowStyleFlags = WS_OVERLAPPEDWINDOW;
 	const DWORD windowStyleExFlags = WS_EX_APPWINDOW;
 
 	RECT windowRect = DetermineWindowBounds(aspect, windowStyleFlags, windowStyleExFlags);
@@ -143,8 +142,6 @@ Window::Window(float aspect, const char* windowTitle)
 	WCHAR titleBuffer[1024];
 	MultiByteToWideChar(GetACP(), 0, windowTitle, -1, titleBuffer, sizeof(titleBuffer) / sizeof(titleBuffer[0]));
 
-	SetLastError(0);
-	HINSTANCE hInstance = GetModuleHandle(NULL);
 	m_windowContext = CreateWindowEx(
 		windowStyleExFlags,
 		wndClassDesc.lpszClassName,
@@ -159,7 +156,6 @@ Window::Window(float aspect, const char* windowTitle)
 		GetModuleHandle(NULL),
 		NULL);
 
-	DWORD error = GetLastError();
 	ShowWindow((HWND)m_windowContext, SW_SHOW);
 	SetForegroundWindow((HWND)m_windowContext);
 	SetFocus((HWND)m_windowContext);

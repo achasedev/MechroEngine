@@ -147,10 +147,24 @@ bool AABB2::IsPointInside(const Vector2& point) const
 //-------------------------------------------------------------------------------------------------
 Vector2 AABB2::GetDimensions() const
 {
-	float width = (maxs.x - mins.x);
-	float height = (maxs.y - mins.y);
+	float width = GetWidth();
+	float height = GetHeight();
 
 	return Vector2(width, height);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float AABB2::GetWidth() const
+{
+	return (maxs.x - mins.x);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float AABB2::GetHeight() const
+{
+	return (maxs.y - mins.y);
 }
 
 

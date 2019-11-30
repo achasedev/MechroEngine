@@ -20,7 +20,7 @@
 ///                                                              *** TYPES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
-// Returns false to consume the message from windows, true otherwise
+// Returns true when the handler consumes the message
 typedef bool(*WindowsMessageHandler)(unsigned int msg, size_t wparam, size_t lparam);
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
