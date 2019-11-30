@@ -11,7 +11,9 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 #include <windows.h>
+#include "Engine/Framework/EngineCommon.h"
 #include "Engine/Framework/Window.h"
+#include "Engine/Math/MathUtils.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** DEFINES ***
@@ -28,6 +30,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                        *** GLOBALS AND STATICS ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+Window* Window::s_instance = nullptr;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                           *** C FUNCTIONS ***
@@ -36,32 +39,27 @@
 //-------------------------------------------------------------------------------------------------
 LRESULT CALLBACK WindowsMessageHandlingProcedure(HWND windowHandle, UINT wmMessageCode, WPARAM wParam, LPARAM lParam)
 {
-	switch (wmMessageCode)
-	{
-	case WM_CLOSE:
-	{
-		g_isQuitting = true;
+	//  Give the custom handlers a chance to run first; 
+	Window* window = Window::GetInstance();
+	if (!window)
 		return 0;
-	}
 
-	case WM_KEYDOWN:
+	const std::vector<WindowsMessageHandler>& handlers = window->GetHandlers();
+
+	bool returnDefaultProc = true;
+	for (int i = 0; i < static_cast<int>(handlers.size()); ++i)
 	{
-		unsigned char asKey = (unsigned char)wParam;
-		if (asKey == VK_ESCAPE)
-		{
-			g_isQuitting = true;
-			return 0;
-		}
-		break;
+		// If any return true then do default windows behavior
+		returnDefaultProc = handlers[i](wmMessageCode, wParam, lParam) && returnDefaultProc;
 	}
+	
 
-	case WM_KEYUP:
+	if (returnDefaultProc)
 	{
-		break;
+		return DefWindowProc(windowHandle, wmMessageCode, wParam, lParam);
 	}
-	}
-
-	return DefWindowProc(windowHandle, wmMessageCode, wParam, lParam);
+	
+	return 0;
 }
 
 
@@ -133,22 +131,24 @@ RECT DetermineWindowBounds(float clientAspect, const DWORD windowStyleFlags, con
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-void Window::Initialize()
+Window::Window(float aspect, const char* windowTitle)
 {
 	WNDCLASSEX wndClassDesc = CreateWindowClassDescription();
-	
+
 	const DWORD windowStyleFlags = WS_OVERLAPPEDWINDOW | WS_MAXIMIZE;
 	const DWORD windowStyleExFlags = WS_EX_APPWINDOW;
 
-	RECT windowRect = DetermineWindowBounds(1.77777f, windowStyleFlags, windowStyleExFlags);
-	memset(&windowRect, 0, sizeof(RECT));
+	RECT windowRect = DetermineWindowBounds(aspect, windowStyleFlags, windowStyleExFlags);
 
-	WCHAR windowTitle[1024];
-	MultiByteToWideChar(GetACP(), 0, m_windowTitle.c_str(), -1, windowTitle, sizeof(windowTitle) / sizeof(windowTitle[0]));
+	WCHAR titleBuffer[1024];
+	MultiByteToWideChar(GetACP(), 0, windowTitle, -1, titleBuffer, sizeof(titleBuffer) / sizeof(titleBuffer[0]));
+
+	SetLastError(0);
+	HINSTANCE hInstance = GetModuleHandle(NULL);
 	m_windowContext = CreateWindowEx(
 		windowStyleExFlags,
 		wndClassDesc.lpszClassName,
-		windowTitle,
+		titleBuffer,
 		windowStyleFlags,
 		windowRect.left,
 		windowRect.top,
@@ -159,7 +159,92 @@ void Window::Initialize()
 		GetModuleHandle(NULL),
 		NULL);
 
+	DWORD error = GetLastError();
 	ShowWindow((HWND)m_windowContext, SW_SHOW);
 	SetForegroundWindow((HWND)m_windowContext);
 	SetFocus((HWND)m_windowContext);
+
+	// Set members
+	m_pixelBounds.mins.x = static_cast<float>(windowRect.left);
+	m_pixelBounds.maxs.x = static_cast<float>(windowRect.right);
+	m_pixelBounds.mins.y = static_cast<float>(windowRect.top); // Windows' screen coordinates (0,0) is top left
+	m_pixelBounds.maxs.y = static_cast<float>(windowRect.bottom);
+	m_windowTitle = windowTitle;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Window::~Window()
+{
+	m_messageHandlers.clear();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Window::Initialize(float aspect, const char* windowTitle)
+{
+	s_instance = new Window(aspect, windowTitle);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Window::ShutDown()
+{
+	delete s_instance;
+	s_instance = nullptr;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Window::SetWindowPixelBounds(const AABB2& newBounds)
+{
+	SetWindowPos((HWND)m_windowContext,
+		NULL,
+		RoundToNearestInt(newBounds.mins.x),
+		RoundToNearestInt(newBounds.mins.x),
+		RoundToNearestInt(newBounds.mins.x),
+		RoundToNearestInt(newBounds.mins.x),
+		NULL);
+
+	m_pixelBounds = newBounds;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Window::RegisterMessageHandler(WindowsMessageHandler handler)
+{
+	// Check for duplicates
+	bool alreadyExists = false;
+	int cbCount = (int)m_messageHandlers.size();
+
+	for (int i = 0; i < cbCount; ++i)
+	{
+		if (m_messageHandlers[i] == handler)
+		{
+			alreadyExists = true;
+		}
+	}
+
+	ASSERT_RECOVERABLE(!alreadyExists, "Window::RegisterMessageHandler() received duplicate message handler!");
+
+	if (!alreadyExists)
+	{
+		m_messageHandlers.push_back(handler);
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Window::UnregisterMessageHandler(WindowsMessageHandler handler)
+{
+	int cbCount = (int)m_messageHandlers.size();
+
+	for (int i = 0; i < cbCount; ++i)
+	{
+		if (m_messageHandlers[i] == handler)
+		{
+			m_messageHandlers.erase(m_messageHandlers.begin() + i);
+			break;
+		}
+	}
 }

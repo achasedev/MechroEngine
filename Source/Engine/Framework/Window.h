@@ -8,7 +8,9 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** INCLUDES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Math/AABB2.h"
 #include <string>
+#include <vector>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** DEFINES ***
@@ -18,6 +20,9 @@
 ///                                                              *** TYPES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
+// Returns false to consume the message from windows, true otherwise
+typedef bool(*WindowsMessageHandler)(unsigned int msg, size_t wparam, size_t lparam);
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** STRUCTS ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -25,7 +30,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                        *** GLOBALS AND STATICS ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-extern bool g_isQuitting;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** CLASSES ***
@@ -35,14 +39,44 @@ extern bool g_isQuitting;
 class Window
 {
 public:
+	//-----Public Methods-----
 
-	void Initialize();
+	static void	Initialize(float aspect, const char* windowTitle);
+	static void ShutDown();
+	static Window* GetInstance() { return s_instance; }
+
+	void	SetWindowPixelBounds(const AABB2& newBounds);
+	void	RegisterMessageHandler(WindowsMessageHandler handler);
+	void	UnregisterMessageHandler(WindowsMessageHandler handler);
+
+	AABB2	GetPixelBounds() const		{ return m_pixelBounds; }
+	Vector2 GetPixelDimensions() const	{ return m_pixelBounds.GetDimensions(); }
+	int		GetPixelWidth() const		{ return static_cast<int>(m_pixelBounds.GetWidth()); }
+	int		GetPixelHeight() const		{ return static_cast<int>(m_pixelBounds.GetHeight()); }
+
+	const std::vector<WindowsMessageHandler>& GetHandlers() const { return m_messageHandlers; }
+
 
 private:
+	//-----Private Methods-----
 
-	void* m_windowContext;
+	Window(float aspect, const char* windowTitle);
+	~Window();
+	Window(const Window& copy) = delete;
+
+
+private:
+	//-----Private Data-----
+
+	void*		m_windowContext = nullptr;
 	std::string m_windowTitle;
+	AABB2		m_pixelBounds;
 
+	// Handlers for windows messages
+	std::vector<WindowsMessageHandler> m_messageHandlers;
+
+	// Singleton
+	static Window* s_instance;
 };
 
 
