@@ -528,6 +528,13 @@ float DotProduct(const Vector3& a, const Vector3& b)
 
 
 //-------------------------------------------------------------------------------------------------
+float DotProduct(const Vector4& a, const Vector4& b)
+{
+	return ((a.x * b.x) + (a.y * b.y) + (a.z * b.z) + (a.w * b.w));
+}
+
+
+//-------------------------------------------------------------------------------------------------
 Vector3 CrossProduct(const Vector3& a, const Vector3& b)
 {
 	Vector3 result;
@@ -764,6 +771,18 @@ const Vector3 Interpolate(const Vector3& start, const Vector3& end, float fracti
 
 
 //-------------------------------------------------------------------------------------------------
+const Vector4 Interpolate(const Vector4& start, const Vector4& end, float fractionTowardEnd)
+{
+	float interpolatedX = Interpolate(start.x, end.x, fractionTowardEnd);
+	float interpolatedY = Interpolate(start.y, end.y, fractionTowardEnd);
+	float interpolatedZ = Interpolate(start.z, end.z, fractionTowardEnd);
+	float interpolatedW = Interpolate(start.w, end.w, fractionTowardEnd);
+
+	return Vector4(interpolatedX, interpolatedY, interpolatedZ, interpolatedW);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 const IntVector2 Interpolate(const IntVector2& start, const IntVector2& end, float fractionTowardEnd)
 {
 	int interpolatedX = Interpolate(start.x, end.x, fractionTowardEnd);
@@ -780,6 +799,30 @@ const AABB2 Interpolate(const AABB2& start, const AABB2& end, float fractionTowa
 	Vector2 interpolatedMaxs = Interpolate(start.maxs, end.maxs, fractionTowardEnd);
 
 	return AABB2(interpolatedMins, interpolatedMaxs);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Matrix44 Interpolate(const Matrix44& start, const Matrix44& end, float fractionTowardEnd)
+{
+	Vector4 startI = start.GetIVector();
+	Vector4 endI = end.GetIVector();
+
+	Vector4 startJ = start.GetJVector();
+	Vector4 endJ = end.GetJVector();
+
+	Vector4 startK = start.GetKVector();
+	Vector4 endK = end.GetKVector();
+
+	Vector4 startT = start.GetTVector();
+	Vector4 endT = end.GetTVector();
+
+	Vector4 resultI = Interpolate(startI, endI, fractionTowardEnd);
+	Vector4 resultJ = Interpolate(startJ, endJ, fractionTowardEnd);
+	Vector4 resultK = Interpolate(startK, endK, fractionTowardEnd);
+	Vector4 resultT = Interpolate(startT, endT, fractionTowardEnd);
+
+	return Matrix44(resultI, resultJ, resultK, resultT);
 }
 
 

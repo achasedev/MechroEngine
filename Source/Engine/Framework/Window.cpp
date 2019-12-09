@@ -75,7 +75,7 @@ WNDCLASSEX CreateWindowClassDescription()
 	wndClassDesc.hIcon = NULL;
 	wndClassDesc.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wndClassDesc.lpszClassName = TEXT("Window Class");
-
+	//wndClassDesc.hbrBackground = (HBRUSH)COLOW_WINDOW;
 	RegisterClassEx(&wndClassDesc);
 
 	return wndClassDesc;
@@ -83,7 +83,7 @@ WNDCLASSEX CreateWindowClassDescription()
 
 
 //-------------------------------------------------------------------------------------------------
-RECT DetermineWindowBounds(float clientAspect, const DWORD windowStyleFlags, const DWORD windowStyleExFlags)
+void DetermineWindowAndClientBounds(float clientAspect, const DWORD windowStyleFlags, const DWORD windowStyleExFlags, RECT& out_windowRect, RECT& out_clientRect)
 {
 	RECT desktopRect;
 	HWND desktopWindowHandle = GetDesktopWindow();
@@ -111,17 +111,14 @@ RECT DetermineWindowBounds(float clientAspect, const DWORD windowStyleFlags, con
 	float clientMarginX = 0.5f * (desktopWidth - clientWidth);
 	float clientMarginY = 0.5f * (desktopHeight - clientHeight);
 
-	RECT clientRect;
-	clientRect.left = (int)clientMarginX;
-	clientRect.right = clientRect.left + (int)clientWidth;
-	clientRect.top = (int)clientMarginY;
-	clientRect.bottom = clientRect.top + (int)clientHeight;
+	out_clientRect.left = (int)clientMarginX;
+	out_clientRect.right = out_clientRect.left + (int)clientWidth;
+	out_clientRect.top = (int)clientMarginY;
+	out_clientRect.bottom = out_clientRect.top + (int)clientHeight;
 
 	// Calculate the outer dimensions of the physical window, including frame et. al.
-	RECT windowRect = clientRect;
-	AdjustWindowRectEx(&windowRect, windowStyleFlags, FALSE, windowStyleExFlags);
-
-	return windowRect;
+	out_windowRect = out_clientRect;
+	AdjustWindowRectEx(&out_windowRect, windowStyleFlags, FALSE, windowStyleExFlags);
 }
 
 
@@ -137,12 +134,13 @@ Window::Window(float aspect, const char* windowTitle)
 	const DWORD windowStyleFlags = WS_OVERLAPPEDWINDOW;
 	const DWORD windowStyleExFlags = WS_EX_APPWINDOW;
 
-	RECT windowRect = DetermineWindowBounds(aspect, windowStyleFlags, windowStyleExFlags);
+	RECT windowRect, clientRect;
+	DetermineWindowAndClientBounds(aspect, windowStyleFlags, windowStyleExFlags, windowRect, clientRect);
 
 	WCHAR titleBuffer[1024];
 	MultiByteToWideChar(GetACP(), 0, windowTitle, -1, titleBuffer, sizeof(titleBuffer) / sizeof(titleBuffer[0]));
 
-	m_windowContext = CreateWindowEx(
+	m_hwnd = CreateWindowEx(
 		windowStyleExFlags,
 		wndClassDesc.lpszClassName,
 		titleBuffer,
@@ -156,15 +154,21 @@ Window::Window(float aspect, const char* windowTitle)
 		GetModuleHandle(NULL),
 		NULL);
 
-	ShowWindow((HWND)m_windowContext, SW_SHOW);
-	SetForegroundWindow((HWND)m_windowContext);
-	SetFocus((HWND)m_windowContext);
+	ShowWindow((HWND)m_hwnd, SW_SHOW);
+	SetForegroundWindow((HWND)m_hwnd);
+	SetFocus((HWND)m_hwnd);
 
 	// Set members
-	m_pixelBounds.mins.x = static_cast<float>(windowRect.left);
-	m_pixelBounds.maxs.x = static_cast<float>(windowRect.right);
-	m_pixelBounds.mins.y = static_cast<float>(windowRect.top); // Windows' screen coordinates (0,0) is top left
-	m_pixelBounds.maxs.y = static_cast<float>(windowRect.bottom);
+	m_windowPixelBounds.mins.x = static_cast<float>(windowRect.left);
+	m_windowPixelBounds.maxs.x = static_cast<float>(windowRect.right);
+	m_windowPixelBounds.mins.y = static_cast<float>(windowRect.top); // Windows' screen coordinates (0,0) is top left
+	m_windowPixelBounds.maxs.y = static_cast<float>(windowRect.bottom);
+
+	m_clientPixelBounds.mins.x = static_cast<float>(clientRect.left);
+	m_clientPixelBounds.maxs.x = static_cast<float>(clientRect.right);
+	m_clientPixelBounds.mins.y = static_cast<float>(clientRect.top);
+	m_clientPixelBounds.maxs.y = static_cast<float>(clientRect.bottom);
+
 	m_windowTitle = windowTitle;
 }
 
@@ -194,7 +198,7 @@ void Window::ShutDown()
 //-------------------------------------------------------------------------------------------------
 void Window::SetWindowPixelBounds(const AABB2& newBounds)
 {
-	SetWindowPos((HWND)m_windowContext,
+	SetWindowPos((HWND)m_hwnd,
 		NULL,
 		RoundToNearestInt(newBounds.mins.x),
 		RoundToNearestInt(newBounds.mins.x),
@@ -202,7 +206,7 @@ void Window::SetWindowPixelBounds(const AABB2& newBounds)
 		RoundToNearestInt(newBounds.mins.x),
 		NULL);
 
-	m_pixelBounds = newBounds;
+	m_windowPixelBounds = newBounds;
 }
 
 

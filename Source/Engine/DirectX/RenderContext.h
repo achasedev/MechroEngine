@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: November 29th, 2019
+/// Date Created: December 8th, 2019
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,18 +8,20 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** INCLUDES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Utility/Assert.h"
-#include "Engine/Utility/StringUtils.h"
+#include "Engine/DirectX/DX11Common.h"
+#include <string>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** DEFINES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#define UNUSED(x) (void)(x);
-#define SAFE_DELETE_POINTER(p)  if (p != nullptr) { delete p; p = nullptr; }
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                              *** TYPES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class Shader;
+class Texture2D;
+class Camera;
+class ColorTargetView;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** STRUCTS ***
@@ -32,6 +34,56 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** CLASSES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------
+class RenderContext
+{
+public:
+	//-----Public Methods-----
+
+	static void Initialize();
+	static void Shutdown();
+	
+	static RenderContext* GetInstance() { return s_renderContext; }
+	static ID3D11Device* GetDxDevice() { return s_renderContext->m_device; }
+
+	void BeginFrame();
+	void EndFrame();
+
+	void BeginCamera();
+	void EndCamera();
+
+	void ClearColorTargets();
+
+	void BindShader(Shader* shader);
+
+	void Draw(unsigned int vertexCount, unsigned int byteOffset = 0);
+
+	Texture2D* CreateOrGetTexture(const std::string& name);
+	Shader* CreateOrGetShader(const std::string& name);
+	
+
+private:
+	//-----Private Methods-----
+
+	RenderContext() {}
+	~RenderContext();
+	RenderContext(const RenderContext& copy) = delete;
+
+
+private:
+	//-----Private Data-----
+
+	ID3D11Device* m_device = nullptr;
+	ID3D11DeviceContext* m_context = nullptr;
+	IDXGISwapChain* m_swapChain = nullptr;
+
+	ColorTargetView* m_frameBackbufferRtv = nullptr;
+	Camera* m_currentCamera = nullptr;
+
+	static RenderContext* s_renderContext;
+
+};
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                           *** C FUNCTIONS ***

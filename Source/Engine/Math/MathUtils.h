@@ -10,8 +10,10 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Math/AABB2.h"
 #include "Engine/Math/IntVector2.h"
+#include "Engine/Math/Matrix44.h"
 #include "Engine/Math/Vector2.h"
 #include "Engine/Math/Vector3.h"
+#include "Engine/Math/Vector4.h"
 #include <stdint.h>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -109,6 +111,7 @@ Vector3 Clamp(const Vector3& inValue, float minInclusive, float maxInclusive);
 // Vector utilities
 float	DotProduct(const Vector2& a, const Vector2& b);
 float	DotProduct(const Vector3& a, const Vector3& b);
+float	DotProduct(const Vector4& a, const Vector4& b);
 Vector3 CrossProduct(const Vector3& a, const Vector3& b);
 Vector3 Reflect(const Vector3& incidentVector, const Vector3& normal);
 bool	Refract(const Vector3& incidentVector, const Vector3& normal, float niOverNt, Vector3& out_refractedVector); // Returns true if the given vector will refract across the surface, false otherwise
@@ -141,10 +144,13 @@ float	SmoothStep3(float t);		// 3nd-degree smooth start/stop (a.k.a "smoothstep"
 float				Interpolate(float start, float end, float fractionTowardEnd);
 int					Interpolate(int start, int end, float fractionTowardEnd);
 unsigned char		Interpolate(unsigned char start, unsigned char end, float fractionTowardEnd);
-const Vector2		Interpolate(const Vector2& start, const Vector2& end, float t);
+const Vector2		Interpolate(const Vector2& start, const Vector2& end, float fractionTowardEnd);
+const Vector3		Interpolate(const Vector3& start, const Vector3& end, float fractionTowardEnd);
+const Vector4		Interpolate(const Vector4& start, const Vector4& end, float fractionTowardEnd);
 const IntVector2	Interpolate(const IntVector2& start, const IntVector2& end, float fractionTowardEnd);
 const Vector3		Interpolate(const Vector3& start, const Vector3& end, float fractionTowardEnd);
 const AABB2			Interpolate(const AABB2& start, const AABB2& end, float fractionTowardEnd);		// Interpolates the mins/maxes of the boxes
+const Matrix44		Interpolate(const Matrix44& start, const Matrix44& end, float fractionTowardEnd);
 float				GetFractionInRange(float inValue, float rangeStart, float rangeEnd);
 float				RangeMapFloat(float inValue, float inStart, float inEnd, float outStart, float outEnd);
 Vector2				RangeMap(Vector2 inValue, Vector2 inStart, Vector2 inEnd, Vector2 outStart, Vector2 outEnd);

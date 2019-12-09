@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: November 29th, 2019
+/// Date Created: November 30th, 2019
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,14 +8,11 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** INCLUDES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Utility/Assert.h"
-#include "Engine/Utility/StringUtils.h"
+#include <string>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** DEFINES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#define UNUSED(x) (void)(x);
-#define SAFE_DELETE_POINTER(p)  if (p != nullptr) { delete p; p = nullptr; }
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                              *** TYPES ***
@@ -33,6 +30,52 @@
 ///                                                             *** CLASSES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
+//-------------------------------------------------------------------------------------------------
+class File
+{
+public:
+	//-----Public Methods-----
+
+	File() {}
+	~File();
+
+	bool Open(const char* filepath, const char* flags);
+	bool LoadFileToMemory();
+	bool Close();
+	void Write(const char* buffer, size_t length);
+	void Flush();
+
+	bool			IsOpened() const { return m_filePointer != nullptr; }
+	size_t			GetSize() const { return m_size; }
+	const char*		GetData() const { return m_data; }
+	std::string		GetFilePathOpened() const { return m_filePathOpened; }
+	bool			IsAtEndOfFile() const { return m_isAtEndOfFile; }
+	unsigned int	GetNextLine(std::string& out_string);
+	void			ResetMemoryReadHead();
+
+
+
+private:
+	//-----Private Data-----
+
+	void*		m_filePointer = nullptr;
+	std::string m_filePathOpened;
+	size_t		m_size = 0;
+	const char* m_data = nullptr;
+
+	// For parsing file contents loaded into memory
+	unsigned int	m_offset = 0;
+	bool			m_isAtEndOfFile = false;
+	unsigned int	m_lineNumber = 0;
+
+};
+
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                           *** C FUNCTIONS ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+std::string	GetWorkingDirectory();
+std::string	GetFullFilePath(const std::string& localFilePath);
+void*		FileReadToNewBuffer(char const *filename, size_t& out_size);
+bool		FileWriteFromBuffer(char const *filename, char const* buffer, int bufferSize);
