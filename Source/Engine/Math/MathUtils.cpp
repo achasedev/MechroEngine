@@ -803,7 +803,7 @@ const AABB2 Interpolate(const AABB2& start, const AABB2& end, float fractionTowa
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44 Interpolate(const Matrix44& start, const Matrix44& end, float fractionTowardEnd)
+const Matrix44 Interpolate(const Matrix44& start, const Matrix44& end, float fractionTowardEnd)
 {
 	Vector4 startI = start.GetIVector();
 	Vector4 endI = end.GetIVector();

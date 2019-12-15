@@ -8,7 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** INCLUDES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/Vector2.h"
+#include "Engine/Math/IntVector2.h"
 #include "Engine/DirectX/DX11Common.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -39,11 +39,12 @@ public:
 
 	ColorTargetView();
 	~ColorTargetView();
-
-	float GetWidth() const { return m_dimensions.x; }
-	float GetHeight() const { return m_dimensions.y; }
-
+	
 	void InitFromTexture(ID3D11Texture2D* texture);
+
+	int GetWidth() const { return m_dimensions.x; }
+	int GetHeight() const { return m_dimensions.y; }
+	ID3D11RenderTargetView* GetDX11RenderTargetView() const { return m_renderTargetView; }
 
 
 private:

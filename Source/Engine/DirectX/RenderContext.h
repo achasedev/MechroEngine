@@ -44,6 +44,9 @@ public:
 	static void Initialize();
 	static void Shutdown();
 	
+	// TEMP
+	void InitPipeline();
+
 	static RenderContext* GetInstance() { return s_renderContext; }
 	static ID3D11Device* GetDxDevice() { return s_renderContext->m_device; }
 
@@ -53,7 +56,7 @@ public:
 	void BeginCamera();
 	void EndCamera();
 
-	void ClearColorTargets();
+	void ClearScreen();
 
 	void BindShader(Shader* shader);
 
@@ -66,7 +69,7 @@ public:
 private:
 	//-----Private Methods-----
 
-	RenderContext() {}
+	RenderContext();
 	~RenderContext();
 	RenderContext(const RenderContext& copy) = delete;
 
