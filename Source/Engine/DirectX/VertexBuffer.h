@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: December 8th, 2019
+/// Date Created: December 16th, 2019
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,9 +8,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** INCLUDES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-//#include "Engine/DirectX/DX11Common.h"
-#include "Engine/Framework/EngineCommon.h"
-#include <string>
+#include "Engine/DirectX/RenderBuffer.h"
+#include "Engine/DirectX/Vertex.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** DEFINES ***
@@ -19,14 +18,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                              *** TYPES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Camera;
-class ColorTargetView;
-class Shader;
-class Texture2D;
-class UniformBuffer;
-struct ID3D11Device;
-struct ID3D11DeviceContext;
-struct IDXGISwapChain;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** STRUCTS ***
@@ -41,57 +32,22 @@ struct IDXGISwapChain;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class RenderContext
+class VertexBuffer : public RenderBuffer
 {
 public:
 	//-----Public Methods-----
 
-	static void Initialize();
-	static void Shutdown();
-	
-	// TEMP
-	void InitPipeline();
+	VertexBuffer() {}
+	~VertexBuffer() {}
 
-	static RenderContext* GetInstance() { return s_renderContext; }
-	static ID3D11Device* GetDxDevice() { return s_renderContext->m_device; }
-	static ID3D11DeviceContext* GetDxContext() { return s_renderContext->m_context; }
-
-	void BeginFrame();
-	void EndFrame();
-
-	void BeginCamera(Camera* camera);
-	void EndCamera();
-
-	void ClearScreen();
-
-	void BindUniformBuffer(uint slot, UniformBuffer* ubo);
-	void BindShader(Shader* shader);
-
-	void Draw(unsigned int vertexCount, unsigned int byteOffset = 0);
-
-	Texture2D* CreateOrGetTexture(const std::string& name);
-	Shader* CreateOrGetShader(const std::string& name);
-	
-
-private:
-	//-----Private Methods-----
-
-	RenderContext();
-	~RenderContext();
-	RenderContext(const RenderContext& copy) = delete;
+	bool CopyToGpu(const VertexPC* vertices, const uint vertexCount);
 
 
 private:
 	//-----Private Data-----
 
-	ID3D11Device* m_device = nullptr;
-	ID3D11DeviceContext* m_context = nullptr;
-	IDXGISwapChain* m_swapChain = nullptr;
-
-	ColorTargetView* m_frameBackbufferRtv = nullptr;
-	Camera* m_currentCamera = nullptr;
-
-	static RenderContext* s_renderContext;
+	uint m_vertexCount = 0;
+	// const VertexLayout* m_layout = nullptr;
 
 };
 

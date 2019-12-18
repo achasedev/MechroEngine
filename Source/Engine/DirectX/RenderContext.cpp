@@ -7,11 +7,11 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** INCLUDES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/DirectX/Camera.h"
 #include "Engine/DirectX/ColorTargetView.h"
 #include "Engine/DirectX/DX11Common.h"
 #include "Engine/DirectX/RenderContext.h"
 #include "Engine/DirectX/Vertex.h"
-#include "Engine/Framework/EngineCommon.h"
 #include "Engine/Framework/File.h"
 #include "Engine/Framework/Window.h"
 #include "Engine/Math/MathUtils.h"
@@ -23,6 +23,13 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                              *** TYPES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------
+enum UniformSlot
+{
+	UNIFORM_SLOT_FRAME = 1,
+	UNIFORM_SLOT_CAMERA = 2,
+};
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** STRUCTS ***
@@ -94,6 +101,42 @@ void RenderContext::EndFrame()
 
 
 //-------------------------------------------------------------------------------------------------
+void RenderContext::BeginCamera(Camera* camera)
+{
+	m_currentCamera = camera;
+
+	// Render to the camera's target
+	ColorTargetView* view = camera->GetColorTarget();
+	ID3D11RenderTargetView* rtv = view->GetDX11RenderTargetView();
+
+	m_context->OMSetRenderTargets(1, &rtv, nullptr);
+
+	// TODO: Move this to camera?
+	D3D11_VIEWPORT viewport;
+	memset(&viewport, 0, sizeof(viewport));
+	viewport.TopLeftX = 0U;
+	viewport.TopLeftY = 0U;
+	viewport.Width = (FLOAT)view->GetWidth();
+	viewport.Height = (FLOAT)view->GetHeight();
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
+	m_context->RSSetViewports(1, &viewport);
+
+	// Uniform Buffer
+	camera->UpdateUBO();
+	BindUniformBuffer(UNIFORM_SLOT_CAMERA, camera->GetUniformBuffer());
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RenderContext::EndCamera()
+{
+	m_context->OMSetRenderTargets(0, nullptr, nullptr);
+	m_currentCamera = nullptr;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void RenderContext::ClearScreen()
 {
 	// clear the back buffer to a deep blue
@@ -105,6 +148,13 @@ void RenderContext::ClearScreen()
 	m_context->ClearRenderTargetView(m_frameBackbufferRtv->GetDX11RenderTargetView(), color);
 }
 
+//-------------------------------------------------------------------------------------------------
+void RenderContext::BindUniformBuffer(uint slot, UniformBuffer* ubo)
+{
+	UNUSED(slot);
+	UNUSED(ubo);
+	UNIMPLEMENTED();
+}
 
 //-------------------------------------------------------------------------------------------------
 void RenderContext::Draw(unsigned int vertexCount, unsigned int byteOffset /*= 0*/)

@@ -160,9 +160,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DirectX\Camera.cpp" />
     <ClCompile Include="DirectX\ColorTargetView.cpp" />
     <ClCompile Include="DirectX\DX11Common.cpp" />
+    <ClCompile Include="DirectX\RenderBuffer.cpp" />
     <ClCompile Include="DirectX\RenderContext.cpp" />
+    <ClCompile Include="DirectX\UniformBuffer.cpp" />
+    <ClCompile Include="DirectX\VertexBuffer.cpp" />
     <ClCompile Include="Framework\File.cpp" />
     <ClCompile Include="Framework\Window.cpp" />
     <ClCompile Include="Math\AABB2.cpp" />
@@ -178,9 +182,13 @@
     <ClCompile Include="Utility\StringUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DirectX\Camera.h" />
     <ClInclude Include="DirectX\ColorTargetView.h" />
     <ClInclude Include="DirectX\DX11Common.h" />
+    <ClInclude Include="DirectX\RenderBuffer.h" />
+    <ClInclude Include="DirectX\UniformBuffer.h" />
     <ClInclude Include="DirectX\Vertex.h" />
+    <ClInclude Include="DirectX\VertexBuffer.h" />
     <ClInclude Include="Math\Matrix44.h" />
     <ClInclude Include="DirectX\RenderContext.h" />
     <ClInclude Include="Framework\EngineCommon.h" />
