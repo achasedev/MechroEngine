@@ -40,7 +40,7 @@ public:
 	ColorTargetView();
 	~ColorTargetView();
 	
-	void InitFromTexture(ID3D11Texture2D* texture);
+	void InitForTexture(ID3D11Texture2D* texture);
 
 	int GetWidth() const { return m_dimensions.x; }
 	int GetHeight() const { return m_dimensions.y; }

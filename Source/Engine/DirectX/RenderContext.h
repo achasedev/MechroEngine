@@ -52,9 +52,7 @@ public:
 	// TEMP
 	void InitPipeline();
 
-	static RenderContext* GetInstance() { return s_renderContext; }
-	static ID3D11Device* GetDxDevice() { return s_renderContext->m_device; }
-	static ID3D11DeviceContext* GetDxContext() { return s_renderContext->m_context; }
+	static RenderContext* GetInstance();
 
 	void BeginFrame();
 	void EndFrame();
@@ -71,7 +69,10 @@ public:
 
 	Texture2D* CreateOrGetTexture(const std::string& name);
 	Shader* CreateOrGetShader(const std::string& name);
-	
+	ID3D11Device* GetDxDevice();
+	ID3D11DeviceContext* GetDxContext();
+	IDXGISwapChain* GetDxSwapChain();
+
 
 private:
 	//-----Private Methods-----

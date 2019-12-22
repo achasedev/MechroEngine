@@ -8,6 +8,8 @@
 ///                                                             *** INCLUDES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/DirectX/Camera.h"
+#include "Engine/DirectX/ColorTargetView.h"
+#include "Engine/DirectX/RenderContext.h"
 #include "Engine/DirectX/UniformBuffer.h"
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Framework/Window.h"
@@ -46,6 +48,20 @@ struct CameraBuffer
 //-------------------------------------------------------------------------------------------------
 Camera::Camera()
 {
+	m_colorTarget = new ColorTargetView();
+
+	// Set the target to the backbuffer (for now)
+	RenderContext* renderContext = RenderContext::GetInstance();
+	IDXGISwapChain* swapChain = renderContext->GetDxSwapChain();
+
+	ID3D11Texture2D* backbuffer = nullptr;
+	swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backbuffer);
+
+	// Store it off
+	m_colorTarget->InitForTexture(backbuffer);
+
+	// Release the local reference to the backbuffer
+	DX_SAFE_RELEASE(backbuffer);
 }
 
 
@@ -53,6 +69,7 @@ Camera::Camera()
 Camera::~Camera()
 {
 	SAFE_DELETE_POINTER(m_cameraUBO);
+	SAFE_DELETE_POINTER(m_colorTarget);
 }
 
 

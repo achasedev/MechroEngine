@@ -78,11 +78,7 @@ void RenderContext::BeginFrame()
 	m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backbuffer);
 
 	// Store it off
-	m_frameBackbufferRtv->InitFromTexture(backbuffer);
-
-	// TEMP - Move to BeginCamera()
-	ID3D11RenderTargetView* tempRTV = m_frameBackbufferRtv->GetDX11RenderTargetView();
-	m_context->OMSetRenderTargets(1, &tempRTV, nullptr);
+	m_frameBackbufferRtv->InitForTexture(backbuffer);
 
 	// Release the local reference to the backbuffer
 	DX_SAFE_RELEASE(backbuffer);
@@ -151,9 +147,9 @@ void RenderContext::ClearScreen()
 //-------------------------------------------------------------------------------------------------
 void RenderContext::BindUniformBuffer(uint slot, UniformBuffer* ubo)
 {
-	UNUSED(slot);
-	UNUSED(ubo);
-	UNIMPLEMENTED();
+	ID3D11Buffer *buffer = (ubo != nullptr) ? ubo->GetBufferHandle() : nullptr;
+	m_context->VSSetConstantBuffers(slot, 1U, &buffer);
+	m_context->PSSetConstantBuffers(slot, 1U, &buffer);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -317,4 +313,33 @@ void RenderContext::InitPipeline()
 	m_context->IASetVertexBuffers(0, 1, &gVertexBuffer, &stride, &offset);
 
 	m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+RenderContext* RenderContext::GetInstance()
+{
+	ASSERT_OR_DIE(s_renderContext != nullptr, "RenderContext not created yet!");
+	return s_renderContext;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+ID3D11Device* RenderContext::GetDxDevice()
+{
+	return m_device;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+ID3D11DeviceContext* RenderContext::GetDxContext()
+{
+	return m_context;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+IDXGISwapChain* RenderContext::GetDxSwapChain()
+{
+	return m_swapChain;
 }
