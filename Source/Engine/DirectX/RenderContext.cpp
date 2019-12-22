@@ -12,6 +12,7 @@
 #include "Engine/DirectX/DX11Common.h"
 #include "Engine/DirectX/RenderContext.h"
 #include "Engine/DirectX/Vertex.h"
+#include "Engine/DirectX/UniformBuffer.h"
 #include "Engine/Framework/File.h"
 #include "Engine/Framework/Window.h"
 #include "Engine/Math/MathUtils.h"
