@@ -65,8 +65,8 @@ protected:
 	//-----Protected Methods-----
 
 	void Reset();
-	bool CreateOnGpu(const void* data, size_t byteSize, size_t elementSize, RenderBufferUsageBitFlags bufferUsage, GpuMemoryUsage memoryUsage);
-	bool CopyToGpu(const void* data, size_t byteSize);
+	bool CreateOnGPU(const void* data, size_t byteSize, size_t elementSize, RenderBufferUsageBitFlags bufferUsage, GpuMemoryUsage memoryUsage);
+	bool CopyToGPU(const void* data, size_t byteSize);
 
 	bool IsStatic() const { return m_memoryUsage == GPU_MEMORY_USAGE_STATIC; }
 	bool IsDynamic() const { return m_memoryUsage == GPU_MEMORY_USAGE_DYNAMIC; }

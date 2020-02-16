@@ -35,17 +35,17 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-bool UniformBuffer::CopyToGpu(const void* data, size_t byteSize)
+bool UniformBuffer::CopyToGPU(const void* data, size_t byteSize)
 {
 	// Create the buffer if not created yet
 	if (byteSize > GetBufferSize() || IsStatic())
 	{
-		bool result = CreateOnGpu(data, byteSize, byteSize, RENDER_BUFFER_USAGE_UNIFORMS_BIT, GPU_MEMORY_USAGE_DYNAMIC);
+		bool result = CreateOnGPU(data, byteSize, byteSize, RENDER_BUFFER_USAGE_UNIFORMS_BIT, GPU_MEMORY_USAGE_DYNAMIC);
 		return result;
 	}
 
 	// Sanity check
 	ASSERT_OR_DIE(IsDynamic(), "UniformBuffer not dynamic!");
 
-	return RenderBuffer::CopyToGpu(data, byteSize);
+	return RenderBuffer::CopyToGPU(data, byteSize);
 }

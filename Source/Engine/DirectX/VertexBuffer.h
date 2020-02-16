@@ -40,7 +40,26 @@ public:
 	VertexBuffer() {}
 	~VertexBuffer() {}
 
-	bool CopyToGpu(const VertexPC* vertices, const uint vertexCount);
+	template <typename VERT_TYPE>
+	bool CopyToGPU(const VERT_TYPE* vertices, const uint vertexCount)
+	{
+		size_t sizeNeeded = sizeof(VERT_TYPE) * vertexCount;
+
+		bool succeeded = false;
+		if (sizeNeeded > GetBufferSize() || IsStatic())
+		{
+			succeeded = CreateOnGPU(vertices, sizeNeeded, sizeof(VERT_TYPE), RENDER_BUFFER_USAGE_VERTEX_STREAM_BIT, GPU_MEMORY_USAGE_DYNAMIC);
+		}
+		else
+		{
+			ASSERT_OR_DIE(IsDynamic(), "VertexBuffer not dynamic!");
+			succeeded = RenderBuffer::CopyToGPU(vertices, sizeNeeded);
+		}
+
+		m_vertexCount = (succeeded ? vertexCount : 0U);
+
+		return succeeded;
+	}
 
 
 private:

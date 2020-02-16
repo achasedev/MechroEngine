@@ -95,7 +95,7 @@ void RenderBuffer::Reset()
 
 
 //-------------------------------------------------------------------------------------------------
-bool RenderBuffer::CreateOnGpu(const void* data, size_t bufferSizeBytes, size_t elementSize, RenderBufferUsageBitFlags bufferUsageFlags, GpuMemoryUsage memoryUsage)
+bool RenderBuffer::CreateOnGPU(const void* data, size_t bufferSizeBytes, size_t elementSize, RenderBufferUsageBitFlags bufferUsageFlags, GpuMemoryUsage memoryUsage)
 {
 	Reset();
 		
@@ -156,7 +156,7 @@ bool RenderBuffer::CreateOnGpu(const void* data, size_t bufferSizeBytes, size_t 
 
 
 //-------------------------------------------------------------------------------------------------
-bool RenderBuffer::CopyToGpu(const void* data, size_t byteSize)
+bool RenderBuffer::CopyToGPU(const void* data, size_t byteSize)
 {
 	ASSERT_OR_DIE(m_bufferHandle != nullptr, "RenderBuffer not created on GPU!");
 	ASSERT_OR_DIE(m_memoryUsage != GPU_MEMORY_USAGE_STATIC, "CopyToGpu called on a static buffer!");

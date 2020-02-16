@@ -34,19 +34,19 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-bool IndexBuffer::CopyToGpu(const uint* indices, const uint indexCount)
+bool IndexBuffer::CopyToGPU(const uint* indices, const uint indexCount)
 {
 	size_t sizeNeeded = sizeof(uint) * indexCount;
 
 	bool succeeded = false;
 	if (sizeNeeded > GetBufferSize() || IsStatic())
 	{
-		succeeded = CreateOnGpu(indices, sizeNeeded, sizeof(uint), RENDER_BUFFER_USAGE_INDEX_STREAM_BIT, GPU_MEMORY_USAGE_DYNAMIC);
+		succeeded = CreateOnGPU(indices, sizeNeeded, sizeof(uint), RENDER_BUFFER_USAGE_INDEX_STREAM_BIT, GPU_MEMORY_USAGE_DYNAMIC);
 	}
 	else
 	{
 		ASSERT_OR_DIE(IsDynamic(), "VertexBuffer not dynamic!");
-		succeeded = RenderBuffer::CopyToGpu(indices, sizeNeeded);
+		succeeded = RenderBuffer::CopyToGPU(indices, sizeNeeded);
 	}
 
 	m_indexCount = (succeeded ? indexCount : 0U);

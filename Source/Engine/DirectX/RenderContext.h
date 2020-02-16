@@ -65,10 +65,10 @@ public:
 	void BindUniformBuffer(uint slot, UniformBuffer* ubo);
 	void BindShader(Shader* shader);
 
-	void Draw(unsigned int vertexCount, unsigned int byteOffset = 0);
+	void DrawMesh(Mesh* mesh, Shader* shader);
 
-	Texture2D* CreateOrGetTexture(const std::string& name);
-	Shader* CreateOrGetShader(const std::string& name);
+	Texture2D*	CreateOrGetTexture(const std::string& name);
+	Shader*		CreateOrGetShader(const std::string& name);
 	ID3D11Device* GetDxDevice();
 	ID3D11DeviceContext* GetDxContext();
 	IDXGISwapChain* GetDxSwapChain();

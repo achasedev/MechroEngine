@@ -96,5 +96,5 @@ void Camera::UpdateUBO()
 	CameraBufferData cameraData;
 	cameraData.m_projectionMatrix = m_projectionMatrix;
 
-	m_cameraUBO->CopyToGpu(&cameraData, sizeof(cameraData));
+	m_cameraUBO->CopyToGPU(&cameraData, sizeof(cameraData));
 }

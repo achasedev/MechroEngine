@@ -32,24 +32,3 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** CLASSES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------------------------------
-bool VertexBuffer::CopyToGpu(const VertexPC* vertices, const uint vertexCount)
-{
-	size_t sizeNeeded = sizeof(VertexPC) * vertexCount;
-
-	bool succeeded = false;
-	if (sizeNeeded > GetBufferSize() || IsStatic())
-	{
-		succeeded = CreateOnGpu(vertices, sizeNeeded, sizeof(VertexPC), RENDER_BUFFER_USAGE_VERTEX_STREAM_BIT, GPU_MEMORY_USAGE_DYNAMIC);
-	}
-	else
-	{
-		ASSERT_OR_DIE(IsDynamic(), "VertexBuffer not dynamic!");
-		succeeded = RenderBuffer::CopyToGpu(vertices, sizeNeeded);
-	}
-
-	m_vertexCount = (succeeded ? vertexCount : 0U);
-
-	return succeeded;
-}

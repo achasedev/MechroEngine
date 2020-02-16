@@ -39,7 +39,7 @@ public:
 	UniformBuffer() {}
 	~UniformBuffer() {}
 
-	bool CopyToGpu(const void* data, size_t byteSize);
+	bool CopyToGPU(const void* data, size_t byteSize);
 
 };
 
