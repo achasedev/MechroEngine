@@ -27,10 +27,9 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-struct CameraBuffer
+struct CameraBufferData
 {
-	Vector2 m_orthoMins;
-	Vector2 m_orthoMaxs;
+	Matrix44 m_projectionMatrix;
 };
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -94,9 +93,8 @@ void Camera::UpdateUBO()
 		m_cameraUBO = new UniformBuffer();
 	}
 
-	CameraBuffer cameraData;
-	cameraData.m_orthoMins = m_orthoBounds.mins;
-	cameraData.m_orthoMaxs = m_orthoBounds.maxs;
+	CameraBufferData cameraData;
+	cameraData.m_projectionMatrix = m_projectionMatrix;
 
 	m_cameraUBO->CopyToGpu(&cameraData, sizeof(cameraData));
 }
