@@ -35,12 +35,18 @@ class Color
 public:
 	//-----Public Methods-----
 
+	Color();
 	Color(float red, float green, float blue, float alpha);
 	Color(const Color& copy);
 
 
 public:
 	//-----Public Data-----
+
+	static const Color WHITE;
+
+
+public:
 
 	float r;
 	float g;

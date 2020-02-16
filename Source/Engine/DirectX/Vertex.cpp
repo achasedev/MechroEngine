@@ -7,7 +7,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** INCLUDES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Framework/Color.h"
+#include "Engine/DirectX/Vertex.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** DEFINES ***
@@ -24,7 +24,31 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                        *** GLOBALS AND STATICS ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-const Color Color::WHITE = Color(0.f, 0.f, 0.f, 1.0f);
+
+//-------------------------------------------------------------------------------------------------
+const VertexAttribute Vertex3D_PCU::ATTRIBUTES[] =
+{
+	VertexAttribute("POSITION", RDT_FLOAT, 3, false, offsetof(Vertex3D_PCU, m_position)),
+	VertexAttribute("COLOR", RDT_FLOAT, 4, false, offsetof(Vertex3D_PCU, m_color)),
+	VertexAttribute("UV", RDT_FLOAT, 2, false, offsetof(Vertex3D_PCU, m_texUVs)),
+};
+
+const uint Vertex3D_PCU::NUM_ATTRIBUTES = (sizeof(ATTRIBUTES) / sizeof(VertexAttribute));
+const VertexLayout Vertex3D_PCU::LAYOUT = VertexLayout(sizeof(Vertex3D_PCU), NUM_ATTRIBUTES, Vertex3D_PCU::ATTRIBUTES);
+
+
+//-------------------------------------------------------------------------------------------------
+const VertexAttribute VertexLit::ATTRIBUTES[] =
+{
+	VertexAttribute("POSITION",		RDT_FLOAT,			3,		false,		offsetof(VertexLit, m_position)),
+	VertexAttribute("COLOR",		RDT_FLOAT,			4,		false,		offsetof(VertexLit, m_color)),
+	VertexAttribute("UV",			RDT_FLOAT,			2,		false,		offsetof(VertexLit, m_texUVs)),
+	VertexAttribute("NORMAL",		RDT_FLOAT,			3,		false,		offsetof(VertexLit, m_normal)),
+	VertexAttribute("TANGENT",		RDT_FLOAT,			3,		false,		offsetof(VertexLit, m_tangent))
+};
+
+const uint VertexLit::NUM_ATTRIBUTES = (sizeof(ATTRIBUTES) / sizeof(VertexAttribute));
+const VertexLayout VertexLit::LAYOUT = VertexLayout(sizeof(VertexLit), NUM_ATTRIBUTES, VertexLit::ATTRIBUTES);
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                           *** C FUNCTIONS ***
@@ -35,32 +59,31 @@ const Color Color::WHITE = Color(0.f, 0.f, 0.f, 1.0f);
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-Color::Color()
-	: r(0.f)
-	, g(0.f)
-	, b(0.f)
-	, a(1.f) 
+VertexLayout::VertexLayout(uint stride, uint numAttributes, const VertexAttribute* attributes)
+	: m_vertexStride(stride)
+	, m_numAttributes(numAttributes)
+	, m_attributes(attributes)
 {
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Color::Color(float red, float green, float blue, float alpha)
-	: r(red)
-	, g(green)
-	, b(blue)
-	, a(alpha)
+uint VertexLayout::GetAttributeCount() const
 {
+	return m_numAttributes;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Color::Color(const Color& copy)
-	: r(copy.r)
-	, g(copy.g)
-	, b(copy.b)
-	, a(copy.a)
+const VertexAttribute& VertexLayout::GetAttribute(uint index) const
 {
+	ASSERT_OR_DIE(index >= 0 && index < m_numAttributes, Stringf("Error: VertexLayout::GetAttribute index out of range, index was %i", index));
+	return m_attributes[index];
 }
 
 
+//-------------------------------------------------------------------------------------------------
+uint VertexLayout::GetStride() const
+{
+	return m_vertexStride;
+}

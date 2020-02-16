@@ -9,7 +9,10 @@
 ///                                                             *** INCLUDES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/Color.h"
+#include "Engine/Framework/EngineCommon.h"
+#include "Engine/Math/Vector2.h"
 #include "Engine/Math/Vector3.h"
+#include "Engine/Math/Vector4.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** DEFINES ***
@@ -20,36 +23,102 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 struct VertexMaster;
 struct VertexPC;
+class VertexAttribute;
+class VertexLayout;
+
+//-------------------------------------------------------------------------------------------------
+enum RenderDataType
+{
+	RDT_FLOAT,
+	RDT_UNSIGNED_BYTE,
+	RDT_UNSIGNED_INT,
+	NUM_RDTS
+};
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** STRUCTS ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-struct VertexMaster
+// Description for a single attribute of a vertex, a layout is made up of a collection of these
+struct VertexAttribute
 {
-	VertexMaster(const Vector3& position, const Color& color)
-		: m_position(position), m_color(color) {}
+	VertexAttribute() : m_name("") {} // For null terminator in ATTRIBUTES array (unused)
+	VertexAttribute(const std::string name, RenderDataType type, unsigned int elementCount, bool isNormalized, unsigned int memberOffset)
+		: m_name(name), m_dataType(type), m_elementCount(elementCount), m_isNormalized(isNormalized), m_memberOffset(memberOffset)
+	{}
 
-	// VertexPC
-	VertexMaster(const VertexPC& vertexPC)
-		: m_position(vertexPC.m_position), m_color(vertexPC.m_color) {}
-
-	Vector3 m_position;
-	Color m_color;
+	std::string		m_name;
+	RenderDataType	m_dataType;
+	bool			m_isNormalized;
+	unsigned int	m_elementCount;
+	size_t			m_memberOffset;
 };
 
 //-------------------------------------------------------------------------------------------------
-struct VertexPC
-{
-	VertexPC(const Vector3& position, const Color& color)
-		: m_position(position), m_color(color) {}
+// VERTEX TYPES
 
-	VertexPC(const VertexMaster& vertexMaster)
-		: m_position(vertexMaster.m_position), m_color(vertexMaster.m_color) {}
+// Used to construct all vertex types in MeshBuilder
+struct VertexMaster
+{
+	Vector3 m_position = Vector3::ZERO;
+	Vector2 m_uvs = Vector2::ZERO;
+	Color	m_color = Color::WHITE;
+	Vector3 m_normal = Vector3::ZERO;
+	Vector4 m_tangent = Vector4::ZERO;
+};
+
+
+//-------------------------------------------------------------------------------------------------
+// Basis Vertex
+//
+struct Vertex3D_PCU
+{
+	// Constructors
+	Vertex3D_PCU() {};
+	Vertex3D_PCU(const Vector3& position, const Color& color, const Vector2& texUVs)
+		: m_position(position), m_color(color), m_texUVs(texUVs) {}
+
+	Vertex3D_PCU(const VertexMaster& master)
+		: m_position(master.m_position), m_color(master.m_color), m_texUVs(master.m_uvs) {}
+
+	Vector3 m_position;	// Position of the Vertex
+	Color	m_color;	// Color of the Vertex
+	Vector2 m_texUVs;	// Texture UV coordinates for this vertex
+
+	static const VertexAttribute	ATTRIBUTES[];
+	static const VertexLayout		LAYOUT;
+	static const unsigned int		NUM_ATTRIBUTES;
+};
+
+
+//-------------------------------------------------------------------------------------------------
+// Lit Vertex
+//
+struct VertexLit
+{
+	// Constructors
+	VertexLit() {};
+	VertexLit(const Vector3& position, const Color& color, const Vector2& texUVs, const Vector3& normal, const Vector4& tangent)
+		: m_position(position), m_color(color), m_texUVs(texUVs), m_normal(normal), m_tangent(tangent) {}
+
+	// Construction from the master
+	VertexLit(const VertexMaster& master)
+		: m_position(master.m_position), m_color(master.m_color), m_texUVs(master.m_uvs), m_normal(master.m_normal), m_tangent(master.m_tangent)
+	{
+	}
 
 	Vector3 m_position;
-	Color m_color;
+	Color	m_color;
+	Vector2 m_texUVs;
+
+	Vector3 m_normal;
+	Vector4 m_tangent;	// w = 1 or -1 signals the cross direction for the bitangent
+
+	static const VertexAttribute	ATTRIBUTES[];
+	static const VertexLayout		LAYOUT;
+	static const uint				NUM_ATTRIBUTES;
+
 };
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -59,6 +128,27 @@ struct VertexPC
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** CLASSES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------
+class VertexLayout
+{
+public:
+	//-----Public Data-----
+
+	VertexLayout(uint stride, uint numAttributes, const VertexAttribute* attributes);
+
+	uint					GetAttributeCount() const;
+	const VertexAttribute&	GetAttribute(uint index) const;
+	uint					GetStride() const;
+
+
+private:
+	//-----Private Data-----
+
+	const VertexAttribute*	m_attributes;
+	uint					m_numAttributes;
+	uint					m_vertexStride;
+};
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                           *** C FUNCTIONS ***
