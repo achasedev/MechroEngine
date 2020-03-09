@@ -184,6 +184,7 @@
     <ClCompile Include="Math\Vector3.cpp" />
     <ClCompile Include="Math\Vector4.cpp" />
     <ClCompile Include="Utility\Assert.cpp" />
+    <ClCompile Include="Utility\StringID.cpp" />
     <ClCompile Include="Utility\StringUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -212,6 +213,7 @@
     <ClInclude Include="Math\Vector3.h" />
     <ClInclude Include="Math\Vector4.h" />
     <ClInclude Include="Utility\Assert.h" />
+    <ClInclude Include="Utility\StringID.h" />
     <ClInclude Include="Utility\StringUtils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -1,39 +1,31 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: November 29th, 2019
-/// Description: 
+/// Date Created: March 8th, 2020
+/// Description: Hashed c-string class
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** INCLUDES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Utility/Assert.h"
-#include "Engine/Utility/StringUtils.h"
+#include "Engine/Framework/EngineCommon.h"
+#include <map>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** DEFINES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#define UNUSED(x) (void)(x);
-#define SAFE_DELETE_POINTER(p)  if (p != nullptr) { delete p; p = nullptr; }
-#define BIT_FLAG(x) (1 << x)
-#define _QUOTE(x) # x
-#define QUOTE(x) _QUOTE(x)
-#define UNIMPLEMENTED()  QUOTE(__FILE__) " (" QUOTE(__LINE__) ")" ; ERROR_AND_DIE("Function unimplemented!") 
+typedef uint StringID;
+StringID HashString(const char* str);
 
-//-------------------------------------------------------------------------------------------------
-// COMPILE-TIME OPTIONS
-
-// To remove asserts, add #define DISABLE_ASSERTS to Assert.h
-
-// For interning string IDs and checking for hash collisions
-#define DEBUG_STRINGID
-
+#ifdef DEBUG_STRINGID
+#define SID(x) StringIDManager::InternString()
+#else
+#define SID(x) HashString(str)
+#endif
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                              *** TYPES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-typedef unsigned int uint;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** STRUCTS ***
@@ -46,6 +38,37 @@ typedef unsigned int uint;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** CLASSES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------
+class StringIDManager
+{
+public:
+	//-----Public Methods-----
+
+	static void Initialize();
+	static void Shutdown();
+	static StringIDManager* GetInstance() { return s_instance; }
+
+	StringID InternString(const char* str);
+
+
+private:
+	//-----Private Methods-----
+
+	StringIDManager() {}
+	~StringIDManager();
+	StringIDManager(const StringIDManager& copy) = delete;
+
+
+private:
+	//-----Private Data-----
+
+	std::map<StringID, const char*> m_stringIDs;
+
+	static StringIDManager* s_instance;
+
+};
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                           *** C FUNCTIONS ***

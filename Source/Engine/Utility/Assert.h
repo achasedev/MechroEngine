@@ -18,6 +18,9 @@
 //	#define ASSERT_RECOVERABLE( condition, errorText )		// Same as GUARANTEE_RECOVERABLE, but removed if DISABLE_ASSERTS is #defined
 // 
 
+// Disable ASSERTS here!
+//#define DISABLE_ASSERTS
+
 //-----------------------------------------------------------------------------------------------
 enum SeverityLevel
 {
