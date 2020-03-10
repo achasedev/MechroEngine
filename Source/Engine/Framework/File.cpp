@@ -63,7 +63,7 @@ bool CloseFile(FILE* fileHandle)
 	int err = fclose(fileHandle);
 	if (err != 0)
 	{
-		ERROR_RECOVERABLE(Stringf("Warning: CloseFile could not close the file."));
+		ERROR_RECOVERABLE("Warning: CloseFile could not close the file.");
 		return false;
 	}
 

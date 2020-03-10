@@ -154,12 +154,20 @@ void RenderContext::ClearScreen()
 	m_context->ClearRenderTargetView(m_frameBackbufferRtv->GetDX11RenderTargetView(), color);
 }
 
+
 //-------------------------------------------------------------------------------------------------
 void RenderContext::BindUniformBuffer(uint slot, UniformBuffer* ubo)
 {
 	ID3D11Buffer *buffer = (ubo != nullptr) ? ubo->GetBufferHandle() : nullptr;
 	m_context->VSSetConstantBuffers(slot, 1U, &buffer);
 	m_context->PSSetConstantBuffers(slot, 1U, &buffer);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RenderContext::BindShader(Shader* shader)
+{
+
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -209,17 +217,6 @@ RenderContext::RenderContext()
 	ASSERT_OR_DIE(SUCCEEDED(hr), "D3D11CreateDeviceAndSwapChain failed!");
 
 	m_frameBackbufferRtv = new ColorTargetView();
-
-	// Temp - move to SetCamera()
-	D3D11_VIEWPORT viewport;
-	ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
-
-	viewport.TopLeftX = 0;
-	viewport.TopLeftY = 0;
-	viewport.Width = (float)Window::GetInstance()->GetClientPixelWidth();
-	viewport.Height = (float)Window::GetInstance()->GetClientPixelHeight();
-
-	m_context->RSSetViewports(1, &viewport);
 
 	// TEMP - Move to BindShader()
 	InitPipeline();

@@ -1,13 +1,15 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: March 8th, 2020
-/// Description: Hashed c-string class
+/// Date Created: March 9th, 2020
+/// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** INCLUDES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Utility/StringID.h"
+#include "Engine/DirectX/DX11Common.h"
+#include "Engine/DirectX/RenderContext.h"
+#include "Engine/DirectX/Shader.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** DEFINES ***
@@ -29,20 +31,29 @@
 ///                                                           *** C FUNCTIONS ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
+//-------------------------------------------------------------------------------------------------
+const char* GetEntryForStage(ShaderStageType stageType)
+{
+	switch (stageType)
+	{
+	case SHADER_STAGE_UNINITIALIZED: ERROR_AND_DIE("Attempted to get entry of uninitialized stage type!");
+	case SHADER_STAGE_VERTEX: return "VertexFunction"; break;
+	case SHADER_STAGE_FRAGMENT: return "VertexFunction"; break;
+	}
+}
+
 
 //-------------------------------------------------------------------------------------------------
-StringID HashString(const char* str)
+const char* GetShaderModelForStage(ShaderStageType stageType)
 {
-	// djb2 hash function, by Dan Bernstein
-	uint hashValue = 5381;
-	uint c;
-
-	while (c = (uint)*str++)
+	switch (stageType)
 	{
-		hashValue = ((hashValue << 5) + hashValue) + c;
+	case SHADER_STAGE_UNINITIALIZED: ERROR_AND_DIE("Attempted to get model for uninitialized stage type!"); break;
+	case SHADER_STAGE_VERTEX: return "vs_5_0"; break;
+	case SHADER_STAGE_FRAGMENT: return "ps_5_0"; break;
+	default:
+		break;
 	}
-
-	return static_cast<StringID>(hashValue);
 }
 
 
@@ -51,54 +62,20 @@ StringID HashString(const char* str)
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-void StringIDManager::Initialize()
+ShaderStage::~ShaderStage()
 {
-	s_instance = new StringIDManager();
+	DX_SAFE_RELEASE(m_handle);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void StringIDManager::Shutdown()
+bool ShaderStage::LoadFromShaderSource(const char* filename, const void* source, const size_t sourceByteSize, ShaderStageType stageType)
 {
-	SAFE_DELETE_POINTER(s_instance);
-}
+	RenderContext* renderContext = RenderContext::GetInstance();
+	ID3D11DeviceContext* dxContext = renderContext->GetDxContext();
+
+	const char* entryPoint = GetEntryForStage(stageType);
+	const char* shaderModel = GetShaderModelForStage(stageType);
 
 
-//-------------------------------------------------------------------------------------------------
-// Debug-only function for storing StringID -> strings and checking for collisions
-StringID StringIDManager::InternString(const char* str)
-{
-	StringID strID = HashString(str);
-	size_t bufferSize = strlen(str) + 1U;
-
-	std::map<StringID, const char*>::iterator itr = m_stringIDs.find(strID);	
-	if (itr == m_stringIDs.end())
-	{
-		// Allocate and add the string
-		char* temp = (char*) malloc(bufferSize);
-		strncpy_s(temp, bufferSize, str, strlen(str));
-		m_stringIDs[strID] = temp;
-	}
-	else
-	{
-		// Check for hash collisions
-		ASSERT_OR_DIE(strcmp(str, itr->second) == 0, "Hash collision on strings %s and %s", str, itr->second);
-	}
-
-	return strID;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-StringIDManager::~StringIDManager()
-{
-	// Free up any id's in the map
-	std::map<StringID, const char*>::iterator itr = m_stringIDs.begin();
-
-	for (itr; itr != m_stringIDs.end(); itr++)
-	{
-		free((void*)itr->second);
-	}
-
-	m_stringIDs.clear();
 }

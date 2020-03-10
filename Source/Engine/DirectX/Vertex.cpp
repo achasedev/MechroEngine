@@ -77,7 +77,7 @@ uint VertexLayout::GetAttributeCount() const
 //-------------------------------------------------------------------------------------------------
 const VertexAttribute& VertexLayout::GetAttribute(uint index) const
 {
-	ASSERT_OR_DIE(index >= 0 && index < m_numAttributes, Stringf("Error: VertexLayout::GetAttribute index out of range, index was %i", index));
+	ASSERT_OR_DIE(index >= 0 && index < m_numAttributes, "Error: VertexLayout::GetAttribute index out of range, index was %i", index);
 	return m_attributes[index];
 }
 

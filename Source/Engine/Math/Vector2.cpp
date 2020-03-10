@@ -225,7 +225,7 @@ Vector2 Vector2::GetNormalized() const
 float Vector2::GetOrientationDegrees() const
 {
 	// Ensure we have a valid vector to calculate on
-	ASSERT_OR_DIE((x != 0.f || y != 0.f), Stringf("Error: Vector2::GetOrientationDegrees() called on a zero vector!"));
+	ASSERT_OR_DIE((x != 0.f || y != 0.f), "Error: Vector2::GetOrientationDegrees() called on a zero vector!");
 	return Atan2Degrees(y, x);
 }
 

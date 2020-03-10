@@ -1,13 +1,13 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: March 8th, 2020
-/// Description: Hashed c-string class
+/// Date Created: March 9th, 2020
+/// Description: GLSL Shaders!
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** INCLUDES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Utility/StringID.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** DEFINES ***
@@ -16,6 +16,19 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                              *** TYPES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------
+struct ID3D11Resource;
+struct ID3D11VertexShader;
+struct ID3D11PixelShader;
+
+//-------------------------------------------------------------------------------------------------
+enum ShaderStageType
+{
+	SHADER_STAGE_UNINITIALIZED,
+	SHADER_STAGE_VERTEX,
+	SHADER_STAGE_FRAGMENT
+};
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** STRUCTS ***
@@ -26,79 +39,52 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-///                                                           *** C FUNCTIONS ***
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-//-------------------------------------------------------------------------------------------------
-StringID HashString(const char* str)
-{
-	// djb2 hash function, by Dan Bernstein
-	uint hashValue = 5381;
-	uint c;
-
-	while (c = (uint)*str++)
-	{
-		hashValue = ((hashValue << 5) + hashValue) + c;
-	}
-
-	return static_cast<StringID>(hashValue);
-}
-
-
-///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** CLASSES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-void StringIDManager::Initialize()
+class ShaderStage
 {
-	s_instance = new StringIDManager();
-}
+public:
+	//-----Public Methods-----
 
+	ShaderStage() {}
+	~ShaderStage();
+
+	bool LoadFromShaderSource(const char* filename, const void* source, const size_t sourceByteSize, ShaderStageType stageType);
+
+
+private:
+	//-----Private Data-----
+
+	ShaderStageType m_stageType = SHADER_STAGE_UNINITIALIZED;
+
+	union
+	{
+		ID3D11Resource* m_handle = nullptr;
+		ID3D11VertexShader* m_vertexShader;
+		ID3D11PixelShader* m_fragmentShader;
+	};
+
+};
 
 //-------------------------------------------------------------------------------------------------
-void StringIDManager::Shutdown()
+class Shader
 {
-	SAFE_DELETE_POINTER(s_instance);
-}
+public:
+	//-----Public Methods-----
+
+	bool CreateFromFile(const char* filename);
 
 
-//-------------------------------------------------------------------------------------------------
-// Debug-only function for storing StringID -> strings and checking for collisions
-StringID StringIDManager::InternString(const char* str)
-{
-	StringID strID = HashString(str);
-	size_t bufferSize = strlen(str) + 1U;
+private:
+	//-----Private Data-----
 
-	std::map<StringID, const char*>::iterator itr = m_stringIDs.find(strID);	
-	if (itr == m_stringIDs.end())
-	{
-		// Allocate and add the string
-		char* temp = (char*) malloc(bufferSize);
-		strncpy_s(temp, bufferSize, str, strlen(str));
-		m_stringIDs[strID] = temp;
-	}
-	else
-	{
-		// Check for hash collisions
-		ASSERT_OR_DIE(strcmp(str, itr->second) == 0, "Hash collision on strings %s and %s", str, itr->second);
-	}
+	ShaderStage m_vertexShader;
+	ShaderStage m_fragmentShader;
 
-	return strID;
-}
+};
 
-
-//-------------------------------------------------------------------------------------------------
-StringIDManager::~StringIDManager()
-{
-	// Free up any id's in the map
-	std::map<StringID, const char*>::iterator itr = m_stringIDs.begin();
-
-	for (itr; itr != m_stringIDs.end(); itr++)
-	{
-		free((void*)itr->second);
-	}
-
-	m_stringIDs.clear();
-}
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+///                                                           *** C FUNCTIONS ***
+///--------------------------------------------------------------------------------------------------------------------------------------------------

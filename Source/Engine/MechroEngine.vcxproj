@@ -168,6 +168,7 @@
     <ClCompile Include="DirectX\MeshBuilder.cpp" />
     <ClCompile Include="DirectX\RenderBuffer.cpp" />
     <ClCompile Include="DirectX\RenderContext.cpp" />
+    <ClCompile Include="DirectX\Shader.cpp" />
     <ClCompile Include="DirectX\UniformBuffer.cpp" />
     <ClCompile Include="DirectX\Vertex.cpp" />
     <ClCompile Include="DirectX\VertexBuffer.cpp" />
@@ -195,6 +196,7 @@
     <ClInclude Include="DirectX\Mesh.h" />
     <ClInclude Include="DirectX\MeshBuilder.h" />
     <ClInclude Include="DirectX\RenderBuffer.h" />
+    <ClInclude Include="DirectX\Shader.h" />
     <ClInclude Include="DirectX\UniformBuffer.h" />
     <ClInclude Include="DirectX\Vertex.h" />
     <ClInclude Include="DirectX\VertexBuffer.h" />
