@@ -201,7 +201,7 @@ void File::Flush()
 
 
 //-------------------------------------------------------------------------------------------------
-bool File::LoadFileToMemory()
+const char* File::LoadFileToMemory()
 {
 	m_size = 0U;
 
@@ -224,7 +224,7 @@ bool File::LoadFileToMemory()
 	data[read] = NULL;
 	m_data = (const char*)data;
 
-	return true;
+	return m_data;
 }
 
 

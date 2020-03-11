@@ -10,6 +10,8 @@
 #include "Engine/DirectX/DX11Common.h"
 #include "Engine/DirectX/RenderContext.h"
 #include "Engine/DirectX/Shader.h"
+#include "Engine/Framework/EngineCommon.h"
+#include "Engine/Framework/File.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** DEFINES ***
@@ -30,13 +32,12 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                           *** C FUNCTIONS ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-
 //-------------------------------------------------------------------------------------------------
-const char* GetEntryForStage(ShaderStageType stageType)
+static const char* GetEntryForStage(ShaderStageType stageType)
 {
 	switch (stageType)
 	{
-	case SHADER_STAGE_UNINITIALIZED: ERROR_AND_DIE("Attempted to get entry of uninitialized stage type!");
+	case SHADER_STAGE_INVALID: ERROR_AND_DIE("Attempted to get entry of invalid stage type!");
 	case SHADER_STAGE_VERTEX: return "VertexFunction"; break;
 	case SHADER_STAGE_FRAGMENT: return "VertexFunction"; break;
 	}
@@ -44,16 +45,48 @@ const char* GetEntryForStage(ShaderStageType stageType)
 
 
 //-------------------------------------------------------------------------------------------------
-const char* GetShaderModelForStage(ShaderStageType stageType)
+static const char* GetShaderModelForStage(ShaderStageType stageType)
 {
 	switch (stageType)
 	{
-	case SHADER_STAGE_UNINITIALIZED: ERROR_AND_DIE("Attempted to get model for uninitialized stage type!"); break;
+	case SHADER_STAGE_INVALID: ERROR_AND_DIE("Attempted to get model for invalid stage type!"); break;
 	case SHADER_STAGE_VERTEX: return "vs_5_0"; break;
 	case SHADER_STAGE_FRAGMENT: return "ps_5_0"; break;
 	default:
 		break;
 	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+ID3DBlob* CompileHLSL(const char* filename, const void* sourceCode, const size_t sourceCodeSize, const char* entrypoint, const char* shaderModel)
+{
+	DWORD compile_flags = 0U;
+#ifdef DEBUG_SHADERS
+	compile_flags |= D3DCOMPILE_DEBUG;
+	compile_flags |= D3DCOMPILE_SKIP_OPTIMIZATION;
+	compile_flags |= D3DCOMPILE_WARNINGS_ARE_ERRORS;
+#else
+	compile_flags |= D3DCOMPILE_OPTIMIZATION_LEVEL3;
+#endif
+
+	ID3DBlob* code = nullptr;
+	ID3DBlob* errors = nullptr;
+
+	HRESULT hr = ::D3DCompile(sourceCode, sourceCodeSize, filename, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, entrypoint, shaderModel, compile_flags, 00, &code, &errors);
+
+	if (errors != nullptr)
+	{
+		const char* errorString = (const char*)errors->GetBufferPointer();
+		ERROR_RECOVERABLE("Failed to compile shader %s, Compiler gave the following output: %s/n", filename, errorString);
+		DX_SAFE_RELEASE(errors);
+	}
+	else if (FAILED(hr))
+	{
+		ERROR_RECOVERABLE("Failed with HRESULT: %u\n", hr);
+	}
+
+	return code;
 }
 
 
@@ -71,11 +104,49 @@ ShaderStage::~ShaderStage()
 //-------------------------------------------------------------------------------------------------
 bool ShaderStage::LoadFromShaderSource(const char* filename, const void* source, const size_t sourceByteSize, ShaderStageType stageType)
 {
+	ASSERT_OR_DIE(stageType != SHADER_STAGE_INVALID, "Attempted to make an invalid shader stage!");
+
 	RenderContext* renderContext = RenderContext::GetInstance();
-	ID3D11DeviceContext* dxContext = renderContext->GetDxContext();
+	ID3D11Device* dxDevice = renderContext->GetDxDevice();
 
 	const char* entryPoint = GetEntryForStage(stageType);
 	const char* shaderModel = GetShaderModelForStage(stageType);
 
+	ID3DBlob* byteCode = CompileHLSL(filename, source, sourceByteSize, entryPoint, shaderModel);
 
+	if (byteCode != nullptr)
+	{
+		return false;
+	}
+
+	switch (stageType)
+	{
+	case SHADER_STAGE_VERTEX:
+		dxDevice->CreateVertexShader(byteCode->GetBufferPointer(), byteCode->GetBufferSize(), nullptr, &m_vertexShader);
+		break;
+	case SHADER_STAGE_FRAGMENT:
+		dxDevice->CreatePixelShader(byteCode->GetBufferPointer(), byteCode->GetBufferSize(), nullptr, &m_fragmentShader);
+		break;
+	default:
+		break;
+	}
+
+	// TODO Don't release this for vertex shaders, needed for input layouts
+	DX_SAFE_RELEASE(byteCode);
+
+	return IsValid();
+}
+
+bool Shader::CreateFromFile(const char* filename)
+{
+	size_t shaderSourceSize = 0;
+	void* shaderSource = FileReadToNewBuffer(filename, shaderSourceSize);
+
+	// Compile both stages
+	m_vertexShader.LoadFromShaderSource(filename, shaderSource, shaderSourceSize, SHADER_STAGE_VERTEX);
+	m_fragmentShader.LoadFromShaderSource(filename, shaderSource, shaderSourceSize, SHADER_STAGE_FRAGMENT);
+
+	free(shaderSource);
+
+	return m_vertexShader.IsValid() && m_fragmentShader.IsValid();
 }

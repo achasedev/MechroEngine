@@ -104,12 +104,11 @@ public:
 private:
 	//-----Private Data-----
 
-	bool m_isBuilding = false;
-	VertexMaster m_stamp;
-	DrawInstruction m_instruction;
-
+	bool						m_isBuilding = false;
+	VertexMaster				m_stamp;
+	DrawInstruction				m_instruction;
 	std::vector<VertexMaster>	m_vertices;
-	std::vector<uint>	m_indices;
+	std::vector<uint>			m_indices;
 
 };
 

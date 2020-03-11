@@ -22,7 +22,6 @@
 ///                                                              *** TYPES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 struct VertexMaster;
-struct VertexPC;
 class VertexLayout;
 
 //-------------------------------------------------------------------------------------------------
@@ -81,9 +80,9 @@ struct Vertex3D_PCU
 	Vertex3D_PCU(const VertexMaster& master)
 		: m_position(master.m_position), m_color(master.m_color), m_texUVs(master.m_uvs) {}
 
-	Vector3 m_position;	// Position of the Vertex
-	Color	m_color;	// Color of the Vertex
-	Vector2 m_texUVs;	// Texture UV coordinates for this vertex
+	Vector3 m_position;
+	Color	m_color;
+	Vector2 m_texUVs;
 
 	static const VertexAttribute	ATTRIBUTES[];
 	static const VertexLayout		LAYOUT;

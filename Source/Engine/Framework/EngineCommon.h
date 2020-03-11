@@ -29,6 +29,9 @@
 // For interning string IDs and checking for hash collisions
 #define DEBUG_STRINGID
 
+// For setting shader debug compile flags
+//#define DEBUG_SHADERS
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                              *** TYPES ***

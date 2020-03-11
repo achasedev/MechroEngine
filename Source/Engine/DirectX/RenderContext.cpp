@@ -11,8 +11,9 @@
 #include "Engine/DirectX/ColorTargetView.h"
 #include "Engine/DirectX/DX11Common.h"
 #include "Engine/DirectX/RenderContext.h"
-#include "Engine/DirectX/Vertex.h"
+#include "Engine/DirectX/Shader.h"
 #include "Engine/DirectX/UniformBuffer.h"
+#include "Engine/DirectX/Vertex.h"
 #include "Engine/Framework/File.h"
 #include "Engine/Framework/Window.h"
 #include "Engine/Math/MathUtils.h"
@@ -114,10 +115,9 @@ void RenderContext::BeginCamera(Camera* camera)
 	// Render to the camera's target
 	ColorTargetView* view = camera->GetColorTarget();
 	ID3D11RenderTargetView* rtv = view->GetDX11RenderTargetView();
-
 	m_context->OMSetRenderTargets(1, &rtv, nullptr);
-
-	// TODO: Move this to camera?
+	
+	// Viewport
 	D3D11_VIEWPORT viewport;
 	memset(&viewport, 0, sizeof(viewport));
 	viewport.TopLeftX = 0U;
@@ -167,7 +167,8 @@ void RenderContext::BindUniformBuffer(uint slot, UniformBuffer* ubo)
 //-------------------------------------------------------------------------------------------------
 void RenderContext::BindShader(Shader* shader)
 {
-
+	m_context->VSSetShader(shader->GetVertexStage(), 0, 0);
+	m_context->PSSetShader(shader->GetFragmentStage(), 0, 0);
 }
 
 //-------------------------------------------------------------------------------------------------

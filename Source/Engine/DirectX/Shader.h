@@ -25,7 +25,7 @@ struct ID3D11PixelShader;
 //-------------------------------------------------------------------------------------------------
 enum ShaderStageType
 {
-	SHADER_STAGE_UNINITIALIZED,
+	SHADER_STAGE_INVALID,
 	SHADER_STAGE_VERTEX,
 	SHADER_STAGE_FRAGMENT
 };
@@ -52,12 +52,15 @@ public:
 	~ShaderStage();
 
 	bool LoadFromShaderSource(const char* filename, const void* source, const size_t sourceByteSize, ShaderStageType stageType);
+	bool IsValid() const { return m_handle != nullptr; }
 
+	ID3D11VertexShader* GetAsVertexShader() { return m_vertexShader; }
+	ID3D11PixelShader* GetAsFragmentShader() { return m_fragmentShader; }
 
 private:
 	//-----Private Data-----
 
-	ShaderStageType m_stageType = SHADER_STAGE_UNINITIALIZED;
+	ShaderStageType m_stageType = SHADER_STAGE_INVALID;
 
 	union
 	{
@@ -75,6 +78,9 @@ public:
 	//-----Public Methods-----
 
 	bool CreateFromFile(const char* filename);
+
+	ID3D11VertexShader* GetVertexStage() { return m_vertexShader.GetAsVertexShader(); }
+	ID3D11PixelShader* GetFragmentStage() { return m_fragmentShader.GetAsFragmentShader(); }
 
 
 private:

@@ -40,7 +40,7 @@ public:
 	~File();
 
 	bool Open(const char* filepath, const char* flags);
-	bool LoadFileToMemory();
+	const char* LoadFileToMemory();
 	bool Close();
 	void Write(const char* buffer, size_t length);
 	void Flush();
