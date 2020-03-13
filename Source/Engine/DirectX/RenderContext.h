@@ -20,10 +20,13 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Camera;
 class ColorTargetView;
+class IndexBuffer;
 class Mesh;
 class Shader;
 class Texture2D;
 class UniformBuffer;
+class VertexBuffer;
+class VertexLayout;
 struct ID3D11Device;
 struct ID3D11DeviceContext;
 struct IDXGISwapChain;
@@ -49,9 +52,6 @@ public:
 	static void Initialize();
 	static void Shutdown();
 	
-	// TEMP
-	void InitPipeline();
-
 	static RenderContext* GetInstance();
 
 	void BeginFrame();
@@ -65,7 +65,7 @@ public:
 	void BindUniformBuffer(uint slot, UniformBuffer* ubo);
 	void BindShader(Shader* shader);
 
-	void DrawMesh(Mesh* mesh, Shader* shader);
+	void Draw(Mesh& m_mesh, Shader& m_shader);
 
 	Texture2D*	CreateOrGetTexture(const std::string& name);
 	Shader*		CreateOrGetShader(const std::string& name);
@@ -82,6 +82,11 @@ private:
 	RenderContext(const RenderContext& copy) = delete;
 
 
+	void BindVertexStream(const VertexBuffer* vbo);
+	void BindIndexStream(const IndexBuffer* ibo);
+	void SetVertexLayout(const VertexLayout* vertexLayout);
+
+
 private:
 	//-----Private Data-----
 
@@ -89,8 +94,10 @@ private:
 	ID3D11DeviceContext* m_context = nullptr;
 	IDXGISwapChain* m_swapChain = nullptr;
 
-	ColorTargetView* m_frameBackbufferRtv = nullptr;
+	// Frame State
 	Camera* m_currentCamera = nullptr;
+	ColorTargetView* m_frameBackbufferRtv = nullptr;
+	const VertexLayout* m_currVertexLayout = nullptr;
 
 	static RenderContext* s_renderContext;
 

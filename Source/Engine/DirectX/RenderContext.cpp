@@ -10,10 +10,12 @@
 #include "Engine/DirectX/Camera.h"
 #include "Engine/DirectX/ColorTargetView.h"
 #include "Engine/DirectX/DX11Common.h"
+#include "Engine/DirectX/Mesh.h"
 #include "Engine/DirectX/RenderContext.h"
 #include "Engine/DirectX/Shader.h"
 #include "Engine/DirectX/UniformBuffer.h"
 #include "Engine/DirectX/Vertex.h"
+#include "Engine/DirectX/VertexBuffer.h"
 #include "Engine/Framework/File.h"
 #include "Engine/Framework/Window.h"
 #include "Engine/Math/MathUtils.h"
@@ -172,9 +174,29 @@ void RenderContext::BindShader(Shader* shader)
 }
 
 //-------------------------------------------------------------------------------------------------
-void RenderContext::Draw(unsigned int vertexCount, unsigned int byteOffset /*= 0*/)
+void RenderContext::Draw(Mesh& m_mesh, Shader& m_shader)
 {
-	m_context->Draw(vertexCount, byteOffset);
+	BindShader(&m_shader);
+
+	// Bind vertex stream
+	BindVertexStream(m_mesh.GetVertexBuffer());
+
+	// Bind (or clear) index stream
+	BindIndexStream(m_mesh.GetIndexBuffer());
+
+	// Create/bind input layout
+	// TODO: only create an input layout if the vertex type changes; 
+	// TODO: When different vertex types come on-line, look at the current bound
+	//       input streams (VertexBuffer) for the layout
+	const VertexLayout* currVertexLayout = m_mesh.GetVertexLayout();
+
+	if (m_mesh.GetVertexLayout() != m_currVertexLayout)
+	{
+		SetVertexLayout(currVertexLayout);
+	}
+
+	// Draw or DrawIndexed
+
 }
 
 
@@ -221,6 +243,41 @@ RenderContext::RenderContext()
 
 	// TEMP - Move to BindShader()
 	InitPipeline();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RenderContext::BindVertexStream(const VertexBuffer* vbo)
+{
+	const VertexLayout* layout = vbo->GetVertexLayout();
+	ASSERT_OR_DIE(layout != nullptr, "VertexBuffer had null layout!");
+
+	ID3D11Buffer* handle = vbo->GetBufferHandle();
+	uint stride = layout->GetStride();
+	uint offset = 0U;
+	
+	m_context->IASetVertexBuffers(0, 1, &handle, &stride, &offset);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RenderContext::BindIndexStream(const IndexBuffer* ibo)
+{
+	ID3D11Buffer* handle = nullptr;
+	if (ibo != nullptr)
+	{
+		handle = ibo->GetBufferHandle();
+	}
+
+	m_context->IASetIndexBuffer(handle, DXGI_FORMAT_R32_UINT, 0);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RenderContext::SetVertexLayout(const VertexLayout* vertexLayout)
+{
+
+	m_currVertexLayout = vertexLayout;
 }
 
 

@@ -10,6 +10,7 @@
 #include "Engine/DirectX/DX11Common.h"
 #include "Engine/DirectX/RenderContext.h"
 #include "Engine/DirectX/Shader.h"
+#include "Engine/DirectX/Vertex.h"
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Framework/File.h"
 
@@ -97,6 +98,7 @@ ID3DBlob* CompileHLSL(const char* filename, const void* sourceCode, const size_t
 //-------------------------------------------------------------------------------------------------
 ShaderStage::~ShaderStage()
 {
+	DX_SAFE_RELEASE(m_compiledSource);
 	DX_SAFE_RELEASE(m_handle);
 }
 
@@ -105,6 +107,7 @@ ShaderStage::~ShaderStage()
 bool ShaderStage::LoadFromShaderSource(const char* filename, const void* source, const size_t sourceByteSize, ShaderStageType stageType)
 {
 	ASSERT_OR_DIE(stageType != SHADER_STAGE_INVALID, "Attempted to make an invalid shader stage!");
+	ASSERT_OR_DIE(m_handle == nullptr, "ShaderStage was already initialized!");
 
 	RenderContext* renderContext = RenderContext::GetInstance();
 	ID3D11Device* dxDevice = renderContext->GetDxDevice();
@@ -123,16 +126,15 @@ bool ShaderStage::LoadFromShaderSource(const char* filename, const void* source,
 	{
 	case SHADER_STAGE_VERTEX:
 		dxDevice->CreateVertexShader(byteCode->GetBufferPointer(), byteCode->GetBufferSize(), nullptr, &m_vertexShader);
+		m_compiledSource = byteCode; // Save off byte code for input layouts
 		break;
 	case SHADER_STAGE_FRAGMENT:
-		dxDevice->CreatePixelShader(byteCode->GetBufferPointer(), byteCode->GetBufferSize(), nullptr, &m_fragmentShader);
+		dxDevice->CreatePixelShader(byteCode->GetBufferPointer(), byteCode->GetBufferSize(), nullptr, &m_fragmentShader);	
+		DX_SAFE_RELEASE(byteCode); // Don't need byte code for fragment shaders
 		break;
 	default:
 		break;
 	}
-
-	// TODO Don't release this for vertex shaders, needed for input layouts
-	DX_SAFE_RELEASE(byteCode);
 
 	return IsValid();
 }
@@ -149,4 +151,44 @@ bool Shader::CreateFromFile(const char* filename)
 	free(shaderSource);
 
 	return m_vertexShader.IsValid() && m_fragmentShader.IsValid();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Creates a DX11 input element description using the compiled vertex shader code
+bool Shader::CreateInputLayoutForVertexLayout(const VertexLayout* vertexLayout)
+{
+	// Input layout already made
+	if (m_inputLayout != nullptr)
+	{
+		return true;
+	}
+
+	uint numAttributes = vertexLayout->GetAttributeCount();
+	D3D11_INPUT_ELEMENT_DESC* desc = (D3D11_INPUT_ELEMENT_DESC*)malloc(sizeof(D3D11_INPUT_ELEMENT_DESC) * numAttributes);
+
+	for (uint attributeIndex = 0; attributeIndex < numAttributes; ++attributeIndex)
+	{
+		const VertexAttribute& currAttribute = vertexLayout->GetAttribute(attributeIndex);
+
+		desc[attributeIndex].SemanticName = currAttribute.m_name.c_str();
+		desc[attributeIndex].SemanticIndex = 0;
+
+		switch (currAttribute.m_dataType)
+		{
+		case RDT_FLOAT:
+			desc[attributeIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+			break;
+		default:
+			ERROR_RECOVERABLE("Only floats supported for vertex attributes!");
+			break;
+		}
+
+		desc[attributeIndex].InputSlot = 0U; 
+		desc[attributeIndex].AlignedByteOffset = currAttribute.m_memberOffset;
+		desc[attributeIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+		desc[attributeIndex].InstanceDataStepRate = 0U;
+	}
+
+
 }

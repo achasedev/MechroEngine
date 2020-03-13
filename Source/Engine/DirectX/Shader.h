@@ -18,9 +18,12 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
+struct ID3D11InputLayout;
+struct ID3D11PixelShader;
 struct ID3D11Resource;
 struct ID3D11VertexShader;
-struct ID3D11PixelShader;
+struct ID3DBlob;
+class VertexLayout;
 
 //-------------------------------------------------------------------------------------------------
 enum ShaderStageType
@@ -61,6 +64,7 @@ private:
 	//-----Private Data-----
 
 	ShaderStageType m_stageType = SHADER_STAGE_INVALID;
+	ID3DBlob* m_compiledSource = nullptr;
 
 	union
 	{
@@ -78,6 +82,7 @@ public:
 	//-----Public Methods-----
 
 	bool CreateFromFile(const char* filename);
+	bool CreateInputLayoutForVertexLayout(const VertexLayout* vertexLayout);
 
 	ID3D11VertexShader* GetVertexStage() { return m_vertexShader.GetAsVertexShader(); }
 	ID3D11PixelShader* GetFragmentStage() { return m_fragmentShader.GetAsFragmentShader(); }
@@ -88,6 +93,7 @@ private:
 
 	ShaderStage m_vertexShader;
 	ShaderStage m_fragmentShader;
+	ID3D11InputLayout* m_inputLayout = nullptr;
 
 };
 

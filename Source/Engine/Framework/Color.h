@@ -44,6 +44,9 @@ public:
 	//-----Public Data-----
 
 	static const Color WHITE;
+	static const Color RED;
+	static const Color GREEN;
+	static const Color BLUE;
 
 
 public:

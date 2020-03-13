@@ -57,16 +57,19 @@ public:
 		}
 
 		m_vertexCount = (succeeded ? vertexCount : 0U);
+		m_layout = (succeeded ? VERT_TYPE::LAYOUT : nullptr);
 
 		return succeeded;
 	}
+
+	const VertexLayout* GetVertexLayout() const { return m_layout; }
 
 
 private:
 	//-----Private Data-----
 
 	uint m_vertexCount = 0;
-	// const VertexLayout* m_layout = nullptr;
+	const VertexLayout* m_layout = nullptr;
 
 };
 
