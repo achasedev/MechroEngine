@@ -58,6 +58,7 @@ public:
 
 	uint PushVertex(const Vector3& position);
 	uint PushVertex(const VertexMaster& master);
+	void PushIndex(uint index);
 
 	// Helpers HERE
 

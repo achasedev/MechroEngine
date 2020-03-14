@@ -51,7 +51,7 @@ private:
 	//-----Private Data-----
 
 	ID3D11RenderTargetView* m_renderTargetView = nullptr;
-	IntVector2 m_dimensions;
+	IntVector2				m_dimensions;
 
 };
 

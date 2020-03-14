@@ -7,6 +7,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** INCLUDES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/DirectX/DX11Common.h"
 #include "Engine/DirectX/Vertex.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -53,6 +54,73 @@ const VertexLayout VertexLit::LAYOUT = VertexLayout(sizeof(VertexLit), NUM_ATTRI
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                           *** C FUNCTIONS ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+uint GetDXFormatForAttribute(const VertexAttribute& attribute)
+{
+	switch (attribute.m_dataType)
+	{
+	case RDT_FLOAT:
+	{
+		switch (attribute.m_elementCount)
+		{
+		case 1: return DXGI_FORMAT_R32_FLOAT; break;
+		case 2: return DXGI_FORMAT_R32G32_FLOAT; break;
+		case 3: return DXGI_FORMAT_R32G32B32_FLOAT; break;
+		case 4: return DXGI_FORMAT_R32G32B32A32_FLOAT; break;
+		default:
+			ERROR_AND_DIE("VertexAttribute has more than 4 elements, that's not supported!");
+			break;
+		}
+	}
+		break;
+	case RDT_UNSIGNED_INT:
+	{
+		switch (attribute.m_elementCount)
+		{
+		case 1: return DXGI_FORMAT_R32_UINT; break;
+		case 2: return DXGI_FORMAT_R32G32_UINT; break;
+		case 3: return DXGI_FORMAT_R32G32B32_UINT; break;
+		case 4: return DXGI_FORMAT_R32G32B32A32_UINT; break;
+		default:
+			ERROR_AND_DIE("VertexAttribute has more than 4 elements, that's not supported!");
+			break;
+		}
+	}
+		break;
+	case RDT_SIGNED_INT:
+	{
+		switch (attribute.m_elementCount)
+		{
+		case 1: return DXGI_FORMAT_R32_SINT; break;
+		case 2: return DXGI_FORMAT_R32G32_SINT; break;
+		case 3: return DXGI_FORMAT_R32G32B32_SINT; break;
+		case 4: return DXGI_FORMAT_R32G32B32A32_SINT; break;
+		default:
+			ERROR_AND_DIE("VertexAttribute has more than 4 elements, that's not supported!");
+			break;
+		}
+	}
+		break;
+	case RDT_UNSIGNED_BYTE:
+	{
+		switch (attribute.m_elementCount)
+		{
+		case 1: return DXGI_FORMAT_R8_UINT; break;
+		case 2: return DXGI_FORMAT_R8G8_UINT; break;
+		case 3: ERROR_AND_DIE("VertexAttribute of 3 bytes not supported?");
+		case 4: return DXGI_FORMAT_R8G8B8A8_UINT; break;
+		default:
+			ERROR_AND_DIE("VertexAttribute has more than 4 elements, that's not supported!");
+			break;
+		}
+	}
+		break;
+	default:
+		ERROR_AND_DIE("VertexAttribute has an invalid type!");
+		break;
+	}
+}
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** CLASSES ***

@@ -117,3 +117,11 @@ uint MeshBuilder::PushVertex(const VertexMaster& master)
 	m_vertices.push_back(m_stamp);
 	return (uint)m_vertices.size() - 1;
 }
+
+
+//-------------------------------------------------------------------------------------------------
+void MeshBuilder::PushIndex(uint index)
+{
+	ASSERT_RECOVERABLE(m_instruction.m_useIndices, "Pushing indices with a non-indexed builder");
+	m_indices.push_back(index);
+}

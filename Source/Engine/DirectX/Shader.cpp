@@ -175,17 +175,7 @@ bool Shader::CreateInputLayoutForVertexLayout(const VertexLayout* vertexLayout)
 
 			desc[attributeIndex].SemanticName = currAttribute.m_name.c_str();
 			desc[attributeIndex].SemanticIndex = 0;
-
-			switch (currAttribute.m_dataType)
-			{
-			case RDT_FLOAT:
-				desc[attributeIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-				break;
-			default:
-				ERROR_RECOVERABLE("Only floats supported for vertex attributes!");
-				break;
-			}
-
+			desc[attributeIndex].Format = static_cast<DXGI_FORMAT>(GetDXFormatForAttribute(currAttribute));
 			desc[attributeIndex].InputSlot = 0U;
 			desc[attributeIndex].AlignedByteOffset = currAttribute.m_memberOffset;
 			desc[attributeIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
