@@ -6,19 +6,17 @@
 #pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-///                                                             *** INCLUDES ***
+/// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-///                                                             *** DEFINES ***
+/// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-///                                                              *** TYPES ***
+/// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------------------------------
 enum RenderBufferUsageBit : unsigned int
 {
 	RENDER_BUFFER_USAGE_VERTEX_STREAM_BIT	= BIT_FLAG(0),
@@ -27,7 +25,7 @@ enum RenderBufferUsageBit : unsigned int
 };
 typedef unsigned int RenderBufferUsageBitFlags;
 
-enum GpuMemoryUsage
+enum GPUMemoryUsage
 {
 	GPU_MEMORY_USAGE_GPU,     // Can be written/read from GPU only (Color Targets are a good example)
 	GPU_MEMORY_USAGE_STATIC,  // Created, and are read only after that (ex: textures from images, sprite atlas)
@@ -35,17 +33,14 @@ enum GpuMemoryUsage
 	GPU_MEMORY_USAGE_STAGING, // For getting memory from GPU to CPU (can be copied into, but not directly bound as an output.  ex: Screenshots system)
 };
 
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-///                                                             *** STRUCTS ***
-///--------------------------------------------------------------------------------------------------------------------------------------------------
 struct ID3D11Buffer;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-///                                                        *** GLOBALS AND STATICS ***
+/// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-///                                                             *** CLASSES ***
+/// CLASS DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
@@ -65,7 +60,7 @@ protected:
 	//-----Protected Methods-----
 
 	void Reset();
-	bool CreateOnGPU(const void* data, size_t byteSize, size_t elementSize, RenderBufferUsageBitFlags bufferUsage, GpuMemoryUsage memoryUsage);
+	bool CreateOnGPU(const void* data, size_t byteSize, size_t elementSize, RenderBufferUsageBitFlags bufferUsage, GPUMemoryUsage memoryUsage);
 	bool CopyToGPU(const void* data, size_t byteSize);
 
 	bool IsStatic() const { return m_memoryUsage == GPU_MEMORY_USAGE_STATIC; }
@@ -76,7 +71,7 @@ private:
 	//-----Private Data------
 
 	RenderBufferUsageBitFlags m_usageFlags = 0;
-	GpuMemoryUsage m_memoryUsage = GPU_MEMORY_USAGE_GPU;
+	GPUMemoryUsage m_memoryUsage = GPU_MEMORY_USAGE_GPU;
 
 	size_t m_bufferSizeBytes = 0;
 	size_t m_elementSize = 0; // Used for stride
@@ -86,5 +81,5 @@ private:
 };
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-///                                                           *** C FUNCTIONS ***
+/// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
