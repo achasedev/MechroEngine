@@ -57,7 +57,7 @@ public:
 		}
 
 		m_vertexCount = (succeeded ? vertexCount : 0U);
-		m_layout = (succeeded ? VERT_TYPE::LAYOUT : nullptr);
+		m_layout = (succeeded ? &VERT_TYPE::LAYOUT : nullptr);
 
 		return succeeded;
 	}

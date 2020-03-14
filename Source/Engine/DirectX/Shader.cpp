@@ -38,9 +38,11 @@ static const char* GetEntryForStage(ShaderStageType stageType)
 {
 	switch (stageType)
 	{
-	case SHADER_STAGE_INVALID: ERROR_AND_DIE("Attempted to get entry of invalid stage type!");
 	case SHADER_STAGE_VERTEX: return "VertexFunction"; break;
-	case SHADER_STAGE_FRAGMENT: return "VertexFunction"; break;
+	case SHADER_STAGE_FRAGMENT: return "FragmentFunction"; break;
+	default:
+		ERROR_AND_DIE("Attempted to get entry of invalid stage type!");
+		break;
 	}
 }
 
@@ -50,10 +52,10 @@ static const char* GetShaderModelForStage(ShaderStageType stageType)
 {
 	switch (stageType)
 	{
-	case SHADER_STAGE_INVALID: ERROR_AND_DIE("Attempted to get model for invalid stage type!"); break;
 	case SHADER_STAGE_VERTEX: return "vs_5_0"; break;
 	case SHADER_STAGE_FRAGMENT: return "ps_5_0"; break;
 	default:
+		ERROR_AND_DIE("Attempted to get model for invalid stage type!");
 		break;
 	}
 }
@@ -117,7 +119,7 @@ bool ShaderStage::LoadFromShaderSource(const char* filename, const void* source,
 
 	ID3DBlob* byteCode = CompileHLSL(filename, source, sourceByteSize, entryPoint, shaderModel);
 
-	if (byteCode != nullptr)
+	if (byteCode == nullptr)
 	{
 		return false;
 	}
@@ -158,37 +160,59 @@ bool Shader::CreateFromFile(const char* filename)
 // Creates a DX11 input element description using the compiled vertex shader code
 bool Shader::CreateInputLayoutForVertexLayout(const VertexLayout* vertexLayout)
 {
-	// Input layout already made
-	if (m_inputLayout != nullptr)
+	bool createdNewLayout = false;
+
+	// Input layout hasn't been made yet or is a different set of vertex attributes, re-create it
+	if (m_shaderInputLayout.m_dxInputLayout == nullptr || m_shaderInputLayout.m_vertexLayoutUsed != vertexLayout)
 	{
-		return true;
-	}
+		uint numAttributes = vertexLayout->GetAttributeCount();
+		D3D11_INPUT_ELEMENT_DESC* desc = (D3D11_INPUT_ELEMENT_DESC*)malloc(sizeof(D3D11_INPUT_ELEMENT_DESC) * numAttributes);
+		memset(desc, 0, sizeof(D3D11_INPUT_ELEMENT_DESC) * numAttributes);
 
-	uint numAttributes = vertexLayout->GetAttributeCount();
-	D3D11_INPUT_ELEMENT_DESC* desc = (D3D11_INPUT_ELEMENT_DESC*)malloc(sizeof(D3D11_INPUT_ELEMENT_DESC) * numAttributes);
-
-	for (uint attributeIndex = 0; attributeIndex < numAttributes; ++attributeIndex)
-	{
-		const VertexAttribute& currAttribute = vertexLayout->GetAttribute(attributeIndex);
-
-		desc[attributeIndex].SemanticName = currAttribute.m_name.c_str();
-		desc[attributeIndex].SemanticIndex = 0;
-
-		switch (currAttribute.m_dataType)
+		for (uint attributeIndex = 0; attributeIndex < numAttributes; ++attributeIndex)
 		{
-		case RDT_FLOAT:
-			desc[attributeIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-			break;
-		default:
-			ERROR_RECOVERABLE("Only floats supported for vertex attributes!");
-			break;
+			const VertexAttribute& currAttribute = vertexLayout->GetAttribute(attributeIndex);
+
+			desc[attributeIndex].SemanticName = currAttribute.m_name.c_str();
+			desc[attributeIndex].SemanticIndex = 0;
+
+			switch (currAttribute.m_dataType)
+			{
+			case RDT_FLOAT:
+				desc[attributeIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+				break;
+			default:
+				ERROR_RECOVERABLE("Only floats supported for vertex attributes!");
+				break;
+			}
+
+			desc[attributeIndex].InputSlot = 0U;
+			desc[attributeIndex].AlignedByteOffset = currAttribute.m_memberOffset;
+			desc[attributeIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			desc[attributeIndex].InstanceDataStepRate = 0U;
 		}
 
-		desc[attributeIndex].InputSlot = 0U; 
-		desc[attributeIndex].AlignedByteOffset = currAttribute.m_memberOffset;
-		desc[attributeIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-		desc[attributeIndex].InstanceDataStepRate = 0U;
+		ID3DBlob* vsByteCode = m_vertexShader.GetCompiledSource();
+		ASSERT_OR_DIE(vsByteCode != nullptr, "Attempted to create input layout for vertex stage that didn't compile!");
+
+		RenderContext* context = RenderContext::GetInstance();
+		ID3D11Device* dxDevice = context->GetDxDevice();
+
+		HRESULT hr = dxDevice->CreateInputLayout(desc, numAttributes, vsByteCode->GetBufferPointer(), vsByteCode->GetBufferSize(), &m_shaderInputLayout.m_dxInputLayout);
+		createdNewLayout = SUCCEEDED(hr);
+
+		if (createdNewLayout)
+		{
+			m_shaderInputLayout.m_vertexLayoutUsed = vertexLayout;
+		}
+		else
+		{
+			m_shaderInputLayout.m_dxInputLayout = nullptr;
+			m_shaderInputLayout.m_vertexLayoutUsed = nullptr;
+		}
+
+		SAFE_FREE_POINTER(desc);
 	}
 
-
+	return createdNewLayout;
 }

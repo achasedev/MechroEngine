@@ -53,7 +53,7 @@ public:
 	template <typename VERT_TYPE>
 	void SetVertices(const VERT_TYPE* vertices, uint vertexCount)
 	{
-		bool succeeded = m_vertexBuffer.CopyToGPU<VERT_TYPE>(vertexCount, vertices);
+		bool succeeded = m_vertexBuffer.CopyToGPU<VERT_TYPE>(vertices, vertexCount);
 
 		if (succeeded)
 		{

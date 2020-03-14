@@ -8,6 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** INCLUDES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/DirectX/DX11Common.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** DEFINES ***
@@ -22,8 +23,13 @@ struct ID3D11InputLayout;
 struct ID3D11PixelShader;
 struct ID3D11Resource;
 struct ID3D11VertexShader;
-struct ID3DBlob;
 class VertexLayout;
+
+struct ShaderInputLayout
+{
+	ID3D11InputLayout* m_dxInputLayout = nullptr;
+	const VertexLayout* m_vertexLayoutUsed = nullptr;
+};
 
 //-------------------------------------------------------------------------------------------------
 enum ShaderStageType
@@ -57,8 +63,9 @@ public:
 	bool LoadFromShaderSource(const char* filename, const void* source, const size_t sourceByteSize, ShaderStageType stageType);
 	bool IsValid() const { return m_handle != nullptr; }
 
-	ID3D11VertexShader* GetAsVertexShader() { return m_vertexShader; }
-	ID3D11PixelShader* GetAsFragmentShader() { return m_fragmentShader; }
+	ID3D11VertexShader* GetAsVertexShader() const { return m_vertexShader; }
+	ID3D11PixelShader* GetAsFragmentShader() const { return m_fragmentShader; }
+	ID3DBlob* GetCompiledSource() const { return m_compiledSource; }
 
 private:
 	//-----Private Data-----
@@ -86,6 +93,7 @@ public:
 
 	ID3D11VertexShader* GetVertexStage() { return m_vertexShader.GetAsVertexShader(); }
 	ID3D11PixelShader* GetFragmentStage() { return m_fragmentShader.GetAsFragmentShader(); }
+	ID3D11InputLayout* GetInputLayout() { return m_shaderInputLayout.m_dxInputLayout; }
 
 
 private:
@@ -93,7 +101,7 @@ private:
 
 	ShaderStage m_vertexShader;
 	ShaderStage m_fragmentShader;
-	ID3D11InputLayout* m_inputLayout = nullptr;
+	ShaderInputLayout m_shaderInputLayout;
 
 };
 

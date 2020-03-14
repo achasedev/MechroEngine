@@ -51,16 +51,7 @@ Camera::Camera()
 
 	// Set the target to the backbuffer (for now)
 	RenderContext* renderContext = RenderContext::GetInstance();
-	IDXGISwapChain* swapChain = renderContext->GetDxSwapChain();
-
-	ID3D11Texture2D* backbuffer = nullptr;
-	swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backbuffer);
-
-	// Store it off
-	m_colorTarget->InitForTexture(backbuffer);
-
-	// Release the local reference to the backbuffer
-	DX_SAFE_RELEASE(backbuffer);
+	SetColorTarget(renderContext->GetBackBufferColorTarget(), false);
 }
 
 
@@ -68,7 +59,24 @@ Camera::Camera()
 Camera::~Camera()
 {
 	SAFE_DELETE_POINTER(m_cameraUBO);
-	SAFE_DELETE_POINTER(m_colorTarget);
+
+	if (m_ownsColorTarget)
+	{
+		SAFE_DELETE_POINTER(m_colorTarget);
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Camera::SetColorTarget(ColorTargetView* colorTarget, bool ownsTarget)
+{
+	if (m_colorTarget != nullptr && m_ownsColorTarget)
+	{
+		SAFE_DELETE_POINTER(m_colorTarget);
+	}
+
+	m_colorTarget = colorTarget;
+	m_ownsColorTarget = ownsTarget;
 }
 
 

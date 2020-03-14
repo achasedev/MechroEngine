@@ -36,6 +36,13 @@
 //-------------------------------------------------------------------------------------------------
 bool IndexBuffer::CopyToGPU(const uint* indices, const uint indexCount)
 {
+	// Nothing to copy
+	if (indices == nullptr || indexCount == 0)
+	{
+		// TODO: Put a warning here
+		return false;
+	}
+
 	size_t sizeNeeded = sizeof(uint) * indexCount;
 
 	bool succeeded = false;
@@ -45,7 +52,7 @@ bool IndexBuffer::CopyToGPU(const uint* indices, const uint indexCount)
 	}
 	else
 	{
-		ASSERT_OR_DIE(IsDynamic(), "VertexBuffer not dynamic!");
+		ASSERT_OR_DIE(IsDynamic(), "IndexBuffer not dynamic!");
 		succeeded = RenderBuffer::CopyToGPU(indices, sizeNeeded);
 	}
 

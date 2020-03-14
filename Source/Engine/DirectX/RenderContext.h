@@ -69,9 +69,11 @@ public:
 
 	Texture2D*	CreateOrGetTexture(const std::string& name);
 	Shader*		CreateOrGetShader(const std::string& name);
+
 	ID3D11Device* GetDxDevice();
 	ID3D11DeviceContext* GetDxContext();
 	IDXGISwapChain* GetDxSwapChain();
+	ColorTargetView* GetBackBufferColorTarget();
 
 
 private:
@@ -84,7 +86,7 @@ private:
 
 	void BindVertexStream(const VertexBuffer* vbo);
 	void BindIndexStream(const IndexBuffer* ibo);
-	void SetVertexLayout(const VertexLayout* vertexLayout);
+	void SetInputLayout(const VertexLayout* vertexLayout);
 
 
 private:
@@ -95,9 +97,10 @@ private:
 	IDXGISwapChain* m_swapChain = nullptr;
 
 	// Frame State
-	Camera* m_currentCamera = nullptr;
-	ColorTargetView* m_frameBackbufferRtv = nullptr;
-	const VertexLayout* m_currVertexLayout = nullptr;
+	Camera*					m_currentCamera = nullptr;
+	Shader*					m_currentShader = nullptr;
+	const VertexLayout*		m_currVertexLayout = nullptr;
+	ColorTargetView*		m_frameBackbufferRtv = nullptr;
 
 	static RenderContext* s_renderContext;
 

@@ -16,6 +16,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #define UNUSED(x) (void)(x);
 #define SAFE_DELETE_POINTER(p)  if (p != nullptr) { delete p; p = nullptr; }
+#define SAFE_FREE_POINTER(p)  if (p != nullptr) { free(p); p = nullptr; }
 #define BIT_FLAG(x) (1 << x)
 #define _QUOTE(x) # x
 #define QUOTE(x) _QUOTE(x)

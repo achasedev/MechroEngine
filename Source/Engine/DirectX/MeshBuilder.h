@@ -64,6 +64,7 @@ public:
 	uint GetVertexCount() const { return (uint)m_vertices.size(); }
 	uint GetIndexCount() const { return (uint)m_indices.size(); }
 
+	//-------------------------------------------------------------------------------------------------
 	template <typename VERT_TYPE>
 	Mesh* CreateMesh() const
 	{
@@ -73,8 +74,10 @@ public:
 		return mesh;
 	}
 
+
+	//-------------------------------------------------------------------------------------------------
 	template <typename VERT_TYPE>
-	Mesh* UpdateMesh(Mesh& out_mesh) const
+	void UpdateMesh(Mesh& out_mesh) const
 	{
 		// Convert the list of VertexMasters to the specified vertex type
 		uint vertexCount = (uint)m_vertices.size();
@@ -95,11 +98,18 @@ public:
 		}
 
 		// Set up the mesh
-		out_mesh.SetVertices(vertexCount, temp);
-		out_mesh.SetIndices(indexCount, m_indices.data());
+		out_mesh.SetVertices(temp, vertexCount);
 
-		free(temp);
+		if (m_instruction.m_useIndices)
+		{
+			out_mesh.SetIndices(m_indices.data(), indexCount);
+		}
+
+		out_mesh.SetDrawInstruction(m_instruction);
+
+		SAFE_FREE_POINTER(temp);
 	}
+
 
 private:
 	//-----Private Data-----

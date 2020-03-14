@@ -42,6 +42,7 @@ public:
 	Camera();
 	~Camera();
 
+	void SetColorTarget(ColorTargetView* colorTarget, bool ownsTarget);
 	void SetOrthoProjection(float orthoHeight);
 	void UpdateUBO();
 
@@ -59,8 +60,9 @@ private:
 	float m_nearClipZ = 0.f;
 	float m_farClipZ = 1.f;
 
-	ColorTargetView* m_colorTarget = nullptr;
-	UniformBuffer* m_cameraUBO = nullptr;
+	ColorTargetView*	m_colorTarget = nullptr;
+	bool				m_ownsColorTarget = false;
+	UniformBuffer*		m_cameraUBO = nullptr;
 
 };
 

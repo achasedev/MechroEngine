@@ -147,7 +147,7 @@ void RenderContext::EndCamera()
 //-------------------------------------------------------------------------------------------------
 void RenderContext::ClearScreen()
 {
-	// clear the back buffer to a deep blue
+	// clear the back buffer to a changing color
 	static float test = 0.f;
 	test += 0.0001f;
 	test = ModFloat(test, 1.0f);
@@ -169,34 +169,32 @@ void RenderContext::BindUniformBuffer(uint slot, UniformBuffer* ubo)
 //-------------------------------------------------------------------------------------------------
 void RenderContext::BindShader(Shader* shader)
 {
-	m_context->VSSetShader(shader->GetVertexStage(), 0, 0);
-	m_context->PSSetShader(shader->GetFragmentStage(), 0, 0);
+	if (m_currentShader != shader)
+	{
+		m_context->VSSetShader(shader->GetVertexStage(), 0, 0);
+		m_context->PSSetShader(shader->GetFragmentStage(), 0, 0);
+		m_currentShader = shader;
+	}
 }
 
 //-------------------------------------------------------------------------------------------------
 void RenderContext::Draw(Mesh& m_mesh, Shader& m_shader)
 {
 	BindShader(&m_shader);
-
-	// Bind vertex stream
 	BindVertexStream(m_mesh.GetVertexBuffer());
-
-	// Bind (or clear) index stream
 	BindIndexStream(m_mesh.GetIndexBuffer());
-
-	// Create/bind input layout
-	// TODO: only create an input layout if the vertex type changes; 
-	// TODO: When different vertex types come on-line, look at the current bound
-	//       input streams (VertexBuffer) for the layout
-	const VertexLayout* currVertexLayout = m_mesh.GetVertexLayout();
-
-	if (m_mesh.GetVertexLayout() != m_currVertexLayout)
-	{
-		SetVertexLayout(currVertexLayout);
-	}
+	SetInputLayout(m_mesh.GetVertexLayout());
 
 	// Draw or DrawIndexed
-
+	DrawInstruction draw = m_mesh.GetDrawInstruction();
+	if (draw.m_useIndices)
+	{
+		m_context->DrawIndexed(draw.m_elementCount, draw.m_startIndex, 0);
+	}
+	else
+	{
+		m_context->Draw(draw.m_elementCount, draw.m_startIndex);
+	}
 }
 
 
@@ -241,8 +239,8 @@ RenderContext::RenderContext()
 
 	m_frameBackbufferRtv = new ColorTargetView();
 
-	// TEMP - Move to BindShader()
-	InitPipeline();
+	// TODO: Create enums for various topologies and add as state to RenderContext
+	m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
 
@@ -274,10 +272,15 @@ void RenderContext::BindIndexStream(const IndexBuffer* ibo)
 
 
 //-------------------------------------------------------------------------------------------------
-void RenderContext::SetVertexLayout(const VertexLayout* vertexLayout)
+void RenderContext::SetInputLayout(const VertexLayout* vertexLayout)
 {
-
-	m_currVertexLayout = vertexLayout;
+	// Won't create a new vertex layout if already created
+	if (m_currVertexLayout != vertexLayout)
+	{
+		m_currentShader->CreateInputLayoutForVertexLayout(vertexLayout);
+		m_context->IASetInputLayout(m_currentShader->GetInputLayout());
+		m_currVertexLayout = vertexLayout;
+	}
 }
 
 
@@ -292,92 +295,6 @@ RenderContext::~RenderContext()
 	DX_SAFE_RELEASE(m_swapChain);
 	DX_SAFE_RELEASE(m_context);
 	DX_SAFE_RELEASE(m_device);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void RenderContext::InitPipeline()
-{
-	size_t shaderSourceSize;
-	void* shaderSource = FileReadToNewBuffer("Data/Shader/test.shader", shaderSourceSize);
-	DWORD compile_flags = 0U;
-	compile_flags |= D3DCOMPILE_DEBUG;
-	compile_flags |= D3DCOMPILE_SKIP_OPTIMIZATION;
-	compile_flags |= D3DCOMPILE_WARNINGS_ARE_ERRORS;
-
-	ID3DBlob *compiledVsSource = nullptr;
-	ID3DBlob *vsCompileErrors = nullptr;
-
-	::D3DCompile(shaderSource, shaderSourceSize,        // src data
-		nullptr,                       // optional, used for error messages
-		nullptr,                            // pre-compiler defines - used more for compiling multiple versions of a single shader (different quality specs, or shaders that are mostly the same outside some constants)
-		D3D_COMPILE_STANDARD_FILE_INCLUDE,  // include rules - this allows #includes in the shader to work relative to the src_file path or my current working directly
-		"VertexFunction",                         // Entry Point for this shader
-		"vs_5_0",                             // Compile Target (MSDN - "Specifying Compiler Targets")
-		compile_flags,                      // Flags that control compilation
-		0,                                  // Effect Flags (we will not be doing Effect Files)
-		&compiledVsSource,
-		&vsCompileErrors);
-
-
-	m_device->CreateVertexShader(compiledVsSource->GetBufferPointer(), compiledVsSource->GetBufferSize(), nullptr, &gVertexShader);
-
-	ID3DBlob *compiledPsSource = nullptr;
-	ID3DBlob *psCompileErrors = nullptr;
-
-	::D3DCompile(shaderSource, shaderSourceSize,        // src data
-		nullptr,                       // optional, used for error messages
-		nullptr,                            // pre-compiler defines - used more for compiling multiple versions of a single shader (different quality specs, or shaders that are mostly the same outside some constants)
-		D3D_COMPILE_STANDARD_FILE_INCLUDE,  // include rules - this allows #includes in the shader to work relative to the src_file path or my current working directly
-		"PixelFunction",                         // Entry Point for this shader
-		"ps_5_0",                             // Compile Target (MSDN - "Specifying Compiler Targets")
-		compile_flags,                      // Flags that control compilation
-		0,                                  // Effect Flags (we will not be doing Effect Files)
-		&compiledPsSource,
-		&psCompileErrors);
-
-
-	m_device->CreatePixelShader(compiledPsSource->GetBufferPointer(), compiledPsSource->GetBufferSize(), nullptr, &gPixelShader);
-
-	m_context->VSSetShader(gVertexShader, 0, 0);
-	m_context->PSSetShader(gPixelShader, 0, 0);
-
-	D3D11_BUFFER_DESC bd;
-	ZeroMemory(&bd, sizeof(bd));
-
-	bd.Usage = D3D11_USAGE_DYNAMIC;                // write access access by CPU and GPU
-	bd.ByteWidth = sizeof(VertexPC) * 3;             // size is the VERTEX struct * 3
-	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;       // use as a vertex buffer
-	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;    // allow CPU to write in buffer
-
-	m_device->CreateBuffer(&bd, NULL, &gVertexBuffer);       // create the buffer
-
-	VertexPC triangleVerts[] =
-	{
-		VertexPC(Vector3(0.0f, 0.5f, 0.0f), 1.0f, 0.f, 0.f, 1.0f),
-		VertexPC(Vector3(0.45f, -0.5, 0.0f), 0.0f, 1.f, 0.f, 1.0f),
-		VertexPC(Vector3(-0.45f, -0.5f, 0.0f), 0.0f, 0.f, 1.f, 1.0f)
-	};
-
-	D3D11_MAPPED_SUBRESOURCE ms;
-	m_context->Map(gVertexBuffer, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);   // map the buffer
-	memcpy(ms.pData, triangleVerts, sizeof(triangleVerts));                // copy the data
-	m_context->Unmap(gVertexBuffer, NULL);                                     // unmap the buffer
-
-	D3D11_INPUT_ELEMENT_DESC ied[] =
-	{
-		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-		{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
-	};
-
-	m_device->CreateInputLayout(ied, 2, compiledVsSource->GetBufferPointer(), compiledVsSource->GetBufferSize(), &gInputLayout);
-	m_context->IASetInputLayout(gInputLayout);
-
-	UINT stride = sizeof(VertexPC);
-	UINT offset = 0;
-	m_context->IASetVertexBuffers(0, 1, &gVertexBuffer, &stride, &offset);
-
-	m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
 
@@ -407,4 +324,11 @@ ID3D11DeviceContext* RenderContext::GetDxContext()
 IDXGISwapChain* RenderContext::GetDxSwapChain()
 {
 	return m_swapChain;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+ColorTargetView* RenderContext::GetBackBufferColorTarget()
+{
+	return m_frameBackbufferRtv;
 }
