@@ -34,7 +34,7 @@ const VertexAttribute Vertex3D_PCU::ATTRIBUTES[] =
 	VertexAttribute("UV", RDT_FLOAT, 2, false, offsetof(Vertex3D_PCU, m_texUVs)),
 };
 
-const uint Vertex3D_PCU::NUM_ATTRIBUTES = (sizeof(ATTRIBUTES) / sizeof(VertexAttribute));
+const uint32 Vertex3D_PCU::NUM_ATTRIBUTES = (sizeof(ATTRIBUTES) / sizeof(VertexAttribute));
 const VertexLayout Vertex3D_PCU::LAYOUT = VertexLayout(sizeof(Vertex3D_PCU), NUM_ATTRIBUTES, Vertex3D_PCU::ATTRIBUTES);
 
 
@@ -48,14 +48,14 @@ const VertexAttribute VertexLit::ATTRIBUTES[] =
 	VertexAttribute("TANGENT",		RDT_FLOAT,			3,		false,		offsetof(VertexLit, m_tangent))
 };
 
-const uint VertexLit::NUM_ATTRIBUTES = (sizeof(ATTRIBUTES) / sizeof(VertexAttribute));
+const uint32 VertexLit::NUM_ATTRIBUTES = (sizeof(ATTRIBUTES) / sizeof(VertexAttribute));
 const VertexLayout VertexLit::LAYOUT = VertexLayout(sizeof(VertexLit), NUM_ATTRIBUTES, VertexLit::ATTRIBUTES);
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                           *** C FUNCTIONS ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
-uint GetDXFormatForAttribute(const VertexAttribute& attribute)
+uint32 GetDXFormatForAttribute(const VertexAttribute& attribute)
 {
 	switch (attribute.m_dataType)
 	{
@@ -127,7 +127,7 @@ uint GetDXFormatForAttribute(const VertexAttribute& attribute)
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-VertexLayout::VertexLayout(uint stride, uint numAttributes, const VertexAttribute* attributes)
+VertexLayout::VertexLayout(uint32 stride, uint32 numAttributes, const VertexAttribute* attributes)
 	: m_vertexStride(stride)
 	, m_numAttributes(numAttributes)
 	, m_attributes(attributes)
@@ -136,14 +136,14 @@ VertexLayout::VertexLayout(uint stride, uint numAttributes, const VertexAttribut
 
 
 //-------------------------------------------------------------------------------------------------
-uint VertexLayout::GetAttributeCount() const
+uint32 VertexLayout::GetAttributeCount() const
 {
 	return m_numAttributes;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-const VertexAttribute& VertexLayout::GetAttribute(uint index) const
+const VertexAttribute& VertexLayout::GetAttribute(uint32 index) const
 {
 	ASSERT_OR_DIE(index >= 0 && index < m_numAttributes, "Error: VertexLayout::GetAttribute index out of range, index was %i", index);
 	return m_attributes[index];
@@ -151,7 +151,7 @@ const VertexAttribute& VertexLayout::GetAttribute(uint index) const
 
 
 //-------------------------------------------------------------------------------------------------
-uint VertexLayout::GetStride() const
+uint32 VertexLayout::GetStride() const
 {
 	return m_vertexStride;
 }

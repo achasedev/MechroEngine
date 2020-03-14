@@ -116,7 +116,7 @@ struct VertexLit
 
 	static const VertexAttribute	ATTRIBUTES[];
 	static const VertexLayout		LAYOUT;
-	static const uint				NUM_ATTRIBUTES;
+	static const uint32				NUM_ATTRIBUTES;
 
 };
 
@@ -134,19 +134,19 @@ class VertexLayout
 public:
 	//-----Public Data-----
 
-	VertexLayout(uint stride, uint numAttributes, const VertexAttribute* attributes);
+	VertexLayout(uint32 stride, uint32 numAttributes, const VertexAttribute* attributes);
 
-	uint					GetAttributeCount() const;
-	const VertexAttribute&	GetAttribute(uint index) const;
-	uint					GetStride() const;
+	uint32					GetAttributeCount() const;
+	const VertexAttribute&	GetAttribute(uint32 index) const;
+	uint32					GetStride() const;
 
 
 private:
 	//-----Private Data-----
 
 	const VertexAttribute*	m_attributes;
-	uint					m_numAttributes;
-	uint					m_vertexStride;
+	uint32					m_numAttributes;
+	uint32					m_vertexStride;
 };
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -154,4 +154,4 @@ private:
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-uint GetDXFormatForAttribute(const VertexAttribute& attribute);
+uint32 GetDXFormatForAttribute(const VertexAttribute& attribute);

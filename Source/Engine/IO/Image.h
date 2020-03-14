@@ -1,27 +1,20 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: March 8th, 2020
-/// Description: Hashed c-string class
+/// Date Created: March 14th, 2020
+/// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** INCLUDES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Framework/Color.h"
 #include "Engine/Framework/EngineCommon.h"
-#include <map>
+#include "Engine/Math/IntVector2.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** DEFINES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-typedef uint32 StringID;
-StringID HashString(const char* str);
-
-#ifdef DEBUG_STRINGID
-#define SID(x) StringIDManager::InternString()
-#else
-#define SID(x) HashString(str)
-#endif
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                              *** TYPES ***
@@ -40,35 +33,31 @@ StringID HashString(const char* str);
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class StringIDManager
+class Image
 {
 public:
-	//-----Public Methods-----
+	//------Public Methods-----
 
-	static void Initialize();
-	static void Shutdown();
-	static StringIDManager* GetInstance() { return s_instance; }
+	Image() {}
+	~Image();
 
-	StringID InternString(const char* str);
+	bool		LoadFromFile(const char* filepath);
 
-
-private:
-	//-----Private Methods-----
-
-	StringIDManager() {}
-	~StringIDManager();
-	StringIDManager(const StringIDManager& copy) = delete;
+	Color		GetTexelColor(int x, int y);
+	uint32		GetTexelCount() { return m_dimensions.x * m_dimensions.y;}
+	IntVector2	GetDimensions() { return m_dimensions; }
+	uint32		GetNumComponentsPerTexel() { return m_numComponentsPerTexel; }
+	uint8*		GetData() { return m_data; }
 
 
 private:
 	//-----Private Data-----
 
-	std::map<StringID, const char*> m_stringIDs;
-
-	static StringIDManager* s_instance;
+	IntVector2	m_dimensions = IntVector2(0,0);
+	int			m_numComponentsPerTexel = 0;
+	uint8*		m_data = nullptr;
 
 };
-
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                           *** C FUNCTIONS ***

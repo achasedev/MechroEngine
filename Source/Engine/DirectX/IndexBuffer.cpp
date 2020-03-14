@@ -34,7 +34,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-bool IndexBuffer::CopyToGPU(const uint* indices, const uint indexCount)
+bool IndexBuffer::CopyToGPU(const uint32* indices, const uint32 indexCount)
 {
 	// Nothing to copy
 	if (indices == nullptr || indexCount == 0)
@@ -43,12 +43,12 @@ bool IndexBuffer::CopyToGPU(const uint* indices, const uint indexCount)
 		return false;
 	}
 
-	size_t sizeNeeded = sizeof(uint) * indexCount;
+	size_t sizeNeeded = sizeof(uint32) * indexCount;
 
 	bool succeeded = false;
 	if (sizeNeeded > GetBufferSize() || IsStatic())
 	{
-		succeeded = CreateOnGPU(indices, sizeNeeded, sizeof(uint), RENDER_BUFFER_USAGE_INDEX_STREAM_BIT, GPU_MEMORY_USAGE_DYNAMIC);
+		succeeded = CreateOnGPU(indices, sizeNeeded, sizeof(uint32), RENDER_BUFFER_USAGE_INDEX_STREAM_BIT, GPU_MEMORY_USAGE_DYNAMIC);
 	}
 	else
 	{

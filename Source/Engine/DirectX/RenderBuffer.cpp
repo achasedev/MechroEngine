@@ -48,9 +48,9 @@ static D3D11_USAGE ToDXMemoryUsage(GpuMemoryUsage usage)
 
 
 //-------------------------------------------------------------------------------------------------
-static uint ToDXUsageFlags(RenderBufferUsageBitFlags flags)
+static uint32 ToDXUsageFlags(RenderBufferUsageBitFlags flags)
 {
-	uint dxFlags = 0U;
+	uint32 dxFlags = 0U;
 
 	if (flags & RENDER_BUFFER_USAGE_VERTEX_STREAM_BIT)
 	{

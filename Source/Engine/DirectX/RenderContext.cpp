@@ -158,7 +158,7 @@ void RenderContext::ClearScreen()
 
 
 //-------------------------------------------------------------------------------------------------
-void RenderContext::BindUniformBuffer(uint slot, UniformBuffer* ubo)
+void RenderContext::BindUniformBuffer(uint32 slot, UniformBuffer* ubo)
 {
 	ID3D11Buffer *buffer = (ubo != nullptr) ? ubo->GetBufferHandle() : nullptr;
 	m_context->VSSetConstantBuffers(slot, 1U, &buffer);
@@ -251,8 +251,8 @@ void RenderContext::BindVertexStream(const VertexBuffer* vbo)
 	ASSERT_OR_DIE(layout != nullptr, "VertexBuffer had null layout!");
 
 	ID3D11Buffer* handle = vbo->GetBufferHandle();
-	uint stride = layout->GetStride();
-	uint offset = 0U;
+	uint32 stride = layout->GetStride();
+	uint32 offset = 0U;
 	
 	m_context->IASetVertexBuffers(0, 1, &handle, &stride, &offset);
 }

@@ -1,27 +1,19 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: March 8th, 2020
-/// Description: Hashed c-string class
+/// Date Created: March 14th, 2020
+/// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** INCLUDES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Framework/EngineCommon.h"
-#include <map>
+#include "Engine/IO/Image.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "ThirdParty/stb/stb_image.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** DEFINES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-typedef uint32 StringID;
-StringID HashString(const char* str);
-
-#ifdef DEBUG_STRINGID
-#define SID(x) StringIDManager::InternString()
-#else
-#define SID(x) HashString(str)
-#endif
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                              *** TYPES ***
@@ -36,40 +28,45 @@ StringID HashString(const char* str);
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+///                                                           *** C FUNCTIONS ***
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                             *** CLASSES ***
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class StringIDManager
+Image::~Image()
 {
-public:
-	//-----Public Methods-----
-
-	static void Initialize();
-	static void Shutdown();
-	static StringIDManager* GetInstance() { return s_instance; }
-
-	StringID InternString(const char* str);
+	SAFE_FREE_POINTER(m_data);
+}
 
 
-private:
-	//-----Private Methods-----
+//-------------------------------------------------------------------------------------------------
+bool Image::LoadFromFile(const char* filepath)
+{
+	ASSERT_OR_DIE(m_data == nullptr, "Image already loaded!");
 
-	StringIDManager() {}
-	~StringIDManager();
-	StringIDManager(const StringIDManager& copy) = delete;
+	int numComponentsRequested = 0;
+	m_data = (uint8*)stbi_load(filepath, &m_dimensions.x, &m_dimensions.y, &m_numComponentsPerTexel, numComponentsRequested);
 
-
-private:
-	//-----Private Data-----
-
-	std::map<StringID, const char*> m_stringIDs;
-
-	static StringIDManager* s_instance;
-
-};
+	return (m_data != nullptr);
+}
 
 
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-///                                                           *** C FUNCTIONS ***
-///--------------------------------------------------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+Color Image::GetTexelColor(int x, int y)
+{
+	ASSERT_OR_DIE(x >= 0 && y >= 0 && x < m_dimensions.x && y < m_dimensions.y, "Image coords were out of bounds, coords were (%u, %u) for image of dimensions (%i, %i)", x, y, m_dimensions.x, m_dimensions.y)
+	
+	uint32 texelIndex = y * (uint32)m_dimensions.x + x;
+	uint32 dataIndex = texelIndex * m_numComponentsPerTexel;
+
+	Color color;
+	if (m_numComponentsPerTexel >= 1) { color.r = m_data[dataIndex + 0]; }
+	if (m_numComponentsPerTexel >= 2) { color.g = m_data[dataIndex + 1]; }
+	if (m_numComponentsPerTexel >= 3) { color.b = m_data[dataIndex + 2]; }
+	if (m_numComponentsPerTexel == 4) { color.a = m_data[dataIndex + 3]; }
+	
+	return color;
+}

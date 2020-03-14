@@ -175,6 +175,7 @@
     <ClCompile Include="Framework\Color.cpp" />
     <ClCompile Include="Framework\File.cpp" />
     <ClCompile Include="Framework\Window.cpp" />
+    <ClCompile Include="IO\Image.cpp" />
     <ClCompile Include="Math\AABB2.cpp" />
     <ClCompile Include="Math\IntVector2.cpp" />
     <ClCompile Include="Math\MathUtils.cpp" />
@@ -189,6 +190,8 @@
     <ClCompile Include="Utility\StringUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\ThirdParty\stb\stb_image.h" />
+    <ClInclude Include="..\ThirdParty\stb\stb_image_write.h" />
     <ClInclude Include="DirectX\Camera.h" />
     <ClInclude Include="DirectX\ColorTargetView.h" />
     <ClInclude Include="DirectX\DX11Common.h" />
@@ -197,10 +200,12 @@
     <ClInclude Include="DirectX\MeshBuilder.h" />
     <ClInclude Include="DirectX\RenderBuffer.h" />
     <ClInclude Include="DirectX\Shader.h" />
+    <ClInclude Include="DirectX\Texture2D.h" />
     <ClInclude Include="DirectX\UniformBuffer.h" />
     <ClInclude Include="DirectX\Vertex.h" />
     <ClInclude Include="DirectX\VertexBuffer.h" />
     <ClInclude Include="Framework\Color.h" />
+    <ClInclude Include="IO\Image.h" />
     <ClInclude Include="Math\Matrix44.h" />
     <ClInclude Include="DirectX\RenderContext.h" />
     <ClInclude Include="Framework\EngineCommon.h" />

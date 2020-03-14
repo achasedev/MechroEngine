@@ -34,7 +34,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-void Mesh::SetIndices(const uint* indices, uint indexCount)
+void Mesh::SetIndices(const uint32* indices, uint32 indexCount)
 {
 	m_indexBuffer.CopyToGPU(indices, indexCount);
 }
@@ -47,7 +47,7 @@ void Mesh::SetDrawInstruction(DrawInstruction instruction)
 
 
 //-------------------------------------------------------------------------------------------------
-void Mesh::SetDrawInstruction(bool useIndices, uint startIndex, uint elementCount)
+void Mesh::SetDrawInstruction(bool useIndices, uint32 startIndex, uint32 elementCount)
 {
 	m_instruction = DrawInstruction(useIndices, startIndex, elementCount);
 }

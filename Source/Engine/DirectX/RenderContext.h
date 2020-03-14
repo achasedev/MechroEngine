@@ -62,7 +62,7 @@ public:
 
 	void ClearScreen();
 
-	void BindUniformBuffer(uint slot, UniformBuffer* ubo);
+	void BindUniformBuffer(uint32 slot, UniformBuffer* ubo);
 	void BindShader(Shader* shader);
 
 	void Draw(Mesh& m_mesh, Shader& m_shader);

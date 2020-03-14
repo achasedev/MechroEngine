@@ -51,7 +51,7 @@ public:
 	//-----Public Methods-----
 
 	template <typename VERT_TYPE>
-	void SetVertices(const VERT_TYPE* vertices, uint vertexCount)
+	void SetVertices(const VERT_TYPE* vertices, uint32 vertexCount)
 	{
 		bool succeeded = m_vertexBuffer.CopyToGPU<VERT_TYPE>(vertices, vertexCount);
 
@@ -61,9 +61,9 @@ public:
 		}
 	}
 
-	void				SetIndices(const uint* indices, uint indexCount);
+	void				SetIndices(const uint32* indices, uint32 indexCount);
 	void				SetDrawInstruction(DrawInstruction instruction);
-	void				SetDrawInstruction(bool useIndices, uint startIndex, uint elementCount);
+	void				SetDrawInstruction(bool useIndices, uint32 startIndex, uint32 elementCount);
 
 	const VertexBuffer*	GetVertexBuffer() const;
 	const IndexBuffer*	GetIndexBuffer() const;

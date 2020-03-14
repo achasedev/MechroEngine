@@ -35,10 +35,10 @@ StringIDManager* StringIDManager::s_instance = nullptr;
 StringID HashString(const char* str)
 {
 	// djb2 hash function, by Dan Bernstein
-	uint hashValue = 5381;
-	uint c;
+	uint32 hashValue = 5381;
+	uint32 c;
 
-	while (c = (uint)*str++)
+	while (c = (uint32)*str++)
 	{
 		hashValue = ((hashValue << 5) + hashValue) + c;
 	}

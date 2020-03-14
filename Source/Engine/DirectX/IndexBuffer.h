@@ -39,13 +39,13 @@ public:
 	IndexBuffer() {}
 	~IndexBuffer() {}
 
-	bool CopyToGPU(const uint* indices, const uint indexCount);
+	bool CopyToGPU(const uint32* indices, const uint32 indexCount);
 
 
 private:
 	//-----Private Data-----
 
-	uint m_indexCount = 0;
+	uint32 m_indexCount = 0;
 
 };
 

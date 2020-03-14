@@ -41,7 +41,7 @@ public:
 	~VertexBuffer() {}
 
 	template <typename VERT_TYPE>
-	bool CopyToGPU(const VERT_TYPE* vertices, const uint vertexCount)
+	bool CopyToGPU(const VERT_TYPE* vertices, const uint32 vertexCount)
 	{
 		size_t sizeNeeded = sizeof(VERT_TYPE) * vertexCount;
 
@@ -68,7 +68,7 @@ public:
 private:
 	//-----Private Data-----
 
-	uint m_vertexCount = 0;
+	uint32 m_vertexCount = 0;
 	const VertexLayout* m_layout = nullptr;
 
 };

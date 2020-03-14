@@ -54,16 +54,16 @@ public:
 	void SetColor(const Color& color);
 	void SetUV(const Vector2& uv);
 	void SetDrawInstruction(const DrawInstruction& instruction);
-	void SetDrawInstruction(bool useIndices, uint startIndex, uint elementCount);
+	void SetDrawInstruction(bool useIndices, uint32 startIndex, uint32 elementCount);
 
-	uint PushVertex(const Vector3& position);
-	uint PushVertex(const VertexMaster& master);
-	void PushIndex(uint index);
+	uint32 PushVertex(const Vector3& position);
+	uint32 PushVertex(const VertexMaster& master);
+	void PushIndex(uint32 index);
 
 	// Helpers HERE
 
-	uint GetVertexCount() const { return (uint)m_vertices.size(); }
-	uint GetIndexCount() const { return (uint)m_indices.size(); }
+	uint32 GetVertexCount() const { return (uint32)m_vertices.size(); }
+	uint32 GetIndexCount() const { return (uint32)m_indices.size(); }
 
 	//-------------------------------------------------------------------------------------------------
 	template <typename VERT_TYPE>
@@ -81,8 +81,8 @@ public:
 	void UpdateMesh(Mesh& out_mesh) const
 	{
 		// Convert the list of VertexMasters to the specified vertex type
-		uint vertexCount = (uint)m_vertices.size();
-		uint indexCount = (uint)m_indices.size();
+		uint32 vertexCount = (uint32)m_vertices.size();
+		uint32 indexCount = (uint32)m_indices.size();
 
 		ASSERT_OR_DIE(vertexCount > 0, "You're creating a mesh with no vertices! Don't do that.");
 
@@ -93,7 +93,7 @@ public:
 
 		VERT_TYPE* temp = (VERT_TYPE*)malloc(sizeof(VERT_TYPE) * vertexCount);
 
-		for (uint vertexIndex = 0; vertexIndex < vertexCount; ++vertexIndex)
+		for (uint32 vertexIndex = 0; vertexIndex < vertexCount; ++vertexIndex)
 		{
 			temp[vertexIndex] = VERT_TYPE(m_vertices[vertexIndex]);
 		}
@@ -119,7 +119,7 @@ private:
 	VertexMaster				m_stamp;
 	DrawInstruction				m_instruction;
 	std::vector<VertexMaster>	m_vertices;
-	std::vector<uint>			m_indices;
+	std::vector<uint32>			m_indices;
 
 };
 

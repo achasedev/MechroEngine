@@ -165,11 +165,11 @@ bool Shader::CreateInputLayoutForVertexLayout(const VertexLayout* vertexLayout)
 	// Input layout hasn't been made yet or is a different set of vertex attributes, re-create it
 	if (m_shaderInputLayout.m_dxInputLayout == nullptr || m_shaderInputLayout.m_vertexLayoutUsed != vertexLayout)
 	{
-		uint numAttributes = vertexLayout->GetAttributeCount();
+		uint32 numAttributes = vertexLayout->GetAttributeCount();
 		D3D11_INPUT_ELEMENT_DESC* desc = (D3D11_INPUT_ELEMENT_DESC*)malloc(sizeof(D3D11_INPUT_ELEMENT_DESC) * numAttributes);
 		memset(desc, 0, sizeof(D3D11_INPUT_ELEMENT_DESC) * numAttributes);
 
-		for (uint attributeIndex = 0; attributeIndex < numAttributes; ++attributeIndex)
+		for (uint32 attributeIndex = 0; attributeIndex < numAttributes; ++attributeIndex)
 		{
 			const VertexAttribute& currAttribute = vertexLayout->GetAttribute(attributeIndex);
 

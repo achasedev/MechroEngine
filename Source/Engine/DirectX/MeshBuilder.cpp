@@ -55,8 +55,8 @@ void MeshBuilder::BeginBuilding(bool useIndices)
 //-------------------------------------------------------------------------------------------------
 void MeshBuilder::FinishBuilding()
 {
-	if (m_instruction.m_useIndices) { m_instruction.m_elementCount = (uint)m_indices.size(); }
-	else							{ m_instruction.m_elementCount = (uint)m_vertices.size(); }
+	if (m_instruction.m_useIndices) { m_instruction.m_elementCount = (uint32)m_indices.size(); }
+	else							{ m_instruction.m_elementCount = (uint32)m_vertices.size(); }
 
 	m_isBuilding = false;	
 }
@@ -95,32 +95,32 @@ void MeshBuilder::SetDrawInstruction(const DrawInstruction& instruction)
 
 
 //-------------------------------------------------------------------------------------------------
-void MeshBuilder::SetDrawInstruction(bool useIndices, uint startIndex, uint elementCount)
+void MeshBuilder::SetDrawInstruction(bool useIndices, uint32 startIndex, uint32 elementCount)
 {
 	m_instruction = DrawInstruction(useIndices, startIndex, elementCount);
 }
 
 //-------------------------------------------------------------------------------------------------
-uint MeshBuilder::PushVertex(const Vector3& position)
+uint32 MeshBuilder::PushVertex(const Vector3& position)
 {
 	m_stamp.m_position = position;
 
 	m_vertices.push_back(m_stamp);
-	return (uint)m_vertices.size() - 1;
+	return (uint32)m_vertices.size() - 1;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-uint MeshBuilder::PushVertex(const VertexMaster& master)
+uint32 MeshBuilder::PushVertex(const VertexMaster& master)
 {
 	m_stamp = master;
 	m_vertices.push_back(m_stamp);
-	return (uint)m_vertices.size() - 1;
+	return (uint32)m_vertices.size() - 1;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void MeshBuilder::PushIndex(uint index)
+void MeshBuilder::PushIndex(uint32 index)
 {
 	ASSERT_RECOVERABLE(m_instruction.m_useIndices, "Pushing indices with a non-indexed builder");
 	m_indices.push_back(index);
