@@ -39,16 +39,23 @@ public:
 
 	bool		LoadFromFile(const char* filepath);
 
-	Color		GetTexelColor(int x, int y);
-	uint32		GetTexelCount() { return m_dimensions.x * m_dimensions.y;}
-	IntVector2	GetDimensions() { return m_dimensions; }
-	uint32		GetNumComponentsPerTexel() { return m_numComponentsPerTexel; }
-	uint8*		GetData() { return m_data; }
+
+	Color		GetTexelColor(int x, int y) const;
+	uint32		GetTexelCount() const { return m_dimensions.x * m_dimensions.y;}
+	int			GetTexelWidth() const { return m_dimensions.x; }
+	int			GetTexelHeight() const { return m_dimensions.y; }
+	IntVector2	GetDimensions() const { return m_dimensions; }
+	uint32		GetNumComponentsPerTexel() const { return m_numComponentsPerTexel; }
+	uint8*		GetData() const { return m_data; }
+	uint32		GetSize() const { return m_size; }
+	const char* GetFilePath() const { return m_filepath.c_str(); }
 
 
 private:
 	//-----Private Data-----
 
+	std::string m_filepath;
+	uint32		m_size = 0;
 	IntVector2	m_dimensions = IntVector2(0,0);
 	int			m_numComponentsPerTexel = 0;
 	uint8*		m_data = nullptr;

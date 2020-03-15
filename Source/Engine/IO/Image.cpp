@@ -46,12 +46,18 @@ bool Image::LoadFromFile(const char* filepath)
 	int numComponentsRequested = 0;
 	m_data = (uint8*)stbi_load(filepath, &m_dimensions.x, &m_dimensions.y, &m_numComponentsPerTexel, numComponentsRequested);
 
+	if (m_data != nullptr)
+	{
+		m_filepath = filepath;
+		m_size = m_dimensions.x * m_dimensions.y * m_numComponentsPerTexel;
+	}
+
 	return (m_data != nullptr);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Color Image::GetTexelColor(int x, int y)
+Color Image::GetTexelColor(int x, int y) const
 {
 	ASSERT_OR_DIE(x >= 0 && y >= 0 && x < m_dimensions.x && y < m_dimensions.y, "Image coords were out of bounds, coords were (%u, %u) for image of dimensions (%i, %i)", x, y, m_dimensions.x, m_dimensions.y)
 	

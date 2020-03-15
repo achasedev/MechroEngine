@@ -28,7 +28,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-static D3D11_USAGE ToDXMemoryUsage(GPUMemoryUsage usage)
+uint32 ToDXMemoryUsage(GPUMemoryUsage usage)
 {
 	switch (usage)
 	{
@@ -44,7 +44,7 @@ static D3D11_USAGE ToDXMemoryUsage(GPUMemoryUsage usage)
 
 
 //-------------------------------------------------------------------------------------------------
-static uint32 ToDXUsageFlags(RenderBufferUsageBitFlags flags)
+static uint32 GetDxBindFromRenderBufferFlags(RenderBufferUsageBitFlags flags)
 {
 	uint32 dxFlags = 0U;
 
@@ -111,8 +111,8 @@ bool RenderBuffer::CreateOnGPU(const void* data, size_t bufferSizeBytes, size_t 
 
 	bufferDesc.ByteWidth = (UINT)bufferSizeBytes;
 	bufferDesc.StructureByteStride = (UINT)elementSize;
-	bufferDesc.Usage = ToDXMemoryUsage(memoryUsage);
-	bufferDesc.BindFlags = ToDXUsageFlags(bufferUsageFlags);
+	bufferDesc.Usage = (D3D11_USAGE)ToDXMemoryUsage(memoryUsage);
+	bufferDesc.BindFlags = GetDxBindFromRenderBufferFlags(bufferUsageFlags);
 
 	// Give CPU read/write permissions
 	if (memoryUsage == GPU_MEMORY_USAGE_DYNAMIC)

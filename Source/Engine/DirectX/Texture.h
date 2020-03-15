@@ -1,15 +1,15 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
 /// Date Created: March 14th, 2020
-/// Description: Buffer on GPU for a 2D texture
+/// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/DirectX/RenderBuffer.h"
 #include "Engine/Framework/EngineCommon.h"
+#include "Engine/DirectX/RenderBuffer.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -18,16 +18,17 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-
 enum TextureUsageBit : uint32
 {
-	TEXTURE_USAGE_TEXTURE_BIT				= BIT_FLAG(0),  // Can be used to create a TextureView
-	TEXTURE_USAGE_COLOR_TARGET_BIT			= BIT_FLAG(1),  // Can be used to create a ColorTargetView
-	TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT	= BIT_FLAG(2),	// Can be used to create a DepthStencilTargetView
+	TEXTURE_USAGE_TEXTURE_BIT = BIT_FLAG(0),  // Can be used to create a TextureView
+	TEXTURE_USAGE_COLOR_TARGET_BIT = BIT_FLAG(1),  // Can be used to create a ColorTargetView
+	TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT = BIT_FLAG(2),	// Can be used to create a DepthStencilTargetView
 };
+
 typedef uint32 TextureUsageBits;
-class ID3D11Resource;
+class Image;
 class TextureView2D;
+struct ID3D11Resource;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -47,32 +48,12 @@ public:
 	virtual ~Texture();
 
 
-private:
+protected:
 	//-----Private Data-----
 
 	ID3D11Resource* m_handle = nullptr;
 	GPUMemoryUsage m_memoryUsage = GPU_MEMORY_USAGE_DYNAMIC;
 	TextureUsageBits m_textureUsage = 0;
-
-};
-
-
-//-------------------------------------------------------------------------------------------------
-class Texture2D : public Texture
-{
-public:
-	//-----Public Methods-----
-
-	Texture2D();
-	virtual ~Texture2D();
-
-	bool LoadFromFile(const char filepath);
-	bool LoadFromImage(const Image& image);
-
-	TextureView2D* CreateTextureView2D() const;
-
-private:
-	//-----Private Data-----
 
 };
 
