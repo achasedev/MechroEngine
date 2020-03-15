@@ -88,9 +88,9 @@ private:
 private:
 	//-----Private Data-----
 
-	ID3D11Device* m_device = nullptr;
-	ID3D11DeviceContext* m_context = nullptr;
-	IDXGISwapChain* m_swapChain = nullptr;
+	ID3D11Device*			m_dxDevice = nullptr;
+	ID3D11DeviceContext*	m_dxContext = nullptr;
+	IDXGISwapChain*			m_dxSwapChain = nullptr;
 
 	// Frame State
 	Camera*					m_currentCamera = nullptr;

@@ -204,6 +204,8 @@
     <ClInclude Include="DirectX\Shader.h" />
     <ClInclude Include="DirectX\Texture.h" />
     <ClInclude Include="DirectX\Texture2D.h" />
+    <ClInclude Include="DirectX\TextureView.h" />
+    <ClInclude Include="DirectX\TextureView2D.h" />
     <ClInclude Include="DirectX\UniformBuffer.h" />
     <ClInclude Include="DirectX\Vertex.h" />
     <ClInclude Include="DirectX\VertexBuffer.h" />

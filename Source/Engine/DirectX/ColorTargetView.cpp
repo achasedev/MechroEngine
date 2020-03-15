@@ -42,7 +42,7 @@ ColorTargetView::ColorTargetView()
 //-------------------------------------------------------------------------------------------------
 ColorTargetView::~ColorTargetView()
 {
-	DX_SAFE_RELEASE(m_renderTargetView);
+	DX_SAFE_RELEASE(m_dxRenderTargetView);
 }
 
 
@@ -50,13 +50,13 @@ ColorTargetView::~ColorTargetView()
 void ColorTargetView::InitForTexture(ID3D11Texture2D* texture)
 {
 	ASSERT_OR_DIE(texture != nullptr, "ColorTargetView init from null texture!");
-	DX_SAFE_RELEASE(m_renderTargetView);
+	DX_SAFE_RELEASE(m_dxRenderTargetView);
 
 	// Create a renderable view of the texture
 	RenderContext* renderContext = RenderContext::GetInstance();
 	ID3D11Device* dxDevice = renderContext->GetDxDevice();
 
-	HRESULT hr = dxDevice->CreateRenderTargetView(texture, nullptr, &m_renderTargetView);
+	HRESULT hr = dxDevice->CreateRenderTargetView(texture, nullptr, &m_dxRenderTargetView);
 	ASSERT_OR_DIE(SUCCEEDED(hr), "Failed to create RenderTargetView for texture");
 
 	// Get dimensions

@@ -49,11 +49,11 @@ public:
 
 
 protected:
-	//-----Private Data-----
+	//-----Protected Data-----
 
-	ID3D11Resource* m_handle = nullptr;
-	GPUMemoryUsage m_memoryUsage = GPU_MEMORY_USAGE_DYNAMIC;
-	TextureUsageBits m_textureUsage = 0;
+	ID3D11Resource*		m_dxHandle = nullptr;
+	GPUMemoryUsage		m_memoryUsage = GPU_MEMORY_USAGE_DYNAMIC;
+	TextureUsageBits	m_textureUsage = 0;
 
 };
 

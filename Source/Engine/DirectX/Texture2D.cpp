@@ -10,6 +10,7 @@
 #include "Engine/DirectX/DX11Common.h"
 #include "Engine/DirectX/RenderContext.h"
 #include "Engine/DirectX/Texture2D.h"
+#include "Engine/DirectX/TextureView2D.h"
 #include "Engine/IO/Image.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -90,7 +91,7 @@ bool Texture2D::LoadFromFile(const char* filepath)
 //-------------------------------------------------------------------------------------------------
 bool Texture2D::LoadFromImage(const Image& image)
 {
-	DX_SAFE_RELEASE(m_handle);
+	DX_SAFE_RELEASE(m_dxHandle);
 
 	RenderContext* context = RenderContext::GetInstance();
 	ID3D11Device* dxDevice = context->GetDxDevice();
@@ -129,8 +130,38 @@ bool Texture2D::LoadFromImage(const Image& image)
 
 	if (succeeded)
 	{
-		m_handle = tex2D;
+		m_dxHandle = tex2D;
+		m_dimensions = image.GetDimensions();
+		m_size = image.GetSize();
 	}
 
 	return succeeded;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+TextureView2D* Texture2D::CreateTextureView2D() const
+{
+	ASSERT_OR_DIE(m_dxHandle != nullptr, "Attempted to create a handle for an uninitialized Texture!");
+
+	ID3D11Device* dxDevice = RenderContext::GetInstance()->GetDxDevice();
+
+	ID3D11ShaderResourceView* srv = nullptr;
+	dxDevice->CreateShaderResourceView(m_dxHandle, nullptr, &srv);
+
+	if (srv != nullptr)
+	{
+		TextureView2D* view2D = new TextureView2D();
+
+		view2D->m_dxView = srv;
+		view2D->m_dimensions = m_dimensions;
+
+		m_dxHandle->AddRef();
+		view2D->m_dxSource = m_dxHandle;
+		view2D->m_size = m_size;
+
+		return view2D;
+	}
+
+	return nullptr;
 }

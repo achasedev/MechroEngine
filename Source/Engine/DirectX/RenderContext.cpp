@@ -81,7 +81,7 @@ void RenderContext::BeginFrame()
 {
 	// Get the new backbuffer
 	ID3D11Texture2D* backbuffer = nullptr;
-	m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backbuffer);
+	m_dxSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backbuffer);
 
 	// Store it off
 	m_frameBackbufferRtv->InitForTexture(backbuffer);
@@ -95,10 +95,10 @@ void RenderContext::BeginFrame()
 void RenderContext::EndFrame()
 {
 	// Swap buffers
-	m_swapChain->Present(0, 0);
+	m_dxSwapChain->Present(0, 0);
 
 	// TEMP - Move to EndCamera()
-	m_context->OMSetRenderTargets(0, nullptr, nullptr);
+	m_dxContext->OMSetRenderTargets(0, nullptr, nullptr);
 }
 
 
@@ -110,7 +110,7 @@ void RenderContext::BeginCamera(Camera* camera)
 	// Render to the camera's target
 	ColorTargetView* view = camera->GetColorTarget();
 	ID3D11RenderTargetView* rtv = view->GetDX11RenderTargetView();
-	m_context->OMSetRenderTargets(1, &rtv, nullptr);
+	m_dxContext->OMSetRenderTargets(1, &rtv, nullptr);
 	
 	// Viewport
 	D3D11_VIEWPORT viewport;
@@ -121,7 +121,7 @@ void RenderContext::BeginCamera(Camera* camera)
 	viewport.Height = (FLOAT)view->GetHeight();
 	viewport.MinDepth = 0.0f;
 	viewport.MaxDepth = 1.0f;
-	m_context->RSSetViewports(1, &viewport);
+	m_dxContext->RSSetViewports(1, &viewport);
 
 	// Uniform Buffer
 	camera->UpdateUBO();
@@ -132,7 +132,7 @@ void RenderContext::BeginCamera(Camera* camera)
 //-------------------------------------------------------------------------------------------------
 void RenderContext::EndCamera()
 {
-	m_context->OMSetRenderTargets(0, nullptr, nullptr);
+	m_dxContext->OMSetRenderTargets(0, nullptr, nullptr);
 	m_currentCamera = nullptr;
 }
 
@@ -146,7 +146,7 @@ void RenderContext::ClearScreen()
 	test = ModFloat(test, 1.0f);
 
 	float color[4] = { 0.0f, test, Clamp(test, 0.f, 1.0f), Clamp(2.f * test, 0.f, 1.0f) };
-	m_context->ClearRenderTargetView(m_frameBackbufferRtv->GetDX11RenderTargetView(), color);
+	m_dxContext->ClearRenderTargetView(m_frameBackbufferRtv->GetDX11RenderTargetView(), color);
 }
 
 
@@ -154,8 +154,8 @@ void RenderContext::ClearScreen()
 void RenderContext::BindUniformBuffer(uint32 slot, UniformBuffer* ubo)
 {
 	ID3D11Buffer *buffer = (ubo != nullptr) ? ubo->GetBufferHandle() : nullptr;
-	m_context->VSSetConstantBuffers(slot, 1U, &buffer);
-	m_context->PSSetConstantBuffers(slot, 1U, &buffer);
+	m_dxContext->VSSetConstantBuffers(slot, 1U, &buffer);
+	m_dxContext->PSSetConstantBuffers(slot, 1U, &buffer);
 }
 
 
@@ -164,8 +164,8 @@ void RenderContext::BindShader(Shader* shader)
 {
 	if (m_currentShader != shader)
 	{
-		m_context->VSSetShader(shader->GetVertexStage(), 0, 0);
-		m_context->PSSetShader(shader->GetFragmentStage(), 0, 0);
+		m_dxContext->VSSetShader(shader->GetVertexStage(), 0, 0);
+		m_dxContext->PSSetShader(shader->GetFragmentStage(), 0, 0);
 		m_currentShader = shader;
 	}
 }
@@ -182,11 +182,11 @@ void RenderContext::Draw(Mesh& m_mesh, Shader& m_shader)
 	DrawInstruction draw = m_mesh.GetDrawInstruction();
 	if (draw.m_useIndices)
 	{
-		m_context->DrawIndexed(draw.m_elementCount, draw.m_startIndex, 0);
+		m_dxContext->DrawIndexed(draw.m_elementCount, draw.m_startIndex, 0);
 	}
 	else
 	{
-		m_context->Draw(draw.m_elementCount, draw.m_startIndex);
+		m_dxContext->Draw(draw.m_elementCount, draw.m_startIndex);
 	}
 }
 
@@ -223,17 +223,17 @@ RenderContext::RenderContext()
 		0U,							// number of feature levels to attempt
 		D3D11_SDK_VERSION,			// SDK Version to use
 		&swap_desc,					// Description of our swap chain
-		&m_swapChain,				// Swap Chain we're creating
-		&m_device,					// [out] The device created
+		&m_dxSwapChain,				// Swap Chain we're creating
+		&m_dxDevice,					// [out] The device created
 		nullptr,					// [out] Feature Level Acquired
-		&m_context);				// Context that can issue commands on this pipe.
+		&m_dxContext);				// Context that can issue commands on this pipe.
 
 	ASSERT_OR_DIE(SUCCEEDED(hr), "D3D11CreateDeviceAndSwapChain failed!");
 
 	m_frameBackbufferRtv = new ColorTargetView();
 
 	// TODO: Create enums for various topologies and add as state to RenderContext
-	m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
 
@@ -247,7 +247,7 @@ void RenderContext::BindVertexStream(const VertexBuffer* vbo)
 	uint32 stride = layout->GetStride();
 	uint32 offset = 0U;
 	
-	m_context->IASetVertexBuffers(0, 1, &handle, &stride, &offset);
+	m_dxContext->IASetVertexBuffers(0, 1, &handle, &stride, &offset);
 }
 
 
@@ -260,7 +260,7 @@ void RenderContext::BindIndexStream(const IndexBuffer* ibo)
 		handle = ibo->GetBufferHandle();
 	}
 
-	m_context->IASetIndexBuffer(handle, DXGI_FORMAT_R32_UINT, 0);
+	m_dxContext->IASetIndexBuffer(handle, DXGI_FORMAT_R32_UINT, 0);
 }
 
 
@@ -271,7 +271,7 @@ void RenderContext::SetInputLayout(const VertexLayout* vertexLayout)
 	if (m_currVertexLayout != vertexLayout)
 	{
 		m_currentShader->CreateInputLayoutForVertexLayout(vertexLayout);
-		m_context->IASetInputLayout(m_currentShader->GetInputLayout());
+		m_dxContext->IASetInputLayout(m_currentShader->GetInputLayout());
 		m_currVertexLayout = vertexLayout;
 	}
 }
@@ -283,11 +283,11 @@ RenderContext::~RenderContext()
 	SAFE_DELETE_POINTER(m_frameBackbufferRtv);
 
 	// DX11 cannot shutdown in full screen
-	m_swapChain->SetFullscreenState(FALSE, NULL);
+	m_dxSwapChain->SetFullscreenState(FALSE, NULL);
 
-	DX_SAFE_RELEASE(m_swapChain);
-	DX_SAFE_RELEASE(m_context);
-	DX_SAFE_RELEASE(m_device);
+	DX_SAFE_RELEASE(m_dxSwapChain);
+	DX_SAFE_RELEASE(m_dxContext);
+	DX_SAFE_RELEASE(m_dxDevice);
 }
 
 
@@ -302,21 +302,21 @@ RenderContext* RenderContext::GetInstance()
 //-------------------------------------------------------------------------------------------------
 ID3D11Device* RenderContext::GetDxDevice()
 {
-	return m_device;
+	return m_dxDevice;
 }
 
 
 //-------------------------------------------------------------------------------------------------
 ID3D11DeviceContext* RenderContext::GetDxContext()
 {
-	return m_context;
+	return m_dxContext;
 }
 
 
 //-------------------------------------------------------------------------------------------------
 IDXGISwapChain* RenderContext::GetDxSwapChain()
 {
-	return m_swapChain;
+	return m_dxSwapChain;
 }
 
 

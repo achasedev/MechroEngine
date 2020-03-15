@@ -53,7 +53,7 @@ public:
 	virtual ~RenderBuffer();
 
 	size_t			GetBufferSize() const { return m_bufferSizeBytes; }
-	ID3D11Buffer*	GetBufferHandle() const { return m_bufferHandle; }
+	ID3D11Buffer*	GetBufferHandle() const { return m_dxHandle; }
 
 
 protected:
@@ -76,7 +76,7 @@ private:
 	size_t m_bufferSizeBytes = 0;
 	size_t m_elementSize = 0; // Used for stride
 
-	ID3D11Buffer* m_bufferHandle = nullptr;
+	ID3D11Buffer* m_dxHandle = nullptr;
 
 };
 

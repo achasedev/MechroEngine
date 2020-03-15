@@ -11,7 +11,7 @@
 #include "Engine/DirectX/RenderBuffer.h"
 #include "Engine/DirectX/Texture.h"
 #include "Engine/Framework/EngineCommon.h"
-#include "Engine/Math/Vector2.h"
+#include "Engine/Math/IntVector2.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -46,7 +46,8 @@ public:
 private:
 	//-----Private Data-----
 
-	Vector2 m_dimensions = Vector2::ZERO;
+	IntVector2	m_dimensions = IntVector2::ZERO;
+	uint32		m_size = 0;
 
 };
 

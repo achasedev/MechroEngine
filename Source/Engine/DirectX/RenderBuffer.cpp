@@ -74,14 +74,14 @@ static uint32 GetDxBindFromRenderBufferFlags(RenderBufferUsageBitFlags flags)
 //-------------------------------------------------------------------------------------------------
 RenderBuffer::~RenderBuffer()
 {
-	DX_SAFE_RELEASE(m_bufferHandle);
+	DX_SAFE_RELEASE(m_dxHandle);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void RenderBuffer::Reset()
 {
-	DX_SAFE_RELEASE(m_bufferHandle);
+	DX_SAFE_RELEASE(m_dxHandle);
 
 	m_bufferSizeBytes = 0;
 	m_elementSize = 0;
@@ -135,7 +135,7 @@ bool RenderBuffer::CreateOnGPU(const void* data, size_t bufferSizeBytes, size_t 
 
 	RenderContext* renderContext = RenderContext::GetInstance();
 	ID3D11Device* device = renderContext->GetDxDevice();
-	HRESULT hr = device->CreateBuffer(&bufferDesc, dataPtr, &m_bufferHandle);
+	HRESULT hr = device->CreateBuffer(&bufferDesc, dataPtr, &m_dxHandle);
 
 	if (SUCCEEDED(hr))
 	{
@@ -154,7 +154,7 @@ bool RenderBuffer::CreateOnGPU(const void* data, size_t bufferSizeBytes, size_t 
 //-------------------------------------------------------------------------------------------------
 bool RenderBuffer::CopyToGPU(const void* data, size_t byteSize)
 {
-	ASSERT_OR_DIE(m_bufferHandle != nullptr, "RenderBuffer not created on GPU!");
+	ASSERT_OR_DIE(m_dxHandle != nullptr, "RenderBuffer not created on GPU!");
 	ASSERT_OR_DIE(m_memoryUsage != GPU_MEMORY_USAGE_STATIC, "CopyToGpu called on a static buffer!");
 	ASSERT_OR_DIE(byteSize <= m_bufferSizeBytes, "Not enough room in buffer to copy!");
 
@@ -162,12 +162,12 @@ bool RenderBuffer::CopyToGPU(const void* data, size_t byteSize)
 	ID3D11DeviceContext* dxContext = renderContext->GetDxContext();
 
 	D3D11_MAPPED_SUBRESOURCE resource;
-	HRESULT hr = dxContext->Map(m_bufferHandle, 0, D3D11_MAP_WRITE_DISCARD, 0U, &resource);
+	HRESULT hr = dxContext->Map(m_dxHandle, 0, D3D11_MAP_WRITE_DISCARD, 0U, &resource);
 
 	if (SUCCEEDED(hr))
 	{
 		memcpy(resource.pData, data, byteSize);
-		dxContext->Unmap(m_bufferHandle, 0);
+		dxContext->Unmap(m_dxHandle, 0);
 
 		return true;
 	}

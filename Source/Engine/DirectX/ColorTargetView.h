@@ -38,15 +38,15 @@ public:
 	
 	void InitForTexture(ID3D11Texture2D* texture);
 
-	int GetWidth() const { return m_dimensions.x; }
-	int GetHeight() const { return m_dimensions.y; }
-	ID3D11RenderTargetView* GetDX11RenderTargetView() const { return m_renderTargetView; }
+	int						GetWidth() const { return m_dimensions.x; }
+	int						GetHeight() const { return m_dimensions.y; }
+	ID3D11RenderTargetView* GetDX11RenderTargetView() const { return m_dxRenderTargetView; }
 
 
 private:
 	//-----Private Data-----
 
-	ID3D11RenderTargetView* m_renderTargetView = nullptr;
+	ID3D11RenderTargetView* m_dxRenderTargetView = nullptr;
 	IntVector2				m_dimensions;
 
 };
