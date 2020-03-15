@@ -80,6 +80,13 @@ float Pow(float base, float exponent)
 
 
 //-------------------------------------------------------------------------------------------------
+float Normalize(uint8 inValue)
+{
+	return static_cast<float>(inValue) * (1.f / 255.f);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 Vector2 PolarToCartesian(float radius, float angleRadians)
 {
 	Vector2 result;
@@ -391,21 +398,38 @@ Vector3 GetRandomPointWithinUnitSphere()
 int RoundToNearestInt(float inValue)
 {
 	int castedInt = static_cast<int>(inValue);
-	float fraction = (inValue - castedInt);
+	float fraction = (inValue - static_cast<float>(castedInt));
 
-	int toReturn = castedInt;
+	int result = castedInt;
 
 	if (fraction >= 0.5)
 	{
-		toReturn = castedInt + 1;
+		result = castedInt + 1;
 	}
 
 	if (fraction < -0.5f)
 	{
-		toReturn = castedInt - 1;
+		result = castedInt - 1;
 	}
 
-	return toReturn;
+	return result;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+uint32 RoundToNearestUInt(float inValue)
+{
+	uint32 result = 0;
+
+	// If the float is less than zero.....just return zero
+	if (inValue > 0.f)
+	{
+		uint32 castedUInt = static_cast<uint32>(inValue);
+		float fraction = (inValue - static_cast<float>(castedUInt));
+		result = (fraction >= 0.5f ? castedUInt + 1 : castedUInt);
+	}
+
+	return result;
 }
 
 

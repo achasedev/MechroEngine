@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -168,13 +168,15 @@
     <ClCompile Include="DirectX\MeshBuilder.cpp" />
     <ClCompile Include="DirectX\RenderBuffer.cpp" />
     <ClCompile Include="DirectX\RenderContext.cpp" />
+    <ClCompile Include="DirectX\Sampler.cpp" />
     <ClCompile Include="DirectX\Shader.cpp" />
     <ClCompile Include="DirectX\Texture.cpp" />
     <ClCompile Include="DirectX\Texture2D.cpp" />
+    <ClCompile Include="DirectX\TextureView.cpp" />
     <ClCompile Include="DirectX\UniformBuffer.cpp" />
     <ClCompile Include="DirectX\Vertex.cpp" />
     <ClCompile Include="DirectX\VertexBuffer.cpp" />
-    <ClCompile Include="Framework\Color.cpp" />
+    <ClCompile Include="Framework\Rgba.cpp" />
     <ClCompile Include="Framework\File.cpp" />
     <ClCompile Include="Framework\Window.cpp" />
     <ClCompile Include="IO\Image.cpp" />
@@ -201,6 +203,7 @@
     <ClInclude Include="DirectX\Mesh.h" />
     <ClInclude Include="DirectX\MeshBuilder.h" />
     <ClInclude Include="DirectX\RenderBuffer.h" />
+    <ClInclude Include="DirectX\Sampler.h" />
     <ClInclude Include="DirectX\Shader.h" />
     <ClInclude Include="DirectX\Texture.h" />
     <ClInclude Include="DirectX\Texture2D.h" />
@@ -209,7 +212,7 @@
     <ClInclude Include="DirectX\UniformBuffer.h" />
     <ClInclude Include="DirectX\Vertex.h" />
     <ClInclude Include="DirectX\VertexBuffer.h" />
-    <ClInclude Include="Framework\Color.h" />
+    <ClInclude Include="Framework\Rgba.h" />
     <ClInclude Include="IO\Image.h" />
     <ClInclude Include="Math\Matrix44.h" />
     <ClInclude Include="DirectX\RenderContext.h" />

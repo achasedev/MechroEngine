@@ -12,7 +12,9 @@
 #include "Engine/DirectX/DX11Common.h"
 #include "Engine/DirectX/Mesh.h"
 #include "Engine/DirectX/RenderContext.h"
+#include "Engine/DirectX/Sampler.h"
 #include "Engine/DirectX/Shader.h"
+#include "Engine/DirectX/TextureView.h"
 #include "Engine/DirectX/UniformBuffer.h"
 #include "Engine/DirectX/Vertex.h"
 #include "Engine/DirectX/VertexBuffer.h"
@@ -170,6 +172,33 @@ void RenderContext::BindShader(Shader* shader)
 	}
 }
 
+
+//-------------------------------------------------------------------------------------------------
+void RenderContext::BindTextureView(uint32 slot, TextureView* view)
+{
+	// TODO: Default the view to a sensible texture if null
+	ASSERT_OR_DIE(view != nullptr, "Null TextureView!");
+
+	ID3D11ShaderResourceView* dxViewHandle = view->GetDxViewHandle();
+	m_dxContext->PSSetShaderResources(slot, 1U, &dxViewHandle);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RenderContext::BindSampler(uint32 slot, Sampler* sampler)
+{
+	if (sampler == nullptr)
+	{
+		sampler = m_samplers[m_samplerMode];
+	}
+
+	sampler->CreateOrUpdate();
+
+	ID3D11SamplerState* handle = sampler->GetDxSamplerState();
+	m_dxContext->PSSetSamplers(slot, 1U, &handle);
+}
+
+
 //-------------------------------------------------------------------------------------------------
 void RenderContext::Draw(Mesh& m_mesh, Shader& m_shader)
 {
@@ -234,6 +263,15 @@ RenderContext::RenderContext()
 
 	// TODO: Create enums for various topologies and add as state to RenderContext
 	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	// Create samplers
+	Sampler* pointSampler = new Sampler();
+	pointSampler->SetFilterModes(FILTER_MODE_POINT, FILTER_MODE_POINT);
+	m_samplers[SAMPLER_MODE_POINT] = pointSampler;
+
+	Sampler* linearSampler = new Sampler();
+	linearSampler->SetFilterModes(FILTER_MODE_LINEAR, FILTER_MODE_LINEAR);
+	m_samplers[SAMPLER_MODE_LINEAR] = linearSampler;
 }
 
 

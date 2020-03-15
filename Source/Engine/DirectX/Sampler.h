@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: March 14th, 2020
+/// Date Created: March 15th, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,9 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Framework/Rgba.h"
 #include "Engine/Framework/EngineCommon.h"
-#include "Engine/Math/IntVector2.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -19,6 +17,13 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+struct ID3D11SamplerState;
+
+enum SamplerFilterMode
+{
+	FILTER_MODE_POINT,
+	FILTER_MODE_LINEAR
+};
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -29,47 +34,31 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-// (0,0) is BOTTOM LEFT
-// To use an image as a texture, it must be flipped vertically (DirectX uses (0,0) top left)
-class Image
+class Sampler
 {
 public:
-	//------Public Methods-----
+	//-----Public Methods-----
 
-	Image() {}
-	~Image();
+	Sampler() {}
+	~Sampler();
 
-	bool		LoadFromFile(const char* filepath, bool flipVertically = true);
-
-	void		SetTexelColor(uint32 x, uint32 y, Rgba color);
-
-	Rgba		GetTexelColor(uint32 x, uint32 y) const;
-	uint32		GetTexelCount() const { return m_dimensions.x * m_dimensions.y;}
-	int			GetTexelWidth() const { return m_dimensions.x; }
-	int			GetTexelHeight() const { return m_dimensions.y; }
-	IntVector2	GetDimensions() const { return m_dimensions; }
-	uint32		GetNumComponentsPerTexel() const { return m_numComponentsPerTexel; }
-	uint8*		GetData() const { return m_data; }
-	uint32		GetSize() const { return m_size; }
-	const char* GetFilePath() const { return m_filepath.c_str(); }
-
-
-private:
-	//-----Private Methods-----
-
-	uint32 GetDataIndexForTexel(uint32 x, uint32 y) const;
+	void CreateOrUpdate();
+	void SetFilterModes(SamplerFilterMode minFilter, SamplerFilterMode magFilter) { m_minFilter = minFilter; m_magFilter = magFilter; }
+	
+	ID3D11SamplerState* GetDxSamplerState() const { return m_dxHandle; }
 
 
 private:
 	//-----Private Data-----
 
-	std::string m_filepath;
-	uint32		m_size = 0;
-	IntVector2	m_dimensions = IntVector2(0,0);
-	int			m_numComponentsPerTexel = 0;
-	uint8*		m_data = nullptr;
+	ID3D11SamplerState* m_dxHandle = nullptr;
+	bool				m_isDirty = true;
+
+	SamplerFilterMode	m_minFilter = FILTER_MODE_POINT;
+	SamplerFilterMode	m_magFilter = FILTER_MODE_POINT;
 
 };
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS

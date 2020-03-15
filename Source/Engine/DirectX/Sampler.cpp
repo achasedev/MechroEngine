@@ -1,15 +1,17 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: March 14th, 2020
+/// Date Created: March 15th, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/IO/Image.h"
-#define STB_IMAGE_IMPLEMENTATION
-#include "ThirdParty/stb/stb_image.h"
+#include "Engine/DirectX/DX11Common.h"
+#include "Engine/DirectX/RenderContext.h"
+#include "Engine/DirectX/Sampler.h"
+#include "Engine/Framework/EngineCommon.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -27,71 +29,77 @@
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
+//-------------------------------------------------------------------------------------------------
+// Currently sets mips to point
+static D3D11_FILTER GetDxSamplerFilter(SamplerFilterMode minFilter, SamplerFilterMode magFilter)
+{
+	if (minFilter == FILTER_MODE_POINT)
+	{
+		switch (magFilter) 
+		{
+		case FILTER_MODE_POINT:  return D3D11_FILTER_MIN_MAG_MIP_POINT; break;
+		case FILTER_MODE_LINEAR: return D3D11_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT; break;
+		default:
+			break;
+		};
+	}
+	else
+	{
+		// minFilter is linear
+		switch (magFilter)
+		{
+		case FILTER_MODE_POINT:  return D3D11_FILTER_MIN_LINEAR_MAG_MIP_POINT; break;
+		case FILTER_MODE_LINEAR: return D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT; break;
+		default:
+			break;
+		};
+	}
+
+	// Bad combination?
+	ERROR_AND_DIE("Invalid min/mag filter combination!");
+}
+
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-Image::~Image()
+Sampler::~Sampler()
 {
-	SAFE_FREE_POINTER(m_data);
+	DX_SAFE_RELEASE(m_dxHandle);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-bool Image::LoadFromFile(const char* filepath, bool flipVertically)
+void Sampler::CreateOrUpdate()
 {
-	ASSERT_OR_DIE(m_data == nullptr, "Image already loaded!");
-
-	int numComponentsRequested = 0;
-	if (flipVertically) { stbi_set_flip_vertically_on_load(1); }
-	m_data = (uint8*)stbi_load(filepath, &m_dimensions.x, &m_dimensions.y, &m_numComponentsPerTexel, numComponentsRequested);
-	stbi_set_flip_vertically_on_load(1);
-	
-	if (m_data != nullptr)
+	if (!m_isDirty)
 	{
-		m_filepath = filepath;
-		m_size = m_dimensions.x * m_dimensions.y * m_numComponentsPerTexel;
+		return;
 	}
 
-	return (m_data != nullptr);
-}
+	DX_SAFE_RELEASE(m_dxHandle);
 
+	D3D11_SAMPLER_DESC desc;
+	memset(&desc, 0, sizeof(D3D11_SAMPLER_DESC));
 
-//-------------------------------------------------------------------------------------------------
-void Image::SetTexelColor(uint32 x, uint32 y, Rgba color)
-{
-	// Safety check
-	ASSERT_OR_DIE(x >= 0 && y >= 0 && x < (uint32)m_dimensions.x && y < (uint32)m_dimensions.y, "Texel coordinates out of bounds: (%u, %u) for image size (%i, %i)", x, y, m_dimensions.y, m_dimensions.y);
+	desc.Filter = GetDxSamplerFilter(m_minFilter, m_magFilter);
+	desc.MaxAnisotropy = 1U;
 
-	uint32 index = GetDataIndexForTexel(x, y);
+	desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
 
-	if (m_numComponentsPerTexel >= 1) { m_data[index + 0] = color.r; }
-	if (m_numComponentsPerTexel >= 2) { m_data[index + 1] = color.g; }
-	if (m_numComponentsPerTexel >= 3) { m_data[index + 2] = color.b; }
-	if (m_numComponentsPerTexel >= 4) { m_data[index + 3] = color.a; }
-}
+	desc.MinLOD = -FLT_MAX;
+	desc.MaxLOD = FLT_MAX;
+	desc.MipLODBias = 0.0f;
 
+	desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 
-//-------------------------------------------------------------------------------------------------
-Rgba Image::GetTexelColor(uint32 x, uint32 y) const
-{
-	ASSERT_OR_DIE(x >= 0 && y >= 0 && x < (uint32)m_dimensions.x && y < (uint32)m_dimensions.y, "Image coords were out of bounds, coords were (%u, %u) for image of dimensions (%i, %i)", x, y, m_dimensions.x, m_dimensions.y)
+	ID3D11Device* dxDevice = RenderContext::GetInstance()->GetDxDevice();
+	dxDevice->CreateSamplerState(&desc, &m_dxHandle);
 
-	uint32 dataIndex = GetDataIndexForTexel(x, y);
-
-	Rgba color;
-	if (m_numComponentsPerTexel >= 1) { color.r = m_data[dataIndex + 0]; }
-	if (m_numComponentsPerTexel >= 2) { color.g = m_data[dataIndex + 1]; }
-	if (m_numComponentsPerTexel >= 3) { color.b = m_data[dataIndex + 2]; }
-	if (m_numComponentsPerTexel >= 4) { color.a = m_data[dataIndex + 3]; }
-	
-	return color;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-uint32 Image::GetDataIndexForTexel(uint32 x, uint32 y) const
-{
-	return (y * (uint32)m_dimensions.x + x) * m_numComponentsPerTexel;
+	m_isDirty = false;
+	ASSERT_OR_DIE(m_dxHandle != nullptr, "Couldn't create sampler state!");
 }

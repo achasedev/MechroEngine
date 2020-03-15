@@ -8,7 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Framework/Color.h"
+#include "Engine/Framework/Rgba.h"
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Math/Vector2.h"
 #include "Engine/Math/Vector3.h"
@@ -57,7 +57,7 @@ struct VertexMaster
 {
 	Vector3 m_position = Vector3::ZERO;
 	Vector2 m_uvs = Vector2::ZERO;
-	Color	m_color = Color::WHITE;
+	Rgba	m_color = Rgba::WHITE;
 	Vector3 m_normal = Vector3::ZERO;
 	Vector4 m_tangent = Vector4::ZERO;
 };
@@ -70,14 +70,14 @@ struct Vertex3D_PCU
 {
 	// Constructors
 	Vertex3D_PCU() {};
-	Vertex3D_PCU(const Vector3& position, const Color& color, const Vector2& texUVs)
+	Vertex3D_PCU(const Vector3& position, const Rgba& color, const Vector2& texUVs)
 		: m_position(position), m_color(color), m_texUVs(texUVs) {}
 
 	Vertex3D_PCU(const VertexMaster& master)
 		: m_position(master.m_position), m_color(master.m_color), m_texUVs(master.m_uvs) {}
 
 	Vector3 m_position;
-	Color	m_color;
+	Rgba	m_color;
 	Vector2 m_texUVs;
 
 	static const VertexAttribute	ATTRIBUTES[];
@@ -93,7 +93,7 @@ struct VertexLit
 {
 	// Constructors
 	VertexLit() {};
-	VertexLit(const Vector3& position, const Color& color, const Vector2& texUVs, const Vector3& normal, const Vector4& tangent)
+	VertexLit(const Vector3& position, const Rgba& color, const Vector2& texUVs, const Vector3& normal, const Vector4& tangent)
 		: m_position(position), m_color(color), m_texUVs(texUVs), m_normal(normal), m_tangent(tangent) {}
 
 	// Construction from the master
@@ -103,7 +103,7 @@ struct VertexLit
 	}
 
 	Vector3 m_position;
-	Color	m_color;
+	Rgba	m_color;
 	Vector2 m_texUVs;
 
 	Vector3 m_normal;

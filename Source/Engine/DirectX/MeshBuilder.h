@@ -19,7 +19,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Color;
+class Rgba;
 class Mesh;
 class Vector2;
 class Vector3;
@@ -47,7 +47,7 @@ public:
 	void Clear();
 	
 	// VertexMaster Stamp
-	void SetColor(const Color& color);
+	void SetColor(const Rgba& color);
 	void SetUV(const Vector2& uv);
 	void SetDrawInstruction(const DrawInstruction& instruction);
 	void SetDrawInstruction(bool useIndices, uint32 startIndex, uint32 elementCount);

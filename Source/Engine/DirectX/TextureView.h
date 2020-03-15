@@ -37,6 +37,10 @@ public:
 	TextureView() {};
 	virtual ~TextureView();
 
+	ID3D11ShaderResourceView*	GetDxViewHandle() const { return m_dxView; }
+	ID3D11Resource*				GetDxSourceHandle() const { return m_dxSource; }
+	Sampler*					GetSampler() const { return m_sampler; }
+
 
 protected:
 	//-----Protected Data-----

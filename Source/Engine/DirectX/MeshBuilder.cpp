@@ -70,7 +70,7 @@ void MeshBuilder::Clear()
 
 
 //-------------------------------------------------------------------------------------------------
-void MeshBuilder::SetColor(const Color& color)
+void MeshBuilder::SetColor(const Rgba& color)
 {
 	m_stamp.m_color = color;
 }

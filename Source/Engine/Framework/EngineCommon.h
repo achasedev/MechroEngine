@@ -15,6 +15,8 @@
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #define UNUSED(x) (void)(x);
+#define INLINE
+#define STATIC
 #define SAFE_DELETE_POINTER(p)  if (p != nullptr) { delete p; p = nullptr; }
 #define SAFE_FREE_POINTER(p)  if (p != nullptr) { free(p); p = nullptr; }
 #define BIT_FLAG(x) (1 << x)

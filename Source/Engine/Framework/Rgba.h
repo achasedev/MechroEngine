@@ -8,6 +8,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Framework/EngineCommon.h"
+#include "Engine/Math/Vector4.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -26,31 +28,38 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Color
+class Rgba
 {
 public:
 	//-----Public Methods-----
 
-	Color();
-	Color(float red, float green, float blue, float alpha);
-	Color(const Color& copy);
+	Rgba();
+	explicit Rgba(int red, int green, int blue, int alpha);
+	explicit Rgba(float red, float green, float blue, float alpha);
+	Rgba(const Rgba& copy);
+
+	float	GetRedFloat();
+	float	GetBlueFloat();
+	float	GetGreenFloat();
+	float	GetAlphaFloat();
+	Vector4 GetAsFloats();
 
 
 public:
 	//-----Public Data-----
 
-	static const Color WHITE;
-	static const Color RED;
-	static const Color GREEN;
-	static const Color BLUE;
+	static const Rgba WHITE;
+	static const Rgba RED;
+	static const Rgba GREEN;
+	static const Rgba BLUE;
 
 
 public:
 
-	float r;
-	float g;
-	float b;
-	float a;
+	uint8 r;
+	uint8 g;
+	uint8 b;
+	uint8 a;
 
 };
 
