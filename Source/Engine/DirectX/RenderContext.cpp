@@ -9,17 +9,22 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/DirectX/Camera.h"
 #include "Engine/DirectX/ColorTargetView.h"
+#include "Engine/DirectX/DrawCall.h"
 #include "Engine/DirectX/DX11Common.h"
+#include "Engine/DirectX/Material.h"
 #include "Engine/DirectX/Mesh.h"
+#include "Engine/DirectX/Renderable.h"
 #include "Engine/DirectX/RenderContext.h"
 #include "Engine/DirectX/Sampler.h"
 #include "Engine/DirectX/Shader.h"
-#include "Engine/DirectX/TextureView.h"
+#include "Engine/DirectX/Texture2D.h"
+#include "Engine/DirectX/TextureView2D.h"
 #include "Engine/DirectX/UniformBuffer.h"
 #include "Engine/DirectX/Vertex.h"
 #include "Engine/DirectX/VertexBuffer.h"
 #include "Engine/Framework/File.h"
 #include "Engine/Framework/Window.h"
+#include "Engine/IO/Image.h"
 #include "Engine/Math/MathUtils.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -155,9 +160,22 @@ void RenderContext::ClearScreen()
 //-------------------------------------------------------------------------------------------------
 void RenderContext::BindUniformBuffer(uint32 slot, UniformBuffer* ubo)
 {
-	ID3D11Buffer *buffer = (ubo != nullptr) ? ubo->GetBufferHandle() : nullptr;
+	ID3D11Buffer *buffer = (ubo != nullptr) ? ubo->GetDxHandle() : nullptr;
 	m_dxContext->VSSetConstantBuffers(slot, 1U, &buffer);
 	m_dxContext->PSSetConstantBuffers(slot, 1U, &buffer);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RenderContext::BindMaterial(Material* material)
+{
+	ASSERT_OR_DIE(material != nullptr, "No material defaults set up yet!");
+
+	// Bind Texture + Sampler
+	BindTextureView(TEXTURE_SLOT_ALBEDO, material->GetTextureView(TEXTURE_SLOT_ALBEDO));
+
+	// Bind Shader
+	BindShader(material->GetShader());
 }
 
 
@@ -178,6 +196,8 @@ void RenderContext::BindTextureView(uint32 slot, TextureView* view)
 {
 	// TODO: Default the view to a sensible texture if null
 	ASSERT_OR_DIE(view != nullptr, "Null TextureView!");
+
+	BindSampler(0, view->GetSampler());
 
 	ID3D11ShaderResourceView* dxViewHandle = view->GetDxViewHandle();
 	m_dxContext->PSSetShaderResources(slot, 1U, &dxViewHandle);
@@ -200,15 +220,54 @@ void RenderContext::BindSampler(uint32 slot, Sampler* sampler)
 
 
 //-------------------------------------------------------------------------------------------------
-void RenderContext::Draw(Mesh& m_mesh, Shader& m_shader)
+void RenderContext::DrawMesh(Mesh& mesh)
 {
-	BindShader(&m_shader);
-	BindVertexStream(m_mesh.GetVertexBuffer());
-	BindIndexStream(m_mesh.GetIndexBuffer());
-	SetInputLayout(m_mesh.GetVertexLayout());
+	DrawMeshWithMaterial(mesh, nullptr);
+}
 
-	// Draw or DrawIndexed
-	DrawInstruction draw = m_mesh.GetDrawInstruction();
+
+//-------------------------------------------------------------------------------------------------
+void RenderContext::DrawMeshWithMaterial(Mesh& mesh, Material* material)
+{
+	Renderable immediateRenderable;
+	immediateRenderable.AddDraw(&mesh, material);
+
+	DrawRenderable(immediateRenderable);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RenderContext::DrawRenderable(Renderable& renderable)
+{
+	uint32 numDraws = renderable.GetNumDrawCalls();
+	ASSERT_RECOVERABLE(numDraws > 0, "Renderable drawn with no draws!");
+
+	for (uint32 drawIndex = 0; drawIndex < numDraws; ++drawIndex)
+	{
+		DrawCall dc;
+		dc.SetFromRenderable(renderable, drawIndex);
+
+		Draw(dc);
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RenderContext::Draw(const DrawCall& drawCall)
+{
+	BindMaterial(drawCall.GetMaterial());
+	
+	Mesh* mesh = drawCall.GetMesh();
+	ASSERT_OR_DIE(mesh != nullptr, "Attempting to draw null mesh!");
+
+	BindVertexStream(mesh->GetVertexBuffer());
+	BindIndexStream(mesh->GetIndexBuffer());
+	UpdateInputLayout(mesh->GetVertexLayout());
+
+	// TODO: Bind Model Matrix
+	// TODO: Other render state? (cull mode, fill mode, winding order, blending, depth func)
+
+	DrawInstruction draw = mesh->GetDrawInstruction();
 	if (draw.m_useIndices)
 	{
 		m_dxContext->DrawIndexed(draw.m_elementCount, draw.m_startIndex, 0);
@@ -264,6 +323,9 @@ RenderContext::RenderContext()
 	// TODO: Create enums for various topologies and add as state to RenderContext
 	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+	// Immediate Mesh
+	m_immediateMesh = new Mesh();
+
 	// Create samplers
 	Sampler* pointSampler = new Sampler();
 	pointSampler->SetFilterModes(FILTER_MODE_POINT, FILTER_MODE_POINT);
@@ -281,7 +343,7 @@ void RenderContext::BindVertexStream(const VertexBuffer* vbo)
 	const VertexLayout* layout = vbo->GetVertexLayout();
 	ASSERT_OR_DIE(layout != nullptr, "VertexBuffer had null layout!");
 
-	ID3D11Buffer* handle = vbo->GetBufferHandle();
+	ID3D11Buffer* handle = vbo->GetDxHandle();
 	uint32 stride = layout->GetStride();
 	uint32 offset = 0U;
 	
@@ -295,7 +357,7 @@ void RenderContext::BindIndexStream(const IndexBuffer* ibo)
 	ID3D11Buffer* handle = nullptr;
 	if (ibo != nullptr)
 	{
-		handle = ibo->GetBufferHandle();
+		handle = ibo->GetDxHandle();
 	}
 
 	m_dxContext->IASetIndexBuffer(handle, DXGI_FORMAT_R32_UINT, 0);
@@ -303,9 +365,9 @@ void RenderContext::BindIndexStream(const IndexBuffer* ibo)
 
 
 //-------------------------------------------------------------------------------------------------
-void RenderContext::SetInputLayout(const VertexLayout* vertexLayout)
+void RenderContext::UpdateInputLayout(const VertexLayout* vertexLayout)
 {
-	// Won't create a new vertex layout if already created
+	// Don't rebind if it's the same layout as previous draw
 	if (m_currVertexLayout != vertexLayout)
 	{
 		m_currentShader->CreateInputLayoutForVertexLayout(vertexLayout);

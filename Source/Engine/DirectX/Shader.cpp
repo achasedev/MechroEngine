@@ -137,6 +137,15 @@ bool ShaderStage::LoadFromShaderSource(const char* filename, const void* source,
 	return IsValid();
 }
 
+
+//-------------------------------------------------------------------------------------------------
+Shader::~Shader()
+{
+	DX_SAFE_RELEASE(m_shaderInputLayout.m_dxInputLayout);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 bool Shader::CreateFromFile(const char* filename)
 {
 	size_t shaderSourceSize = 0;
@@ -161,6 +170,8 @@ bool Shader::CreateInputLayoutForVertexLayout(const VertexLayout* vertexLayout)
 	// Input layout hasn't been made yet or is a different set of vertex attributes, re-create it
 	if (m_shaderInputLayout.m_dxInputLayout == nullptr || m_shaderInputLayout.m_vertexLayoutUsed != vertexLayout)
 	{
+		DX_SAFE_RELEASE(m_shaderInputLayout.m_dxInputLayout);
+
 		uint32 numAttributes = vertexLayout->GetAttributeCount();
 		D3D11_INPUT_ELEMENT_DESC* desc = (D3D11_INPUT_ELEMENT_DESC*)malloc(sizeof(D3D11_INPUT_ELEMENT_DESC) * numAttributes);
 		memset(desc, 0, sizeof(D3D11_INPUT_ELEMENT_DESC) * numAttributes);

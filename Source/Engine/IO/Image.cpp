@@ -32,6 +32,25 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
+Image::Image(const IntVector2& dimensions, const Rgba& color /*= Rgba::WHITE*/)
+	: m_dimensions(dimensions)
+	, m_numComponentsPerTexel(4)
+{
+	m_data = (uint8*)malloc(sizeof(uint8) * m_numComponentsPerTexel * GetTexelCount());
+
+	for (int texelIndex = 0; texelIndex < GetTexelCount(); ++texelIndex)
+	{
+		int offset = texelIndex * m_numComponentsPerTexel;
+
+		m_data[offset + 0] = color.r;
+		m_data[offset + 1] = color.g;
+		m_data[offset + 2] = color.b;
+		m_data[offset + 3] = color.a;
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
 Image::~Image()
 {
 	SAFE_FREE_POINTER(m_data);

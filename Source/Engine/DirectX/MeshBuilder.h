@@ -52,9 +52,9 @@ public:
 	void SetDrawInstruction(const DrawInstruction& instruction);
 	void SetDrawInstruction(bool useIndices, uint32 startIndex, uint32 elementCount);
 
-	uint32 PushVertex(const Vector3& position);
-	uint32 PushVertex(const VertexMaster& master);
-	void PushIndex(uint32 index);
+	uint32	PushVertex(const Vector3& position);
+	uint32	PushVertex(const VertexMaster& master);
+	void	PushIndex(uint32 index);
 
 	// Helpers HERE
 
@@ -67,11 +67,11 @@ public:
 	{
 		Mesh* mesh = new Mesh();
 		UpdateMesh<VERT_TYPE>(*mesh);
-
+	
 		return mesh;
 	}
-
-
+	
+	
 	//-------------------------------------------------------------------------------------------------
 	template <typename VERT_TYPE>
 	void UpdateMesh(Mesh& out_mesh) const
@@ -79,31 +79,28 @@ public:
 		// Convert the list of VertexMasters to the specified vertex type
 		uint32 vertexCount = (uint32)m_vertices.size();
 		uint32 indexCount = (uint32)m_indices.size();
-
+	
 		ASSERT_OR_DIE(vertexCount > 0, "You're creating a mesh with no vertices! Don't do that.");
-
+	
 		if (m_instruction.m_useIndices)
 		{
 			ASSERT_OR_DIE(indexCount > 0, "You're creating an indexed mesh with no indices! Don't do that.");
 		}
-
+	
 		VERT_TYPE* temp = (VERT_TYPE*)malloc(sizeof(VERT_TYPE) * vertexCount);
-
+	
 		for (uint32 vertexIndex = 0; vertexIndex < vertexCount; ++vertexIndex)
 		{
 			temp[vertexIndex] = VERT_TYPE(m_vertices[vertexIndex]);
 		}
-
+	
 		// Set up the mesh
 		out_mesh.SetVertices(temp, vertexCount);
-
-		if (m_instruction.m_useIndices)
-		{
-			out_mesh.SetIndices(m_indices.data(), indexCount);
-		}
-
+		out_mesh.SetIndices(m_indices.data(), indexCount); // Will release index buffer if no indices used
+		
+	
 		out_mesh.SetDrawInstruction(m_instruction);
-
+	
 		SAFE_FREE_POINTER(temp);
 	}
 

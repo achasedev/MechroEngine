@@ -35,7 +35,6 @@ bool IndexBuffer::CopyToGPU(const uint32* indices, const uint32 indexCount)
 	// Nothing to copy
 	if (indices == nullptr || indexCount == 0)
 	{
-		// TODO: Put a warning here
 		return false;
 	}
 

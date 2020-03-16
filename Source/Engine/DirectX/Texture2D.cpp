@@ -76,12 +76,12 @@ static DXGI_FORMAT GetDxTextureFormatFromComponentCount(int numComponents)
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-bool Texture2D::LoadFromFile(const char* filepath)
+bool Texture2D::CreateFromFile(const char* filepath)
 {
 	Image image;
 	if (image.LoadFromFile(filepath))
 	{
-		return LoadFromImage(image);
+		return CreateFromImage(image);
 	}
 
 	return false;
@@ -89,7 +89,7 @@ bool Texture2D::LoadFromFile(const char* filepath)
 
 
 //-------------------------------------------------------------------------------------------------
-bool Texture2D::LoadFromImage(const Image& image)
+bool Texture2D::CreateFromImage(const Image& image)
 {
 	DX_SAFE_RELEASE(m_dxHandle);
 

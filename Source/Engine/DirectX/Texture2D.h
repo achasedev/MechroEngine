@@ -38,10 +38,11 @@ public:
 	Texture2D() {}
 	virtual ~Texture2D() {}
 
-	bool LoadFromFile(const char* filepath);
-	bool LoadFromImage(const Image& image);
+	bool CreateFromFile(const char* filepath);
+	bool CreateFromImage(const Image& image);
 
 	TextureView2D* CreateTextureView2D() const;
+
 
 private:
 	//-----Private Data-----

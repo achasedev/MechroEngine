@@ -81,6 +81,8 @@ class Shader
 public:
 	//-----Public Methods-----
 
+	~Shader();
+
 	bool CreateFromFile(const char* filename);
 	bool CreateInputLayoutForVertexLayout(const VertexLayout* vertexLayout);
 

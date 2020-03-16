@@ -162,10 +162,13 @@
   <ItemGroup>
     <ClCompile Include="DirectX\Camera.cpp" />
     <ClCompile Include="DirectX\ColorTargetView.cpp" />
+    <ClCompile Include="DirectX\DrawCall.cpp" />
     <ClCompile Include="DirectX\DX11Common.cpp" />
     <ClCompile Include="DirectX\IndexBuffer.cpp" />
+    <ClCompile Include="DirectX\Material.cpp" />
     <ClCompile Include="DirectX\Mesh.cpp" />
     <ClCompile Include="DirectX\MeshBuilder.cpp" />
+    <ClCompile Include="DirectX\Renderable.cpp" />
     <ClCompile Include="DirectX\RenderBuffer.cpp" />
     <ClCompile Include="DirectX\RenderContext.cpp" />
     <ClCompile Include="DirectX\Sampler.cpp" />
@@ -198,10 +201,13 @@
     <ClInclude Include="..\ThirdParty\stb\stb_image_write.h" />
     <ClInclude Include="DirectX\Camera.h" />
     <ClInclude Include="DirectX\ColorTargetView.h" />
+    <ClInclude Include="DirectX\DrawCall.h" />
     <ClInclude Include="DirectX\DX11Common.h" />
     <ClInclude Include="DirectX\IndexBuffer.h" />
+    <ClInclude Include="DirectX\Material.h" />
     <ClInclude Include="DirectX\Mesh.h" />
     <ClInclude Include="DirectX\MeshBuilder.h" />
+    <ClInclude Include="DirectX\Renderable.h" />
     <ClInclude Include="DirectX\RenderBuffer.h" />
     <ClInclude Include="DirectX\Sampler.h" />
     <ClInclude Include="DirectX\Shader.h" />

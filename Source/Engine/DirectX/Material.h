@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: March 14th, 2020
+/// Date Created: March 15th, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,6 +8,9 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Utility/StringID.h"
+#include "Engine/DirectX/TextureView.h"
+#include <string>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -15,17 +18,8 @@
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
-///-------------------------------------------------------------------------------------------------------------------------------------------------- 
-class Sampler;
-struct ID3D11Resource;
-struct ID3D11ShaderResourceView;
-
-enum TextureViewSlot
-{
-	TEXTURE_SLOT_ALBEDO,
-	TEXTURE_SLOT_NORMAL,
-	MAX_TEXTURE_SLOTS = 16
-};
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+class Shader;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -36,25 +30,30 @@ enum TextureViewSlot
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class TextureView
+class Material
 {
 public:
 	//-----Public Methods-----
 
-	TextureView() {};
-	virtual ~TextureView();
+	Material() {}
+	Material(const char* name);
+	Material(const char* name, Shader* shader, TextureView* albedo);
 
-	ID3D11ShaderResourceView*	GetDxViewHandle() const { return m_dxView; }
-	ID3D11Resource*				GetDxSourceHandle() const { return m_dxSource; }
-	Sampler*					GetSampler() const { return m_sampler; }
+	void SetShader(Shader* shader);
+	void SetTextureView(uint32 slot, TextureView* textureView);
+	void SetAlbedoTextureView(TextureView* albedoView);
+
+	Shader*			GetShader() const { return m_shader; }
+	TextureView*	GetTextureView(uint32 slot) const { return m_textureViews[slot]; }
+	TextureView*	GetAlbedo() const { return m_textureViews[TEXTURE_SLOT_ALBEDO]; }
 
 
-protected:
-	//-----Protected Data-----
+private:
+	//-----Private Data-----
 
-	ID3D11ShaderResourceView*	m_dxView = nullptr;
-	ID3D11Resource*				m_dxSource = nullptr;
-	Sampler*					m_sampler = nullptr;
+	std::string		m_name;
+	Shader*			m_shader = nullptr;
+	TextureView*	m_textureViews[MAX_TEXTURE_SLOTS];
 
 };
 

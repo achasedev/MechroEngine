@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: March 14th, 2020
+/// Date Created: March 15th, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,6 +8,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Math/Matrix44.h"
+#include "Engine/Framework/EngineCommon.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -15,17 +17,10 @@
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
-///-------------------------------------------------------------------------------------------------------------------------------------------------- 
-class Sampler;
-struct ID3D11Resource;
-struct ID3D11ShaderResourceView;
-
-enum TextureViewSlot
-{
-	TEXTURE_SLOT_ALBEDO,
-	TEXTURE_SLOT_NORMAL,
-	MAX_TEXTURE_SLOTS = 16
-};
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+class Mesh;
+class Material;
+class Renderable;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -36,28 +31,24 @@ enum TextureViewSlot
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class TextureView
+class DrawCall
 {
 public:
 	//-----Public Methods-----
 
-	TextureView() {};
-	virtual ~TextureView();
-
-	ID3D11ShaderResourceView*	GetDxViewHandle() const { return m_dxView; }
-	ID3D11Resource*				GetDxSourceHandle() const { return m_dxSource; }
-	Sampler*					GetSampler() const { return m_sampler; }
+	void		SetFromRenderable(const Renderable& renderable, uint32 drawCallIndex);
+	Mesh*		GetMesh() const { return m_mesh; }
+	Material*	GetMaterial() const { return m_material; }
 
 
-protected:
-	//-----Protected Data-----
+private:
+	//-----Private Data-----
 
-	ID3D11ShaderResourceView*	m_dxView = nullptr;
-	ID3D11Resource*				m_dxSource = nullptr;
-	Sampler*					m_sampler = nullptr;
+	Mesh*		m_mesh = nullptr;
+	Material*	m_material = nullptr;
+	Matrix44	m_modelMatrix;
 
 };
-
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS

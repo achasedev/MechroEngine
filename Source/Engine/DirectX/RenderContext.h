@@ -8,6 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/DirectX/Mesh.h"
 #include "Engine/Framework/EngineCommon.h"
 #include <string>
 
@@ -20,11 +21,15 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Camera;
 class ColorTargetView;
+class DrawCall;
 class IndexBuffer;
+class Material;
 class Mesh;
+class Renderable;
 class Sampler;
 class Shader;
 class TextureView;
+class TextureView2D;
 class UniformBuffer;
 class VertexBuffer;
 class VertexLayout;
@@ -67,11 +72,31 @@ public:
 	void ClearScreen();
 
 	void BindUniformBuffer(uint32 slot, UniformBuffer* ubo);
+	void BindMaterial(Material* material);
 	void BindShader(Shader* shader);
 	void BindTextureView(uint32 slot, TextureView* view);
 	void BindSampler(uint32 slot, Sampler* sampler);
 
-	void Draw(Mesh& m_mesh, Shader& m_shader);
+	template <typename VERT_TYPE>
+	void DrawVertexArray(const VERT_TYPE* vertices, uint32 numVertices, const uint32* indices = nullptr, uint32 numIndices = 0, Material* material = nullptr)
+	{
+		m_immediateMesh->SetVertices(vertices, numVertices);
+		m_immediateMesh->SetIndices(indices, numIndices);
+
+		bool useIndices = (indices != nullptr);
+		DrawInstruction drawInstruction;
+		drawInstruction.m_elementCount = (useIndices ? numIndices : numVertices);
+		drawInstruction.m_useIndices = useIndices;
+		drawInstruction.m_startIndex = 0;
+		m_immediateMesh->SetDrawInstruction(drawInstruction);
+
+		DrawMesh(*m_immediateMesh);
+	}
+
+	void DrawMesh(Mesh& mesh);
+	void DrawMeshWithMaterial(Mesh& mesh, Material* material);
+	void DrawRenderable(Renderable& renderable);
+	void Draw(const DrawCall& drawCall);
 
 	ID3D11Device* GetDxDevice();
 	ID3D11DeviceContext* GetDxContext();
@@ -89,7 +114,7 @@ private:
 
 	void BindVertexStream(const VertexBuffer* vbo);
 	void BindIndexStream(const IndexBuffer* ibo);
-	void SetInputLayout(const VertexLayout* vertexLayout);
+	void UpdateInputLayout(const VertexLayout* vertexLayout);
 
 
 private:
@@ -104,12 +129,13 @@ private:
 	Shader*					m_currentShader = nullptr;
 	const VertexLayout*		m_currVertexLayout = nullptr;
 	ColorTargetView*		m_frameBackbufferRtv = nullptr;
+	Mesh*					m_immediateMesh;
 
 	// Sampler
 	SamplerMode				m_samplerMode = SAMPLER_MODE_LINEAR;
 	Sampler*				m_samplers[NUM_SAMPLER_MODES];
 
-	static RenderContext* s_renderContext;
+	static RenderContext*	s_renderContext;
 
 };
 

@@ -15,6 +15,8 @@
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 typedef uint32 StringID;
+#define INVALID_STRING_ID 0
+
 StringID HashString(const char* str);
 
 #ifdef DEBUG_STRINGID

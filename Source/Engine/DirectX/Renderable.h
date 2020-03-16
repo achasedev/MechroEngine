@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: March 14th, 2020
+/// Date Created: March 15th, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,6 +8,9 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Framework/EngineCommon.h"
+#include "Engine/Math/Matrix44.h"
+#include <vector>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -15,16 +18,14 @@
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
-///-------------------------------------------------------------------------------------------------------------------------------------------------- 
-class Sampler;
-struct ID3D11Resource;
-struct ID3D11ShaderResourceView;
-
-enum TextureViewSlot
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+class Mesh;
+class Material;
+struct RenderableDraw
 {
-	TEXTURE_SLOT_ALBEDO,
-	TEXTURE_SLOT_NORMAL,
-	MAX_TEXTURE_SLOTS = 16
+	Matrix44			m_drawMatrix;
+	Mesh*				m_mesh = nullptr;
+	Material*			m_material = nullptr;
 };
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -36,25 +37,22 @@ enum TextureViewSlot
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class TextureView
+class Renderable
 {
 public:
 	//-----Public Methods-----
 
-	TextureView() {};
-	virtual ~TextureView();
-
-	ID3D11ShaderResourceView*	GetDxViewHandle() const { return m_dxView; }
-	ID3D11Resource*				GetDxSourceHandle() const { return m_dxSource; }
-	Sampler*					GetSampler() const { return m_sampler; }
+	void			AddDraw(Mesh* mesh, Material* material, Matrix44 drawMatrix = Matrix44::IDENTITY);	
+	uint32			GetNumDrawCalls() const { return m_draws.size(); }
+	RenderableDraw	GetDraw(uint32 drawIndex) const { return m_draws[drawIndex]; }
+	Matrix44		GetModelMatrix() const { return m_modelMatrix; }
 
 
-protected:
-	//-----Protected Data-----
+private:
+	//-----Private Data-----
 
-	ID3D11ShaderResourceView*	m_dxView = nullptr;
-	ID3D11Resource*				m_dxSource = nullptr;
-	Sampler*					m_sampler = nullptr;
+	Matrix44						m_modelMatrix = Matrix44::IDENTITY;
+	std::vector<RenderableDraw>		m_draws;
 
 };
 

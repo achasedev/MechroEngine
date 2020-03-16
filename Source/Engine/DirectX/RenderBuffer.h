@@ -53,7 +53,7 @@ public:
 	virtual ~RenderBuffer();
 
 	size_t			GetBufferSize() const { return m_bufferSizeBytes; }
-	ID3D11Buffer*	GetBufferHandle() const { return m_dxHandle; }
+	ID3D11Buffer*	GetDxHandle() const { return m_dxHandle; }
 
 
 protected:

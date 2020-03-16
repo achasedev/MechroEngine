@@ -37,6 +37,7 @@ public:
 	//------Public Methods-----
 
 	Image() {}
+	Image(const IntVector2& dimensions, const Rgba& color = Rgba::WHITE);
 	~Image();
 
 	bool		LoadFromFile(const char* filepath, bool flipVertically = true);
