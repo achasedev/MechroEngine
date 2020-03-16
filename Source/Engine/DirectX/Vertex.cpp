@@ -25,9 +25,9 @@
 //-------------------------------------------------------------------------------------------------
 const VertexAttribute Vertex3D_PCU::ATTRIBUTES[] =
 {
-	VertexAttribute("POSITION", RDT_FLOAT, 3, false, offsetof(Vertex3D_PCU, m_position)),
-	VertexAttribute("COLOR", RDT_FLOAT, 4, false, offsetof(Vertex3D_PCU, m_color)),
-	VertexAttribute("UV", RDT_FLOAT, 2, false, offsetof(Vertex3D_PCU, m_texUVs)),
+	VertexAttribute("POSITION",		RDT_FLOAT,							3, offsetof(Vertex3D_PCU, m_position)),
+	VertexAttribute("COLOR",		RDT_UNSIGNED_BYTE_NORM_TO_FLOAT,	4, offsetof(Vertex3D_PCU, m_color)),
+	VertexAttribute("UV",			RDT_FLOAT,							2, offsetof(Vertex3D_PCU, m_texUVs)),
 };
 
 const uint32 Vertex3D_PCU::NUM_ATTRIBUTES = (sizeof(ATTRIBUTES) / sizeof(VertexAttribute));
@@ -37,11 +37,11 @@ const VertexLayout Vertex3D_PCU::LAYOUT = VertexLayout(sizeof(Vertex3D_PCU), NUM
 //-------------------------------------------------------------------------------------------------
 const VertexAttribute VertexLit::ATTRIBUTES[] =
 {
-	VertexAttribute("POSITION",		RDT_FLOAT,			3,		false,		offsetof(VertexLit, m_position)),
-	VertexAttribute("COLOR",		RDT_FLOAT,			4,		false,		offsetof(VertexLit, m_color)),
-	VertexAttribute("UV",			RDT_FLOAT,			2,		false,		offsetof(VertexLit, m_texUVs)),
-	VertexAttribute("NORMAL",		RDT_FLOAT,			3,		false,		offsetof(VertexLit, m_normal)),
-	VertexAttribute("TANGENT",		RDT_FLOAT,			3,		false,		offsetof(VertexLit, m_tangent))
+	VertexAttribute("POSITION",		RDT_FLOAT,							3,	offsetof(VertexLit, m_position)),
+	VertexAttribute("COLOR",		RDT_UNSIGNED_BYTE_NORM_TO_FLOAT,	4,	offsetof(VertexLit, m_color)),
+	VertexAttribute("UV",			RDT_FLOAT,							2,	offsetof(VertexLit, m_texUVs)),
+	VertexAttribute("NORMAL",		RDT_FLOAT,							3,	offsetof(VertexLit, m_normal)),
+	VertexAttribute("TANGENT",		RDT_FLOAT,							3,	offsetof(VertexLit, m_tangent))
 };
 
 const uint32 VertexLit::NUM_ATTRIBUTES = (sizeof(ATTRIBUTES) / sizeof(VertexAttribute));
@@ -111,6 +111,20 @@ uint32 GetDXFormatForAttribute(const VertexAttribute& attribute)
 		}
 	}
 		break;
+	case RDT_UNSIGNED_BYTE_NORM_TO_FLOAT:
+	{
+		switch (attribute.m_elementCount)
+		{
+		case 1: return DXGI_FORMAT_R8_UNORM; break;
+		case 2: return DXGI_FORMAT_R8G8_UNORM; break;
+		case 3: ERROR_AND_DIE("VertexAttribute of 3 bytes not supported?");
+		case 4: return DXGI_FORMAT_R8G8B8A8_UNORM; break;
+		default:
+			ERROR_AND_DIE("VertexAttribute has more than 4 elements, that's not supported!");
+			break;
+		}
+	}
+	break;
 	default:
 		ERROR_AND_DIE("VertexAttribute has an invalid type!");
 		break;

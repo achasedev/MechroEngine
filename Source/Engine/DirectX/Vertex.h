@@ -28,6 +28,7 @@ enum RenderDataType
 {
 	RDT_FLOAT,
 	RDT_UNSIGNED_BYTE,
+	RDT_UNSIGNED_BYTE_NORM_TO_FLOAT,
 	RDT_UNSIGNED_INT,
 	RDT_SIGNED_INT,
 	NUM_RDTS
@@ -38,13 +39,12 @@ enum RenderDataType
 struct VertexAttribute
 {
 	VertexAttribute() : m_name("") {} // For null terminator in ATTRIBUTES array (unused)
-	VertexAttribute(const std::string name, RenderDataType type, unsigned int elementCount, bool isNormalized, unsigned int memberOffset)
-		: m_name(name), m_dataType(type), m_elementCount(elementCount), m_isNormalized(isNormalized), m_memberOffset(memberOffset)
+	VertexAttribute(const std::string name, RenderDataType type, unsigned int elementCount, unsigned int memberOffset)
+		: m_name(name), m_dataType(type), m_elementCount(elementCount), m_memberOffset(memberOffset)
 	{}
 
 	std::string		m_name;
 	RenderDataType	m_dataType;
-	bool			m_isNormalized;
 	unsigned int	m_elementCount;
 	size_t			m_memberOffset;
 };
