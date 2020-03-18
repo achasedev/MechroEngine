@@ -1,15 +1,18 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: March 14th, 2020
+/// Date Created: December 16th, 2019
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/IO/Image.h"
-#define STB_IMAGE_IMPLEMENTATION
-#include "ThirdParty/stb/stb_image.h"
+#include "Engine/Render/Camera/Camera.h"
+#include "Engine/Render/Texture/ColorTargetView.h"
+#include "Engine/Render/Core/RenderContext.h"
+#include "Engine/Render/Buffer/UniformBuffer.h"
+#include "Engine/Framework/EngineCommon.h"
+#include "Engine/Framework/Window.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -18,6 +21,10 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+struct CameraBufferData
+{
+	Matrix44 m_projectionMatrix;
+};
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -32,85 +39,64 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-Image::Image(const IntVector2& dimensions, const Rgba& color /*= Rgba::WHITE*/)
-	: m_dimensions(dimensions)
-	, m_numComponentsPerTexel(4)
+Camera::Camera()
 {
-	m_data = (uint8*)malloc(sizeof(uint8) * m_numComponentsPerTexel * GetTexelCount());
+	m_colorTarget = new ColorTargetView();
 
-	for (uint32 texelIndex = 0; texelIndex < GetTexelCount(); ++texelIndex)
+	// Set the target to the backbuffer (for now)
+	RenderContext* renderContext = RenderContext::GetInstance();
+	SetColorTarget(renderContext->GetBackBufferColorTarget(), false);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Camera::~Camera()
+{
+	SAFE_DELETE_POINTER(m_cameraUBO);
+
+	if (m_ownsColorTarget)
 	{
-		int offset = texelIndex * m_numComponentsPerTexel;
-
-		m_data[offset + 0] = color.r;
-		m_data[offset + 1] = color.g;
-		m_data[offset + 2] = color.b;
-		m_data[offset + 3] = color.a;
+		SAFE_DELETE_POINTER(m_colorTarget);
 	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Image::~Image()
+void Camera::SetColorTarget(ColorTargetView* colorTarget, bool ownsTarget)
 {
-	SAFE_FREE_POINTER(m_data);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-bool Image::LoadFromFile(const char* filepath, bool flipVertically)
-{
-	ASSERT_OR_DIE(m_data == nullptr, "Image already loaded!");
-
-	int numComponentsRequested = 0;
-	if (flipVertically) { stbi_set_flip_vertically_on_load(1); }
-	m_data = (uint8*)stbi_load(filepath, &m_dimensions.x, &m_dimensions.y, &m_numComponentsPerTexel, numComponentsRequested);
-	stbi_set_flip_vertically_on_load(1);
-	
-	if (m_data != nullptr)
+	if (m_colorTarget != nullptr && m_ownsColorTarget)
 	{
-		m_filepath = filepath;
-		m_size = m_dimensions.x * m_dimensions.y * m_numComponentsPerTexel;
+		SAFE_DELETE_POINTER(m_colorTarget);
 	}
 
-	return (m_data != nullptr);
+	m_colorTarget = colorTarget;
+	m_ownsColorTarget = ownsTarget;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void Image::SetTexelColor(uint32 x, uint32 y, Rgba color)
+void Camera::SetOrthoProjection(float orthoHeight)
 {
-	// Safety check
-	ASSERT_OR_DIE(x >= 0 && y >= 0 && x < (uint32)m_dimensions.x && y < (uint32)m_dimensions.y, "Texel coordinates out of bounds: (%u, %u) for image size (%i, %i)", x, y, m_dimensions.y, m_dimensions.y);
-
-	uint32 index = GetDataIndexForTexel(x, y);
-
-	if (m_numComponentsPerTexel >= 1) { m_data[index + 0] = color.r; }
-	if (m_numComponentsPerTexel >= 2) { m_data[index + 1] = color.g; }
-	if (m_numComponentsPerTexel >= 3) { m_data[index + 2] = color.b; }
-	if (m_numComponentsPerTexel >= 4) { m_data[index + 3] = color.a; }
+	float aspect = Window::GetInstance()->GetClientAspect();
+	m_orthoBounds.mins = Vector2::ZERO;
+	m_orthoBounds.maxs = Vector2(orthoHeight * aspect, orthoHeight);
+	m_nearClipZ = -1.0f;
+	m_farClipZ = 1.0f;
+	m_projectionMatrix = Matrix44::MakeOrtho(m_orthoBounds.mins, m_orthoBounds.maxs, m_nearClipZ, m_farClipZ);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Rgba Image::GetTexelColor(uint32 x, uint32 y) const
+void Camera::UpdateUBO()
 {
-	ASSERT_OR_DIE(x >= 0 && y >= 0 && x < (uint32)m_dimensions.x && y < (uint32)m_dimensions.y, "Image coords were out of bounds, coords were (%u, %u) for image of dimensions (%i, %i)", x, y, m_dimensions.x, m_dimensions.y)
+	// Lazy instantiation
+	if (m_cameraUBO == nullptr)
+	{
+		m_cameraUBO = new UniformBuffer();
+	}
 
-	uint32 dataIndex = GetDataIndexForTexel(x, y);
+	CameraBufferData cameraData;
+	cameraData.m_projectionMatrix = m_projectionMatrix;
 
-	Rgba color;
-	if (m_numComponentsPerTexel >= 1) { color.r = m_data[dataIndex + 0]; }
-	if (m_numComponentsPerTexel >= 2) { color.g = m_data[dataIndex + 1]; }
-	if (m_numComponentsPerTexel >= 3) { color.b = m_data[dataIndex + 2]; }
-	if (m_numComponentsPerTexel >= 4) { color.a = m_data[dataIndex + 3]; }
-	
-	return color;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-uint32 Image::GetDataIndexForTexel(uint32 x, uint32 y) const
-{
-	return (y * (uint32)m_dimensions.x + x) * m_numComponentsPerTexel;
+	m_cameraUBO->CopyToGPU(&cameraData, sizeof(cameraData));
 }

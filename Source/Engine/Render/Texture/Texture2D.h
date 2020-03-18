@@ -1,14 +1,17 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: March 17th, 2020
-/// Description: 
+/// Date Created: March 14th, 2020
+/// Description: Buffer on GPU for a 2D texture
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/Vector3.h"
+#include "Engine/Render/Buffer/RenderBuffer.h"
+#include "Engine/Render/Texture/Texture.h"
+#include "Engine/Framework/EngineCommon.h"
+#include "Engine/Math/IntVector2.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -17,7 +20,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Matrix44;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -28,60 +30,25 @@ class Matrix44;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Quaternion
+class Texture2D : public Texture
 {
 public:
 	//-----Public Methods-----
 
-	// Constructors
-	Quaternion();
-	Quaternion(float scalar, const Vector3& vector);
-	Quaternion(float scalar, float x, float y, float z);
-	Quaternion(const Quaternion& copy);
-	~Quaternion() {}
+	Texture2D() {}
+	virtual ~Texture2D() {}
+
+	bool CreateFromFile(const char* filepath);
+	bool CreateFromImage(const Image& image);
+
+	TextureView2D* CreateTextureView2D() const;
 
 
-	// Operators
-	void operator=(const Quaternion& copy);
-	const Quaternion operator+(const Quaternion& other) const;
-	const Quaternion operator-(const Quaternion& other) const;
-	const Quaternion operator*(const Quaternion& other) const;
+private:
+	//-----Private Data-----
 
-	const Quaternion operator*(float scalar) const;
-	friend const Quaternion operator*(float scalar, const Quaternion& quat);
-
-	void operator+=(const Quaternion& other);
-	void operator-=(const Quaternion& other);
-	void operator*=(const Quaternion& other);
-	void operator*=(float scalar);
-
-	float		GetMagnitude() const;
-	Quaternion	GetNormalized() const;
-	Quaternion	GetConjugate() const;
-	Quaternion	GetInverse() const;
-	Vector3		GetAsEulerAngles() const;
-
-	void		Normalize();
-	void		ConvertToUnitNorm();
-
-
-	static float		GetAngleBetweenDegrees(const Quaternion& a, const Quaternion& b);
-	static Quaternion	FromEuler(const Vector3& eulerAnglesDegrees);
-	static Quaternion	FromMatrix(const Matrix44& rotationMatrix);
-	static Quaternion	RotateToward(const Quaternion& start, const Quaternion& end, float maxAngleDegrees);
-
-	static Quaternion Lerp(const Quaternion& a, const Quaternion& b, float fractionTowardEnd);
-	static Quaternion Slerp(const Quaternion& start, const Quaternion& end, float fractionTowardEnd);
-
-
-public:
-	//-----Public Data-----
-
-	Vector3 v;
-	float s;
-
-	// Statics
-	static const Quaternion IDENTITY;
+	IntVector2	m_dimensions = IntVector2::ZERO;
+	uint32		m_size = 0;
 
 };
 

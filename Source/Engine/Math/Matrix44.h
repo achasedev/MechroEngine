@@ -11,6 +11,7 @@
 #include "Engine/Math/Vector2.h"
 #include "Engine/Math/Vector3.h"
 #include "Engine/Math/Vector4.h"
+#include "Engine/Math/Quaternion.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -74,6 +75,7 @@ public:
 	// Static producers
 	static Matrix44 MakeTranslation(const Vector3& translation);
 	static Matrix44 MakeRotation(const Vector3& rotation);
+	static Matrix44 MakeRotation(const Quaternion& rotation);
 	static Matrix44 MakeScale(const Vector3& scale);
 	static Matrix44 MakeScaleUniform(float uniformScale);
 	static Matrix44 MakeModelMatrix(const Vector3& translation, const Vector3& rotation, const Vector3& scale);
@@ -82,6 +84,7 @@ public:
 	static Matrix44 MakeOrtho(const Vector2& bottomLeft, const Vector2& topRight, float nearZ = 0.f, float farZ = 1.0f);
 	static Matrix44 MakePerspective(float fovDegrees, float aspect, float nearZ, float farZ);
 	static Matrix44 MakeLookAt(const Vector3& position, const Vector3& target, const Vector3& up = Vector3::Y_AXIS);
+	static Matrix44 GetInverse(const Matrix44& matrix);
 
 	static Vector3 ExtractTranslation(const Matrix44& translationMatrix);
 	static Vector3 ExtractRotationDegrees(const Matrix44& rotationMatrix);

@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: March 17th, 2020
+/// Date Created: March 15th, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,7 +8,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/Vector3.h"
+#include "Engine/Render/Material.h"
+#include "Engine/Render/Texture/TextureView.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -17,74 +18,52 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Matrix44;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// CLASS DECLARATIONS
+/// C FUNCTIONS
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Quaternion
+Material::Material(const char* name)
+	: m_name(name)
 {
-public:
-	//-----Public Methods-----
-
-	// Constructors
-	Quaternion();
-	Quaternion(float scalar, const Vector3& vector);
-	Quaternion(float scalar, float x, float y, float z);
-	Quaternion(const Quaternion& copy);
-	~Quaternion() {}
+}
 
 
-	// Operators
-	void operator=(const Quaternion& copy);
-	const Quaternion operator+(const Quaternion& other) const;
-	const Quaternion operator-(const Quaternion& other) const;
-	const Quaternion operator*(const Quaternion& other) const;
-
-	const Quaternion operator*(float scalar) const;
-	friend const Quaternion operator*(float scalar, const Quaternion& quat);
-
-	void operator+=(const Quaternion& other);
-	void operator-=(const Quaternion& other);
-	void operator*=(const Quaternion& other);
-	void operator*=(float scalar);
-
-	float		GetMagnitude() const;
-	Quaternion	GetNormalized() const;
-	Quaternion	GetConjugate() const;
-	Quaternion	GetInverse() const;
-	Vector3		GetAsEulerAngles() const;
-
-	void		Normalize();
-	void		ConvertToUnitNorm();
+//-------------------------------------------------------------------------------------------------
+Material::Material(const char* name, Shader* shader, TextureView* albedo)
+	: m_name(name)
+	, m_shader(shader)
+{
+	m_textureViews[TEXTURE_SLOT_ALBEDO] = albedo;
+}
 
 
-	static float		GetAngleBetweenDegrees(const Quaternion& a, const Quaternion& b);
-	static Quaternion	FromEuler(const Vector3& eulerAnglesDegrees);
-	static Quaternion	FromMatrix(const Matrix44& rotationMatrix);
-	static Quaternion	RotateToward(const Quaternion& start, const Quaternion& end, float maxAngleDegrees);
-
-	static Quaternion Lerp(const Quaternion& a, const Quaternion& b, float fractionTowardEnd);
-	static Quaternion Slerp(const Quaternion& start, const Quaternion& end, float fractionTowardEnd);
+//-------------------------------------------------------------------------------------------------
+void Material::SetShader(Shader* shader)
+{
+	m_shader = shader;
+}
 
 
-public:
-	//-----Public Data-----
+//-------------------------------------------------------------------------------------------------
+void Material::SetTextureView(uint32 slot, TextureView* textureView)
+{
+	ASSERT_OR_DIE(slot < MAX_TEXTURE_SLOTS, "Material texture index out of bounds!");
+	m_textureViews[slot] = textureView;
+}
 
-	Vector3 v;
-	float s;
 
-	// Statics
-	static const Quaternion IDENTITY;
-
-};
-
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// C FUNCTIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+void Material::SetAlbedoTextureView(TextureView* albedoView)
+{
+	m_textureViews[TEXTURE_SLOT_ALBEDO] = albedoView;
+}

@@ -12,6 +12,7 @@
 #include "Engine/Math/AABB2.h"
 #include "Engine/Math/IntVector2.h"
 #include "Engine/Math/Matrix44.h"
+#include "Engine/Math/Quaternion.h"
 #include "Engine/Math/Vector2.h"
 #include "Engine/Math/Vector3.h"
 #include "Engine/Math/Vector4.h"
@@ -114,6 +115,7 @@ Vector3 Clamp(const Vector3& inValue, float minInclusive, float maxInclusive);
 float	DotProduct(const Vector2& a, const Vector2& b);
 float	DotProduct(const Vector3& a, const Vector3& b);
 float	DotProduct(const Vector4& a, const Vector4& b);
+float	DotProduct(const Quaternion& a, const Quaternion& b);
 Vector3 CrossProduct(const Vector3& a, const Vector3& b);
 Vector3 Reflect(const Vector3& incidentVector, const Vector3& normal);
 bool	Refract(const Vector3& incidentVector, const Vector3& normal, float niOverNt, Vector3& out_refractedVector); // Returns true if the given vector will refract across the surface, false otherwise
@@ -168,6 +170,7 @@ bool SolveQuadratic(Vector2& out_solutions, float a, float b, float c);
 bool AreMostlyEqual(float a, float b, float epsilon = DEFAULT_EPSILON);
 bool AreMostlyEqual(const Vector2& a, const Vector2& b, float epsilon = DEFAULT_EPSILON);
 bool AreMostlyEqual(const Vector3& a, const Vector3& b, float epsilon = DEFAULT_EPSILON);
+bool AreMostlyEqual(const Quaternion& a, const Quaternion& b, float epsilon = DEFAULT_EPSILON);
 
 //-------------------------------------------------------------------------------------------------
 // Overlapping

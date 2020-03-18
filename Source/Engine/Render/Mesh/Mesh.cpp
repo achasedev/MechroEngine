@@ -1,14 +1,14 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: March 17th, 2020
+/// Date Created: February 15th, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/Vector3.h"
+#include "Engine/Render/Core/DX11Common.h"
+#include "Engine/Render/Mesh/Mesh.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -17,74 +17,70 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Matrix44;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// CLASS DECLARATIONS
+/// C FUNCTIONS
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Quaternion
+void Mesh::SetIndices(const uint32* indices, uint32 indexCount)
 {
-public:
-	//-----Public Methods-----
+	if (indices == nullptr || indexCount == 0)
+	{
+		ID3D11Buffer* indexDxHandle = m_indexBuffer.GetDxHandle();
+		DX_SAFE_RELEASE(indexDxHandle);
+	}
+	else
+	{
+		m_indexBuffer.CopyToGPU(indices, indexCount);
+	}
+}
 
-	// Constructors
-	Quaternion();
-	Quaternion(float scalar, const Vector3& vector);
-	Quaternion(float scalar, float x, float y, float z);
-	Quaternion(const Quaternion& copy);
-	~Quaternion() {}
-
-
-	// Operators
-	void operator=(const Quaternion& copy);
-	const Quaternion operator+(const Quaternion& other) const;
-	const Quaternion operator-(const Quaternion& other) const;
-	const Quaternion operator*(const Quaternion& other) const;
-
-	const Quaternion operator*(float scalar) const;
-	friend const Quaternion operator*(float scalar, const Quaternion& quat);
-
-	void operator+=(const Quaternion& other);
-	void operator-=(const Quaternion& other);
-	void operator*=(const Quaternion& other);
-	void operator*=(float scalar);
-
-	float		GetMagnitude() const;
-	Quaternion	GetNormalized() const;
-	Quaternion	GetConjugate() const;
-	Quaternion	GetInverse() const;
-	Vector3		GetAsEulerAngles() const;
-
-	void		Normalize();
-	void		ConvertToUnitNorm();
+//-------------------------------------------------------------------------------------------------
+void Mesh::SetDrawInstruction(DrawInstruction instruction)
+{
+	m_instruction = instruction;
+}
 
 
-	static float		GetAngleBetweenDegrees(const Quaternion& a, const Quaternion& b);
-	static Quaternion	FromEuler(const Vector3& eulerAnglesDegrees);
-	static Quaternion	FromMatrix(const Matrix44& rotationMatrix);
-	static Quaternion	RotateToward(const Quaternion& start, const Quaternion& end, float maxAngleDegrees);
-
-	static Quaternion Lerp(const Quaternion& a, const Quaternion& b, float fractionTowardEnd);
-	static Quaternion Slerp(const Quaternion& start, const Quaternion& end, float fractionTowardEnd);
+//-------------------------------------------------------------------------------------------------
+void Mesh::SetDrawInstruction(bool useIndices, uint32 startIndex, uint32 elementCount)
+{
+	m_instruction = DrawInstruction(useIndices, startIndex, elementCount);
+}
 
 
-public:
-	//-----Public Data-----
+//-------------------------------------------------------------------------------------------------
+const VertexBuffer* Mesh::GetVertexBuffer() const
+{
+	return &m_vertexBuffer;
+}
 
-	Vector3 v;
-	float s;
 
-	// Statics
-	static const Quaternion IDENTITY;
+//-------------------------------------------------------------------------------------------------
+const IndexBuffer* Mesh::GetIndexBuffer() const
+{
+	return &m_indexBuffer;
+}
 
-};
 
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// C FUNCTIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+DrawInstruction Mesh::GetDrawInstruction() const
+{
+	return m_instruction;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+const VertexLayout* Mesh::GetVertexLayout() const
+{
+	return m_vertexLayout;
+}

@@ -1,14 +1,14 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: March 17th, 2020
-/// Description: 
+/// Date Created: March 9th, 2020
+/// Description: GLSL Shaders!
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/Vector3.h"
+#include "Engine/Render/Core/DX11Common.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -17,7 +17,24 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Matrix44;
+struct ID3D11InputLayout;
+struct ID3D11PixelShader;
+struct ID3D11Resource;
+struct ID3D11VertexShader;
+class VertexLayout;
+
+struct ShaderInputLayout
+{
+	ID3D11InputLayout* m_dxInputLayout = nullptr;
+	const VertexLayout* m_vertexLayoutUsed = nullptr;
+};
+
+enum ShaderStageType
+{
+	SHADER_STAGE_INVALID,
+	SHADER_STAGE_VERTEX,
+	SHADER_STAGE_FRAGMENT
+};
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -28,60 +45,58 @@ class Matrix44;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Quaternion
+class ShaderStage
 {
 public:
 	//-----Public Methods-----
 
-	// Constructors
-	Quaternion();
-	Quaternion(float scalar, const Vector3& vector);
-	Quaternion(float scalar, float x, float y, float z);
-	Quaternion(const Quaternion& copy);
-	~Quaternion() {}
+	ShaderStage() {}
+	~ShaderStage();
 
+	bool LoadFromShaderSource(const char* filename, const void* source, const size_t sourceByteSize, ShaderStageType stageType);
+	bool IsValid() const { return m_handle != nullptr; }
 
-	// Operators
-	void operator=(const Quaternion& copy);
-	const Quaternion operator+(const Quaternion& other) const;
-	const Quaternion operator-(const Quaternion& other) const;
-	const Quaternion operator*(const Quaternion& other) const;
+	ID3D11VertexShader* GetAsVertexShader() const { return m_vertexShader; }
+	ID3D11PixelShader* GetAsFragmentShader() const { return m_fragmentShader; }
+	ID3DBlob* GetCompiledSource() const { return m_compiledSource; }
 
-	const Quaternion operator*(float scalar) const;
-	friend const Quaternion operator*(float scalar, const Quaternion& quat);
+private:
+	//-----Private Data-----
 
-	void operator+=(const Quaternion& other);
-	void operator-=(const Quaternion& other);
-	void operator*=(const Quaternion& other);
-	void operator*=(float scalar);
+	ShaderStageType m_stageType = SHADER_STAGE_INVALID;
+	ID3DBlob* m_compiledSource = nullptr;
 
-	float		GetMagnitude() const;
-	Quaternion	GetNormalized() const;
-	Quaternion	GetConjugate() const;
-	Quaternion	GetInverse() const;
-	Vector3		GetAsEulerAngles() const;
+	union
+	{
+		ID3D11Resource* m_handle = nullptr;
+		ID3D11VertexShader* m_vertexShader;
+		ID3D11PixelShader* m_fragmentShader;
+	};
 
-	void		Normalize();
-	void		ConvertToUnitNorm();
+};
 
-
-	static float		GetAngleBetweenDegrees(const Quaternion& a, const Quaternion& b);
-	static Quaternion	FromEuler(const Vector3& eulerAnglesDegrees);
-	static Quaternion	FromMatrix(const Matrix44& rotationMatrix);
-	static Quaternion	RotateToward(const Quaternion& start, const Quaternion& end, float maxAngleDegrees);
-
-	static Quaternion Lerp(const Quaternion& a, const Quaternion& b, float fractionTowardEnd);
-	static Quaternion Slerp(const Quaternion& start, const Quaternion& end, float fractionTowardEnd);
-
-
+//-------------------------------------------------------------------------------------------------
+class Shader
+{
 public:
-	//-----Public Data-----
+	//-----Public Methods-----
 
-	Vector3 v;
-	float s;
+	~Shader();
 
-	// Statics
-	static const Quaternion IDENTITY;
+	bool CreateFromFile(const char* filename);
+	bool CreateInputLayoutForVertexLayout(const VertexLayout* vertexLayout);
+
+	ID3D11VertexShader* GetVertexStage() { return m_vertexShader.GetAsVertexShader(); }
+	ID3D11PixelShader* GetFragmentStage() { return m_fragmentShader.GetAsFragmentShader(); }
+	ID3D11InputLayout* GetInputLayout() { return m_shaderInputLayout.m_dxInputLayout; }
+
+
+private:
+	//-----Private Data-----
+
+	ShaderStage m_vertexShader;
+	ShaderStage m_fragmentShader;
+	ShaderInputLayout m_shaderInputLayout;
 
 };
 

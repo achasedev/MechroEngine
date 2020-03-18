@@ -17,7 +17,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Matrix44;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -28,62 +27,43 @@ class Matrix44;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Quaternion
+class AABB3
 {
 public:
 	//-----Public Methods-----
 
-	// Constructors
-	Quaternion();
-	Quaternion(float scalar, const Vector3& vector);
-	Quaternion(float scalar, float x, float y, float z);
-	Quaternion(const Quaternion& copy);
-	~Quaternion() {}
+	AABB3() {}
+	~AABB3() {}
+	explicit AABB3(const Vector3& mins, const Vector3& maxs);
+	explicit AABB3(const Vector3& center, float xExtent, float yExtent, float zExtent);
 
+	Vector3 GetDimensions() const;
+	Vector3 GetCenter() const;
 
-	// Operators
-	void operator=(const Quaternion& copy);
-	const Quaternion operator+(const Quaternion& other) const;
-	const Quaternion operator-(const Quaternion& other) const;
-	const Quaternion operator*(const Quaternion& other) const;
+	Vector3 GetFrontBottomLeft() const;
+	Vector3 GetFrontBottomRight() const;
+	Vector3 GetFrontTopRight() const;
+	Vector3 GetFrontTopLeft() const;
 
-	const Quaternion operator*(float scalar) const;
-	friend const Quaternion operator*(float scalar, const Quaternion& quat);
+	Vector3 GetBackBottomLeft() const;
+	Vector3 GetBackBottomRight() const;
+	Vector3 GetBackTopRight() const;
+	Vector3 GetBackTopLeft() const;
 
-	void operator+=(const Quaternion& other);
-	void operator-=(const Quaternion& other);
-	void operator*=(const Quaternion& other);
-	void operator*=(float scalar);
-
-	float		GetMagnitude() const;
-	Quaternion	GetNormalized() const;
-	Quaternion	GetConjugate() const;
-	Quaternion	GetInverse() const;
-	Vector3		GetAsEulerAngles() const;
-
-	void		Normalize();
-	void		ConvertToUnitNorm();
-
-
-	static float		GetAngleBetweenDegrees(const Quaternion& a, const Quaternion& b);
-	static Quaternion	FromEuler(const Vector3& eulerAnglesDegrees);
-	static Quaternion	FromMatrix(const Matrix44& rotationMatrix);
-	static Quaternion	RotateToward(const Quaternion& start, const Quaternion& end, float maxAngleDegrees);
-
-	static Quaternion Lerp(const Quaternion& a, const Quaternion& b, float fractionTowardEnd);
-	static Quaternion Slerp(const Quaternion& start, const Quaternion& end, float fractionTowardEnd);
+	AABB3	GetTranslated(const Vector3& translation) const;
+	bool	ContainsPoint(const Vector3& point) const;
 
 
 public:
 	//-----Public Data-----
 
-	Vector3 v;
-	float s;
+	Vector3 mins;
+	Vector3 maxs;
 
-	// Statics
-	static const Quaternion IDENTITY;
+	const static AABB3 ZERO_TO_ONE;
 
 };
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS

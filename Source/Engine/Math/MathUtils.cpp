@@ -8,7 +8,6 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Math/MathUtils.h"
-
 #include "Engine/Math/Vector2.h"
 #include <math.h>
 #include <cstdlib>
@@ -555,6 +554,13 @@ float DotProduct(const Vector4& a, const Vector4& b)
 
 
 //-------------------------------------------------------------------------------------------------
+float DotProduct(const Quaternion& a, const Quaternion& b)
+{
+	return (a.s * b.s) + (a.v.x * b.v.x) + (a.v.y * b.v.y) + (a.v.z * b.v.z);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 Vector3 CrossProduct(const Vector3& a, const Vector3& b)
 {
 	Vector3 result;
@@ -939,6 +945,14 @@ bool AreMostlyEqual(const Vector3& a, const Vector3& b, float epsilon /*= DEFAUL
 	bool mostlyEqual = (abs(difference.x) <= epsilon) && (abs(difference.y) <= epsilon) && (abs(difference.z) <= epsilon);
 
 	return mostlyEqual;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool AreMostlyEqual(const Quaternion& a, const Quaternion& b, float epsilon /*= DEFAULT_EPSILON*/)
+{
+	float angleBetween = Quaternion::GetAngleBetweenDegrees(a, b);
+	return (angleBetween <= epsilon);
 }
 
 

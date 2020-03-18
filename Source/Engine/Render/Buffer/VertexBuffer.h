@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: March 17th, 2020
+/// Date Created: December 16th, 2019
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,7 +8,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/Vector3.h"
+#include "Engine/Render/Buffer/RenderBuffer.h"
+#include "Engine/Render/Mesh/Vertex.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -17,7 +18,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Matrix44;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -28,60 +28,44 @@ class Matrix44;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Quaternion
+class VertexBuffer : public RenderBuffer
 {
 public:
 	//-----Public Methods-----
 
-	// Constructors
-	Quaternion();
-	Quaternion(float scalar, const Vector3& vector);
-	Quaternion(float scalar, float x, float y, float z);
-	Quaternion(const Quaternion& copy);
-	~Quaternion() {}
+	VertexBuffer() {}
+	~VertexBuffer() {}
+
+	template <typename VERT_TYPE>
+	bool CopyToGPU(const VERT_TYPE* vertices, const uint32 vertexCount)
+	{
+		size_t sizeNeeded = sizeof(VERT_TYPE) * vertexCount;
+
+		bool succeeded = false;
+		if (sizeNeeded > GetBufferSize() || IsStatic())
+		{
+			succeeded = CreateOnGPU(vertices, sizeNeeded, sizeof(VERT_TYPE), RENDER_BUFFER_USAGE_VERTEX_STREAM_BIT, GPU_MEMORY_USAGE_DYNAMIC);
+		}
+		else
+		{
+			ASSERT_OR_DIE(IsDynamic(), "VertexBuffer not dynamic!");
+			succeeded = RenderBuffer::CopyToGPU(vertices, sizeNeeded);
+		}
+
+		m_vertexCount = (succeeded ? vertexCount : 0U);
+		m_layout = (succeeded ? &VERT_TYPE::LAYOUT : nullptr);
+
+		return succeeded;
+	}
+
+	const VertexLayout* GetVertexLayout() const { return m_layout; }
 
 
-	// Operators
-	void operator=(const Quaternion& copy);
-	const Quaternion operator+(const Quaternion& other) const;
-	const Quaternion operator-(const Quaternion& other) const;
-	const Quaternion operator*(const Quaternion& other) const;
+private:
+	//-----Private Data-----
 
-	const Quaternion operator*(float scalar) const;
-	friend const Quaternion operator*(float scalar, const Quaternion& quat);
-
-	void operator+=(const Quaternion& other);
-	void operator-=(const Quaternion& other);
-	void operator*=(const Quaternion& other);
-	void operator*=(float scalar);
-
-	float		GetMagnitude() const;
-	Quaternion	GetNormalized() const;
-	Quaternion	GetConjugate() const;
-	Quaternion	GetInverse() const;
-	Vector3		GetAsEulerAngles() const;
-
-	void		Normalize();
-	void		ConvertToUnitNorm();
-
-
-	static float		GetAngleBetweenDegrees(const Quaternion& a, const Quaternion& b);
-	static Quaternion	FromEuler(const Vector3& eulerAnglesDegrees);
-	static Quaternion	FromMatrix(const Matrix44& rotationMatrix);
-	static Quaternion	RotateToward(const Quaternion& start, const Quaternion& end, float maxAngleDegrees);
-
-	static Quaternion Lerp(const Quaternion& a, const Quaternion& b, float fractionTowardEnd);
-	static Quaternion Slerp(const Quaternion& start, const Quaternion& end, float fractionTowardEnd);
-
-
-public:
-	//-----Public Data-----
-
-	Vector3 v;
-	float s;
-
-	// Statics
-	static const Quaternion IDENTITY;
+	uint32 m_vertexCount = 0;
+	const VertexLayout* m_layout = nullptr;
 
 };
 
