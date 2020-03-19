@@ -20,6 +20,7 @@
 #include "Engine/Render/Sampler.h"
 #include "Engine/Render/Shader.h"
 #include "Engine/Render/Texture/ColorTargetView.h"
+#include "Engine/Render/Texture/DepthStencilTargetView.h"
 #include "Engine/Render/Texture/Texture2D.h"
 #include "Engine/Render/Texture/TextureView2D.h"
 #include "Engine/Framework/File.h"
@@ -38,6 +39,7 @@ enum UniformSlot
 {
 	UNIFORM_SLOT_FRAME_TIME = 1,
 	UNIFORM_SLOT_CAMERA = 2,
+	UNIFORM_SLOT_MODEL_MATRIX = 3
 };
 
 struct FrameTimeBufferData
@@ -51,13 +53,6 @@ struct FrameTimeBufferData
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-// TEMP
-ID3D11VertexShader* gVertexShader;
-ID3D11PixelShader* gPixelShader;
-ID3D11Buffer *gVertexBuffer;
-ID3D11InputLayout* gInputLayout;
-
 RenderContext* RenderContext::s_renderContext = nullptr;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -73,6 +68,13 @@ void RenderContext::Initialize()
 {
 	ASSERT_OR_DIE(s_renderContext == nullptr, "RenderContext is already initialized!");
 	s_renderContext = new RenderContext();
+
+	// TODO: Move this somewhere nicer
+	s_renderContext->InitColorAndDepthViews();
+
+	// Model matrix UBO
+	s_renderContext->UpdateModelMatrixUBO(Matrix44::IDENTITY);
+	s_renderContext->BindUniformBuffer(UNIFORM_SLOT_MODEL_MATRIX, &s_renderContext->m_modelMatrixUBO);
 }
 
 
@@ -115,17 +117,23 @@ void RenderContext::BeginCamera(Camera* camera)
 	m_currentCamera = camera;
 
 	// Render to the camera's target
-	ColorTargetView* view = camera->GetColorTarget();
-	ID3D11RenderTargetView* rtv = view->GetDX11RenderTargetView();
-	m_dxContext->OMSetRenderTargets(1, &rtv, nullptr);
+	ColorTargetView* colorView = camera->GetColorTarget();
+	ASSERT_OR_DIE(colorView != nullptr, "Beginning camera will null target view!");
+
+	ID3D11RenderTargetView* rtv = colorView->GetDxView();
+	
+	DepthStencilTargetView* depthView = camera->GetDepthStencilTargetView();
+	ID3D11DepthStencilView* dsv = (depthView != nullptr ? depthView->GetDxView() : nullptr);
+	
+	m_dxContext->OMSetRenderTargets(1, &rtv, dsv);
 	
 	// Viewport
 	D3D11_VIEWPORT viewport;
 	memset(&viewport, 0, sizeof(viewport));
 	viewport.TopLeftX = 0U;
 	viewport.TopLeftY = 0U;
-	viewport.Width = (FLOAT)view->GetWidth();
-	viewport.Height = (FLOAT)view->GetHeight();
+	viewport.Width = (FLOAT)colorView->GetWidth();
+	viewport.Height = (FLOAT)colorView->GetHeight();
 	viewport.MinDepth = 0.0f;
 	viewport.MaxDepth = 1.0f;
 	m_dxContext->RSSetViewports(1, &viewport);
@@ -145,15 +153,31 @@ void RenderContext::EndCamera()
 
 
 //-------------------------------------------------------------------------------------------------
-void RenderContext::ClearScreen()
+void RenderContext::ClearCurrentColorTargetView(const Rgba& color)
 {
-	// clear the back buffer to a changing color
-	static float test = 0.f;
-	test += 0.0001f;
-	test = ModFloat(test, 1.0f);
+	ASSERT_OR_DIE(m_currentCamera != nullptr, "No Camera bound!");
 
-	float color[4] = { 0.0f, test, Clamp(test, 0.f, 1.0f), Clamp(2.f * test, 0.f, 1.0f) };
-	m_dxContext->ClearRenderTargetView(m_frameBackbufferRtv->GetDX11RenderTargetView(), color);
+	float colors[4];
+	colors[0] = color.GetRedFloat();
+	colors[1] = color.GetGreenFloat();
+	colors[2] = color.GetBlueFloat();
+	colors[3] = color.GetAlphaFloat();
+
+	m_dxContext->ClearRenderTargetView(m_frameBackbufferRtv->GetDxView(), colors);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RenderContext::ClearCurrentDepthStencilTargetView(float depth /*= 1.0f*/)
+{
+	ASSERT_OR_DIE(m_currentCamera != nullptr, "No Camera bound!");
+
+	if (m_currentCamera->GetDepthStencilTargetView() != nullptr)
+	{
+		ID3D11DepthStencilView* dxView = nullptr;
+		dxView = m_currentCamera->GetDepthStencilTargetView()->GetDxView();
+		m_dxContext->ClearDepthStencilView(dxView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, depth, 0U);
+	}
 }
 
 
@@ -220,6 +244,13 @@ void RenderContext::BindSampler(uint32 slot, Sampler* sampler)
 
 
 //-------------------------------------------------------------------------------------------------
+void RenderContext::UpdateModelMatrixUBO(const Matrix44& modelMatrix)
+{
+	m_modelMatrixUBO.CopyToGPU(&modelMatrix, sizeof(Matrix44));
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void RenderContext::DrawMesh(Mesh& mesh)
 {
 	DrawMeshWithMaterial(mesh, nullptr);
@@ -263,8 +294,8 @@ void RenderContext::Draw(const DrawCall& drawCall)
 	BindVertexStream(mesh->GetVertexBuffer());
 	BindIndexStream(mesh->GetIndexBuffer());
 	UpdateInputLayout(mesh->GetVertexLayout());
+	UpdateModelMatrixUBO(drawCall.GetModelMatrix());
 
-	// TODO: Bind Model Matrix
 	// TODO: Other render state? (cull mode, fill mode, winding order, blending, depth func)
 
 	DrawInstruction draw = mesh->GetDrawInstruction();
@@ -318,8 +349,6 @@ RenderContext::RenderContext()
 
 	ASSERT_OR_DIE(SUCCEEDED(hr), "D3D11CreateDeviceAndSwapChain failed!");
 
-	m_frameBackbufferRtv = new ColorTargetView();
-
 	// Only triangle lists for now
 	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -334,6 +363,30 @@ RenderContext::RenderContext()
 	Sampler* linearSampler = new Sampler();
 	linearSampler->SetFilterModes(FILTER_MODE_LINEAR, FILTER_MODE_LINEAR);
 	m_samplers[SAMPLER_MODE_LINEAR] = linearSampler;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RenderContext::InitColorAndDepthViews()
+{
+	// Get current back buffer
+	ID3D11Texture2D* backbuffer = nullptr;
+	m_dxSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backbuffer);
+
+	// Color target
+	m_frameBackbufferRtv = new ColorTargetView();
+	m_frameBackbufferRtv->InitForTexture(backbuffer);
+
+	// Depth target
+	D3D11_TEXTURE2D_DESC desc;
+	backbuffer->GetDesc(&desc);
+
+	Texture2D* depthBuffer = new Texture2D();
+	depthBuffer->CreateAsDepthStencil(desc.Width, desc.Height);
+	m_defaultDepthStencilView = depthBuffer->CreateDepthStencilTargetView();
+
+	// Release the local reference to the backbuffer
+	DX_SAFE_RELEASE(backbuffer);
 }
 
 
@@ -417,11 +470,4 @@ ID3D11DeviceContext* RenderContext::GetDxContext()
 IDXGISwapChain* RenderContext::GetDxSwapChain()
 {
 	return m_dxSwapChain;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-ColorTargetView* RenderContext::GetBackBufferColorTarget()
-{
-	return m_frameBackbufferRtv;
 }

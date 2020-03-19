@@ -1,16 +1,15 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: December 8th, 2019
+/// Date Created: March 18th, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Render/Texture/ColorTargetView.h"
-#include "Engine/Render/Core/RenderContext.h"
-#include "Engine/Framework/EngineCommon.h"
-#include "Engine/Math/IntVector2.h"
+#include "Engine/Render/Core/DX11Common.h"
+#include "Engine/Render/Texture/DepthStencilTargetView.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -33,35 +32,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-ColorTargetView::ColorTargetView()
-	: m_dimensions(IntVector2::ZERO)
-{
-}
-
-
-//-------------------------------------------------------------------------------------------------
-ColorTargetView::~ColorTargetView()
+DepthStencilTargetView::~DepthStencilTargetView()
 {
 	DX_SAFE_RELEASE(m_dxView);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-// TODO: Remove this, move logic to Texture2D::CreateColorTargetView()
-void ColorTargetView::InitForTexture(ID3D11Texture2D* texture)
-{
-	ASSERT_OR_DIE(texture != nullptr, "ColorTargetView init from null texture!");
-	DX_SAFE_RELEASE(m_dxView);
-
-	// Create a renderable view of the texture
-	RenderContext* renderContext = RenderContext::GetInstance();
-	ID3D11Device* dxDevice = renderContext->GetDxDevice();
-
-	HRESULT hr = dxDevice->CreateRenderTargetView(texture, nullptr, &m_dxView);
-	ASSERT_OR_DIE(SUCCEEDED(hr), "Failed to create RenderTargetView for texture");
-
-	// Get dimensions
-	D3D11_TEXTURE2D_DESC desc;
-	texture->GetDesc(&desc);
-	m_dimensions = IntVector2(desc.Width, desc.Height);
+	DX_SAFE_RELEASE(m_dxSource);
 }

@@ -605,7 +605,7 @@ Matrix44 Matrix44::MakeModelMatrix(const Vector3& translation, const Vector3& ro
 
 //-----------------------------------------------------------------------------------------------
 // Constructs a matrix that transforms points from orthographic space (within the bounds specified)
-// into clips space (bounds(-1, -1) to(1, 1) with center at(0, 0))
+// into clips space (bounds(-1, -1) to (1, 1) with center at (0, 0))
 //
 Matrix44 Matrix44::MakeOrtho(float leftX, float rightX, float bottomY, float topY, float nearZ, float farZ)
 {

@@ -21,10 +21,11 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-const Rgba Rgba::WHITE = Rgba(255, 255, 255, 255);
-const Rgba Rgba::RED = Rgba(255, 0, 0, 255);
-const Rgba Rgba::GREEN = Rgba(0, 255, 0, 255);
-const Rgba Rgba::BLUE = Rgba(0, 0, 255, 255);
+const Rgba Rgba::WHITE	= Rgba(255, 255, 255, 255);
+const Rgba Rgba::BLACK	= Rgba(0, 0, 0, 255);
+const Rgba Rgba::RED	= Rgba(255, 0, 0, 255);
+const Rgba Rgba::GREEN	= Rgba(0, 255, 0, 255);
+const Rgba Rgba::BLUE	= Rgba(0, 0, 255, 255);
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
@@ -80,35 +81,35 @@ Rgba::Rgba(const Rgba& copy)
 
 
 //-------------------------------------------------------------------------------------------------
-float Rgba::GetRedFloat()
+float Rgba::GetRedFloat() const
 {
 	return Normalize(r);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-float Rgba::GetGreenFloat()
+float Rgba::GetGreenFloat() const
 {
 	return Normalize(g);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-float Rgba::GetBlueFloat()
+float Rgba::GetBlueFloat() const
 {
 	return Normalize(b);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-float Rgba::GetAlphaFloat()
+float Rgba::GetAlphaFloat() const
 {
 	return Normalize(a);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Vector4 Rgba::GetAsFloats()
+Vector4 Rgba::GetAsFloats() const
 {
 	return Vector4(Normalize(r), Normalize(g), Normalize(b), Normalize(a));
 }

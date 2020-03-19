@@ -40,13 +40,13 @@ public:
 
 	int						GetWidth() const { return m_dimensions.x; }
 	int						GetHeight() const { return m_dimensions.y; }
-	ID3D11RenderTargetView* GetDX11RenderTargetView() const { return m_dxRenderTargetView; }
+	ID3D11RenderTargetView* GetDxView() const { return m_dxView; }
 
 
 private:
 	//-----Private Data-----
 
-	ID3D11RenderTargetView* m_dxRenderTargetView = nullptr;
+	ID3D11RenderTargetView* m_dxView = nullptr;
 	IntVector2				m_dimensions;
 
 };

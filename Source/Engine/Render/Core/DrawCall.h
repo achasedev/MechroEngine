@@ -39,6 +39,7 @@ public:
 	void		SetFromRenderable(const Renderable& renderable, uint32 drawCallIndex);
 	Mesh*		GetMesh() const { return m_mesh; }
 	Material*	GetMaterial() const { return m_material; }
+	Matrix44	GetModelMatrix() const { return m_modelMatrix; }
 
 
 private:

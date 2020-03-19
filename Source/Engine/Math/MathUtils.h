@@ -205,7 +205,7 @@ T Min(const T&a, ARGS ...args)
 }
 
 template <typename T>
-T Clamp(const T& minInclusive, const T& maxInclusive, const T& inValue)
+T Clamp(const T& inValue, const T& minInclusive, const T& maxInclusive)
 {
 	if (inValue > maxInclusive)
 	{

@@ -42,16 +42,18 @@ class Renderable
 public:
 	//-----Public Methods-----
 
-	void			AddDraw(Mesh* mesh, Material* material, Matrix44 drawMatrix = Matrix44::IDENTITY);	
+	void			SetRenderableMatrix(const Matrix44& rendMatrix) { m_matrix = rendMatrix; }
+	void			AddDraw(Mesh* mesh, Material* material, Matrix44 drawMatrix = Matrix44::IDENTITY);
+
 	uint32			GetNumDrawCalls() const { return (uint32)m_draws.size(); }
 	RenderableDraw	GetDraw(uint32 drawIndex) const { return m_draws[drawIndex]; }
-	Matrix44		GetModelMatrix() const { return m_modelMatrix; }
+	Matrix44		GetModelMatrix() const { return m_matrix; }
 
 
 private:
 	//-----Private Data-----
 
-	Matrix44						m_modelMatrix = Matrix44::IDENTITY;
+	Matrix44						m_matrix = Matrix44::IDENTITY;
 	std::vector<RenderableDraw>		m_draws;
 
 };

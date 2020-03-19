@@ -8,6 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Render/Buffer/UniformBuffer.h"
 #include "Engine/Render/Mesh/Mesh.h"
 #include "Engine/Framework/EngineCommon.h"
 #include <string>
@@ -21,9 +22,11 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Camera;
 class ColorTargetView;
+class DepthStencilTargetView;
 class DrawCall;
 class IndexBuffer;
 class Material;
+class Matrix44;
 class Mesh;
 class Renderable;
 class Sampler;
@@ -69,13 +72,15 @@ public:
 	void BeginCamera(Camera* camera);
 	void EndCamera();
 
-	void ClearScreen();
+	void ClearCurrentColorTargetView(const Rgba& color);
+	void ClearCurrentDepthStencilTargetView(float depthValue = 1.0f);
 
 	void BindUniformBuffer(uint32 slot, UniformBuffer* ubo);
 	void BindMaterial(Material* material);
 	void BindShader(Shader* shader);
 	void BindTextureView(uint32 slot, TextureView* view);
 	void BindSampler(uint32 slot, Sampler* sampler);
+	void UpdateModelMatrixUBO(const Matrix44& modelMatrix);
 
 	template <typename VERT_TYPE>
 	void DrawVertexArray(const VERT_TYPE* vertices, uint32 numVertices, const uint32* indices = nullptr, uint32 numIndices = 0, Material* material = nullptr)
@@ -98,10 +103,12 @@ public:
 	void DrawRenderable(Renderable& renderable);
 	void Draw(const DrawCall& drawCall);
 
-	ID3D11Device* GetDxDevice();
-	ID3D11DeviceContext* GetDxContext();
-	IDXGISwapChain* GetDxSwapChain();
-	ColorTargetView* GetBackBufferColorTarget();
+	ID3D11Device*			GetDxDevice();
+	ID3D11DeviceContext*	GetDxContext();
+	IDXGISwapChain*			GetDxSwapChain();
+
+	ColorTargetView*		GetBackBufferColorTarget() const { return m_frameBackbufferRtv; }
+	DepthStencilTargetView* GetDefaultDepthStencilTargetView() const { return m_defaultDepthStencilView; }
 
 
 private:
@@ -111,7 +118,7 @@ private:
 	~RenderContext();
 	RenderContext(const RenderContext& copy) = delete;
 
-
+	void InitColorAndDepthViews();
 	void BindVertexStream(const VertexBuffer* vbo);
 	void BindIndexStream(const IndexBuffer* ibo);
 	void UpdateInputLayout(const VertexLayout* vertexLayout);
@@ -129,7 +136,9 @@ private:
 	Shader*					m_currentShader = nullptr;
 	const VertexLayout*		m_currVertexLayout = nullptr;
 	ColorTargetView*		m_frameBackbufferRtv = nullptr;
+	DepthStencilTargetView*	m_defaultDepthStencilView = nullptr;
 	Mesh*					m_immediateMesh;
+	UniformBuffer			m_modelMatrixUBO;
 
 	// Sampler
 	SamplerMode				m_samplerMode = SAMPLER_MODE_LINEAR;

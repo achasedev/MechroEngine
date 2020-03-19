@@ -38,21 +38,21 @@ public:
 	explicit Rgba(float red, float green, float blue, float alpha);
 	Rgba(const Rgba& copy);
 
-	float	GetRedFloat();
-	float	GetBlueFloat();
-	float	GetGreenFloat();
-	float	GetAlphaFloat();
-	Vector4 GetAsFloats();
+	float	GetRedFloat() const;
+	float	GetBlueFloat() const;
+	float	GetGreenFloat() const;
+	float	GetAlphaFloat() const;
+	Vector4 GetAsFloats() const;
 
 
 public:
 	//-----Public Data-----
 
 	static const Rgba WHITE;
+	static const Rgba BLACK;
 	static const Rgba RED;
 	static const Rgba GREEN;
 	static const Rgba BLUE;
-
 
 public:
 

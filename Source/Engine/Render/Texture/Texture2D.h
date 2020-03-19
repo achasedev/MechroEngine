@@ -20,6 +20,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class ColorTargetView;
+class DepthStencilTargetView;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -40,8 +42,11 @@ public:
 
 	bool CreateFromFile(const char* filepath);
 	bool CreateFromImage(const Image& image);
+	bool CreateAsDepthStencil(uint32 width, uint32 height);
 
-	TextureView2D* CreateTextureView2D() const;
+	TextureView2D*			CreateTextureView2D() const;
+	ColorTargetView*		CreateColorTargetView() const;
+	DepthStencilTargetView* CreateDepthStencilTargetView() const;
 
 
 private:
