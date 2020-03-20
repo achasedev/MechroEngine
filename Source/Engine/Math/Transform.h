@@ -19,6 +19,13 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+enum TransformRelation
+{
+	RELATIVE_TO_SELF,
+	RELATIVE_TO_PARENT,
+	RELATIVE_TO_WORLD
+};
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -46,21 +53,25 @@ public:
 	void SetRotation(const Vector3& newRotation);
 	void SetScale(const Vector3& newScale);
 
+	void Translate(float xTranslation, float yTranslation, float zTranslation, TransformRelation relativeTo = RELATIVE_TO_SELF);
+	void Translate(const Vector3& translation, TransformRelation relativeTo = RELATIVE_TO_SELF);
+	void Rotate(float xRotation, float yRotation, float zRotation);
+	void Rotate(const Vector3& deltaRotation);
+	void Rotate(const Quaternion& deltaRotation);
+	void Scale(float xScale, float yScale, float zScale);
+	void Scale(const Vector3& axisScalars);
+	void Scale(float uniformScale);
+	
 	void SetWorldPosition(const Vector3& newPosition);
 
 	void SetLocalMatrix(const Matrix44& local);
 	void SetWorldMatrix(const Matrix44& world);
-	void SetParentTransform(Transform* parent);
+	void SetParentTransform(Transform* parent, bool keepWorldPosRotScale = false);
 
-	void TranslateWorld(const Vector3& worldTranslation);
-	void Rotate(const Vector3& deltaRotation);
-	void Rotate(const Quaternion& deltaRotation);
-	void Scale(const Vector3& deltaScale);
-
-	Matrix44 GetLocalMatrix();			// Matrix that transforms this space to parent's space
-	Matrix44 GetParentToWorldMatrix();	// Matrix that transforms from parent space to absolute world space
-	Matrix44 GetWorldToParentMatrix();	// Matrix that transforms from absolute world space to parent space
-	Matrix44 GetToWorldMatrix();		// Matrix that transforms this space to absolute world space
+	Matrix44 GetLocalToParentMatrix();
+	Matrix44 GetParentToWorldMatrix();
+	Matrix44 GetWorldToParentMatrix();
+	Matrix44 GetLocalToWorldMatrix();
 
 	Vector3 GetIVector();
 	Vector3 GetJVector();
@@ -68,6 +79,7 @@ public:
 
 	Vector3 GetWorldPosition();
 	Vector3 GetWorldRotation();
+	Vector3 GetWorldScale();
 
 
 private:
@@ -79,10 +91,10 @@ private:
 public:
 	//-----Public Data-----
 
-	// All relative to parent!
-	Vector3 position;
-	Quaternion rotation;
-	Vector3 scale;
+	// All defined in parent space!
+	Vector3		position = Vector3::ZERO;
+	Quaternion	rotation = Quaternion::IDENTITY;
+	Vector3		scale = Vector3::ONES;
 
 
 private:
@@ -92,7 +104,7 @@ private:
 	Vector3		m_oldPosition = Vector3::ZERO;
 	Quaternion	m_oldRotation = Quaternion::IDENTITY;
 	Vector3		m_oldScale = Vector3::ONES;
-	Matrix44	m_localMatrix;
+	Matrix44	m_localMatrix = Matrix44::IDENTITY;
 	
 	Transform*	m_parentTransform = nullptr;
 

@@ -85,17 +85,17 @@ public:
 	template <typename VERT_TYPE>
 	void DrawVertexArray(const VERT_TYPE* vertices, uint32 numVertices, const uint32* indices = nullptr, uint32 numIndices = 0, Material* material = nullptr)
 	{
-		m_immediateMesh->SetVertices(vertices, numVertices);
-		m_immediateMesh->SetIndices(indices, numIndices);
+		m_immediateMesh.SetVertices(vertices, numVertices);
+		m_immediateMesh.SetIndices(indices, numIndices);
 
 		bool useIndices = (indices != nullptr);
 		DrawInstruction drawInstruction;
 		drawInstruction.m_elementCount = (useIndices ? numIndices : numVertices);
 		drawInstruction.m_useIndices = useIndices;
 		drawInstruction.m_startIndex = 0;
-		m_immediateMesh->SetDrawInstruction(drawInstruction);
+		m_immediateMesh.SetDrawInstruction(drawInstruction);
 
-		DrawMesh(*m_immediateMesh);
+		DrawMesh(m_immediateMesh);
 	}
 
 	void DrawMesh(Mesh& mesh);
@@ -114,11 +114,14 @@ public:
 private:
 	//-----Private Methods-----
 
-	RenderContext();
+	RenderContext() {}
 	~RenderContext();
 	RenderContext(const RenderContext& copy) = delete;
 
-	void InitColorAndDepthViews();
+	void DxInit();
+	void PostDxInit();
+
+	void InitDefaultColorAndDepthViews();
 	void BindVertexStream(const VertexBuffer* vbo);
 	void BindIndexStream(const IndexBuffer* ibo);
 	void UpdateInputLayout(const VertexLayout* vertexLayout);
@@ -137,7 +140,7 @@ private:
 	const VertexLayout*		m_currVertexLayout = nullptr;
 	ColorTargetView*		m_frameBackbufferRtv = nullptr;
 	DepthStencilTargetView*	m_defaultDepthStencilView = nullptr;
-	Mesh*					m_immediateMesh;
+	Mesh					m_immediateMesh;
 	UniformBuffer			m_modelMatrixUBO;
 
 	// Sampler

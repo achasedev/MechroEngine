@@ -162,7 +162,7 @@ void Camera::UpdateUBO()
 	}
 
 	CameraUBOLayout cameraData;
-	cameraData.m_cameraMatrix = m_transform.GetToWorldMatrix();
+	cameraData.m_cameraMatrix = m_transform.GetLocalToWorldMatrix();
 	cameraData.m_viewMatrix = InvertLookAtMatrix(cameraData.m_cameraMatrix);
 	cameraData.m_projectionMatrix = m_projectionMatrix;
 
@@ -202,7 +202,7 @@ void Camera::SetViewMatrix(const Matrix44& viewMatrix)
 //-------------------------------------------------------------------------------------------------
 Matrix44 Camera::GetCameraMatrix()
 {
-	return m_transform.GetLocalMatrix();
+	return m_transform.GetLocalToParentMatrix();
 }
 
 
@@ -210,7 +210,7 @@ Matrix44 Camera::GetCameraMatrix()
 Matrix44 Camera::GetViewMatrix()
 {
 	// Matrix may be out of data - update to be sure
-	Matrix44 cameraMatrix = m_transform.GetLocalMatrix();
+	Matrix44 cameraMatrix = m_transform.GetLocalToParentMatrix();
 	m_viewMatrix = InvertLookAtMatrix(cameraMatrix);
 
 	return m_viewMatrix;
@@ -241,19 +241,19 @@ Vector3 Camera::GetRotation() const
 //-------------------------------------------------------------------------------------------------
 Vector3 Camera::GetForwardVector()
 {
-	return m_transform.GetToWorldMatrix().GetKVector().xyz();
+	return m_transform.GetLocalToWorldMatrix().GetKVector().xyz();
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Vector3 Camera::GetRightVector()
 {
-	return m_transform.GetToWorldMatrix().GetIVector().xyz();
+	return m_transform.GetLocalToWorldMatrix().GetIVector().xyz();
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Vector3 Camera::GetUpVector()
 {
-	return m_transform.GetToWorldMatrix().GetJVector().xyz();
+	return m_transform.GetLocalToWorldMatrix().GetJVector().xyz();
 }

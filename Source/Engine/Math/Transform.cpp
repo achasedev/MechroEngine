@@ -79,6 +79,40 @@ void Transform::SetScale(const Vector3& newScale)
 
 
 //-------------------------------------------------------------------------------------------------
+void Transform::Translate(const Vector3& translation, TransformRelation relativeTo /*= RELATIVE_TO_SELF*/)
+{
+	switch (relativeTo)
+	{
+	case RELATIVE_TO_SELF:
+	{
+		Vector3 localTranslation = m_localMatrix.GetInverse().TransformVector(translation).xyz();
+		position += localTranslation;
+	}
+		break;
+	case RELATIVE_TO_PARENT:
+		position += translation;
+		break;
+	case RELATIVE_TO_WORLD:
+	{
+		Matrix44 worldToParent = GetWorldToParentMatrix();
+		Vector3 worldTranslation = worldToParent.TransformVector(translation).xyz();
+		position += worldTranslation;
+	}
+		break;
+	default:
+		break;
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Transform::Translate(float xTranslation, float yTranslation, float zTranslation, TransformRelation relativeTo /*= RELATIVE_TO_SELF*/)
+{
+	Translate(Vector3(xTranslation, yTranslation, zTranslation), relativeTo);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void Transform::SetWorldPosition(const Vector3& newPosition)
 {
 	Matrix44 worldToParent = GetWorldToParentMatrix();
@@ -101,24 +135,24 @@ void Transform::SetLocalMatrix(const Matrix44& local)
 void Transform::SetWorldMatrix(const Matrix44& world)
 {
 	Matrix44 worldToParent = GetWorldToParentMatrix();
-	m_localMatrix = worldToParent * world;
+	SetLocalMatrix(worldToParent * world);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-// TODO: Update to allow keeping world transform on re-parent
-void Transform::SetParentTransform(Transform* parent)
+void Transform::SetParentTransform(Transform* parent, bool keepWorldPosRotScale /*= false*/)
 {
-	m_parentTransform = parent;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void Transform::TranslateWorld(const Vector3& worldTranslation)
-{
-	Matrix44 worldToParent = GetWorldToParentMatrix();
-	Vector3 translation = worldToParent.TransformVector(worldTranslation).xyz();
-	position += translation;
+	if (keepWorldPosRotScale)
+	{
+		Matrix44 oldWorld = GetLocalToWorldMatrix();
+		m_parentTransform = parent;
+		Matrix44 worldToParent = GetWorldToParentMatrix();
+		SetLocalMatrix(worldToParent * oldWorld);
+	}
+	else
+	{
+		m_parentTransform = parent;
+	}
 }
 
 
@@ -137,16 +171,37 @@ void Transform::Rotate(const Quaternion& deltaRotation)
 
 
 //-------------------------------------------------------------------------------------------------
-void Transform::Scale(const Vector3& deltaScale)
+void Transform::Rotate(float xRotation, float yRotation, float zRotation)
 {
-	scale.x *= deltaScale.x;
-	scale.y *= deltaScale.y;
-	scale.z *= deltaScale.z;
+	Rotate(Vector3(xRotation, yRotation, zRotation));
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44 Transform::GetLocalMatrix()
+void Transform::Scale(const Vector3& axisScalars)
+{
+	scale.x *= axisScalars.x;
+	scale.y *= axisScalars.y;
+	scale.z *= axisScalars.z;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Transform::Scale(float uniformScale)
+{
+	scale *= uniformScale;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Transform::Scale(float xScale, float yScale, float zScale)
+{
+	Scale(Vector3(xScale, yScale, zScale));
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Matrix44 Transform::GetLocalToParentMatrix()
 {
 	return m_localMatrix;
 }
@@ -157,7 +212,7 @@ Matrix44 Transform::GetParentToWorldMatrix()
 {
 	if (m_parentTransform != nullptr)
 	{
-		return m_parentTransform->GetToWorldMatrix();
+		return m_parentTransform->GetLocalToWorldMatrix();
 	}
 
 	return Matrix44::IDENTITY;
@@ -169,8 +224,7 @@ Matrix44 Transform::GetWorldToParentMatrix()
 {
 	if (m_parentTransform != nullptr)
 	{
-		// TODO: Quick inverse?
-		return Matrix44::GetInverse(m_parentTransform->GetToWorldMatrix());
+		return Matrix44::GetInverse(m_parentTransform->GetLocalToWorldMatrix());
 	}
 
 	return Matrix44::IDENTITY;
@@ -178,13 +232,13 @@ Matrix44 Transform::GetWorldToParentMatrix()
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44 Transform::GetToWorldMatrix()
+Matrix44 Transform::GetLocalToWorldMatrix()
 {
 	UpdateLocalMatrix();
 
 	if (m_parentTransform != nullptr)
 	{
-		return m_parentTransform->GetToWorldMatrix() * m_localMatrix;
+		return m_parentTransform->GetLocalToWorldMatrix() * m_localMatrix;
 	}
 
 	return m_localMatrix;
@@ -228,8 +282,18 @@ Vector3 Transform::GetWorldRotation()
 {
 	UpdateLocalMatrix();
 
-	Matrix44 toWorldMatrix = GetToWorldMatrix();
+	Matrix44 toWorldMatrix = GetLocalToWorldMatrix();
 	return Matrix44::ExtractRotationDegrees(toWorldMatrix);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector3 Transform::GetWorldScale()
+{
+	UpdateLocalMatrix();
+
+	Matrix44 toWorldMatrix = GetLocalToWorldMatrix();
+	return Matrix44::ExtractScale(toWorldMatrix);
 }
 
 

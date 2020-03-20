@@ -69,12 +69,8 @@ void RenderContext::Initialize()
 	ASSERT_OR_DIE(s_renderContext == nullptr, "RenderContext is already initialized!");
 	s_renderContext = new RenderContext();
 
-	// TODO: Move this somewhere nicer
-	s_renderContext->InitColorAndDepthViews();
-
-	// Model matrix UBO
-	s_renderContext->UpdateModelMatrixUBO(Matrix44::IDENTITY);
-	s_renderContext->BindUniformBuffer(UNIFORM_SLOT_MODEL_MATRIX, &s_renderContext->m_modelMatrixUBO);
+	s_renderContext->DxInit();
+	s_renderContext->PostDxInit();
 }
 
 
@@ -311,7 +307,7 @@ void RenderContext::Draw(const DrawCall& drawCall)
 
 
 //-------------------------------------------------------------------------------------------------
-RenderContext::RenderContext()
+void RenderContext::DxInit()
 {
 	Window* window = Window::GetInstance();
 	HWND hwnd = (HWND)window->GetWindowContext();
@@ -348,14 +344,16 @@ RenderContext::RenderContext()
 		&m_dxContext);				// Context that can issue commands on this pipe.
 
 	ASSERT_OR_DIE(SUCCEEDED(hr), "D3D11CreateDeviceAndSwapChain failed!");
+}
 
+
+//-------------------------------------------------------------------------------------------------
+void RenderContext::PostDxInit()
+{
 	// Only triangle lists for now
 	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	// Immediate Mesh
-	m_immediateMesh = new Mesh();
-
-	// Create samplers
+	// Samplers
 	Sampler* pointSampler = new Sampler();
 	pointSampler->SetFilterModes(FILTER_MODE_POINT, FILTER_MODE_POINT);
 	m_samplers[SAMPLER_MODE_POINT] = pointSampler;
@@ -363,11 +361,18 @@ RenderContext::RenderContext()
 	Sampler* linearSampler = new Sampler();
 	linearSampler->SetFilterModes(FILTER_MODE_LINEAR, FILTER_MODE_LINEAR);
 	m_samplers[SAMPLER_MODE_LINEAR] = linearSampler;
+
+	// Default color/depth target
+	InitDefaultColorAndDepthViews();
+
+	// Model matrix UBO
+	UpdateModelMatrixUBO(Matrix44::IDENTITY);
+	BindUniformBuffer(UNIFORM_SLOT_MODEL_MATRIX, &s_renderContext->m_modelMatrixUBO);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void RenderContext::InitColorAndDepthViews()
+void RenderContext::InitDefaultColorAndDepthViews()
 {
 	// Get current back buffer
 	ID3D11Texture2D* backbuffer = nullptr;
@@ -433,8 +438,13 @@ void RenderContext::UpdateInputLayout(const VertexLayout* vertexLayout)
 //-------------------------------------------------------------------------------------------------
 RenderContext::~RenderContext()
 {
+	SAFE_DELETE_POINTER(m_samplers[SAMPLER_MODE_POINT]);
+	SAFE_DELETE_POINTER(m_samplers[SAMPLER_MODE_LINEAR]);
+
+	SAFE_DELETE_POINTER(m_defaultDepthStencilView);
 	SAFE_DELETE_POINTER(m_frameBackbufferRtv);
 
+	// Shutdown DirectX
 	// DX11 cannot shutdown in full screen
 	m_dxSwapChain->SetFullscreenState(FALSE, NULL);
 

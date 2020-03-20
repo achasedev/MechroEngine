@@ -47,7 +47,6 @@ ColorTargetView::~ColorTargetView()
 
 
 //-------------------------------------------------------------------------------------------------
-// TODO: Remove this, move logic to Texture2D::CreateColorTargetView()
 void ColorTargetView::InitForTexture(ID3D11Texture2D* texture)
 {
 	ASSERT_OR_DIE(texture != nullptr, "ColorTargetView init from null texture!");

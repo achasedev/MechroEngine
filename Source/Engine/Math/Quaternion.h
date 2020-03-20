@@ -33,15 +33,12 @@ class Quaternion
 public:
 	//-----Public Methods-----
 
-	// Constructors
 	Quaternion();
 	Quaternion(float scalar, const Vector3& vector);
 	Quaternion(float scalar, float x, float y, float z);
 	Quaternion(const Quaternion& copy);
 	~Quaternion() {}
 
-
-	// Operators
 	void operator=(const Quaternion& copy);
 	const Quaternion operator+(const Quaternion& other) const;
 	const Quaternion operator-(const Quaternion& other) const;
@@ -55,14 +52,14 @@ public:
 	void operator*=(const Quaternion& other);
 	void operator*=(float scalar);
 
-	float		GetMagnitude() const;
-	Quaternion	GetNormalized() const;
-	Quaternion	GetConjugate() const;
-	Quaternion	GetInverse() const;
-	Vector3		GetAsEulerAngles() const;
+	float				GetMagnitude() const;
+	Quaternion			GetNormalized() const;
+	Quaternion			GetConjugate() const;
+	Quaternion			GetInverse() const;
+	Vector3				GetAsEulerAngles() const;
 
-	void		Normalize();
-	void		ConvertToUnitNorm();
+	void				Normalize();
+	void				ConvertToUnitNorm();
 
 
 	static float		GetAngleBetweenDegrees(const Quaternion& a, const Quaternion& b);
@@ -70,8 +67,8 @@ public:
 	static Quaternion	FromMatrix(const Matrix44& rotationMatrix);
 	static Quaternion	RotateToward(const Quaternion& start, const Quaternion& end, float maxAngleDegrees);
 
-	static Quaternion Lerp(const Quaternion& a, const Quaternion& b, float fractionTowardEnd);
-	static Quaternion Slerp(const Quaternion& start, const Quaternion& end, float fractionTowardEnd);
+	static Quaternion	Lerp(const Quaternion& a, const Quaternion& b, float fractionTowardEnd);
+	static Quaternion	Slerp(const Quaternion& start, const Quaternion& end, float fractionTowardEnd);
 
 
 public:
