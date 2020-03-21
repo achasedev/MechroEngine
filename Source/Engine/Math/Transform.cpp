@@ -85,7 +85,8 @@ void Transform::Translate(const Vector3& translation, TransformRelation relative
 	{
 	case RELATIVE_TO_SELF:
 	{
-		Vector3 localTranslation = m_localMatrix.GetInverse().TransformVector(translation).xyz();
+		UpdateLocalMatrix();
+		Vector3 localTranslation = m_localMatrix.TransformVector(translation).xyz();
 		position += localTranslation;
 	}
 		break;
