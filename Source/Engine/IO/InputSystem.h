@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: November 29th, 2019
+/// Date Created: March 20th, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,10 +8,9 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/AABB2.h"
-#include "Engine/Math/IntVector2.h"
-#include <string>
-#include <vector>
+#include "Engine/Framework/EngineCommon.h"
+#include "Engine/IO/Joypad.h"
+#include "Engine/IO/Mouse.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -20,9 +19,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-// Returns true when the handler consumes the message
-typedef bool(*WindowsMessageHandler)(unsigned int msg, size_t wparam, size_t lparam);
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -33,53 +29,78 @@ typedef bool(*WindowsMessageHandler)(unsigned int msg, size_t wparam, size_t lpa
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Window
+class InputSystem
 {
 public:
 	//-----Public Methods-----
 
-	static void		Initialize(float aspect, const char* windowTitle);
-	static void		ShutDown();
-	static Window*	GetInstance() { return s_instance; }
+	static void			Initialize();
+	static void			Shutdown();
 
-	void			SetWindowPixelBounds(const AABB2& newBounds);
-	void			RegisterMessageHandler(WindowsMessageHandler handler);
-	void			UnregisterMessageHandler(WindowsMessageHandler handler);
+	void				BeginFrame();
+	void				EndFrame();
 
-	AABB2			GetWindowBounds() const				{ return m_windowPixelBounds; }
-	AABB2			GetClientBounds() const				{ return m_clientPixelBounds; }
-	IntVector2		GetWindowDimensions() const			{ return IntVector2(m_windowPixelBounds.GetDimensions()); }
-	IntVector2		GetClientDimensions() const			{ return IntVector2(m_clientPixelBounds.GetDimensions()); }
-	int				GetWindowPixelWidth() const			{ return static_cast<int>(m_windowPixelBounds.GetWidth()); }
-	int				GetWindowPixelHeight() const		{ return static_cast<int>(m_windowPixelBounds.GetHeight()); }
-	int				GetClientPixelWidth() const			{ return static_cast<int>(m_clientPixelBounds.GetWidth()); }
-	int				GetClientPixelHeight() const		{ return static_cast<int>(m_clientPixelBounds.GetHeight()); }
-	float			GetClientAspect() const				{ return static_cast<float>(m_clientPixelBounds.GetWidth()) / static_cast<float>(m_clientPixelBounds.GetHeight()); }
-	void*			GetWindowContext() const			{ return m_hwnd; }
+	void				OnKeyPressed(uint32 keyCode);
+	void				OnKeyReleased(uint32 keyCode);
 
-	const std::vector<WindowsMessageHandler>& GetHandlers() const { return m_messageHandlers; }
+	bool				IsKeyPressed(uint32 keyCode);
+	bool				WasKeyJustPressed(uint32 keyCode);
+	bool				WasKeyJustReleased(uint32 keyCode);
 
+	Joypad&				GetJoypad(uint32 joypadIndex) { return m_joypads[joypadIndex]; }
+	static Mouse&		GetMouse() { return s_instance->m_mouse; }
+	static Joypad&		GetPlayerOneJoypad() { return s_instance->m_joypads[0]; }
+	static InputSystem* GetInstance() { return s_instance; }
+	
 
 private:
 	//-----Private Methods-----
 
-	Window(float aspect, const char* windowTitle);
-	~Window();
-	Window(const Window& copy) = delete;
+	InputSystem();
+	~InputSystem() {}
+	InputSystem(const InputSystem& copy) = delete;
+
+	void ResetJustKeyStates();
+	void UpdateJoypads();
+
+
+public:
+	//-----Public Data-----
+
+	static const uint32 NUM_KEYS = 256;
+	static const uint32 NUM_JOYPADS = 4;
+
+	static const uint8	KEYBOARD_ESCAPE;
+	static const uint8	KEYBOARD_SPACEBAR;
+	static const uint8	KEYBOARD_CONTROL;
+	static const uint8	KEYBOARD_UP_ARROW;
+	static const uint8	KEYBOARD_DOWN_ARROW;
+	static const uint8	KEYBOARD_LEFT_ARROW;
+	static const uint8	KEYBOARD_RIGHT_ARROW;
+	static const uint8	KEYBOARD_F1;
+	static const uint8	KEYBOARD_F2;
+	static const uint8  KEYBOARD_F3;
+	static const uint8  KEYBOARD_F4;
+	static const uint8  KEYBOARD_F5;
+	static const uint8  KEYBOARD_F6;
+	static const uint8  KEYBOARD_F7;
+	static const uint8  KEYBOARD_F8;
+	static const uint8  KEYBOARD_F9;
+	static const uint8  KEYBOARD_F10;
+	static const uint8  KEYBOARD_TILDE;
+	static const uint8	KEYBOARD_SHIFT;
 
 
 private:
 	//-----Private Data-----
 
-	void*								m_hwnd = nullptr;
-	std::string							m_windowTitle;
-	AABB2								m_windowPixelBounds;
-	AABB2								m_clientPixelBounds;
-	std::vector<WindowsMessageHandler>	m_messageHandlers; 	// Handlers for windows messages
+	Mouse m_mouse;
+	KeyButtonState m_keyboardStates[NUM_KEYS];
+	Joypad m_joypads[NUM_JOYPADS];
 
-	static Window* s_instance;
+	static InputSystem* s_instance;
+
 };
-
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS

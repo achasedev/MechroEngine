@@ -103,6 +103,22 @@ void Camera::SetPosition(const Vector3& position)
 
 
 //-------------------------------------------------------------------------------------------------
+void Camera::Translate(const Vector3& translation)
+{
+	m_transform.Translate(translation, RELATIVE_TO_SELF);
+	m_viewMatrix = InvertLookAtMatrix(m_transform.GetLocalToWorldMatrix());
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Camera::SetRotation(const Vector3& rotation)
+{
+	m_transform.rotation = Quaternion::FromEuler(rotation);
+	m_viewMatrix = InvertLookAtMatrix(m_transform.GetLocalToWorldMatrix());
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void Camera::SetColorTargetView(ColorTargetView* colorTargetView, bool ownsColorTargetView)
 {
 	if (m_colorTargetView != nullptr && m_ownsColorTargetView)
@@ -167,6 +183,16 @@ void Camera::UpdateUBO()
 	cameraData.m_projectionMatrix = m_projectionMatrix;
 
 	m_cameraUBO->CopyToGPU(&cameraData, sizeof(cameraData));
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Camera::Rotate(const Vector3& deltaEulerAnglesDegrees)
+{
+	Vector3 oldRotationAngles = m_transform.rotation.GetAsEulerAngles();
+	Vector3 newRotationAngles = oldRotationAngles + deltaEulerAnglesDegrees;
+	m_transform.SetRotation(newRotationAngles);
+	m_viewMatrix = InvertLookAtMatrix(m_transform.GetLocalToWorldMatrix());
 }
 
 

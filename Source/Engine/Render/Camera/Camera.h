@@ -40,12 +40,16 @@ public:
 	Camera();
 	~Camera();
 
-	void					SetPosition(const Vector3& position);
 	void					SetColorTargetView(ColorTargetView* colorTargetView, bool ownsColorTargetView);
 	void					SetDepthStencilTargetView(DepthStencilTargetView* depthTargetView, bool ownsTarget);
 	void					SetProjectionOrtho(float orthoHeight);
 	void					SetProjectionPerspective(float fovDegrees, float nearZ, float farZ);
 	void					UpdateUBO();
+
+	void					SetPosition(const Vector3& position);
+	void					Translate(const Vector3& translation);
+	void					SetRotation(const Vector3& rotation);
+	void					Rotate(const Vector3& rotationEulerAngles);
 
 	void					SetFOV(float fovDegrees) { m_fovDegrees = fovDegrees; }
 	void					LookAt(const Vector3& position, const Vector3& target, const Vector3& up = Vector3::Y_AXIS);
@@ -72,15 +76,15 @@ private:
 	//-----Private Data-----
 
 	// Model/View Data
-	Transform			m_transform;
-	Matrix44			m_viewMatrix;
+	Transform				m_transform;
+	Matrix44				m_viewMatrix;
 	
 	// Projection
-	Matrix44			m_projectionMatrix;
-	AABB2				m_orthoBounds;
-	float				m_fovDegrees = 90.f;
-	float				m_nearClipZ = 0.f;
-	float				m_farClipZ = 1.f;
+	Matrix44				m_projectionMatrix;
+	AABB2					m_orthoBounds;
+	float					m_fovDegrees = 90.f;
+	float					m_nearClipZ = 0.f;
+	float					m_farClipZ = 1.f;
 
 	// Render Target
 	ColorTargetView*		m_colorTargetView = nullptr;
@@ -89,7 +93,7 @@ private:
 	bool					m_ownsDepthTargetView = false;
 
 	// Misc
-	UniformBuffer*		m_cameraUBO = nullptr;
+	UniformBuffer*			m_cameraUBO = nullptr;
 
 };
 

@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: November 29th, 2019
+/// Date Created: March 20th, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,10 +8,9 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/AABB2.h"
+#include "Engine/Framework/EngineCommon.h"
+#include "Engine/IO/KeyButtonState.h"
 #include "Engine/Math/IntVector2.h"
-#include <string>
-#include <vector>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -20,9 +19,21 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+enum MouseButton
+{
+	MOUSEBUTTON_LEFT,
+	MOUSEBUTTON_RIGHT,
+	MOUSEBUTTON_MIDDLE,
+	NUM_MOUSEBUTTONS
+};
 
-// Returns true when the handler consumes the message
-typedef bool(*WindowsMessageHandler)(unsigned int msg, size_t wparam, size_t lparam);
+enum CursorMode
+{
+	CURSORMODE_ABSOLUTE, // Mouse position updates every frame
+	CURSORMODE_RELATIVE, // Mouse position locked to client center
+	NUM_CURSORMODE
+};
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -33,51 +44,58 @@ typedef bool(*WindowsMessageHandler)(unsigned int msg, size_t wparam, size_t lpa
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Window
+class Mouse
 {
+	friend class InputSystem;
+
 public:
 	//-----Public Methods-----
 
-	static void		Initialize(float aspect, const char* windowTitle);
-	static void		ShutDown();
-	static Window*	GetInstance() { return s_instance; }
+	void		SetCursorPosition(const IntVector2& position);
+	void		LockCursorToClient(bool lock);
+	void		ShowMouseCursor(bool show);
+	void		SetCursorMode(CursorMode mode);
 
-	void			SetWindowPixelBounds(const AABB2& newBounds);
-	void			RegisterMessageHandler(WindowsMessageHandler handler);
-	void			UnregisterMessageHandler(WindowsMessageHandler handler);
+	IntVector2	GetCursorClientPosition();
+	IntVector2	GetCursorDesktopPosition();
+	IntVector2	GetMouseDelta() const;
+	float		GetMouseWheelDelta() const;
+	bool		WasButtonJustPressed(MouseButton button);
+	bool		WasButtonJustReleased(MouseButton button);
+	bool		IsButtonPressed(MouseButton button);
+	bool		IsCursorShown() const;
+	bool		IsCursorLocked() const;
+	CursorMode	GetCursorMode() const;
 
-	AABB2			GetWindowBounds() const				{ return m_windowPixelBounds; }
-	AABB2			GetClientBounds() const				{ return m_clientPixelBounds; }
-	IntVector2		GetWindowDimensions() const			{ return IntVector2(m_windowPixelBounds.GetDimensions()); }
-	IntVector2		GetClientDimensions() const			{ return IntVector2(m_clientPixelBounds.GetDimensions()); }
-	int				GetWindowPixelWidth() const			{ return static_cast<int>(m_windowPixelBounds.GetWidth()); }
-	int				GetWindowPixelHeight() const		{ return static_cast<int>(m_windowPixelBounds.GetHeight()); }
-	int				GetClientPixelWidth() const			{ return static_cast<int>(m_clientPixelBounds.GetWidth()); }
-	int				GetClientPixelHeight() const		{ return static_cast<int>(m_clientPixelBounds.GetHeight()); }
-	float			GetClientAspect() const				{ return static_cast<float>(m_clientPixelBounds.GetWidth()) / static_cast<float>(m_clientPixelBounds.GetHeight()); }
-	void*			GetWindowContext() const			{ return m_hwnd; }
-
-	const std::vector<WindowsMessageHandler>& GetHandlers() const { return m_messageHandlers; }
+	void		OnMouseButton(size_t wParam);
+	void		OnMouseWheel(size_t wParam);
 
 
 private:
 	//-----Private Methods-----
 
-	Window(float aspect, const char* windowTitle);
-	~Window();
-	Window(const Window& copy) = delete;
+	Mouse() {}
+	~Mouse() {}
+	Mouse(const Mouse& copy) = delete;
+
+	void BeginFrame();
+	void UpdateCursorPositions();
+	void UpdateButtonState(MouseButton button, uint16 buttonFlags, uint16 buttonMask);
 
 
 private:
 	//-----Private Data-----
 
-	void*								m_hwnd = nullptr;
-	std::string							m_windowTitle;
-	AABB2								m_windowPixelBounds;
-	AABB2								m_clientPixelBounds;
-	std::vector<WindowsMessageHandler>	m_messageHandlers; 	// Handlers for windows messages
+	IntVector2 m_lastFrameDesktopPos = IntVector2::ZERO;
+	IntVector2 m_currFrameDesktopPos = IntVector2::ZERO;
+	CursorMode m_cursorMode = CURSORMODE_ABSOLUTE;
 
-	static Window* s_instance;
+	bool m_isCursorShown = true;
+	bool m_isCursorLocked = false;
+	float m_currFrameWheel = 0.f;
+
+	KeyButtonState m_buttons[NUM_MOUSEBUTTONS];
+
 };
 
 
