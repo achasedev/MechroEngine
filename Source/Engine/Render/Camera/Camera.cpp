@@ -189,9 +189,7 @@ void Camera::UpdateUBO()
 //-------------------------------------------------------------------------------------------------
 void Camera::Rotate(const Vector3& deltaEulerAnglesDegrees)
 {
-	Vector3 oldRotationAngles = m_transform.rotation.GetAsEulerAngles();
-	Vector3 newRotationAngles = oldRotationAngles + deltaEulerAnglesDegrees;
-	m_transform.SetRotation(newRotationAngles);
+	m_transform.Rotate(deltaEulerAnglesDegrees);
 	m_viewMatrix = InvertLookAtMatrix(m_transform.GetLocalToWorldMatrix());
 }
 
