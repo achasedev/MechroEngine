@@ -18,12 +18,8 @@ typedef uint32 StringID;
 #define INVALID_STRING_ID 0
 
 StringID HashString(const char* str);
+#define SID(x) HashString(x)
 
-#ifdef DEBUG_STRINGID
-#define SID(x) StringIDManager::InternString()
-#else
-#define SID(x) HashString(str)
-#endif
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
@@ -38,24 +34,26 @@ StringID HashString(const char* str);
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class StringIDManager
+class DebugSIDSystem
 {
 public:
 	//-----Public Methods-----
 
-	static void Initialize();
-	static void Shutdown();
-	static StringIDManager* GetInstance() { return s_instance; }
+	static void				Initialize();
+	static void				Shutdown();
+	static DebugSIDSystem* GetInstance()	{ return s_instance; }
+	static bool				IsInitialized() { return s_instance != nullptr; }
 
-	StringID InternString(const char* str);
+	void					InternString(const StringID& stringID, const char* str);
+	const char*				GetStringForStringID(const StringID& stringID);
 
 
 private:
 	//-----Private Methods-----
 
-	StringIDManager() {}
-	~StringIDManager();
-	StringIDManager(const StringIDManager& copy) = delete;
+	DebugSIDSystem() {}
+	~DebugSIDSystem();
+	DebugSIDSystem(const DebugSIDSystem& copy) = delete;
 
 
 private:
@@ -63,7 +61,7 @@ private:
 
 	std::map<StringID, const char*> m_stringIDs;
 
-	static StringIDManager* s_instance;
+	static DebugSIDSystem* s_instance;
 
 };
 

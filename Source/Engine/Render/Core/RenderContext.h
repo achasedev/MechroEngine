@@ -83,21 +83,7 @@ public:
 	void UpdateModelMatrixUBO(const Matrix44& modelMatrix);
 
 	template <typename VERT_TYPE>
-	void DrawVertexArray(const VERT_TYPE* vertices, uint32 numVertices, const uint32* indices = nullptr, uint32 numIndices = 0, Material* material = nullptr)
-	{
-		m_immediateMesh.SetVertices(vertices, numVertices);
-		m_immediateMesh.SetIndices(indices, numIndices);
-
-		bool useIndices = (indices != nullptr);
-		DrawInstruction drawInstruction;
-		drawInstruction.m_elementCount = (useIndices ? numIndices : numVertices);
-		drawInstruction.m_useIndices = useIndices;
-		drawInstruction.m_startIndex = 0;
-		m_immediateMesh.SetDrawInstruction(drawInstruction);
-
-		DrawMesh(m_immediateMesh);
-	}
-
+	void DrawVertexArray(const VERT_TYPE* vertices, uint32 numVertices, const uint32* indices = nullptr, uint32 numIndices = 0, Material* material = nullptr);
 	void DrawMesh(Mesh& mesh);
 	void DrawMeshWithMaterial(Mesh& mesh, Material* material);
 	void DrawRenderable(Renderable& renderable);
@@ -150,6 +136,25 @@ private:
 	static RenderContext*	s_renderContext;
 
 };
+
+
+//-------------------------------------------------------------------------------------------------
+template <typename VERT_TYPE>
+void RenderContext::DrawVertexArray(const VERT_TYPE* vertices, uint32 numVertices, const uint32* indices /*= nullptr*/, uint32 numIndices /*= 0*/, Material* material /*= nullptr*/)
+{
+	m_immediateMesh.SetVertices(vertices, numVertices);
+	m_immediateMesh.SetIndices(indices, numIndices);
+
+	bool useIndices = (indices != nullptr);
+	DrawInstruction drawInstruction;
+	drawInstruction.m_elementCount = (useIndices ? numIndices : numVertices);
+	drawInstruction.m_useIndices = useIndices;
+	drawInstruction.m_startIndex = 0;
+	m_immediateMesh.SetDrawInstruction(drawInstruction);
+
+	DrawMesh(m_immediateMesh);
+}
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS

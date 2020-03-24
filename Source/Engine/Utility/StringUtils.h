@@ -17,6 +17,13 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class AABB2;
+class AABB3;
+class IntVector2;
+class NamedProperties;
+class Vector2;
+class Vector3;
+class Vector4;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -31,3 +38,14 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 const std::string Stringf(const char* format, ...);
 const std::string Stringf(const int maxLength, const char* format, ...);
+
+std::string ToString(float inValue);
+std::string ToString(int inValue);
+std::string ToString(std::string inValue);
+std::string ToString(const Vector2& inValue);
+std::string ToString(const Vector3& inValue);
+std::string ToString(const Vector4& inValue);
+std::string ToString(const IntVector2& inValue);
+std::string ToString(const AABB2& inValue);
+std::string ToString(const AABB3& inValue);
+std::string ToString(const NamedProperties& inValue);

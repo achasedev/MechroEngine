@@ -20,26 +20,33 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-StringIDManager* StringIDManager::s_instance = nullptr;
+DebugSIDSystem* DebugSIDSystem::s_instance = nullptr;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-
 
 //-------------------------------------------------------------------------------------------------
 StringID HashString(const char* str)
 {
 	// djb2 hash function, by Dan Bernstein
 	uint32 hashValue = 5381;
-	uint32 c;
 
-	while (c = (uint32)*str++)
+	uint32 c;
+	const char* tempStr = str;
+	while (c = (uint32)*tempStr++)
 	{
 		hashValue = ((hashValue << 5) + hashValue) + c;
 	}
 
-	return static_cast<StringID>(hashValue);
+	StringID strID = static_cast<StringID>(hashValue);
+
+	if (DebugSIDSystem::IsInitialized())
+	{
+		DebugSIDSystem::GetInstance()->InternString(strID, str);
+	}
+
+	return strID;
 }
 
 
@@ -48,14 +55,14 @@ StringID HashString(const char* str)
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-void StringIDManager::Initialize()
+void DebugSIDSystem::Initialize()
 {
-	s_instance = new StringIDManager();
+	s_instance = new DebugSIDSystem();
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void StringIDManager::Shutdown()
+void DebugSIDSystem::Shutdown()
 {
 	SAFE_DELETE_POINTER(s_instance);
 }
@@ -63,9 +70,8 @@ void StringIDManager::Shutdown()
 
 //-------------------------------------------------------------------------------------------------
 // Debug-only function for storing StringID -> strings and checking for collisions
-StringID StringIDManager::InternString(const char* str)
+void DebugSIDSystem::InternString(const StringID& strID, const char* str)
 {
-	StringID strID = HashString(str);
 	size_t bufferSize = strlen(str) + 1U;
 
 	std::map<StringID, const char*>::iterator itr = m_stringIDs.find(strID);	
@@ -81,13 +87,25 @@ StringID StringIDManager::InternString(const char* str)
 		// Check for hash collisions
 		ASSERT_OR_DIE(strcmp(str, itr->second) == 0, "Hash collision on strings %s and %s", str, itr->second);
 	}
-
-	return strID;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-StringIDManager::~StringIDManager()
+const char* DebugSIDSystem::GetStringForStringID(const StringID& stringID)
+{
+	bool idInterned = m_stringIDs.find(stringID) != m_stringIDs.end();
+
+	if (idInterned)
+	{
+		return m_stringIDs[stringID];
+	}
+
+	return nullptr;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+DebugSIDSystem::~DebugSIDSystem()
 {
 	// Free up any id's in the map
 	std::map<StringID, const char*>::iterator itr = m_stringIDs.begin();

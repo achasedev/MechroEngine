@@ -1,17 +1,14 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: November 28th, 2019
+/// Date Created: March 23th, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/Vector2.h"
-#include "Engine/Utility/StringUtils.h"
-#include <cstring>
-#include <stdarg.h>
-
+#include "Engine/Utility/NamedProperties.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -24,75 +21,76 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-const int STRINGF_STACK_LOCAL_TEMP_LENGTH = 2048;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
-//-------------------------------------------------------------------------------------------------
-const std::string Stringf(const char* format, ...)
-{
-	char textLiteral[STRINGF_STACK_LOCAL_TEMP_LENGTH];
-	va_list variableArgumentList;
-	va_start(variableArgumentList, format);
-	vsnprintf_s(textLiteral, STRINGF_STACK_LOCAL_TEMP_LENGTH, _TRUNCATE, format, variableArgumentList);
-	va_end(variableArgumentList);
-	textLiteral[STRINGF_STACK_LOCAL_TEMP_LENGTH - 1] = '\0'; // In case vsnprintf overran (doesn't auto-terminate)
-
-	return std::string(textLiteral);
-}
-
-//-------------------------------------------------------------------------------------------------
-const std::string Stringf(const int maxLength, const char* format, ...)
-{
-	char textLiteralSmall[STRINGF_STACK_LOCAL_TEMP_LENGTH];
-	char* textLiteral = textLiteralSmall;
-	if (maxLength > STRINGF_STACK_LOCAL_TEMP_LENGTH)
-		textLiteral = new char[maxLength];
-
-	va_list variableArgumentList;
-	va_start(variableArgumentList, format);
-	vsnprintf_s(textLiteral, maxLength, _TRUNCATE, format, variableArgumentList);
-	va_end(variableArgumentList);
-	textLiteral[maxLength - 1] = '\0'; // In case vsnprintf overran (doesn't auto-terminate)
-
-	std::string returnValue(textLiteral);
-	if (maxLength > STRINGF_STACK_LOCAL_TEMP_LENGTH)
-		delete[] textLiteral;
-
-	return returnValue;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-std::string ToString(float inValue)
-{
-	return Stringf("%f", inValue);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-std::string ToString(int inValue)
-{
-	return Stringf("%i", inValue);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-std::string ToString(const Vector2& inValue)
-{
-	return Stringf("(%f,%f)", inValue.x, inValue.y);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-std::string ToString(std::string inValue)
-{
-	return inValue;
-}
-
-
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------
+void NamedProperties::Set(const StringID& name, const char* value)
+{
+	Set(name, std::string(value));
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void NamedProperties::Set(const char* name, const char* value)
+{
+	Set(name, std::string(value));
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void NamedProperties::Set(const std::string& name, const char* value)
+{
+	Set(name, std::string(value));
+}
+
+
+//-------------------------------------------------------------------------------------------------
+std::string NamedProperties::Get(const StringID& name, const char* defaultValue)
+{
+	return Get(name, std::string(defaultValue));
+}
+
+
+//-------------------------------------------------------------------------------------------------
+std::string NamedProperties::Get(const char* name, const char* defaultValue)
+{
+	return Get(name, std::string(defaultValue));
+}
+
+
+//-------------------------------------------------------------------------------------------------
+std::string NamedProperties::Get(const std::string& name, const char* defaultValue)
+{
+	return Get(name, std::string(defaultValue));
+}
+
+
+//-------------------------------------------------------------------------------------------------
+std::string NamedProperties::ToString() const
+{
+	std::string totalString;
+	std::map<StringID, BaseProperty*>::const_iterator itr = m_properties.begin();
+
+	for (itr; itr != m_properties.end(); itr++)
+	{
+		if (DebugSIDSystem::IsInitialized())
+		{
+			// Convert StringID's to const char* for printing
+			DebugSIDSystem* sidSystem = DebugSIDSystem::GetInstance();
+			const char* name = sidSystem->GetStringForStringID(itr->first);
+
+			totalString += Stringf("\"%s\" -> ", name);
+		}
+
+		totalString += Stringf("%s\n", itr->second->GetValueAsString().c_str());
+	}
+
+	return totalString;
+}
