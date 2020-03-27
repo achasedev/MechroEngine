@@ -199,6 +199,7 @@
     <ClCompile Include="Math\Vector2.cpp" />
     <ClCompile Include="Math\Vector3.cpp" />
     <ClCompile Include="Math\Vector4.cpp" />
+    <ClCompile Include="Time\Clock.cpp" />
     <ClCompile Include="Time\Time.cpp" />
     <ClCompile Include="Utility\Assert.cpp" />
     <ClCompile Include="Utility\NamedProperties.cpp" />
@@ -251,6 +252,7 @@
     <ClInclude Include="Math\Vector2.h" />
     <ClInclude Include="Math\Vector3.h" />
     <ClInclude Include="Math\Vector4.h" />
+    <ClInclude Include="Time\Clock.h" />
     <ClInclude Include="Time\Time.h" />
     <ClInclude Include="Utility\Assert.h" />
     <ClInclude Include="Utility\NamedProperties.h" />
