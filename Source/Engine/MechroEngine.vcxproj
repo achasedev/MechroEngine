@@ -163,6 +163,8 @@
     <ClCompile Include="IO\InputSystem.cpp" />
     <ClCompile Include="IO\Joypad.cpp" />
     <ClCompile Include="IO\Mouse.cpp" />
+    <ClCompile Include="Job\JobSystem.cpp" />
+    <ClCompile Include="Job\JobWorkerThread.cpp" />
     <ClCompile Include="Math\AABB3.cpp" />
     <ClCompile Include="Render\Camera\Camera.cpp" />
     <ClCompile Include="Render\Texture\ColorTargetView.cpp" />
@@ -209,6 +211,9 @@
     <ClInclude Include="IO\Joypad.h" />
     <ClInclude Include="IO\KeyButtonState.h" />
     <ClInclude Include="IO\Mouse.h" />
+    <ClInclude Include="Job\Job.h" />
+    <ClInclude Include="Job\JobSystem.h" />
+    <ClInclude Include="Job\JobWorkerThread.h" />
     <ClInclude Include="Math\AABB3.h" />
     <ClInclude Include="Render\Camera\Camera.h" />
     <ClInclude Include="Render\Texture\ColorTargetView.h" />

@@ -7,7 +7,13 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Math/AABB2.h"
+#include "Engine/Math/AABB3.h"
+#include "Engine/Math/IntVector2.h"
 #include "Engine/Math/Vector2.h"
+#include "Engine/Math/Vector3.h"
+#include "Engine/Math/Vector4.h"
+#include "Engine/Utility/NamedProperties.h"
 #include "Engine/Utility/StringUtils.h"
 #include <cstring>
 #include <stdarg.h>
@@ -82,7 +88,49 @@ std::string ToString(int inValue)
 //-------------------------------------------------------------------------------------------------
 std::string ToString(const Vector2& inValue)
 {
-	return Stringf("(%f,%f)", inValue.x, inValue.y);
+	return Stringf("(%f, %f)", inValue.x, inValue.y);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+std::string ToString(const Vector3& inValue)
+{
+	return Stringf("(%f, %f, %f)", inValue.x, inValue.y, inValue.z);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+std::string ToString(const Vector4& inValue)
+{
+	return Stringf("(%f, %f, %f, %f)", inValue.x, inValue.y, inValue.z, inValue.w);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+std::string ToString(const IntVector2& inValue)
+{
+	return Stringf("(%i, %i)", inValue.x, inValue.y);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+std::string ToString(const AABB2& inValue)
+{
+	return Stringf("((%f, %f), (%f, %f))", inValue.mins.x, inValue.mins.y, inValue.maxs.x, inValue.maxs.y);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+std::string ToString(const AABB3& inValue)
+{
+	return Stringf("((%f, %f, %f), (%f, %f, %f))", inValue.mins.x, inValue.mins.y, inValue.mins.z, inValue.maxs.x, inValue.maxs.y, inValue.maxs.z);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+std::string ToString(const NamedProperties& inValue)
+{
+	return inValue.ToString();
 }
 
 
