@@ -39,7 +39,7 @@ public:
 	//-----Public Methods-----
 
 	static void		Initialize(float aspect, const char* windowTitle);
-	static void		ShutDown();
+	static void		Shutdown();
 
 	void			SetWindowPixelBounds(const AABB2& newBounds);
 	void			RegisterMessageHandler(WindowsMessageHandler handler);
