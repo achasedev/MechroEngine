@@ -183,7 +183,7 @@ void Window::Initialize(float aspect, const char* windowTitle)
 
 
 //-------------------------------------------------------------------------------------------------
-void Window::ShutDown()
+void Window::Shutdown()
 {
 	SAFE_DELETE_POINTER(g_window);
 }
