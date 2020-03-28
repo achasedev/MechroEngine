@@ -40,7 +40,6 @@ public:
 
 	static void		Initialize(float aspect, const char* windowTitle);
 	static void		ShutDown();
-	static Window*	GetInstance() { return s_instance; }
 
 	void			SetWindowPixelBounds(const AABB2& newBounds);
 	void			RegisterMessageHandler(WindowsMessageHandler handler);
@@ -77,7 +76,6 @@ private:
 	AABB2								m_clientPixelBounds;
 	std::vector<WindowsMessageHandler>	m_messageHandlers; 	// Handlers for windows messages
 
-	static Window* s_instance;
 };
 
 

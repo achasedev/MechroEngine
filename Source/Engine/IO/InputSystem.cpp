@@ -26,7 +26,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-InputSystem* InputSystem::s_instance = nullptr;
+InputSystem* g_inputSystem = nullptr;
 const uint8	InputSystem::KEYBOARD_ESCAPE		= VK_ESCAPE;
 const uint8 InputSystem::KEYBOARD_SPACEBAR		= VK_SPACE;
 const uint8	InputSystem::KEYBOARD_F1			= VK_F1;
@@ -54,7 +54,6 @@ const uint8	InputSystem::KEYBOARD_SHIFT			= VK_SHIFT;
 static bool InputMessageHandler(unsigned int msg, size_t wparam, size_t lparam)
 {
 	UNUSED(lparam);
-	InputSystem* inputSystem = InputSystem::GetInstance();
 
 	// Process the message and pass to the input system if a key was pressed
 	unsigned char keyCode = (unsigned char)wparam;
@@ -62,12 +61,12 @@ static bool InputMessageHandler(unsigned int msg, size_t wparam, size_t lparam)
 	{
 	case WM_KEYDOWN:
 	{
-		inputSystem->OnKeyPressed(keyCode);
+		g_inputSystem->OnKeyPressed(keyCode);
 		break;
 	}
 	case WM_KEYUP:
 	{
-		inputSystem->OnKeyReleased(keyCode);
+		g_inputSystem->OnKeyReleased(keyCode);
 		break;
 	}
 	// Mouse input - all handled the same way
@@ -125,17 +124,17 @@ void InputSystem::UpdateJoypads()
 //-------------------------------------------------------------------------------------------------
 void InputSystem::Initialize()
 {
-	ASSERT_OR_DIE(s_instance == nullptr, "Initializing InputSystem twice!");
-	s_instance = new InputSystem();
+	ASSERT_OR_DIE(g_inputSystem == nullptr, "Initializing InputSystem twice!");
+	g_inputSystem = new InputSystem();
 
-	Window::GetInstance()->RegisterMessageHandler(InputMessageHandler);
+	g_window->RegisterMessageHandler(InputMessageHandler);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void InputSystem::Shutdown()
 {
-	SAFE_DELETE_POINTER(s_instance);
+	SAFE_DELETE_POINTER(g_inputSystem);
 }
 
 

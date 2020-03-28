@@ -41,8 +41,7 @@ public:
 
 	static void				Initialize();
 	static void				Shutdown();
-	static DebugSIDSystem* GetInstance()	{ return s_instance; }
-	static bool				IsInitialized() { return s_instance != nullptr; }
+	static bool				IsInitialized() { return g_debugSIDSystem != nullptr; }
 
 	void					InternString(const StringID& stringID, const char* str);
 	const char*				GetStringForStringID(const StringID& stringID);
@@ -60,8 +59,6 @@ private:
 	//-----Private Data-----
 
 	std::map<StringID, const char*> m_stringIDs;
-
-	static DebugSIDSystem* s_instance;
 
 };
 

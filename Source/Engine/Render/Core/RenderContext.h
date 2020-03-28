@@ -64,8 +64,6 @@ public:
 	static void Initialize();
 	static void Shutdown();
 	
-	static RenderContext* GetInstance();
-
 	void BeginFrame();
 	void EndFrame();
 
@@ -132,8 +130,6 @@ private:
 	// Sampler
 	SamplerMode				m_samplerMode = SAMPLER_MODE_LINEAR;
 	Sampler*				m_samplers[NUM_SAMPLER_MODES];
-
-	static RenderContext*	s_renderContext;
 
 };
 

@@ -26,7 +26,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-Window* Window::s_instance = nullptr;
+Window* g_window = nullptr;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
@@ -36,11 +36,10 @@ Window* Window::s_instance = nullptr;
 LRESULT CALLBACK WindowsMessageHandlingProcedure(HWND windowHandle, UINT wmMessageCode, WPARAM wParam, LPARAM lParam)
 {
 	//  Give the custom handlers a chance to run first; 
-	Window* window = Window::GetInstance();
-	if (!window)
+	if (!g_window)
 		return DefWindowProc(windowHandle, wmMessageCode, wParam, lParam);
 
-	const std::vector<WindowsMessageHandler>& handlers = window->GetHandlers();
+	const std::vector<WindowsMessageHandler>& handlers = g_window->GetHandlers();
 
 	bool msgConsumed = false;
 	for (int i = 0; i < static_cast<int>(handlers.size()); ++i)
@@ -179,15 +178,14 @@ Window::~Window()
 //-------------------------------------------------------------------------------------------------
 void Window::Initialize(float aspect, const char* windowTitle)
 {
-	s_instance = new Window(aspect, windowTitle);
+	g_window = new Window(aspect, windowTitle);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void Window::ShutDown()
 {
-	delete s_instance;
-	s_instance = nullptr;
+	SAFE_DELETE_POINTER(g_window);
 }
 
 

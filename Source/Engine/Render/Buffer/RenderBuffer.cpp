@@ -133,8 +133,7 @@ bool RenderBuffer::CreateOnGPU(const void* data, size_t bufferSizeBytes, size_t 
 		dataPtr = &resourceData;
 	}
 
-	RenderContext* renderContext = RenderContext::GetInstance();
-	ID3D11Device* device = renderContext->GetDxDevice();
+	ID3D11Device* device = g_renderContext->GetDxDevice();
 	HRESULT hr = device->CreateBuffer(&bufferDesc, dataPtr, &m_dxHandle);
 
 	if (SUCCEEDED(hr))
@@ -158,8 +157,7 @@ bool RenderBuffer::CopyToGPU(const void* data, size_t byteSize)
 	ASSERT_OR_DIE(m_memoryUsage != GPU_MEMORY_USAGE_STATIC, "CopyToGpu called on a static buffer!");
 	ASSERT_OR_DIE(byteSize <= m_bufferSizeBytes, "Not enough room in buffer to copy!");
 
-	RenderContext* renderContext = RenderContext::GetInstance();
-	ID3D11DeviceContext* dxContext = renderContext->GetDxContext();
+	ID3D11DeviceContext* dxContext = g_renderContext->GetDxContext();
 
 	D3D11_MAPPED_SUBRESOURCE resource;
 	HRESULT hr = dxContext->Map(m_dxHandle, 0, D3D11_MAP_WRITE_DISCARD, 0U, &resource);

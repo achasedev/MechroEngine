@@ -70,11 +70,10 @@ Camera::Camera()
 	m_colorTargetView = new ColorTargetView();
 
 	// Set the target to the backbuffer (for now)
-	RenderContext* renderContext = RenderContext::GetInstance();
-	SetColorTargetView(renderContext->GetBackBufferColorTarget(), false);
+	SetColorTargetView(g_renderContext->GetBackBufferColorTarget(), false);
 
 	// Set the depth target to default depth
-	SetDepthStencilTargetView(renderContext->GetDefaultDepthStencilTargetView(), false);
+	SetDepthStencilTargetView(g_renderContext->GetDefaultDepthStencilTargetView(), false);
 }
 
 
@@ -147,7 +146,7 @@ void Camera::SetDepthStencilTargetView(DepthStencilTargetView* depthTargetView, 
 //-------------------------------------------------------------------------------------------------
 void Camera::SetProjectionOrtho(float orthoHeight)
 {
-	float aspect = Window::GetInstance()->GetClientAspect();
+	float aspect = g_window->GetClientAspect();
 	m_orthoBounds.mins = Vector2::ZERO;
 	m_orthoBounds.maxs = Vector2(orthoHeight * aspect, orthoHeight);
 	m_nearClipZ = -1.0f;
@@ -163,7 +162,7 @@ void Camera::SetProjectionPerspective(float fovDegrees, float nearZ, float farZ)
 	m_nearClipZ = nearZ;
 	m_farClipZ = farZ;
 
-	float aspect = Window::GetInstance()->GetClientAspect();
+	float aspect = g_window->GetClientAspect();
 	m_projectionMatrix = Matrix44::MakePerspective(fovDegrees, aspect, nearZ, farZ);
 }
 

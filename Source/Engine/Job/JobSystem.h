@@ -57,7 +57,6 @@ public:
 
 	static void			Initialize();
 	static void			Shutdown();
-	static JobSystem*	GetInstance() { return s_instance; }
 
 	void				CreateWorkerThread(const char* name, WorkerThreadFlags flags);
 	void				DestroyWorkerThread(const char* name);
@@ -102,8 +101,6 @@ private:
 	// Jobs waiting to be collected
 	std::shared_mutex				m_finishedLock;
 	std::vector<Job*>				m_finishedJobs;
-
-	static JobSystem*				s_instance;
 
 };
 

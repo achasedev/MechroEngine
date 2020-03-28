@@ -94,8 +94,7 @@ bool Texture2D::CreateFromImage(const Image& image)
 {
 	DX_SAFE_RELEASE(m_dxHandle);
 
-	RenderContext* context = RenderContext::GetInstance();
-	ID3D11Device* dxDevice = context->GetDxDevice();
+	ID3D11Device* dxDevice = g_renderContext->GetDxDevice();
 
 	m_textureUsage = TEXTURE_USAGE_TEXTURE_BIT; // Read only texture
 	m_memoryUsage = GPU_MEMORY_USAGE_GPU; // Non-static for mip-maps
@@ -145,8 +144,7 @@ bool Texture2D::CreateAsDepthStencil(uint32 width, uint32 height)
 {
 	DX_SAFE_RELEASE(m_dxHandle);
 
-	RenderContext* context = RenderContext::GetInstance();
-	ID3D11Device* dxDevice = context->GetDxDevice();
+	ID3D11Device* dxDevice = g_renderContext->GetDxDevice();
 
 	m_textureUsage = TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT;
 	m_memoryUsage = GPU_MEMORY_USAGE_GPU;
@@ -188,7 +186,7 @@ TextureView2D* Texture2D::CreateTextureView2D() const
 {
 	ASSERT_OR_DIE(m_dxHandle != nullptr, "Attempted to create a view for an uninitialized Texture!");
 
-	ID3D11Device* dxDevice = RenderContext::GetInstance()->GetDxDevice();
+	ID3D11Device* dxDevice = g_renderContext->GetDxDevice();
 
 	ID3D11ShaderResourceView* srv = nullptr;
 	dxDevice->CreateShaderResourceView(m_dxHandle, nullptr, &srv);
@@ -217,8 +215,7 @@ DepthStencilTargetView* Texture2D::CreateDepthStencilTargetView() const
 	ASSERT_OR_DIE(m_textureUsage & TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT, "Attempting to make a depth stencil view for a non-depth stencil texture!");
 	ASSERT_OR_DIE(m_dxHandle != nullptr, "Attempting to make a depth stencil view for uninitialized texture!");
 
-	RenderContext* context = RenderContext::GetInstance();
-	ID3D11Device* dxDevice = context->GetDxDevice();
+	ID3D11Device* dxDevice = g_renderContext->GetDxDevice();
 	ID3D11DepthStencilView* dxView = nullptr;
 
 	D3D11_DEPTH_STENCIL_VIEW_DESC desc;

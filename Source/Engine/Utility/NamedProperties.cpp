@@ -83,8 +83,7 @@ std::string NamedProperties::ToString() const
 		if (DebugSIDSystem::IsInitialized())
 		{
 			// Convert StringID's to const char* for printing
-			DebugSIDSystem* sidSystem = DebugSIDSystem::GetInstance();
-			const char* name = sidSystem->GetStringForStringID(itr->first);
+			const char* name = g_debugSIDSystem->GetStringForStringID(itr->first);
 
 			totalString += Stringf("\"%s\" -> ", name);
 		}

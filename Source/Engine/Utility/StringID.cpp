@@ -20,7 +20,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-DebugSIDSystem* DebugSIDSystem::s_instance = nullptr;
+DebugSIDSystem* g_debugSIDSystem = nullptr;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
@@ -43,7 +43,7 @@ StringID HashString(const char* str)
 
 	if (DebugSIDSystem::IsInitialized())
 	{
-		DebugSIDSystem::GetInstance()->InternString(strID, str);
+		g_debugSIDSystem->InternString(strID, str);
 	}
 
 	return strID;
@@ -57,14 +57,14 @@ StringID HashString(const char* str)
 //-------------------------------------------------------------------------------------------------
 void DebugSIDSystem::Initialize()
 {
-	s_instance = new DebugSIDSystem();
+	g_debugSIDSystem = new DebugSIDSystem();
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void DebugSIDSystem::Shutdown()
 {
-	SAFE_DELETE_POINTER(s_instance);
+	SAFE_DELETE_POINTER(g_debugSIDSystem);
 }
 
 

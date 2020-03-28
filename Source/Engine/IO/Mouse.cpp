@@ -33,15 +33,14 @@
 //-------------------------------------------------------------------------------------------------
 static IntVector2 GetClientCenterPosInDesktopCoords()
 {
-	Window* window = Window::GetInstance();
-	HWND hwnd = (HWND)window->GetWindowContext();
+	HWND hwnd = (HWND)g_window->GetWindowContext();
 
 	POINT clientTopLeftDesktopSpace;
 	clientTopLeftDesktopSpace.x = 0;
 	clientTopLeftDesktopSpace.y = 0;
 	ClientToScreen(hwnd, &clientTopLeftDesktopSpace);
 	
-	IntVector2 clientDimensions = window->GetClientDimensions();
+	IntVector2 clientDimensions = g_window->GetClientDimensions();
 
 	IntVector2 clientCenterDesktopSpace;
 	clientCenterDesktopSpace.x = clientTopLeftDesktopSpace.x + clientDimensions.x / 2;
@@ -68,7 +67,7 @@ void Mouse::LockCursorToClient(bool lock)
 {
 	if (lock)
 	{
-		HWND hwnd = (HWND) Window::GetInstance()->GetWindowContext();
+		HWND hwnd = (HWND)g_window->GetWindowContext();
 
 		RECT clientRect;
 		GetClientRect(hwnd, &clientRect);
@@ -143,7 +142,7 @@ IntVector2 Mouse::GetCursorClientPosition()
 	position.x = m_currFrameDesktopPos.x;
 	position.y = m_currFrameDesktopPos.y;
 
-	HWND hwnd = (HWND)Window::GetInstance()->GetWindowContext();
+	HWND hwnd = (HWND)g_window->GetWindowContext();
 	ScreenToClient(hwnd, &position);
 
 	return IntVector2(position.x, position.y);

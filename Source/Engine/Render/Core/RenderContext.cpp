@@ -53,7 +53,7 @@ struct FrameTimeBufferData
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-RenderContext* RenderContext::s_renderContext = nullptr;
+RenderContext* g_renderContext = nullptr;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
@@ -66,18 +66,18 @@ RenderContext* RenderContext::s_renderContext = nullptr;
 //-------------------------------------------------------------------------------------------------
 void RenderContext::Initialize()
 {
-	ASSERT_OR_DIE(s_renderContext == nullptr, "RenderContext is already initialized!");
-	s_renderContext = new RenderContext();
+	ASSERT_OR_DIE(g_renderContext == nullptr, "RenderContext is already initialized!");
+	g_renderContext = new RenderContext();
 
-	s_renderContext->DxInit();
-	s_renderContext->PostDxInit();
+	g_renderContext->DxInit();
+	g_renderContext->PostDxInit();
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void RenderContext::Shutdown()
 {
-	SAFE_DELETE_POINTER(s_renderContext);
+	SAFE_DELETE_POINTER(g_renderContext);
 }
 
 
@@ -309,8 +309,7 @@ void RenderContext::Draw(const DrawCall& drawCall)
 //-------------------------------------------------------------------------------------------------
 void RenderContext::DxInit()
 {
-	Window* window = Window::GetInstance();
-	HWND hwnd = (HWND)window->GetWindowContext();
+	HWND hwnd = (HWND)g_window->GetWindowContext();
 
 	// Creation Flags
 	unsigned int device_flags = 0U;
@@ -323,8 +322,8 @@ void RenderContext::DxInit()
 	swap_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;		// how swap chain is to be used
 	swap_desc.OutputWindow = hwnd;									// the window to be copied to on present
 	swap_desc.SampleDesc.Count = 1;									// how many multisamples (1 means no multi sampling)
-	swap_desc.BufferDesc.Width = window->GetClientPixelWidth();		// Drawable space width
-	swap_desc.BufferDesc.Height = window->GetClientPixelHeight();	// Drawable space height
+	swap_desc.BufferDesc.Width = g_window->GetClientPixelWidth();	// Drawable space width
+	swap_desc.BufferDesc.Height = g_window->GetClientPixelHeight();	// Drawable space height
 	swap_desc.Windowed = TRUE;										// windowed/full-screen mode
 	swap_desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;		// use 32-bit color
 	swap_desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
@@ -339,7 +338,7 @@ void RenderContext::DxInit()
 		D3D11_SDK_VERSION,			// SDK Version to use
 		&swap_desc,					// Description of our swap chain
 		&m_dxSwapChain,				// Swap Chain we're creating
-		&m_dxDevice,					// [out] The device created
+		&m_dxDevice,				// [out] The device created
 		nullptr,					// [out] Feature Level Acquired
 		&m_dxContext);				// Context that can issue commands on this pipe.
 
@@ -367,7 +366,7 @@ void RenderContext::PostDxInit()
 
 	// Model matrix UBO
 	UpdateModelMatrixUBO(Matrix44::IDENTITY);
-	BindUniformBuffer(UNIFORM_SLOT_MODEL_MATRIX, &s_renderContext->m_modelMatrixUBO);
+	BindUniformBuffer(UNIFORM_SLOT_MODEL_MATRIX, &m_modelMatrixUBO);
 }
 
 
@@ -451,14 +450,6 @@ RenderContext::~RenderContext()
 	DX_SAFE_RELEASE(m_dxSwapChain);
 	DX_SAFE_RELEASE(m_dxContext);
 	DX_SAFE_RELEASE(m_dxDevice);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-RenderContext* RenderContext::GetInstance()
-{
-	ASSERT_OR_DIE(s_renderContext != nullptr, "RenderContext not created yet!");
-	return s_renderContext;
 }
 
 

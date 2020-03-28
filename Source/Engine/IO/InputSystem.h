@@ -48,10 +48,9 @@ public:
 	bool				WasKeyJustReleased(uint32 keyCode);
 
 	Joypad&				GetJoypad(uint32 joypadIndex) { return m_joypads[joypadIndex]; }
-	static Mouse&		GetMouse() { return s_instance->m_mouse; }
-	static Joypad&		GetPlayerOneJoypad() { return s_instance->m_joypads[0]; }
-	static InputSystem* GetInstance() { return s_instance; }
-	
+	static Mouse&		GetMouse() { return g_inputSystem->m_mouse; }
+	static Joypad&		GetPlayerOneJoypad() { return g_inputSystem->m_joypads[0]; }
+
 
 private:
 	//-----Private Methods-----
@@ -97,8 +96,6 @@ private:
 	Mouse m_mouse;
 	KeyButtonState m_keyboardStates[NUM_KEYS];
 	Joypad m_joypads[NUM_JOYPADS];
-
-	static InputSystem* s_instance;
 
 };
 

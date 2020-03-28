@@ -53,8 +53,7 @@ void ColorTargetView::InitForTexture(ID3D11Texture2D* texture)
 	DX_SAFE_RELEASE(m_dxView);
 
 	// Create a renderable view of the texture
-	RenderContext* renderContext = RenderContext::GetInstance();
-	ID3D11Device* dxDevice = renderContext->GetDxDevice();
+	ID3D11Device* dxDevice = g_renderContext->GetDxDevice();
 
 	HRESULT hr = dxDevice->CreateRenderTargetView(texture, nullptr, &m_dxView);
 	ASSERT_OR_DIE(SUCCEEDED(hr), "Failed to create RenderTargetView for texture");

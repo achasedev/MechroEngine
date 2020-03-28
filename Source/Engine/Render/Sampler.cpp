@@ -97,7 +97,7 @@ void Sampler::CreateOrUpdate()
 
 	desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 
-	ID3D11Device* dxDevice = RenderContext::GetInstance()->GetDxDevice();
+	ID3D11Device* dxDevice = g_renderContext->GetDxDevice();
 	dxDevice->CreateSamplerState(&desc, &m_dxHandle);
 
 	m_isDirty = false;

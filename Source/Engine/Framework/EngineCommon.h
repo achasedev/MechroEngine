@@ -44,12 +44,22 @@ typedef unsigned short uint16;
 typedef unsigned int uint32;
 typedef unsigned long long uint64;
 
+class DebugSIDSystem;
 class EventSystem;
+class InputSystem;
+class JobSystem;
+class RenderContext;
+class Window;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-extern EventSystem* g_eventSystem;
+extern DebugSIDSystem*	g_debugSIDSystem;
+extern EventSystem*		g_eventSystem;
+extern InputSystem*		g_inputSystem;
+extern JobSystem*		g_jobSystem;
+extern RenderContext*	g_renderContext;
+extern Window*			g_window;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS DECLARATIONS

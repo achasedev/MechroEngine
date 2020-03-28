@@ -85,15 +85,14 @@ void JobWorkerThread::JobWorkerThreadEntry()
 Job* JobWorkerThread::DequeueJobForExecution()
 {
 	Job* jobToExecute = nullptr;
-	JobSystem* jobSystem = JobSystem::GetInstance();
 
-	std::vector<Job*>& queuedJobs = jobSystem->m_queuedJobs;
-	std::vector<Job*>& runningJobs = jobSystem->m_runningJobs;
+	std::vector<Job*>& queuedJobs = g_jobSystem->m_queuedJobs;
+	std::vector<Job*>& runningJobs = g_jobSystem->m_runningJobs;
 
 	// Need to get both locks simultaneously to avoid job status falsely being
 	// reported as "not found" - it needs to always exist in some array at some point in time
-	jobSystem->m_queuedLock.lock();
-	jobSystem->m_runningLock.lock();
+	g_jobSystem->m_queuedLock.lock();
+	g_jobSystem->m_runningLock.lock();
 	{
 		int numQueuedJobs = (int)queuedJobs.size();
 
@@ -114,8 +113,8 @@ Job* JobWorkerThread::DequeueJobForExecution()
 			runningJobs.push_back(jobToExecute);
 		}
 	}
-	jobSystem->m_runningLock.unlock();
-	jobSystem->m_queuedLock.unlock();
+	g_jobSystem->m_runningLock.unlock();
+	g_jobSystem->m_queuedLock.unlock();
 
 	return jobToExecute;
 }
@@ -124,14 +123,13 @@ Job* JobWorkerThread::DequeueJobForExecution()
 //-------------------------------------------------------------------------------------------------
 void JobWorkerThread::MarkJobAsFinished(Job* finishedJob)
 {
-	JobSystem* jobSystem = JobSystem::GetInstance();
-	std::vector<Job*>& runningJobs = jobSystem->m_runningJobs;
-	std::vector<Job*>& finishedJobs = jobSystem->m_finishedJobs;
+	std::vector<Job*>& runningJobs = g_jobSystem->m_runningJobs;
+	std::vector<Job*>& finishedJobs = g_jobSystem->m_finishedJobs;
 
 	// Need to get both locks simultaneously to avoid job status falsely being
 	// reported as "not found" - it needs to always exist in some array at some point in time
-	jobSystem->m_runningLock.lock();
-	jobSystem->m_finishedLock.lock();
+	g_jobSystem->m_runningLock.lock();
+	g_jobSystem->m_finishedLock.lock();
 	{
 		int numRunningJobs = (int)runningJobs.size();
 		bool foundRunning = false;
@@ -148,6 +146,6 @@ void JobWorkerThread::MarkJobAsFinished(Job* finishedJob)
 		ASSERT_OR_DIE(foundRunning, "Job finished but wasn't in running array!");
 		finishedJobs.push_back(finishedJob);
 	}
-	jobSystem->m_finishedLock.unlock();
-	jobSystem->m_runningLock.unlock();
+	g_jobSystem->m_finishedLock.unlock();
+	g_jobSystem->m_runningLock.unlock();
 }

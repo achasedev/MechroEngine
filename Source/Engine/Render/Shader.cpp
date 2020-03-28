@@ -107,8 +107,7 @@ bool ShaderStage::LoadFromShaderSource(const char* filename, const void* source,
 	ASSERT_OR_DIE(stageType != SHADER_STAGE_INVALID, "Attempted to make an invalid shader stage!");
 	ASSERT_OR_DIE(m_handle == nullptr, "ShaderStage was already initialized!");
 
-	RenderContext* renderContext = RenderContext::GetInstance();
-	ID3D11Device* dxDevice = renderContext->GetDxDevice();
+	ID3D11Device* dxDevice = g_renderContext->GetDxDevice();
 
 	const char* entryPoint = GetEntryForStage(stageType);
 	const char* shaderModel = GetShaderModelForStage(stageType);
@@ -192,8 +191,7 @@ bool Shader::CreateInputLayoutForVertexLayout(const VertexLayout* vertexLayout)
 		ID3DBlob* vsByteCode = m_vertexShader.GetCompiledSource();
 		ASSERT_OR_DIE(vsByteCode != nullptr, "Attempted to create input layout for vertex stage that didn't compile!");
 
-		RenderContext* context = RenderContext::GetInstance();
-		ID3D11Device* dxDevice = context->GetDxDevice();
+		ID3D11Device* dxDevice = g_renderContext->GetDxDevice();
 
 		HRESULT hr = dxDevice->CreateInputLayout(desc, numAttributes, vsByteCode->GetBufferPointer(), vsByteCode->GetBufferSize(), &m_shaderInputLayout.m_dxInputLayout);
 		createdNewLayout = SUCCEEDED(hr);
