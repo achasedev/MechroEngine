@@ -160,6 +160,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Event\EventSubscription.cpp" />
+    <ClCompile Include="Event\EventSystem.cpp" />
     <ClCompile Include="IO\InputSystem.cpp" />
     <ClCompile Include="IO\Joypad.cpp" />
     <ClCompile Include="IO\Mouse.cpp" />
@@ -209,6 +211,8 @@
   <ItemGroup>
     <ClInclude Include="..\ThirdParty\stb\stb_image.h" />
     <ClInclude Include="..\ThirdParty\stb\stb_image_write.h" />
+    <ClInclude Include="Event\EventSubscription.h" />
+    <ClInclude Include="Event\EventSystem.h" />
     <ClInclude Include="IO\InputSystem.h" />
     <ClInclude Include="IO\Joypad.h" />
     <ClInclude Include="IO\KeyButtonState.h" />
