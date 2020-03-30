@@ -204,7 +204,9 @@
     <ClCompile Include="Time\Clock.cpp" />
     <ClCompile Include="Time\Time.cpp" />
     <ClCompile Include="Utility\Assert.cpp" />
+    <ClCompile Include="Utility\LockJanitor.cpp" />
     <ClCompile Include="Utility\NamedProperties.cpp" />
+    <ClCompile Include="Utility\SmartPointer.cpp" />
     <ClCompile Include="Utility\StringID.cpp" />
     <ClCompile Include="Utility\StringUtils.cpp" />
   </ItemGroup>
@@ -256,10 +258,13 @@
     <ClInclude Include="Math\Vector2.h" />
     <ClInclude Include="Math\Vector3.h" />
     <ClInclude Include="Math\Vector4.h" />
+    <ClInclude Include="Resource\Resource.h" />
     <ClInclude Include="Time\Clock.h" />
     <ClInclude Include="Time\Time.h" />
     <ClInclude Include="Utility\Assert.h" />
+    <ClInclude Include="Utility\LockJanitor.h" />
     <ClInclude Include="Utility\NamedProperties.h" />
+    <ClInclude Include="Utility\SmartPointer.h" />
     <ClInclude Include="Utility\StringID.h" />
     <ClInclude Include="Utility\StringUtils.h" />
   </ItemGroup>
