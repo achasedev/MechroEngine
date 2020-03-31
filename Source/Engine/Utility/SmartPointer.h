@@ -9,6 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
+#include <map>
 #include <mutex>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -33,8 +34,11 @@ class RefCount
 public:
 	//-----Public Methods-----
 
-	uint32 AddRef();
-	uint32 Release();
+	RefCount(void* pointer);
+
+	uint32				AddRef();
+	uint32				Release();
+	static RefCount*	CreateOrGetRefCount(void* pointer);
 
 
 private:
@@ -42,6 +46,11 @@ private:
 
 	std::mutex	m_lock;
 	uint32		m_count = 0;
+	void*		m_pointer = nullptr;
+
+	// Used to prevent duplicate SmartPointer conflicts
+	static std::mutex					s_registryLock;
+	static std::map<void*, RefCount*>	s_refCountRegistry;
 
 };
 
@@ -67,6 +76,7 @@ private:
 	//-----Private Methods-----
 
 	bool	HasReference() const { return m_refCount != nullptr; }
+	void	Release();
 
 
 private:
@@ -78,6 +88,11 @@ private:
 };
 
 
+// For cleaner looking code when using them
+template <typename T>
+using R = SmartPointer<T>;
+
+
 //-------------------------------------------------------------------------------------------------
 template <typename T>
 SmartPointer<T>::SmartPointer(T* pointer)
@@ -85,7 +100,7 @@ SmartPointer<T>::SmartPointer(T* pointer)
 	ASSERT_OR_DIE(pointer != nullptr, "SmartPointer to nullptr!");
 
 	m_pointer = pointer;
-	m_refCount = new RefCount();
+	m_refCount = RefCount::CreateOrGetRefCount(pointer);
 	m_refCount->AddRef();
 }
 
@@ -106,12 +121,7 @@ SmartPointer<T>::SmartPointer(const SmartPointer<T>& copy)
 	// Release my resources
 	if (HasReference())
 	{
-		int count = m_refCount->Release();
-		if (count == 0)
-		{
-			SAFE_DELETE_POINTER(m_pointer);
-			SAFE_DELETE_POINTER(m_refCount);
-		}
+		Release();
 	}
 
 	m_pointer = copy.m_pointer;
@@ -128,13 +138,7 @@ SmartPointer<T>::SmartPointer(const SmartPointer<T>& copy)
 template <typename T>
 SmartPointer<T>::~SmartPointer()
 {
-	int count = m_refCount->Release();
-
-	if (count == 0)
-	{
-		SAFE_DELETE_POINTER(m_pointer);
-		SAFE_DELETE_POINTER(m_refCount);
-	}
+	Release();
 }
 
 
@@ -153,17 +157,25 @@ void SmartPointer<T>::operator=(const SmartPointer<T>& copy)
 	// Release my resources
 	if (HasReference())
 	{
-		int count = m_refCount->Release();
-		if (count == 0)
-		{
-			SAFE_DELETE_POINTER(m_pointer);
-			SAFE_DELETE_POINTER(m_refCount);
-		}
+		Release();
 	}
 
 	m_pointer = copy.m_pointer;
 	m_refCount = copy.m_refCount;
 	m_refCount->AddRef();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+template <typename T>
+void SmartPointer<T>::Release()
+{
+	int count = m_refCount->Release();
+	if (count == 0)
+	{
+		SAFE_DELETE_POINTER(m_pointer);
+		SAFE_DELETE_POINTER(m_refCount);
+	}
 }
 
 

@@ -23,6 +23,8 @@
 #define _QUOTE(x) # x
 #define QUOTE(x) _QUOTE(x)
 #define UNIMPLEMENTED()  QUOTE(__FILE__) " (" QUOTE(__LINE__) ")" ; ERROR_AND_DIE("Function unimplemented!") 
+#define _CAT(A,B) A##B
+#define CAT(A,B) _CAT(A,B)
 
 //-------------------------------------------------------------------------------------------------
 // COMPILE-TIME OPTIONS

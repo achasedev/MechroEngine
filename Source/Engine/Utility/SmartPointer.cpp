@@ -23,6 +23,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+std::mutex RefCount::s_registryLock;
+std::map<void*, RefCount*> RefCount::s_refCountRegistry;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
@@ -33,9 +35,16 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
+RefCount::RefCount(void* pointer)
+	: m_pointer(pointer)
+{
+}
+
+
+//-------------------------------------------------------------------------------------------------
 uint32 RefCount::AddRef()
 {
-	LockJanitor lockJanitor(m_lock);
+	LOCK_JANITOR(m_lock);
 	return ++m_count;
 }
 
@@ -43,6 +52,35 @@ uint32 RefCount::AddRef()
 //-------------------------------------------------------------------------------------------------
 uint32 RefCount::Release()
 {
-	LockJanitor lockJanitor(m_lock);
-	return --m_count;
+	LOCK_JANITOR(m_lock);
+	--m_count;	
+
+	// If no one is referencing this pointer anymore,
+	// remove it from the list
+	if (m_count == 0)
+	{
+		LOCK_JANITOR(s_registryLock); 
+		s_refCountRegistry.erase(m_pointer);
+	}
+
+	return m_count;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+STATIC RefCount* RefCount::CreateOrGetRefCount(void* pointer)
+{
+	LOCK_JANITOR(s_registryLock);
+
+	// Check if this pointer is already being refcounted
+	if (s_refCountRegistry.find(pointer) != s_refCountRegistry.end())
+	{
+		return s_refCountRegistry[pointer];
+	}
+
+	// Doesn't exist, create one and return
+	RefCount* newCount = new RefCount(pointer);
+	s_refCountRegistry[pointer] = newCount;
+
+	return newCount;
 }
