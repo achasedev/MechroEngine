@@ -32,14 +32,17 @@ class Resource
 public:
 	//-----Public Methods-----
 
-	virtual bool CreateFromFile(const char* filepath) = 0;
-	virtual bool Refresh() = 0;
+	virtual bool		CreateFromFile(const char* filepath) = 0;
+	virtual bool		Refresh() = 0;
+	virtual Resource*	Copy() = 0;
+
+	std::string			GetSourceFile() const { return m_sourceFilePath; }
 
 
 private:
 	//-----Private Data-----
 
-	std::string m_filepath;
+	std::string m_sourceFilePath;
 
 };
 
