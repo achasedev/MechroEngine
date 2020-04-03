@@ -205,6 +205,7 @@
     <ClCompile Include="Time\Clock.cpp" />
     <ClCompile Include="Time\StepTimer.cpp" />
     <ClCompile Include="Time\Time.cpp" />
+    <ClCompile Include="Time\Timer.cpp" />
     <ClCompile Include="Utility\Assert.cpp" />
     <ClCompile Include="Utility\Hash.cpp" />
     <ClCompile Include="Utility\LockJanitor.cpp" />
@@ -266,6 +267,7 @@
     <ClInclude Include="Time\Clock.h" />
     <ClInclude Include="Time\StepTimer.h" />
     <ClInclude Include="Time\Time.h" />
+    <ClInclude Include="Time\Timer.h" />
     <ClInclude Include="Utility\Assert.h" />
     <ClInclude Include="Utility\Hash.h" />
     <ClInclude Include="Utility\LockJanitor.h" />
