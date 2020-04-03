@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: March 18th, 2020
+/// Date Created: April 2nd, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -9,7 +9,6 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
-#include "Engine/Math/IntVector2.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -18,8 +17,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-struct ID3D11Resource;
-struct ID3D11DepthStencilView;
+class IntVector2;
+class Vector3;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -28,32 +27,47 @@ struct ID3D11DepthStencilView;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------------------------------
-class DepthStencilTargetView
+class IntVector3
 {
-	friend class Texture2D;
 
 public:
 	//-----Public Methods-----
 
-	DepthStencilTargetView() {}
-	~DepthStencilTargetView();
+	IntVector3(int initialValue);
+	IntVector3() {}
+	IntVector3(const IntVector3& copyFrom);
+	explicit IntVector3(int initialX, int initialY, int initialZ);
+	explicit IntVector3(uint32 initialX, uint32 initialY, uint32 initialZ);
+	explicit IntVector3(float initialX, float initialY, float initialZ);
+	explicit IntVector3(const Vector3& floatVector);
+	explicit IntVector3(const IntVector2& xyVector, int initialZ);
+	~IntVector3() {}
 
-	ID3D11Resource*			GetDxSource() const { return m_dxSource; }
-	ID3D11DepthStencilView* GetDxView() const { return m_dxView; }
-	uint32					GetWidth() const { return (uint32)m_dimensions.x; }
-	uint32					GetHeight() const { return (uint32)m_dimensions.y; }
-	IntVector2				GetDimensions() const { return m_dimensions; }
+	const IntVector3		operator+(const IntVector3& addVector) const;
+	const IntVector3		operator-(const IntVector3& subVector) const;
+	const IntVector3		operator*(int uniformScaler) const;
+	const IntVector3		operator/(int uniformDivisor) const;
+	void					operator+=(const IntVector3& vecToAdd);
+	void					operator-=(const IntVector3& vecToSubtract);
+	void					operator*=(const int uniformScale);
+	void					operator=(const IntVector3& copyFrom);
+	bool					operator==(const IntVector3& compare) const;
+	bool					operator!=(const IntVector3& compare) const;
+	friend const IntVector3 operator*(int uniformScale, const IntVector3& vecToScale);
+
+public:
+	//-----Public Static Data-----
+
+	const static IntVector3 ZERO;
+	const static IntVector3 ONES;
 
 
-private:
-	//-----Private Data-----
+public:
+	//-----Public Data-----
 
-	ID3D11Resource*			m_dxSource = nullptr;
-	ID3D11DepthStencilView* m_dxView = nullptr;
-	IntVector2				m_dimensions = IntVector2(0, 0);
-	uint32					m_size = 0;
+	int x;
+	int y;
+	int z;
 
 };
 

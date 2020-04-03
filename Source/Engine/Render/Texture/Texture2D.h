@@ -20,8 +20,9 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class ColorTargetView;
+class RenderTargetView;
 class DepthStencilTargetView;
+struct ID3D11Texture2D;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -42,18 +43,9 @@ public:
 
 	bool CreateFromFile(const char* filepath);
 	bool CreateFromImage(const Image& image);
-	bool CreateAsDepthStencil(uint32 width, uint32 height);
-
-	TextureView2D*			CreateTextureView2D() const;
-	ColorTargetView*		CreateColorTargetView() const;
-	DepthStencilTargetView* CreateDepthStencilTargetView() const;
-
-
-private:
-	//-----Private Data-----
-
-	IntVector2	m_dimensions = IntVector2::ZERO;
-	uint32		m_size = 0;
+	bool CreateFromDxTexture2D(ID3D11Texture2D* dxTexture2D);
+	bool CreateAsColorRenderTarget(uint32 width, uint32 height);
+	bool CreateAsDepthStencilTarget(uint32 width, uint32 height);
 
 };
 

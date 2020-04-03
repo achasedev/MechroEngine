@@ -9,7 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Render/Material.h"
-#include "Engine/Render/Texture/TextureView.h"
+#include "Engine/Render/View/ShaderResourceView.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -39,11 +39,11 @@ Material::Material(const char* name)
 
 
 //-------------------------------------------------------------------------------------------------
-Material::Material(const char* name, Shader* shader, TextureView* albedo)
+Material::Material(const char* name, Shader* shader, ShaderResourceView* albedo)
 	: m_name(name)
 	, m_shader(shader)
 {
-	m_textureViews[TEXTURE_SLOT_ALBEDO] = albedo;
+	m_shaderResourceViews[SRV_SLOT_ALBEDO] = albedo;
 }
 
 
@@ -55,15 +55,15 @@ void Material::SetShader(Shader* shader)
 
 
 //-------------------------------------------------------------------------------------------------
-void Material::SetTextureView(uint32 slot, TextureView* textureView)
+void Material::SetShaderResourceView(uint32 slot, ShaderResourceView* textureView)
 {
-	ASSERT_OR_DIE(slot < MAX_TEXTURE_SLOTS, "Material texture index out of bounds!");
-	m_textureViews[slot] = textureView;
+	ASSERT_OR_DIE(slot < MAX_SRV_SLOTS, "Material texture index out of bounds!");
+	m_shaderResourceViews[slot] = textureView;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void Material::SetAlbedoTextureView(TextureView* albedoView)
+void Material::SetAlbedoTextureView(ShaderResourceView* albedoView)
 {
-	m_textureViews[TEXTURE_SLOT_ALBEDO] = albedoView;
+	m_shaderResourceViews[SRV_SLOT_ALBEDO] = albedoView;
 }

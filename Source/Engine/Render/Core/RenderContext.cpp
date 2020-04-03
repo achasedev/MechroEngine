@@ -19,10 +19,10 @@
 #include "Engine/Render/Mesh/Vertex.h"
 #include "Engine/Render/Sampler.h"
 #include "Engine/Render/Shader.h"
-#include "Engine/Render/Texture/ColorTargetView.h"
-#include "Engine/Render/Texture/DepthStencilTargetView.h"
+#include "Engine/Render/View/RenderTargetView.h"
+#include "Engine/Render/View/ShaderResourceView.h"
+#include "Engine/Render/View/DepthStencilTargetView.h"
 #include "Engine/Render/Texture/Texture2D.h"
-#include "Engine/Render/Texture/TextureView2D.h"
 #include "Engine/IO/File.h"
 #include "Engine/Framework/Window.h"
 #include "Engine/IO/Image.h"
@@ -89,7 +89,7 @@ void RenderContext::BeginFrame()
 	m_dxSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backbuffer);
 
 	// Store it off
-	m_frameBackbufferRtv->InitForTexture(backbuffer);
+	m_defaultColorTarget->CreateFromDxTexture2D(backbuffer);
 
 	// Release the local reference to the backbuffer
 	DX_SAFE_RELEASE(backbuffer);
@@ -113,13 +113,13 @@ void RenderContext::BeginCamera(Camera* camera)
 	m_currentCamera = camera;
 
 	// Render to the camera's target
-	ColorTargetView* colorView = camera->GetColorTarget();
+	RenderTargetView* colorView = camera->GetColorTargetView();
 	ASSERT_OR_DIE(colorView != nullptr, "Beginning camera will null target view!");
 
-	ID3D11RenderTargetView* rtv = colorView->GetDxView();
+	ID3D11RenderTargetView* rtv = colorView->GetDxHandle();
 	
 	DepthStencilTargetView* depthView = camera->GetDepthStencilTargetView();
-	ID3D11DepthStencilView* dsv = (depthView != nullptr ? depthView->GetDxView() : nullptr);
+	ID3D11DepthStencilView* dsv = (depthView != nullptr ? depthView->GetDxHandle() : nullptr);
 	
 	m_dxContext->OMSetRenderTargets(1, &rtv, dsv);
 	
@@ -149,7 +149,7 @@ void RenderContext::EndCamera()
 
 
 //-------------------------------------------------------------------------------------------------
-void RenderContext::ClearCurrentColorTargetView(const Rgba& color)
+void RenderContext::ClearScreen(const Rgba& color)
 {
 	ASSERT_OR_DIE(m_currentCamera != nullptr, "No Camera bound!");
 
@@ -159,19 +159,24 @@ void RenderContext::ClearCurrentColorTargetView(const Rgba& color)
 	colors[2] = color.GetBlueFloat();
 	colors[3] = color.GetAlphaFloat();
 
-	m_dxContext->ClearRenderTargetView(m_frameBackbufferRtv->GetDxView(), colors);
+	if (m_currentCamera->GetColorTargetView() != nullptr)
+	{
+		ID3D11RenderTargetView* dxRTV = nullptr;
+		dxRTV = m_currentCamera->GetColorTargetView()->GetDxHandle();
+		m_dxContext->ClearRenderTargetView(dxRTV, colors);
+	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void RenderContext::ClearCurrentDepthStencilTargetView(float depth /*= 1.0f*/)
+void RenderContext::ClearDepth(float depth /*= 1.0f*/)
 {
 	ASSERT_OR_DIE(m_currentCamera != nullptr, "No Camera bound!");
 
 	if (m_currentCamera->GetDepthStencilTargetView() != nullptr)
 	{
 		ID3D11DepthStencilView* dxView = nullptr;
-		dxView = m_currentCamera->GetDepthStencilTargetView()->GetDxView();
+		dxView = m_currentCamera->GetDepthStencilTargetView()->GetDxHandle();
 		m_dxContext->ClearDepthStencilView(dxView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, depth, 0U);
 	}
 }
@@ -192,7 +197,7 @@ void RenderContext::BindMaterial(Material* material)
 	ASSERT_OR_DIE(material != nullptr, "No material defaults set up yet!");
 
 	// Bind Texture + Sampler
-	BindTextureView(TEXTURE_SLOT_ALBEDO, material->GetTextureView(TEXTURE_SLOT_ALBEDO));
+	BindShaderResourceView(SRV_SLOT_ALBEDO, material->GetShaderResourceView(SRV_SLOT_ALBEDO));
 
 	// Bind Shader
 	BindShader(material->GetShader());
@@ -212,14 +217,14 @@ void RenderContext::BindShader(Shader* shader)
 
 
 //-------------------------------------------------------------------------------------------------
-void RenderContext::BindTextureView(uint32 slot, TextureView* view)
+void RenderContext::BindShaderResourceView(uint32 slot, ShaderResourceView* view)
 {
 	// TODO: Default the view to a sensible texture if null
 	ASSERT_OR_DIE(view != nullptr, "Null TextureView!");
 
-	BindSampler(0, view->GetSampler());
+	BindSampler(0U, view->GetSampler());
 
-	ID3D11ShaderResourceView* dxViewHandle = view->GetDxViewHandle();
+	ID3D11ShaderResourceView* dxViewHandle = view->GetDxHandle();
 	m_dxContext->PSSetShaderResources(slot, 1U, &dxViewHandle);
 }
 
@@ -376,18 +381,22 @@ void RenderContext::InitDefaultColorAndDepthViews()
 	// Get current back buffer
 	ID3D11Texture2D* backbuffer = nullptr;
 	m_dxSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backbuffer);
-
-	// Color target
-	m_frameBackbufferRtv = new ColorTargetView();
-	m_frameBackbufferRtv->InitForTexture(backbuffer);
-
-	// Depth target
+	
+	// Get the back buffer bounds
 	D3D11_TEXTURE2D_DESC desc;
 	backbuffer->GetDesc(&desc);
 
-	Texture2D* depthBuffer = new Texture2D();
-	depthBuffer->CreateAsDepthStencil(desc.Width, desc.Height);
-	m_defaultDepthStencilView = depthBuffer->CreateDepthStencilTargetView();
+	// Color target
+	m_defaultColorTarget = new Texture2D();
+	m_defaultColorTarget->CreateFromDxTexture2D(backbuffer);
+
+	// Depth target
+	m_defaultDepthStencilTarget = new Texture2D();
+	m_defaultDepthStencilTarget->CreateAsDepthStencilTarget(desc.Width, desc.Height);
+
+	// Create default views for both
+	m_defaultColorTarget->CreateOrGetColorTargetView();
+	m_defaultDepthStencilTarget->CreateOrGetDepthStencilTargetView();
 
 	// Release the local reference to the backbuffer
 	DX_SAFE_RELEASE(backbuffer);
@@ -440,8 +449,8 @@ RenderContext::~RenderContext()
 	SAFE_DELETE_POINTER(m_samplers[SAMPLER_MODE_POINT]);
 	SAFE_DELETE_POINTER(m_samplers[SAMPLER_MODE_LINEAR]);
 
-	SAFE_DELETE_POINTER(m_defaultDepthStencilView);
-	SAFE_DELETE_POINTER(m_frameBackbufferRtv);
+	SAFE_DELETE_POINTER(m_defaultColorTarget);
+	SAFE_DELETE_POINTER(m_defaultDepthStencilTarget);
 
 	// Shutdown DirectX
 	// DX11 cannot shutdown in full screen
@@ -471,4 +480,18 @@ ID3D11DeviceContext* RenderContext::GetDxContext()
 IDXGISwapChain* RenderContext::GetDxSwapChain()
 {
 	return m_dxSwapChain;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+RenderTargetView* RenderContext::GetDefaultColorTargetView() const
+{
+	return m_defaultColorTarget->CreateOrGetColorTargetView();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+DepthStencilTargetView* RenderContext::GetDefaultDepthStencilTargetView() const
+{
+	return m_defaultDepthStencilTarget->CreateOrGetDepthStencilTargetView();
 }

@@ -9,7 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Utility/StringID.h"
-#include "Engine/Render/Texture/TextureView.h"
+#include "Engine/Render/View/ShaderResourceView.h"
 #include <string>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -37,23 +37,23 @@ public:
 
 	Material() {}
 	Material(const char* name);
-	Material(const char* name, Shader* shader, TextureView* albedo);
+	Material(const char* name, Shader* shader, ShaderResourceView* albedo);
 
-	void SetShader(Shader* shader);
-	void SetTextureView(uint32 slot, TextureView* textureView);
-	void SetAlbedoTextureView(TextureView* albedoView);
+	void					SetShader(Shader* shader);
+	void					SetShaderResourceView(uint32 slot, ShaderResourceView* textureView);
+	void					SetAlbedoTextureView(ShaderResourceView* albedoView);
 
-	Shader*			GetShader() const { return m_shader; }
-	TextureView*	GetTextureView(uint32 slot) const { return m_textureViews[slot]; }
-	TextureView*	GetAlbedo() const { return m_textureViews[TEXTURE_SLOT_ALBEDO]; }
+	Shader*					GetShader() const							{ return m_shader; }
+	ShaderResourceView*		GetShaderResourceView(uint32 slot) const	{ return m_shaderResourceViews[slot]; }
+	ShaderResourceView*		GetAlbedo() const							{ return m_shaderResourceViews[SRV_SLOT_ALBEDO]; }
 
 
 private:
 	//-----Private Data-----
 
-	std::string		m_name;
-	Shader*			m_shader = nullptr;
-	TextureView*	m_textureViews[MAX_TEXTURE_SLOTS];
+	std::string				m_name;
+	Shader*					m_shader = nullptr;
+	ShaderResourceView*		m_shaderResourceViews[MAX_SRV_SLOTS];
 
 };
 

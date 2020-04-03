@@ -19,7 +19,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class ColorTargetView;
+class RenderTargetView;
 class DepthStencilTargetView;
 class UniformBuffer;
 
@@ -40,7 +40,7 @@ public:
 	Camera();
 	~Camera();
 
-	void					SetColorTargetView(ColorTargetView* colorTargetView, bool ownsColorTargetView);
+	void					SetColorTargetView(RenderTargetView* colorTargetView, bool ownsColorTargetView);
 	void					SetDepthStencilTargetView(DepthStencilTargetView* depthTargetView, bool ownsTarget);
 	void					SetProjectionOrtho(float orthoHeight);
 	void					SetProjectionPerspective(float fovDegrees, float nearZ, float farZ);
@@ -56,7 +56,7 @@ public:
 	void					SetCameraMatrix(const Matrix44& cameraMatrix);
 	void					SetViewMatrix(const Matrix44& viewMatrix);
 
-	ColorTargetView*		GetColorTarget() const { return m_colorTargetView; }
+	RenderTargetView*		GetColorTargetView() const { return m_colorTargetView; }
 	DepthStencilTargetView* GetDepthStencilTargetView() const { return m_depthTargetView; }
 	UniformBuffer*			GetUniformBuffer() const { return m_cameraUBO; }
 
@@ -87,7 +87,7 @@ private:
 	float					m_farClipZ = 1.f;
 
 	// Render Target
-	ColorTargetView*		m_colorTargetView = nullptr;
+	RenderTargetView*		m_colorTargetView = nullptr;
 	DepthStencilTargetView* m_depthTargetView = nullptr;
 	bool					m_ownsColorTargetView = false;
 	bool					m_ownsDepthTargetView = false;

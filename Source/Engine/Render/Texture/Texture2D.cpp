@@ -9,9 +9,9 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Render/Core/DX11Common.h"
 #include "Engine/Render/Core/RenderContext.h"
-#include "Engine/Render/Texture/DepthStencilTargetView.h"
+#include "Engine/Render/View/ShaderResourceView.h"
+#include "Engine/Render/View/ShaderResourceView.h"
 #include "Engine/Render/Texture/Texture2D.h"
-#include "Engine/Render/Texture/TextureView2D.h"
 #include "Engine/IO/Image.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -36,24 +36,51 @@ static uint32 GetDxBindFromTextureUsageFlags(TextureUsageBits usage)
 	uint32 binds = 0U;
 
 	// Can I sample from it?
-	if (usage & TEXTURE_USAGE_TEXTURE_BIT) 
+	if (usage & TEXTURE_USAGE_SHADER_RESOURCE_BIT) 
 	{
 		binds |= D3D11_BIND_SHADER_RESOURCE;
 	}
 
-	// Can I use it as a color target?
-	if (usage & TEXTURE_USAGE_COLOR_TARGET_BIT) 
+	// Can I render to it?
+	if (usage & TEXTURE_USAGE_RENDER_TARGET_BIT) 
 	{
 		binds |= D3D11_BIND_RENDER_TARGET;
 	}
 
-	// Can I use it as a depth stencil?
+	// Can I store depth info in it?
 	if (usage & TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT) 
 	{
 		binds |= D3D11_BIND_DEPTH_STENCIL;
 	}
 
 	return binds;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+static TextureUsageBits GetTextureUsageFlagsFromDxBinds(uint32 dxBind)
+{
+	TextureUsageBits usageFlags = 0;
+
+	// Can I sample from it?
+	if (dxBind & D3D11_BIND_SHADER_RESOURCE)
+	{
+		usageFlags |= D3D11_BIND_SHADER_RESOURCE;
+	}
+
+	// Can I render to it?
+	if (dxBind & D3D11_BIND_RENDER_TARGET)
+	{
+		usageFlags |= TEXTURE_USAGE_RENDER_TARGET_BIT;
+	}
+
+	// Can I store depth info in it?
+	if (dxBind & D3D11_BIND_DEPTH_STENCIL)
+	{
+		usageFlags |= TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT;
+	}
+
+	return usageFlags;
 }
 
 
@@ -67,6 +94,21 @@ static DXGI_FORMAT GetDxTextureFormatFromComponentCount(int numComponents)
 	case 4: return DXGI_FORMAT_R8G8B8A8_UNORM;break;
 	default:
 		ERROR_AND_DIE("Invalid number of components for texture: %i", numComponents);
+		break;
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+static int GetComponentCountFromDxTextureFormat(DXGI_FORMAT dxFormat)
+{
+	switch (dxFormat)
+	{
+	case DXGI_FORMAT_R8_UNORM: return 1; break;
+	case DXGI_FORMAT_R8G8_UNORM: return 2; break;
+	case DXGI_FORMAT_R8G8B8A8_UNORM: return 4; break;
+	default:
+		ERROR_AND_DIE("Missing DXGI_FORMAT: %i", (int)dxFormat);
 		break;
 	}
 }
@@ -92,12 +134,12 @@ bool Texture2D::CreateFromFile(const char* filepath)
 //-------------------------------------------------------------------------------------------------
 bool Texture2D::CreateFromImage(const Image& image)
 {
-	DX_SAFE_RELEASE(m_dxHandle);
+	Clear();
 
 	ID3D11Device* dxDevice = g_renderContext->GetDxDevice();
 
-	m_textureUsage = TEXTURE_USAGE_TEXTURE_BIT; // Read only texture
-	m_memoryUsage = GPU_MEMORY_USAGE_GPU; // Non-static for mip-maps
+	m_textureUsage = TEXTURE_USAGE_SHADER_RESOURCE_BIT; // Read only texture
+	m_memoryUsage = GPU_MEMORY_USAGE_GPU;				// Non-static for mip-maps
 
 	D3D11_TEXTURE2D_DESC texDesc;
 	memset(&texDesc, 0, sizeof(D3D11_TEXTURE2D_DESC));
@@ -131,8 +173,8 @@ bool Texture2D::CreateFromImage(const Image& image)
 	if (succeeded)
 	{
 		m_dxHandle = tex2D;
-		m_dimensions = image.GetDimensions();
-		m_size = image.GetSize();
+		m_dimensions = IntVector3(image.GetDimensions(), 0);
+		m_byteSize = image.GetSize();
 	}
 
 	return succeeded;
@@ -140,9 +182,69 @@ bool Texture2D::CreateFromImage(const Image& image)
 
 
 //-------------------------------------------------------------------------------------------------
-bool Texture2D::CreateAsDepthStencil(uint32 width, uint32 height)
+bool Texture2D::CreateFromDxTexture2D(ID3D11Texture2D* dxTexture2D)
 {
-	DX_SAFE_RELEASE(m_dxHandle);
+	Clear();
+
+	D3D11_TEXTURE2D_DESC desc;
+	dxTexture2D->GetDesc(&desc);
+
+	m_dxHandle = dxTexture2D;
+	m_dimensions = IntVector3(desc.Width, desc.Height, 0U);
+	m_byteSize = m_dimensions.x * m_dimensions.y * GetComponentCountFromDxTextureFormat(desc.Format);
+	m_memoryUsage = FromDXMemoryUsage(desc.Usage);
+	m_textureUsage = GetTextureUsageFlagsFromDxBinds(desc.BindFlags);
+
+	return true;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool Texture2D::CreateAsColorRenderTarget(uint32 width, uint32 height)
+{
+	Clear();
+
+	ID3D11Device* dxDevice = g_renderContext->GetDxDevice();
+
+	m_textureUsage = TEXTURE_USAGE_RENDER_TARGET_BIT;
+	m_memoryUsage = GPU_MEMORY_USAGE_GPU;
+
+	D3D11_TEXTURE2D_DESC texDesc;
+	memset(&texDesc, 0, sizeof(D3D11_TEXTURE2D_DESC));
+
+	texDesc.Width = width;
+	texDesc.Height = height;
+	texDesc.MipLevels = 1;
+	texDesc.ArraySize = 1;
+	texDesc.Usage = (D3D11_USAGE)ToDXMemoryUsage(m_memoryUsage);
+	texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	texDesc.BindFlags = GetDxBindFromTextureUsageFlags(m_textureUsage);
+	texDesc.CPUAccessFlags = 0U;
+	texDesc.MiscFlags = 0U;
+	texDesc.SampleDesc.Count = 1;
+	texDesc.SampleDesc.Quality = 0;
+
+	ID3D11Texture2D* tex2D = nullptr;
+	HRESULT hr = dxDevice->CreateTexture2D(&texDesc, nullptr, &tex2D);
+
+	bool succeeded = SUCCEEDED(hr);
+	ASSERT_RECOVERABLE(succeeded, "Couldn't create depth stencil Texture2D, error code: %u", hr);
+
+	if (succeeded)
+	{
+		m_dxHandle = tex2D;
+		m_dimensions = IntVector3((int)width, (int)height, 0);
+		m_byteSize = width * height * 4U;
+	}
+
+	return succeeded;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool Texture2D::CreateAsDepthStencilTarget(uint32 width, uint32 height)
+{
+	Clear();
 
 	ID3D11Device* dxDevice = g_renderContext->GetDxDevice();
 
@@ -173,71 +275,9 @@ bool Texture2D::CreateAsDepthStencil(uint32 width, uint32 height)
 	if (succeeded)
 	{
 		m_dxHandle = tex2D;
-		m_dimensions = IntVector2((int)width, (int)height);
-		m_size = width * height * 4U;
+		m_dimensions = IntVector3((int)width, (int)height, 0);
+		m_byteSize = width * height * 4U;
 	}
 
 	return succeeded;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-TextureView2D* Texture2D::CreateTextureView2D() const
-{
-	ASSERT_OR_DIE(m_dxHandle != nullptr, "Attempted to create a view for an uninitialized Texture!");
-
-	ID3D11Device* dxDevice = g_renderContext->GetDxDevice();
-
-	ID3D11ShaderResourceView* srv = nullptr;
-	dxDevice->CreateShaderResourceView(m_dxHandle, nullptr, &srv);
-
-	if (srv != nullptr)
-	{
-		TextureView2D* view2D = new TextureView2D();
-
-		view2D->m_dxView = srv;
-		view2D->m_dimensions = m_dimensions;
-
-		m_dxHandle->AddRef();
-		view2D->m_dxSource = m_dxHandle;
-		view2D->m_size = m_size;
-
-		return view2D;
-	}
-
-	return nullptr;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-DepthStencilTargetView* Texture2D::CreateDepthStencilTargetView() const
-{
-	ASSERT_OR_DIE(m_textureUsage & TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT, "Attempting to make a depth stencil view for a non-depth stencil texture!");
-	ASSERT_OR_DIE(m_dxHandle != nullptr, "Attempting to make a depth stencil view for uninitialized texture!");
-
-	ID3D11Device* dxDevice = g_renderContext->GetDxDevice();
-	ID3D11DepthStencilView* dxView = nullptr;
-
-	D3D11_DEPTH_STENCIL_VIEW_DESC desc;
-	memset(&desc, 0, sizeof(D3D11_DEPTH_STENCIL_VIEW_DESC));
-	desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-
-	dxDevice->CreateDepthStencilView(m_dxHandle, &desc, &dxView);
-
-	if (dxView != nullptr)
-	{
-		DepthStencilTargetView* targetView = new DepthStencilTargetView();
-
-		targetView->m_dxView = dxView;
-		m_dxHandle->AddRef();
-		targetView->m_dxSource = m_dxHandle;
-
-		targetView->m_dimensions = m_dimensions;
-		targetView->m_size = m_size;
-
-		return targetView;
-	}
-
-	return nullptr;
 }

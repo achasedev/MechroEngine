@@ -21,7 +21,7 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Camera;
-class ColorTargetView;
+class RenderTargetView;
 class DepthStencilTargetView;
 class DrawCall;
 class IndexBuffer;
@@ -31,8 +31,8 @@ class Mesh;
 class Renderable;
 class Sampler;
 class Shader;
-class TextureView;
-class TextureView2D;
+class ShaderResourceView;
+class Texture2D;
 class UniformBuffer;
 class VertexBuffer;
 class VertexLayout;
@@ -61,38 +61,40 @@ class RenderContext
 public:
 	//-----Public Methods-----
 
-	static void Initialize();
-	static void Shutdown();
+	static void							Initialize();
+	static void							Shutdown();
 	
-	void BeginFrame();
-	void EndFrame();
+	void								BeginFrame();
+	void								EndFrame();
 
-	void BeginCamera(Camera* camera);
-	void EndCamera();
+	void								BeginCamera(Camera* camera);
+	void								EndCamera();
 
-	void ClearCurrentColorTargetView(const Rgba& color);
-	void ClearCurrentDepthStencilTargetView(float depthValue = 1.0f);
+	void								ClearScreen(const Rgba& color);
+	void								ClearDepth(float depthValue = 1.0f);
 
-	void BindUniformBuffer(uint32 slot, UniformBuffer* ubo);
-	void BindMaterial(Material* material);
-	void BindShader(Shader* shader);
-	void BindTextureView(uint32 slot, TextureView* view);
-	void BindSampler(uint32 slot, Sampler* sampler);
-	void UpdateModelMatrixUBO(const Matrix44& modelMatrix);
+	void								BindUniformBuffer(uint32 slot, UniformBuffer* ubo);
+	void								BindMaterial(Material* material);
+	void								BindShader(Shader* shader);
+	void								BindShaderResourceView(uint32 slot, ShaderResourceView* view);
+	void								BindSampler(uint32 slot, Sampler* sampler);
+	void								UpdateModelMatrixUBO(const Matrix44& modelMatrix);
 
-	template <typename VERT_TYPE>
-	void DrawVertexArray(const VERT_TYPE* vertices, uint32 numVertices, const uint32* indices = nullptr, uint32 numIndices = 0, Material* material = nullptr);
-	void DrawMesh(Mesh& mesh);
-	void DrawMeshWithMaterial(Mesh& mesh, Material* material);
-	void DrawRenderable(Renderable& renderable);
-	void Draw(const DrawCall& drawCall);
+	template <typename VERT_TYPE> void	DrawVertexArray(const VERT_TYPE* vertices, uint32 numVertices, const uint32* indices = nullptr, uint32 numIndices = 0, Material* material = nullptr);
+	void								DrawMesh(Mesh& mesh);
+	void								DrawMeshWithMaterial(Mesh& mesh, Material* material);
+	void								DrawRenderable(Renderable& renderable);
+	void								Draw(const DrawCall& drawCall);
 
-	ID3D11Device*			GetDxDevice();
-	ID3D11DeviceContext*	GetDxContext();
-	IDXGISwapChain*			GetDxSwapChain();
+	ID3D11Device*						GetDxDevice();
+	ID3D11DeviceContext*				GetDxContext();
+	IDXGISwapChain*						GetDxSwapChain();
 
-	ColorTargetView*		GetBackBufferColorTarget() const { return m_frameBackbufferRtv; }
-	DepthStencilTargetView* GetDefaultDepthStencilTargetView() const { return m_defaultDepthStencilView; }
+	Texture2D*							GetDefaultColorTarget() const { return m_defaultColorTarget; }
+	Texture2D*							GetDefaultDepthStencilTarget() const { return m_defaultDepthStencilTarget; }
+
+	RenderTargetView*					GetDefaultColorTargetView() const;
+	DepthStencilTargetView*				GetDefaultDepthStencilTargetView() const;
 
 
 private:
@@ -122,8 +124,8 @@ private:
 	Camera*					m_currentCamera = nullptr;
 	Shader*					m_currentShader = nullptr;
 	const VertexLayout*		m_currVertexLayout = nullptr;
-	ColorTargetView*		m_frameBackbufferRtv = nullptr;
-	DepthStencilTargetView*	m_defaultDepthStencilView = nullptr;
+	Texture2D*				m_defaultColorTarget = nullptr;
+	Texture2D*				m_defaultDepthStencilTarget = nullptr;
 	Mesh					m_immediateMesh;
 	UniformBuffer			m_modelMatrixUBO;
 

@@ -10,8 +10,9 @@
 #include "Engine/Render/Buffer/UniformBuffer.h"
 #include "Engine/Render/Camera/Camera.h"
 #include "Engine/Render/Core/RenderContext.h"
-#include "Engine/Render/Texture/ColorTargetView.h"
-#include "Engine/Render/Texture/DepthStencilTargetView.h"
+#include "Engine/Render/View/RenderTargetView.h"
+#include "Engine/Render/View/ShaderResourceView.h"
+#include "Engine/Render/View/DepthStencilTargetView.h"
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Framework/Window.h"
 
@@ -67,10 +68,10 @@ Camera::Camera()
 	m_transform.rotation = Quaternion::IDENTITY;
 	m_transform.scale = Vector3::ONES;
 
-	m_colorTargetView = new ColorTargetView();
+	m_colorTargetView = new RenderTargetView();
 
 	// Set the target to the backbuffer (for now)
-	SetColorTargetView(g_renderContext->GetBackBufferColorTarget(), false);
+	SetColorTargetView(g_renderContext->GetDefaultColorTargetView(), false);
 
 	// Set the depth target to default depth
 	SetDepthStencilTargetView(g_renderContext->GetDefaultDepthStencilTargetView(), false);
@@ -118,7 +119,7 @@ void Camera::SetRotation(const Vector3& rotation)
 
 
 //-------------------------------------------------------------------------------------------------
-void Camera::SetColorTargetView(ColorTargetView* colorTargetView, bool ownsColorTargetView)
+void Camera::SetColorTargetView(RenderTargetView* colorTargetView, bool ownsColorTargetView)
 {
 	if (m_colorTargetView != nullptr && m_ownsColorTargetView)
 	{

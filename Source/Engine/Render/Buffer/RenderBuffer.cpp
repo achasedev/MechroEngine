@@ -44,6 +44,22 @@ uint32 ToDXMemoryUsage(GPUMemoryUsage usage)
 
 
 //-------------------------------------------------------------------------------------------------
+GPUMemoryUsage FromDXMemoryUsage(uint32 dxUsage)
+{
+	switch (dxUsage)
+	{
+	case D3D11_USAGE_DEFAULT: return GPU_MEMORY_USAGE_GPU; break;
+	case D3D11_USAGE_IMMUTABLE: return GPU_MEMORY_USAGE_STATIC; break;
+	case D3D11_USAGE_DYNAMIC: return GPU_MEMORY_USAGE_DYNAMIC; break;
+	case D3D11_USAGE_STAGING: return GPU_MEMORY_USAGE_STAGING; break;
+	default:
+		ERROR_AND_DIE("Bad Memory Usage");
+		break;
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
 static uint32 GetDxBindFromRenderBufferFlags(RenderBufferUsageBitFlags flags)
 {
 	uint32 dxFlags = 0U;

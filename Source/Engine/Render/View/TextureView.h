@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: March 14th, 2020
+/// Date Created: April 2nd, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,8 +8,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Render/Texture/TextureView.h"
-#include "Engine/Math/IntVector2.h"
+#include "Engine/Framework/EngineCommon.h"
+#include "Engine/Math/IntVector3.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -18,6 +18,19 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+enum TextureUsageBit : uint32
+{
+	TEXTURE_USAGE_SHADER_RESOURCE_BIT		= BIT_FLAG(0),	// Can be used to create a ShaderResourceView
+	TEXTURE_USAGE_RENDER_TARGET_BIT			= BIT_FLAG(1),	// Can be used to create a ColorTargetView
+	TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT	= BIT_FLAG(2),	// Can be used to create a DepthStencilTargetView
+};
+
+typedef uint32 TextureUsageBits;
+class Texture;
+struct ID3D11View;
+struct ID3D11ShaderResourceView;
+struct ID3D11RenderTargetView;
+struct ID3D11DepthStencilView;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -28,22 +41,33 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class TextureView2D : public TextureView
+class TextureView
 {
-	friend class Texture2D;
+	friend class Texture;
 
 public:
-	//-----Public Methods-----
 
-	TextureView2D() {}
-	virtual ~TextureView2D() {}
+	virtual ~TextureView();
+
+	int GetWidth() const { return m_dimensions.x; }
+	int GetHeight() const { return m_dimensions.y; }
 
 
-private:
-	//-----Private Data-----
+protected:
+	//-----Protected Data-----
 
-	IntVector2	m_dimensions = IntVector2::ZERO;
-	uint32		m_size = 0;
+	TextureUsageBits	m_usage = 0;
+	const Texture*		m_sourceTexture = nullptr;
+	IntVector3			m_dimensions = IntVector3::ZERO;
+	uint32				m_byteSize = 0;
+
+	union
+	{
+		ID3D11View*					m_dxView = nullptr;
+		ID3D11ShaderResourceView*	m_dxSRV;
+		ID3D11RenderTargetView*		m_dxRTV;
+		ID3D11DepthStencilView*		m_dxDSV;
+	};
 
 };
 

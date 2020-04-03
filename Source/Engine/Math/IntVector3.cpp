@@ -8,8 +8,8 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Math/IntVector2.h"
-
-#include "Engine/Math/Vector2.h"
+#include "Engine/Math/IntVector3.h"
+#include "Engine/Math/Vector3.h"
 #include <math.h>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -23,8 +23,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-const IntVector2 IntVector2::ZERO = IntVector2(0, 0);
-const IntVector2 IntVector2::ONES = IntVector2(1, 1);
+const IntVector3 IntVector3::ZERO = IntVector3(0, 0, 0);
+const IntVector3 IntVector3::ONES = IntVector3(1, 1, 1);
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 ///                                                            *** C FUNCTIONS ***
@@ -35,128 +35,148 @@ const IntVector2 IntVector2::ONES = IntVector2(1, 1);
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-IntVector2::IntVector2(const IntVector2& copy)
+IntVector3::IntVector3(const IntVector3& copy)
 	: x(copy.x)
 	, y(copy.y)
+	, z(copy.z)
 {
 }
 
 
 //-------------------------------------------------------------------------------------------------
-IntVector2::IntVector2(int initialX, int initialY)
+IntVector3::IntVector3(int initialX, int initialY, int initialZ)
 	: x(initialX)
 	, y(initialY)
+	, z(initialZ)
 {
 }
 
 
 //-------------------------------------------------------------------------------------------------
-IntVector2::IntVector2(float initialX, float initialY)
+IntVector3::IntVector3(float initialX, float initialY, float initialZ)
 	: x(static_cast<int>(initialX))
 	, y(static_cast<int>(initialY))
+	, z(static_cast<int>(initialZ))
 {
 }
 
 
 //-------------------------------------------------------------------------------------------------
-IntVector2::IntVector2(const Vector2& floatVector)
+IntVector3::IntVector3(const Vector3& floatVector)
 	: x(static_cast<int>(floatVector.x))
 	, y(static_cast<int>(floatVector.y))
+	, z(static_cast<int>(floatVector.z))
 {
 }
 
 
 //-------------------------------------------------------------------------------------------------
-IntVector2::IntVector2(int initialValue)
-	: x(initialValue), y(initialValue)
+IntVector3::IntVector3(int initialValue)
+	: x(initialValue)
+	, y(initialValue)
+	, z(initialValue)
 {
 }
 
 
 //-------------------------------------------------------------------------------------------------
-IntVector2::IntVector2(uint32 initialX, uint32 initialY)
+IntVector3::IntVector3(uint32 initialX, uint32 initialY, uint32 initialZ)
 	: x(static_cast<int>(initialX))
 	, y(static_cast<int>(initialY))
+	, z(static_cast<int>(initialZ))
 {
 }
 
 
 //-------------------------------------------------------------------------------------------------
-const IntVector2 IntVector2::operator+(const IntVector2& addVector) const
+IntVector3::IntVector3(const IntVector2& xyVector, int initialZ)
+	: x(xyVector.x)
+	, y(xyVector.y)
+	, z(initialZ)
 {
-	return IntVector2((x + addVector.x), (y + addVector.y));
 }
 
 
 //-------------------------------------------------------------------------------------------------
-const IntVector2 IntVector2::operator-(const IntVector2& subVector) const
+const IntVector3 IntVector3::operator+(const IntVector3& addVector) const
 {
-	return IntVector2((x - subVector.x), (y - subVector.y));
+	return IntVector3((x + addVector.x), (y + addVector.y), (z + addVector.z));
 }
 
 
 //-------------------------------------------------------------------------------------------------
-const IntVector2 IntVector2::operator*(int uniformScale) const
+const IntVector3 IntVector3::operator-(const IntVector3& subVector) const
 {
-	return IntVector2((x * uniformScale), (y * uniformScale));
+	return IntVector3((x - subVector.x), (y - subVector.y), (z - subVector.z));
 }
 
 
 //-------------------------------------------------------------------------------------------------
-const IntVector2 IntVector2::operator/(int divisor) const
+const IntVector3 IntVector3::operator*(int uniformScale) const
 {
-	return IntVector2((x / divisor), (y / divisor));
+	return IntVector3((x * uniformScale), (y * uniformScale), (z * uniformScale));
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void IntVector2::operator+=(const IntVector2& addVector)
+const IntVector3 IntVector3::operator/(int divisor) const
+{
+	return IntVector3((x / divisor), (y / divisor), (z / divisor));
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void IntVector3::operator+=(const IntVector3& addVector)
 {
 	x += addVector.x;
 	y += addVector.y;
+	z += addVector.z;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void IntVector2::operator-=(const IntVector2& subVector)
+void IntVector3::operator-=(const IntVector3& subVector)
 {
 	x -= subVector.x;
 	y -= subVector.y;
+	z -= subVector.z;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void IntVector2::operator*=(const int uniformScaler)
+void IntVector3::operator*=(const int uniformScaler)
 {
 	x *= uniformScaler;
 	y *= uniformScaler;
+	z *= uniformScaler;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void IntVector2::operator=(const IntVector2& copyFrom)
+void IntVector3::operator=(const IntVector3& copyFrom)
 {
 	x = copyFrom.x;
 	y = copyFrom.y;
+	z = copyFrom.z;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-const IntVector2 operator*(int uniformScaler, const IntVector2& vecToScale)
+const IntVector3 operator*(int uniformScaler, const IntVector3& vecToScale)
 {
 	return vecToScale * uniformScaler;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-bool IntVector2::operator==(const IntVector2& compare) const
+bool IntVector3::operator==(const IntVector3& compare) const
 {
-	return (x == compare.x && y == compare.y);
+	return (x == compare.x && y == compare.y && z == compare.z);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-bool IntVector2::operator!=(const IntVector2& compare) const
+bool IntVector3::operator!=(const IntVector3& compare) const
 {
-	return (x != compare.x || y != compare.y);
+	return (x != compare.x || y != compare.y || z != compare.z);
 }

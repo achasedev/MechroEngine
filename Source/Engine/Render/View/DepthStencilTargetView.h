@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: December 8th, 2019
+/// Date Created: March 18th, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,8 +8,9 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Framework/EngineCommon.h"
 #include "Engine/Math/IntVector2.h"
-#include "Engine/Render/Core/DX11Common.h"
+#include "Engine/Render/View/TextureView.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -18,6 +19,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+struct ID3D11DepthStencilView;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -28,26 +30,17 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class ColorTargetView
+class DepthStencilTargetView : public TextureView
 {
+	friend class Texture2D;
+
 public:
 	//-----Public Methods-----
 
-	ColorTargetView();
-	~ColorTargetView();
-	
-	void InitForTexture(ID3D11Texture2D* texture);
+	DepthStencilTargetView() {}
+	virtual ~DepthStencilTargetView() {}
 
-	int						GetWidth() const { return m_dimensions.x; }
-	int						GetHeight() const { return m_dimensions.y; }
-	ID3D11RenderTargetView* GetDxView() const { return m_dxView; }
-
-
-private:
-	//-----Private Data-----
-
-	ID3D11RenderTargetView* m_dxView = nullptr;
-	IntVector2				m_dimensions;
+	ID3D11DepthStencilView* GetDxHandle() const { return m_dxDSV; }
 
 };
 

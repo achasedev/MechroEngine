@@ -8,6 +8,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Utility/StringID.h"
+#include "Engine/Utility/Hash.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -29,17 +30,8 @@ DebugSIDSystem* g_debugSIDSystem = nullptr;
 //-------------------------------------------------------------------------------------------------
 StringID HashString(const char* str)
 {
-	// djb2 hash function, by Dan Bernstein
-	uint32 hashValue = 5381;
-
-	uint32 c;
-	const char* tempStr = str;
-	while (c = (uint32)*tempStr++)
-	{
-		hashValue = ((hashValue << 5) + hashValue) + c;
-	}
-
-	StringID strID = static_cast<StringID>(hashValue);
+	uint32 strHash = HashData((void*)str, strlen(str));
+	StringID strID = static_cast<StringID>(strHash);
 
 	if (DebugSIDSystem::IsInitialized())
 	{

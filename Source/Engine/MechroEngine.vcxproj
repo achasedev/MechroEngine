@@ -170,8 +170,8 @@
     <ClCompile Include="Job\JobSystem.cpp" />
     <ClCompile Include="Job\JobWorkerThread.cpp" />
     <ClCompile Include="Math\AABB3.cpp" />
+    <ClCompile Include="Math\IntVector3.cpp" />
     <ClCompile Include="Render\Camera\Camera.cpp" />
-    <ClCompile Include="Render\Texture\ColorTargetView.cpp" />
     <ClCompile Include="Render\Core\DrawCall.cpp" />
     <ClCompile Include="Render\Core\DX11Common.cpp" />
     <ClCompile Include="Render\Buffer\IndexBuffer.cpp" />
@@ -183,10 +183,8 @@
     <ClCompile Include="Render\Core\RenderContext.cpp" />
     <ClCompile Include="Render\Sampler.cpp" />
     <ClCompile Include="Render\Shader.cpp" />
-    <ClCompile Include="Render\Texture\DepthStencilTargetView.cpp" />
     <ClCompile Include="Render\Texture\Texture.cpp" />
     <ClCompile Include="Render\Texture\Texture2D.cpp" />
-    <ClCompile Include="Render\Texture\TextureView.cpp" />
     <ClCompile Include="Render\Buffer\UniformBuffer.cpp" />
     <ClCompile Include="Render\Mesh\Vertex.cpp" />
     <ClCompile Include="Render\Buffer\VertexBuffer.cpp" />
@@ -203,9 +201,11 @@
     <ClCompile Include="Math\Vector2.cpp" />
     <ClCompile Include="Math\Vector3.cpp" />
     <ClCompile Include="Math\Vector4.cpp" />
+    <ClCompile Include="Render\View\TextureView.cpp" />
     <ClCompile Include="Time\Clock.cpp" />
     <ClCompile Include="Time\Time.cpp" />
     <ClCompile Include="Utility\Assert.cpp" />
+    <ClCompile Include="Utility\Hash.cpp" />
     <ClCompile Include="Utility\LockJanitor.cpp" />
     <ClCompile Include="Utility\NamedProperties.cpp" />
     <ClCompile Include="Utility\SmartPointer.cpp" />
@@ -225,8 +225,9 @@
     <ClInclude Include="Job\JobSystem.h" />
     <ClInclude Include="Job\JobWorkerThread.h" />
     <ClInclude Include="Math\AABB3.h" />
+    <ClInclude Include="Math\IntVector3.h" />
     <ClInclude Include="Render\Camera\Camera.h" />
-    <ClInclude Include="Render\Texture\ColorTargetView.h" />
+    <ClInclude Include="Render\View\RenderTargetView.h" />
     <ClInclude Include="Render\Core\DrawCall.h" />
     <ClInclude Include="Render\Core\DX11Common.h" />
     <ClInclude Include="Render\Buffer\IndexBuffer.h" />
@@ -237,11 +238,11 @@
     <ClInclude Include="Render\Buffer\RenderBuffer.h" />
     <ClInclude Include="Render\Sampler.h" />
     <ClInclude Include="Render\Shader.h" />
-    <ClInclude Include="Render\Texture\DepthStencilTargetView.h" />
+    <ClInclude Include="Render\View\DepthStencilTargetView.h" />
     <ClInclude Include="Render\Texture\Texture.h" />
     <ClInclude Include="Render\Texture\Texture2D.h" />
-    <ClInclude Include="Render\Texture\TextureView.h" />
-    <ClInclude Include="Render\Texture\TextureView2D.h" />
+    <ClInclude Include="Render\View\ShaderResourceView.h" />
+    <ClInclude Include="Render\View\TextureView.h" />
     <ClInclude Include="Render\Buffer\UniformBuffer.h" />
     <ClInclude Include="Render\Mesh\Vertex.h" />
     <ClInclude Include="Render\Buffer\VertexBuffer.h" />
@@ -264,6 +265,7 @@
     <ClInclude Include="Time\Clock.h" />
     <ClInclude Include="Time\Time.h" />
     <ClInclude Include="Utility\Assert.h" />
+    <ClInclude Include="Utility\Hash.h" />
     <ClInclude Include="Utility\LockJanitor.h" />
     <ClInclude Include="Utility\NamedProperties.h" />
     <ClInclude Include="Utility\SmartPointer.h" />

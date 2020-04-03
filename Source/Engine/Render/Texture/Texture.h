@@ -9,7 +9,10 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
+#include "Engine/Math/IntVector3.h"
 #include "Engine/Render/Buffer/RenderBuffer.h"
+#include "Engine/Render/View/TextureView.h"
+#include <map>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -18,17 +21,13 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-enum TextureUsageBit : uint32
-{
-	TEXTURE_USAGE_TEXTURE_BIT = BIT_FLAG(0),  // Can be used to create a TextureView
-	TEXTURE_USAGE_COLOR_TARGET_BIT = BIT_FLAG(1),  // Can be used to create a ColorTargetView
-	TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT = BIT_FLAG(2),	// Can be used to create a DepthStencilTargetView
-};
-
-typedef uint32 TextureUsageBits;
 class Image;
-class TextureView2D;
 struct ID3D11Resource;
+
+struct TextureViewInfo
+{
+	TextureUsageBits m_viewType = 0;
+};
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -44,16 +43,28 @@ class Texture
 public:
 	//-----Public Methods-----
 
-	Texture() {}
 	virtual ~Texture();
+	virtual ShaderResourceView*			CreateOrGetShaderResourceView(const TextureViewInfo* viewInfo = nullptr);
+	virtual RenderTargetView*			CreateOrGetColorTargetView(const TextureViewInfo* viewInfo = nullptr);
+	virtual DepthStencilTargetView*		CreateOrGetDepthStencilTargetView(const TextureViewInfo* viewInfo = nullptr);
+
+
+protected:
+	//------Protected Methods-----
+
+	void								Clear();
+	TextureView*						GetView(const TextureViewInfo* viewInfo) const;
 
 
 protected:
 	//-----Protected Data-----
 
-	ID3D11Resource*		m_dxHandle = nullptr;
-	GPUMemoryUsage		m_memoryUsage = GPU_MEMORY_USAGE_DYNAMIC;
-	TextureUsageBits	m_textureUsage = 0;
+	ID3D11Resource*						m_dxHandle = nullptr;
+	GPUMemoryUsage						m_memoryUsage = GPU_MEMORY_USAGE_DYNAMIC;
+	TextureUsageBits					m_textureUsage = 0;
+	IntVector3							m_dimensions = IntVector3::ZERO;
+	uint32								m_byteSize = 0;
+	std::map<uint32, TextureView*>		m_views;
 
 };
 
