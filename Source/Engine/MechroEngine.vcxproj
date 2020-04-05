@@ -207,6 +207,8 @@
     <ClCompile Include="Time\StepTimer.cpp" />
     <ClCompile Include="Time\Time.cpp" />
     <ClCompile Include="Time\Timer.cpp" />
+    <ClCompile Include="UI\Canvas.cpp" />
+    <ClCompile Include="UI\Panel.cpp" />
     <ClCompile Include="UI\RectTransform.cpp" />
     <ClCompile Include="UI\UIElement.cpp" />
     <ClCompile Include="Utility\Assert.cpp" />
@@ -272,6 +274,7 @@
     <ClInclude Include="Time\StepTimer.h" />
     <ClInclude Include="Time\Time.h" />
     <ClInclude Include="Time\Timer.h" />
+    <ClInclude Include="UI\Canvas.h" />
     <ClInclude Include="UI\Panel.h" />
     <ClInclude Include="UI\RectTransform.h" />
     <ClInclude Include="UI\UIElement.h" />

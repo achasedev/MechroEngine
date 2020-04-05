@@ -37,16 +37,20 @@ public:
 	Canvas() {}
 	~Canvas();
 
-	void SetReferenceDimensions(float height, float aspect);
+	void	Render() const;
 
-	void Render() const;
+	void	SetReferenceDimensions(float height, float aspect);
+	void	AddElement(UIElement* element);
+
+	AABB2	GetReferenceBounds() const { return m_bounds; }
 
 
 private:
 	//-----Private Data-----
 
-	AABB2 m_bounds = AABB2::ZERO_TO_ONE;
-	float m_aspect = 1.0f;
+	AABB2 m_bounds	= AABB2::ZERO_TO_ONE;
+	float m_aspect	= 1.0f;
+
 	std::vector<UIElement*> m_uiElements;
 
 };

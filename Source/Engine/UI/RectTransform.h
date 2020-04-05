@@ -87,10 +87,11 @@ public:
 	void SetAnchors(float minX, float minY, float maxX, float maxY);
 	void SetAnchors(AnchorPreset anchorPreset);
 	void SetParentTransform(const RectTransform* parent);
+	void SetDefaultReferenceBounds(const AABB2& referenceBounds);
 
 	bool IsPaddingHorizontal() const;
 	bool IsPaddingVertical() const;
-	OBB2 GetCanvasSpaceBounds() const;
+	OBB2 GetBounds() const;
 
 
 private:
@@ -129,12 +130,13 @@ private:
 		float m_bottomPadding;	// Canvas coordinates; Offset from anchor min y to this element's bottom side
 	};
 
-	AABB2					m_anchors		= AABB2(Vector2(0.5f));						// Normalized coordinates; (0,0) == parent's bottom left, (1,1) == parent's top right
-	AnchorMode				m_anchorMode	= AnchorMode::X_POSITIONAL_Y_POSITIONAL;	// Updated whenever anchors change, just for convenience to know current anchor behavior
-	Vector2					m_pivot			= Vector2(0.5f);							// Normalized coordinates; (0,0) == this element's bottom left, (1,1) == this element's top right
-	const RectTransform*	m_parent		= nullptr;
-	float					m_orientation	= 0.f;
-	Vector2					m_scale			= Vector2::ONES;
+	AABB2					m_anchors					= AABB2(Vector2(0.5f));						// Normalized coordinates; (0,0) == parent's bottom left, (1,1) == parent's top right
+	AnchorMode				m_anchorMode				= AnchorMode::X_POSITIONAL_Y_POSITIONAL;	// Updated whenever anchors change, just for convenience to know current anchor behavior
+	Vector2					m_pivot						= Vector2(0.5f);							// Normalized coordinates; (0,0) == this element's bottom left, (1,1) == this element's top right
+	const RectTransform*	m_parent					= nullptr;
+	float					m_orientation				= 0.f;
+	Vector2					m_scale						= Vector2::ONES;
+	AABB2					m_defaultReferenceBounds	= AABB2::ZERO_TO_ONE;
 
 };
 

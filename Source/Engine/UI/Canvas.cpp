@@ -56,6 +56,14 @@ void Canvas::SetReferenceDimensions(float height, float aspect)
 
 
 //-------------------------------------------------------------------------------------------------
+void Canvas::AddElement(UIElement* element)
+{
+	m_uiElements.push_back(element);
+	element->SetCanvas(this);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void Canvas::Render() const
 {
 	uint32 numChildren = (uint32)m_uiElements.size();

@@ -9,6 +9,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Render/Mesh/MeshBuilder.h"
 #include "Engine/Math/AABB3.h"
+#include "Engine/Math/OBB2.h"
 #include "Engine/Math/MathUtils.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -140,8 +141,33 @@ void MeshBuilder::PushIndex(uint32 index)
 
 
 //-------------------------------------------------------------------------------------------------
-void MeshBuilder::PushTriangle3D(const Vector3& first, const Vector3& second, const Vector3& third)
+void MeshBuilder::PushTriangle2D(const Vector2& first, const Vector2& second, const Vector2& third, const Rgba& tint /*= Rgba::WHITE*/)
 {
+	Vector3 first3D		= Vector3(first, 0.f);
+	Vector3 second3D	= Vector3(second, 0.f);
+	Vector3 third3D		= Vector3(third, 0.f);
+
+	PushTriangle3D(first3D, second3D, third3D, tint);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void MeshBuilder::PushQuad2D(const AABB2& quad, const AABB2& uvs /*= AABB2::ZERO_TO_ONE*/, const Rgba& tint /*= Rgba::WHITE*/)
+{
+	Vector3 bottomLeft		= Vector3(quad.GetBottomLeft(), 0.f);
+	Vector3 topLeft			= Vector3(quad.GetTopLeft(), 0.f);
+	Vector3 topRight		= Vector3(quad.GetTopRight(), 0.f);
+	Vector3 bottomRight		= Vector3(quad.GetBottomRight(), 0.f);
+
+	PushQuad3D(bottomLeft, topLeft, topRight, bottomRight, uvs, tint);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void MeshBuilder::PushTriangle3D(const Vector3& first, const Vector3& second, const Vector3& third, const Rgba& tint /*= Rgba::WHITE*/)
+{
+	SetColor(tint);
+
 	uint32 index = PushVertex(first);
 	PushVertex(second);
 	PushVertex(third);

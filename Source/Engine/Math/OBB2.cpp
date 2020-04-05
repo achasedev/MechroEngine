@@ -53,3 +53,11 @@ OBB2::OBB2(const AABB2& initialBounds, float initialDegrees)
 	, orientationDegrees(initialDegrees)
 {
 }
+
+
+//-------------------------------------------------------------------------------------------------
+OBB2::OBB2(const AABB2& initialBounds)
+	: AABB2(initialBounds)
+	, orientationDegrees(0.f)
+{
+}

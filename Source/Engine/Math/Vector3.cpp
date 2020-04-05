@@ -76,6 +76,15 @@ Vector3::Vector3(int initialX, int initialY, int initialZ)
 
 
 //-------------------------------------------------------------------------------------------------
+Vector3::Vector3(const Vector2& xyVector, float initialZ)
+	: x(xyVector.x)
+	, y(xyVector.y)
+	, z(initialZ)
+{
+}
+
+
+//-------------------------------------------------------------------------------------------------
 const Vector3 Vector3::operator+(const Vector3& addVector) const
 {
 	return Vector3((x + addVector.x), (y + addVector.y), (z + addVector.z));

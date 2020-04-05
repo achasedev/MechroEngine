@@ -39,6 +39,7 @@ public:
 	Vector3(const Vector3& copyFrom);
 	explicit Vector3(float initialX, float initialY, float initialZ);
 	explicit Vector3(int initialX, int initialY, int initialZ);
+	explicit Vector3(const Vector2& xyVector, float initialZ);
 	~Vector3() {}
 
 	const Vector3			operator+(const Vector3& addVector) const;

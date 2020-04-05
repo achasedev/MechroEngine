@@ -260,6 +260,13 @@ void RectTransform::SetParentTransform(const RectTransform* parent)
 
 
 //-------------------------------------------------------------------------------------------------
+void RectTransform::SetDefaultReferenceBounds(const AABB2& referenceBounds)
+{
+	m_defaultReferenceBounds = referenceBounds;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 bool RectTransform::IsPaddingHorizontal() const
 {
 	return m_anchorMode == AnchorMode::X_PADDING_Y_PADDING || m_anchorMode == AnchorMode::X_PADDING_Y_POSITIONAL;
@@ -274,17 +281,17 @@ bool RectTransform::IsPaddingVertical() const
 
 
 //-------------------------------------------------------------------------------------------------
-OBB2 RectTransform::GetCanvasSpaceBounds() const
+OBB2 RectTransform::GetBounds() const
 {
-	const OBB2 parentBounds = m_parent->GetCanvasSpaceBounds();
-	Vector2 parentDimensions = parentBounds.GetDimensions();
+	const OBB2 refBounds = (m_parent != nullptr ? m_parent->GetBounds() : m_defaultReferenceBounds);
+	Vector2 parentDimensions = refBounds.GetDimensions();
 
 	// Get anchor positions
-	AABB2 anchorPositions;	
-	anchorPositions.mins.x = m_anchors.mins.x * parentDimensions.x + parentBounds.mins.x;
-	anchorPositions.maxs.x = m_anchors.maxs.x * parentDimensions.x + parentBounds.mins.x;
-	anchorPositions.mins.y = m_anchors.mins.y * parentDimensions.y + parentBounds.mins.y;
-	anchorPositions.mins.y = m_anchors.maxs.y * parentDimensions.y + parentBounds.mins.y;
+	AABB2 anchorPositions = AABB2::ZERO_TO_ONE;	
+	anchorPositions.mins.x = m_anchors.mins.x * parentDimensions.x + refBounds.mins.x;
+	anchorPositions.maxs.x = m_anchors.maxs.x * parentDimensions.x + refBounds.mins.x;
+	anchorPositions.mins.y = m_anchors.mins.y * parentDimensions.y + refBounds.mins.y;
+	anchorPositions.maxs.y = m_anchors.maxs.y * parentDimensions.y + refBounds.mins.y;
 
 	AABB2 bounds;
 
@@ -325,7 +332,7 @@ OBB2 RectTransform::GetCanvasSpaceBounds() const
 	}
 
 	// Rotation
-	float orientation = parentBounds.orientationDegrees + m_orientation;
+	float orientation = refBounds.orientationDegrees + m_orientation;
 
 	return OBB2(bounds, orientation);
 }

@@ -35,6 +35,7 @@ public:
 	OBB2() {}
 	OBB2(float minX, float minY, float maxX, float maxY, float initialDegrees);
 	OBB2(const Vector2& mins, const Vector2& maxs, float initialDegrees);
+	OBB2(const AABB2& initialBounds);
 	OBB2(const AABB2& initialBounds, float initialDegrees);
 
 

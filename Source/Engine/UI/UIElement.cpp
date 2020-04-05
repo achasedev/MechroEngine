@@ -9,6 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
+#include "Engine/UI/Canvas.h"
 #include "Engine/UI/UIElement.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -70,4 +71,12 @@ void UIElement::SetParent(UIElement* parent)
 {
 	m_parent = parent;
 	m_transform.SetParentTransform(&parent->m_transform);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void UIElement::SetCanvas(Canvas* canvas)
+{
+	m_canvas = canvas;
+	m_transform.SetDefaultReferenceBounds(canvas->GetReferenceBounds());
 }

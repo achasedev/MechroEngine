@@ -33,13 +33,12 @@ class Panel : public UIElement
 public:
 	//-----Public Methods-----
 
-	void SetTextureView(ShaderResourceView* view) { m_imageSRV = view; }
+	virtual void Render() const override;
 
 
 private:
 	//-----Private Data-----
 
-	ShaderResourceView* m_imageSRV = nullptr;
 
 };
 
