@@ -58,6 +58,14 @@ AABB2::AABB2(const Vector2& center, float radiusX, float radiusY)
 
 
 //-------------------------------------------------------------------------------------------------
+AABB2::AABB2(const Vector2& minsAndMaxs)
+	: mins(minsAndMaxs)
+	, maxs(minsAndMaxs)
+{
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void AABB2::StretchToIncludePoint(float x, float y)
 {
 	if (x < mins.x)

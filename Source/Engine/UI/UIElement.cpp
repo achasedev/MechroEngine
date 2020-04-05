@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: November 29th, 2019
+/// Date Created: April 3rd, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,7 +8,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/Vector2.h"
+#include "Engine/Framework/EngineCommon.h"
+#include "Engine/UI/UIElement.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -23,58 +24,50 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// CLASS DECLARATIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-class AABB2
-{
-public:
-
-	AABB2() {}
-	explicit AABB2(float minX, float minY, float maxX, float maxY);
-	explicit AABB2(const Vector2& mins, const Vector2& maxs);
-	explicit AABB2(const Vector2& center, float radiusX, float radiusY);
-	explicit AABB2(const Vector2& minsAndMaxs);
-	~AABB2() {}
-
-	void	StretchToIncludePoint(float x, float y);
-	void	StretchToIncludePoint(const Vector2& point);
-	void	AddPaddingToSides(float xPaddingRadius, float yPaddingRadius);
-	void	Translate(const Vector2& translation);
-	void	Translate(float translationX, float TranslationY);
-	bool	IsPointInside(float x, float y) const;
-	bool	IsPointInside(const Vector2& point) const;
-
-	Vector2 GetDimensions() const;
-	float	GetWidth() const;
-	float	GetHeight() const;
-	Vector2 GetCenter() const;
-	Vector2 GetRandomPointInside() const;
-	Vector2 GetBottomLeft() const;
-	Vector2 GetBottomRight() const;
-	Vector2 GetTopRight() const;
-	Vector2 GetTopLeft() const;
-
-	void operator+=(const Vector2& translation);
-	void operator-=(const Vector2& antiTranslation);
-	AABB2 operator+(const Vector2& translation) const;
-	AABB2 operator-(const Vector2& antiTranslation) const;
-	AABB2 operator*(float scalar) const;
-
-
-public:
-
-	static const AABB2 NEGATIVE_ONE_TO_ONE;
-	static const AABB2 NEGATIVE_HALF_TO_HALF;
-	static const AABB2 ZERO_TO_ONE;
-
-
-public:
-
-	Vector2 mins;
-	Vector2 maxs;
-
-};
-
-///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// CLASS IMPLEMENTATIONS
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------
+UIElement::~UIElement()
+{
+	uint32 numChildren = (uint32)m_children.size();
+	for (uint32 childIndex = 0; childIndex < numChildren; ++childIndex)
+	{
+		SAFE_DELETE_POINTER(m_children[childIndex]);
+	}
+
+	m_children.clear();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void UIElement::Render() const
+{
+	// Parent should already have rendered themselves
+	// Now render the children on top
+	uint32 numChildren = (uint32)m_children.size();
+	for (uint32 childIndex = 0; childIndex < numChildren; ++childIndex)
+	{
+		m_children[childIndex]->Render();
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void UIElement::AddChild(UIElement* child)
+{
+	m_children.push_back(child);
+	child->SetParent(this);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void UIElement::SetParent(UIElement* parent)
+{
+	m_parent = parent;
+	m_transform.SetParentTransform(&parent->m_transform);
+}

@@ -171,6 +171,7 @@
     <ClCompile Include="Job\JobWorkerThread.cpp" />
     <ClCompile Include="Math\AABB3.cpp" />
     <ClCompile Include="Math\IntVector3.cpp" />
+    <ClCompile Include="Math\OBB2.cpp" />
     <ClCompile Include="Render\Camera\Camera.cpp" />
     <ClCompile Include="Render\Core\DrawCall.cpp" />
     <ClCompile Include="Render\Core\DX11Common.cpp" />
@@ -206,6 +207,8 @@
     <ClCompile Include="Time\StepTimer.cpp" />
     <ClCompile Include="Time\Time.cpp" />
     <ClCompile Include="Time\Timer.cpp" />
+    <ClCompile Include="UI\RectTransform.cpp" />
+    <ClCompile Include="UI\UIElement.cpp" />
     <ClCompile Include="Utility\Assert.cpp" />
     <ClCompile Include="Utility\Hash.cpp" />
     <ClCompile Include="Utility\LockJanitor.cpp" />
@@ -228,6 +231,7 @@
     <ClInclude Include="Job\JobWorkerThread.h" />
     <ClInclude Include="Math\AABB3.h" />
     <ClInclude Include="Math\IntVector3.h" />
+    <ClInclude Include="Math\OBB2.h" />
     <ClInclude Include="Render\Camera\Camera.h" />
     <ClInclude Include="Render\View\RenderTargetView.h" />
     <ClInclude Include="Render\Core\DrawCall.h" />
@@ -268,6 +272,9 @@
     <ClInclude Include="Time\StepTimer.h" />
     <ClInclude Include="Time\Time.h" />
     <ClInclude Include="Time\Timer.h" />
+    <ClInclude Include="UI\Panel.h" />
+    <ClInclude Include="UI\RectTransform.h" />
+    <ClInclude Include="UI\UIElement.h" />
     <ClInclude Include="Utility\Assert.h" />
     <ClInclude Include="Utility\Hash.h" />
     <ClInclude Include="Utility\LockJanitor.h" />
