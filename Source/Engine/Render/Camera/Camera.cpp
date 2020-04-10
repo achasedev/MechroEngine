@@ -7,6 +7,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Event/EventSystem.h"
 #include "Engine/Render/Buffer/UniformBuffer.h"
 #include "Engine/Render/Camera/Camera.h"
 #include "Engine/Render/Core/RenderContext.h"
@@ -15,6 +16,7 @@
 #include "Engine/Render/View/DepthStencilTargetView.h"
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Framework/Window.h"
+#include "Engine/Utility/NamedProperties.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -75,12 +77,16 @@ Camera::Camera()
 
 	// Set the depth target to default depth
 	SetDepthStencilTargetView(g_renderContext->GetDefaultDepthStencilTargetView(), false);
+
+	g_eventSystem->SubscribeEventCallbackObjectMethod("window-resize", &Camera::Event_WindowResize, *this);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Camera::~Camera()
 {
+	g_eventSystem->SubscribeEventCallbackObjectMethod("window-resize", &Camera::Event_WindowResize, *this);
+
 	SAFE_DELETE_POINTER(m_cameraUBO);
 
 	if (m_ownsColorTargetView)
@@ -153,6 +159,7 @@ void Camera::SetProjectionOrtho(float orthoHeight)
 	m_nearClipZ = -1.0f;
 	m_farClipZ = 1.0f;
 	m_projectionMatrix = Matrix44::MakeOrtho(m_orthoBounds.mins, m_orthoBounds.maxs, m_nearClipZ, m_farClipZ);
+	m_currentProjection = CAMERA_PROJECTION_ORTHOGRAPHIC;
 }
 
 
@@ -165,6 +172,7 @@ void Camera::SetProjectionPerspective(float fovDegrees, float nearZ, float farZ)
 
 	float aspect = g_window->GetClientAspect();
 	m_projectionMatrix = Matrix44::MakePerspective(fovDegrees, aspect, nearZ, farZ);
+	m_currentProjection = CAMERA_PROJECTION_PERSPECTIVE;
 }
 
 
@@ -280,4 +288,20 @@ Vector3 Camera::GetRightVector()
 Vector3 Camera::GetUpVector()
 {
 	return m_transform.GetLocalToWorldMatrix().GetJVector().xyz();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool Camera::Event_WindowResize(NamedProperties& args)
+{
+	UNUSED(args);
+
+	if (m_currentProjection == CAMERA_PROJECTION_ORTHOGRAPHIC)
+	{
+		// Preserve height
+		float height = m_orthoBounds.GetHeight();
+		SetProjectionOrtho(height);
+	}
+
+	return false;
 }

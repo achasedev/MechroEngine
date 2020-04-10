@@ -8,6 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Math/OBB2.h"
 #include "Engine/Render/Core/Renderable.h"
 #include "Engine/UI/RectTransform.h"
 #include <vector>
@@ -35,14 +36,15 @@ class UIElement
 public:
 	//-----Public Methods-----
 
+	UIElement(Canvas* canvas);
 	virtual ~UIElement();
 
 	virtual void Render() const;
 
 	void AddChild(UIElement* child);
-	void SetParent(UIElement* parent);
 	void SetCanvas(Canvas* canvas);
-	void SetRenderable(Renderable* renderable) { m_renderable = renderable; }
+
+	OBB2 GetBounds() const;
 
 
 public:
@@ -54,7 +56,6 @@ public:
 protected:
 	//-----Protected Data------
 
-	Renderable*				m_renderable = nullptr;
 	UIElement*				m_parent = nullptr;
 	Canvas*					m_canvas = nullptr;
 	std::vector<UIElement*> m_children;

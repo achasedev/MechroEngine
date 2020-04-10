@@ -11,11 +11,13 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 #include <windows.h>
+#include "Engine/Event/EventSystem.h"
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Framework/Window.h"
 #include "Engine/Math/MathUtils.h"
+#include "Engine/Utility/NamedProperties.h"
 
-///--------------------------------------------------------------------------------------------------------------------------------------------------
+///-------e-------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -117,6 +119,25 @@ void DetermineWindowAndClientBounds(float clientAspect, const DWORD windowStyleF
 }
 
 
+//-------------------------------------------------------------------------------------------------
+static bool WindowMessageHandler(unsigned int msg, size_t wParam, size_t lParam)
+{
+	UNUSED(wParam);
+	UNUSED(lParam);
+
+	switch (msg)
+	{
+	case WM_SIZE: // Window was resized
+	{
+		g_window->UpdateBounds();
+		return true;
+	}
+	}
+
+	return false;
+}
+
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -179,6 +200,7 @@ Window::~Window()
 void Window::Initialize(float aspect, const char* windowTitle)
 {
 	g_window = new Window(aspect, windowTitle);
+	g_window->RegisterMessageHandler(WindowMessageHandler);
 }
 
 
@@ -190,17 +212,29 @@ void Window::Shutdown()
 
 
 //-------------------------------------------------------------------------------------------------
-void Window::SetWindowPixelBounds(const AABB2& newBounds)
+void Window::UpdateBounds()
 {
-	SetWindowPos((HWND)m_hwnd,
-		NULL,
-		RoundToNearestInt(newBounds.mins.x),
-		RoundToNearestInt(newBounds.mins.x),
-		RoundToNearestInt(newBounds.mins.x),
-		RoundToNearestInt(newBounds.mins.x),
-		NULL);
+	RECT clientRect;
+	GetClientRect((HWND)m_hwnd, &clientRect);
+	ClientToScreen((HWND)m_hwnd, (POINT *)&clientRect);
+	ClientToScreen((HWND)m_hwnd, (POINT *)&clientRect + 1);
+	m_clientPixelBounds.mins.x = static_cast<float>(clientRect.left);
+	m_clientPixelBounds.maxs.x = static_cast<float>(clientRect.right);
+	m_clientPixelBounds.mins.y = static_cast<float>(clientRect.top);
+	m_clientPixelBounds.maxs.y = static_cast<float>(clientRect.bottom);
 
-	m_windowPixelBounds = newBounds;
+	RECT windowRect;
+	GetWindowRect((HWND)m_hwnd, &windowRect);
+	m_windowPixelBounds.mins.x = static_cast<float>(windowRect.left);
+	m_windowPixelBounds.maxs.x = static_cast<float>(windowRect.right);
+	m_windowPixelBounds.mins.y = static_cast<float>(windowRect.top); // Windows' screen coordinates (0,0) is top left
+	m_windowPixelBounds.maxs.y = static_cast<float>(windowRect.bottom);
+
+	NamedProperties args;
+	args.Set("client-bounds", m_clientPixelBounds);
+	args.Set("client-aspect", GetClientAspect());
+
+	FireEvent("window-resize", args);
 }
 
 

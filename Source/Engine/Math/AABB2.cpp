@@ -66,6 +66,14 @@ AABB2::AABB2(const Vector2& minsAndMaxs)
 
 
 //-------------------------------------------------------------------------------------------------
+AABB2::AABB2(float width, float height)
+	: mins(Vector2::ZERO)
+	, maxs(Vector2(width, height))
+{
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void AABB2::StretchToIncludePoint(float x, float y)
 {
 	if (x < mins.x)
@@ -169,6 +177,13 @@ float AABB2::GetWidth() const
 float AABB2::GetHeight() const
 {
 	return (maxs.y - mins.y);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float AABB2::GetAspect() const
+{
+	return (GetWidth() / GetHeight());
 }
 
 

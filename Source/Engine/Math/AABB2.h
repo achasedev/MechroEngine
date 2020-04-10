@@ -30,6 +30,7 @@ class AABB2
 public:
 
 	AABB2() {}
+	explicit AABB2(float width, float height);
 	explicit AABB2(float minX, float minY, float maxX, float maxY);
 	explicit AABB2(const Vector2& mins, const Vector2& maxs);
 	explicit AABB2(const Vector2& center, float radiusX, float radiusY);
@@ -47,6 +48,7 @@ public:
 	Vector2 GetDimensions() const;
 	float	GetWidth() const;
 	float	GetHeight() const;
+	float	GetAspect() const;
 	Vector2 GetCenter() const;
 	Vector2 GetRandomPointInside() const;
 	Vector2 GetBottomLeft() const;

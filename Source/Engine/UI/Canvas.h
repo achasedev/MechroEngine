@@ -9,6 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Math/AABB2.h"
+#include "Engine/UI/UIElement.h"
 #include <vector>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -29,29 +30,22 @@ class UIElement;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Canvas
+class Canvas : public UIElement
 {
 public:
 	//-----Public Methods-----
 
-	Canvas() {}
+	Canvas();
 	~Canvas();
 
-	void	Render() const;
+	virtual void	Render() const override;
 
-	void	SetReferenceDimensions(float height, float aspect);
-	void	AddElement(UIElement* element);
-
-	AABB2	GetReferenceBounds() const { return m_bounds; }
+	void			SetBounds(float height, float aspect);
+	bool			UpdateBounds(NamedProperties& args);
 
 
 private:
 	//-----Private Data-----
-
-	AABB2 m_bounds	= AABB2::ZERO_TO_ONE;
-	float m_aspect	= 1.0f;
-
-	std::vector<UIElement*> m_uiElements;
 
 };
 

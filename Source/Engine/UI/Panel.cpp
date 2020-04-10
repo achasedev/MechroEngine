@@ -10,6 +10,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Render/Core/RenderContext.h"
+#include "Engine/Render/Mesh/MeshBuilder.h"
 #include "Engine/UI/Panel.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -33,9 +34,28 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
+Panel::Panel(Canvas* canvas)
+	: UIElement(canvas)
+{
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void Panel::Render() const
 {
-	UIElement::Render();
+
+	AABB2 bounds = GetBounds();
+
+	MeshBuilder mb;
+	mb.Clear();
+	mb.BeginBuilding(true);
+
+	mb.PushQuad2D(bounds);
+	mb.FinishBuilding();
+
+	RenderableDraw draw = m_renderable->GetDraw(0);
+	mb.UpdateMesh<Vertex3D_PCU>(*draw.m_mesh);
 
 	g_renderContext->DrawRenderable(*m_renderable);
+	UIElement::Render();
 }

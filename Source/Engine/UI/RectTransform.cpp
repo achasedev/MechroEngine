@@ -10,6 +10,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Math/OBB2.h"
+#include "Engine/UI/Canvas.h"
 #include "Engine/UI/RectTransform.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -31,6 +32,13 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------
+RectTransform::RectTransform(Canvas* canvas)
+	: m_canvas(canvas)
+{
+}
+
 
 //-------------------------------------------------------------------------------------------------
 void RectTransform::SetLeftPadding(float left)
@@ -189,6 +197,14 @@ void RectTransform::SetDimensions(const Vector2& dimensions)
 
 
 //-------------------------------------------------------------------------------------------------
+void RectTransform::SetDimensions(float width, float height)
+{
+	SetWidth(width);
+	SetHeight(height);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void RectTransform::SetPivot(const Vector2& pivot)
 {
 	m_pivot = pivot;
@@ -260,13 +276,6 @@ void RectTransform::SetParentTransform(const RectTransform* parent)
 
 
 //-------------------------------------------------------------------------------------------------
-void RectTransform::SetDefaultReferenceBounds(const AABB2& referenceBounds)
-{
-	m_defaultReferenceBounds = referenceBounds;
-}
-
-
-//-------------------------------------------------------------------------------------------------
 bool RectTransform::IsPaddingHorizontal() const
 {
 	return m_anchorMode == AnchorMode::X_PADDING_Y_PADDING || m_anchorMode == AnchorMode::X_PADDING_Y_POSITIONAL;
@@ -283,58 +292,71 @@ bool RectTransform::IsPaddingVertical() const
 //-------------------------------------------------------------------------------------------------
 OBB2 RectTransform::GetBounds() const
 {
-	const OBB2 refBounds = (m_parent != nullptr ? m_parent->GetBounds() : m_defaultReferenceBounds);
-	Vector2 parentDimensions = refBounds.GetDimensions();
-
-	// Get anchor positions
-	AABB2 anchorPositions = AABB2::ZERO_TO_ONE;	
-	anchorPositions.mins.x = m_anchors.mins.x * parentDimensions.x + refBounds.mins.x;
-	anchorPositions.maxs.x = m_anchors.maxs.x * parentDimensions.x + refBounds.mins.x;
-	anchorPositions.mins.y = m_anchors.mins.y * parentDimensions.y + refBounds.mins.y;
-	anchorPositions.maxs.y = m_anchors.maxs.y * parentDimensions.y + refBounds.mins.y;
-
-	AABB2 bounds;
-
-	// Horizontal
-	if (IsPaddingHorizontal())
+	if (m_parent != nullptr)
 	{
-		bounds.mins.x = anchorPositions.mins.x + m_leftPadding;
-		bounds.maxs.x = anchorPositions.maxs.x - m_rightPadding;
+		const OBB2 refBounds = m_parent->GetBounds();
+		Vector2 parentDimensions = refBounds.GetDimensions();
 
-		// Scale
-		float deltaWidth = (m_scale.x - 1.0f) * m_width;
-		bounds.mins.x -= deltaWidth * m_pivot.x;
-		bounds.maxs.x += deltaWidth * (1.0f - m_pivot.x);
+		// Get anchor positions
+		AABB2 anchorPositions = AABB2::ZERO_TO_ONE;
+		anchorPositions.mins.x = m_anchors.mins.x * parentDimensions.x + refBounds.mins.x;
+		anchorPositions.maxs.x = m_anchors.maxs.x * parentDimensions.x + refBounds.mins.x;
+		anchorPositions.mins.y = m_anchors.mins.y * parentDimensions.y + refBounds.mins.y;
+		anchorPositions.maxs.y = m_anchors.maxs.y * parentDimensions.y + refBounds.mins.y;
+
+		AABB2 bounds;
+
+		// Horizontal
+		if (IsPaddingHorizontal())
+		{
+			bounds.mins.x = anchorPositions.mins.x + m_leftPadding;
+			bounds.maxs.x = anchorPositions.maxs.x - m_rightPadding;
+
+			// Scale
+			float deltaWidth = (m_scale.x - 1.0f) * m_width;
+			bounds.mins.x -= deltaWidth * m_pivot.x;
+			bounds.maxs.x += deltaWidth * (1.0f - m_pivot.x);
+		}
+		else
+		{
+			// Account for the pivot + scale
+			bounds.mins.x = m_xPosition + -1.0f * (m_pivot.x * m_width);
+			bounds.maxs.x = bounds.mins.x + m_width;
+		}
+
+		// Vertical
+		if (IsPaddingVertical())
+		{
+			bounds.mins.y = anchorPositions.mins.y + m_bottomPadding;
+			bounds.maxs.y = anchorPositions.maxs.y - m_topPadding;
+
+			// Scale
+			float deltaHeight = (m_scale.y - 1.0f) * m_height;
+			bounds.mins.y -= deltaHeight * m_pivot.y;
+			bounds.maxs.y += deltaHeight * (1.0f - m_pivot.y);
+		}
+		else
+		{
+			// Account for the pivot
+			bounds.mins.y = m_yPosition + -1.0f * (m_pivot.y * m_height);
+			bounds.maxs.y = bounds.mins.y + m_height;
+		}
+
+		// Rotation
+		float orientation = refBounds.orientationDegrees + m_orientation;
+
+		return OBB2(bounds, orientation);
+	}
+	else if (m_canvas != nullptr)
+	{
+		return OBB2(m_canvas->GetBounds(), 0.f);
 	}
 	else
 	{
-		// Account for the pivot + scale
-		bounds.mins.x = m_xPosition + -1.0f * (m_pivot.x * m_width);
-		bounds.maxs.x = bounds.mins.x + m_width;
+		// I am a canvas, just return my bounds unmodified
+		AABB2 bounds = AABB2(m_width, m_height);
+		return OBB2(bounds, 0.f);
 	}
-
-	// Vertical
-	if (IsPaddingVertical())
-	{
-		bounds.mins.y = anchorPositions.mins.y + m_bottomPadding;
-		bounds.maxs.y = anchorPositions.maxs.y - m_topPadding;
-
-		// Scale
-		float deltaHeight = (m_scale.y - 1.0f) * m_height;
-		bounds.mins.y -= deltaHeight * m_pivot.y;
-		bounds.maxs.y += deltaHeight * (1.0f - m_pivot.y);
-	}
-	else
-	{
-		// Account for the pivot
-		bounds.mins.y = m_yPosition + -1.0f * (m_pivot.y * m_height);
-		bounds.maxs.y = bounds.mins.y + m_height;
-	}
-
-	// Rotation
-	float orientation = refBounds.orientationDegrees + m_orientation;
-
-	return OBB2(bounds, orientation);
 }
 
 

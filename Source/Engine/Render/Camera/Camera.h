@@ -23,6 +23,12 @@ class RenderTargetView;
 class DepthStencilTargetView;
 class UniformBuffer;
 
+enum CameraProjection
+{
+	CAMERA_PROJECTION_NONE,
+	CAMERA_PROJECTION_ORTHOGRAPHIC,
+	CAMERA_PROJECTION_PERSPECTIVE
+};
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -71,6 +77,8 @@ public:
 	Vector3					GetRightVector();
 	Vector3					GetUpVector();
 
+	bool					Event_WindowResize(NamedProperties& args);
+
 
 private:
 	//-----Private Data-----
@@ -85,6 +93,7 @@ private:
 	float					m_fovDegrees = 90.f;
 	float					m_nearClipZ = 0.f;
 	float					m_farClipZ = 1.f;
+	CameraProjection		m_currentProjection = CAMERA_PROJECTION_NONE;
 
 	// Render Target
 	RenderTargetView*		m_colorTargetView = nullptr;

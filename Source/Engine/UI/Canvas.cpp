@@ -8,9 +8,11 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Event/EventSystem.h"
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/UI/Canvas.h"
 #include "Engine/UI/UIElement.h"
+#include "Engine/Utility/NamedProperties.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -33,42 +35,43 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
+Canvas::Canvas()
+	: UIElement(nullptr)
+{
+	m_transform.SetAnchors(AnchorPreset::BOTTOM_LEFT);
+	m_transform.SetPosition(Vector2::ZERO);
+
+	g_eventSystem->SubscribeEventCallbackObjectMethod("window-resize", &Canvas::UpdateBounds, *this);
+}
+
+//-------------------------------------------------------------------------------------------------
 Canvas::~Canvas()
 {
-	uint32 numChildren = (uint32)m_uiElements.size();
-	for (uint32 childIndex = 0; childIndex < numChildren; ++childIndex)
-	{
-		SAFE_DELETE_POINTER(m_uiElements[childIndex]);
-	}
-
-	m_uiElements.clear();
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void Canvas::SetReferenceDimensions(float height, float aspect)
-{
-	float width = aspect * height;
-	
-	m_bounds = AABB2(Vector2(0.f), Vector2(width, height));
-	m_aspect = aspect;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void Canvas::AddElement(UIElement* element)
-{
-	m_uiElements.push_back(element);
-	element->SetCanvas(this);
+	g_eventSystem->UnsubscribeEventCallbackObjectMethod("window-resize", &Canvas::UpdateBounds, *this);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void Canvas::Render() const
 {
-	uint32 numChildren = (uint32)m_uiElements.size();
-	for (uint32 childIndex = 0; childIndex < numChildren; ++childIndex)
-	{
-		m_uiElements[childIndex]->Render();
-	}
+	UIElement::Render();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Canvas::SetBounds(float height, float aspect)
+{
+	m_transform.SetDimensions(height * aspect, height);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool Canvas::UpdateBounds(NamedProperties& args)
+{
+	AABB2 currentBounds = AABB2(m_transform.GetWidth(), m_transform.GetHeight());
+	AABB2 newBounds = args.Get("client-bounds", currentBounds);
+
+	// Client bounds most likely doesn't start at 0,0 but Canvas space does
+	m_transform.SetDimensions(newBounds.GetDimensions());
+	return false;
 }

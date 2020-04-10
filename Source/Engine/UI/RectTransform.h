@@ -48,6 +48,7 @@ enum class AnchorMode
 	X_PADDING_Y_PADDING
 };
 
+class Canvas;
 class OBB2;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -64,6 +65,8 @@ class RectTransform
 public:
 	//-----Public Methods-----
 
+	RectTransform(Canvas* canvas);
+
 	void SetLeftPadding(float left);
 	void SetRightPadding(float right);
 	void SetHorizontalPadding(float left, float right);
@@ -79,6 +82,7 @@ public:
 
 	void SetWidth(float width);
 	void SetHeight(float height);
+	void SetDimensions(float width, float height);
 	void SetDimensions(const Vector2& dimensions);
 
 	void SetPivot(const Vector2& pivot);
@@ -87,11 +91,13 @@ public:
 	void SetAnchors(float minX, float minY, float maxX, float maxY);
 	void SetAnchors(AnchorPreset anchorPreset);
 	void SetParentTransform(const RectTransform* parent);
-	void SetDefaultReferenceBounds(const AABB2& referenceBounds);
 
 	bool IsPaddingHorizontal() const;
 	bool IsPaddingVertical() const;
 	OBB2 GetBounds() const;
+
+	float GetWidth() const { return m_width; }
+	float GetHeight() const { return m_height; }
 
 
 private:
@@ -130,13 +136,13 @@ private:
 		float m_bottomPadding;	// Canvas coordinates; Offset from anchor min y to this element's bottom side
 	};
 
-	AABB2					m_anchors					= AABB2(Vector2(0.5f));						// Normalized coordinates; (0,0) == parent's bottom left, (1,1) == parent's top right
-	AnchorMode				m_anchorMode				= AnchorMode::X_POSITIONAL_Y_POSITIONAL;	// Updated whenever anchors change, just for convenience to know current anchor behavior
-	Vector2					m_pivot						= Vector2(0.5f);							// Normalized coordinates; (0,0) == this element's bottom left, (1,1) == this element's top right
-	const RectTransform*	m_parent					= nullptr;
-	float					m_orientation				= 0.f;
-	Vector2					m_scale						= Vector2::ONES;
-	AABB2					m_defaultReferenceBounds	= AABB2::ZERO_TO_ONE;
+	AABB2					m_anchors		= AABB2(Vector2(0.5f));						// Normalized coordinates; (0,0) == parent's bottom left, (1,1) == parent's top right
+	AnchorMode				m_anchorMode	= AnchorMode::X_POSITIONAL_Y_POSITIONAL;	// Updated whenever anchors change, just for convenience to know current anchor behavior
+	Vector2					m_pivot			= Vector2(0.5f);							// Normalized coordinates; (0,0) == this element's bottom left, (1,1) == this element's top right
+	const RectTransform*	m_parent		= nullptr;
+	float					m_orientation	= 0.f;
+	Vector2					m_scale			= Vector2::ONES;
+	Canvas*					m_canvas		= nullptr;
 
 };
 

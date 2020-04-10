@@ -17,7 +17,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class ShaderResourceView;
+class Renderable;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -33,12 +33,17 @@ class Panel : public UIElement
 public:
 	//-----Public Methods-----
 
-	virtual void Render() const override;
+	Panel(Canvas* canvas);
+
+	virtual void	Render() const override;
+
+	void			SetRenderable(Renderable* renderable) { m_renderable = renderable; }
 
 
 private:
 	//-----Private Data-----
 
+	Renderable* m_renderable = nullptr;
 
 };
 

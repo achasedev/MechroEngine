@@ -33,6 +33,14 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
+UIElement::UIElement(Canvas* canvas)
+	: m_transform(RectTransform(canvas))
+	, m_canvas(canvas)
+{
+}
+
+
+//-------------------------------------------------------------------------------------------------
 UIElement::~UIElement()
 {
 	uint32 numChildren = (uint32)m_children.size();
@@ -62,15 +70,8 @@ void UIElement::Render() const
 void UIElement::AddChild(UIElement* child)
 {
 	m_children.push_back(child);
-	child->SetParent(this);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void UIElement::SetParent(UIElement* parent)
-{
-	m_parent = parent;
-	m_transform.SetParentTransform(&parent->m_transform);
+	child->m_parent = this;
+	child->m_transform.SetParentTransform(&m_transform);
 }
 
 
@@ -78,5 +79,10 @@ void UIElement::SetParent(UIElement* parent)
 void UIElement::SetCanvas(Canvas* canvas)
 {
 	m_canvas = canvas;
-	m_transform.SetDefaultReferenceBounds(canvas->GetReferenceBounds());
+}
+
+//-------------------------------------------------------------------------------------------------
+OBB2 UIElement::GetBounds() const
+{
+	return m_transform.GetBounds();
 }

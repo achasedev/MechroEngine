@@ -66,6 +66,8 @@ private:
 template <typename T>
 class EventObjectMethodSubscription : public EventSubscription
 {
+	friend class EventSystem;
+
 public:
 
 	// For saving off the function callback for each class used
