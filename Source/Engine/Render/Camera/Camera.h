@@ -48,7 +48,7 @@ public:
 
 	void					SetColorTargetView(RenderTargetView* colorTargetView, bool ownsColorTargetView);
 	void					SetDepthStencilTargetView(DepthStencilTargetView* depthTargetView, bool ownsTarget);
-	void					SetProjectionOrtho(float orthoHeight);
+	void					SetProjectionOrthographic(float orthoHeight, float aspect);
 	void					SetProjectionPerspective(float fovDegrees, float nearZ, float farZ);
 	void					UpdateUBO();
 
@@ -69,7 +69,8 @@ public:
 	Matrix44				GetCameraMatrix();
 	Matrix44				GetViewMatrix();
 	Matrix44				GetProjectionMatrix() const;
-
+	AABB2					GetOrthoBounds() const;
+	
 	Vector3					GetPosition() const;
 	Vector3					GetRotation() const;
 

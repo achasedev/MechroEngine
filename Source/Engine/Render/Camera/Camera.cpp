@@ -151,9 +151,8 @@ void Camera::SetDepthStencilTargetView(DepthStencilTargetView* depthTargetView, 
 
 
 //-------------------------------------------------------------------------------------------------
-void Camera::SetProjectionOrtho(float orthoHeight)
+void Camera::SetProjectionOrthographic(float orthoHeight, float aspect)
 {
-	float aspect = g_window->GetClientAspect();
 	m_orthoBounds.mins = Vector2::ZERO;
 	m_orthoBounds.maxs = Vector2(orthoHeight * aspect, orthoHeight);
 	m_nearClipZ = -1.0f;
@@ -257,6 +256,14 @@ Matrix44 Camera::GetProjectionMatrix() const
 
 
 //-------------------------------------------------------------------------------------------------
+AABB2 Camera::GetOrthoBounds() const
+{
+	ASSERT_RECOVERABLE(m_currentProjection == CAMERA_PROJECTION_ORTHOGRAPHIC, "Camera projection not orthographic!");
+	return m_orthoBounds;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 Vector3 Camera::GetPosition() const
 {
 	return m_transform.position;
@@ -294,13 +301,17 @@ Vector3 Camera::GetUpVector()
 //-------------------------------------------------------------------------------------------------
 bool Camera::Event_WindowResize(NamedProperties& args)
 {
-	UNUSED(args);
-
 	if (m_currentProjection == CAMERA_PROJECTION_ORTHOGRAPHIC)
 	{
 		// Preserve height
 		float height = m_orthoBounds.GetHeight();
-		SetProjectionOrtho(height);
+		float aspect = args.Get("client-aspect", m_orthoBounds.GetAspect());
+		SetProjectionOrthographic(height, aspect);
+
+		NamedProperties orthoArgs;
+		orthoArgs.Set("ortho-bounds", m_orthoBounds);
+
+		FireEvent("ortho-resize");
 	}
 
 	return false;

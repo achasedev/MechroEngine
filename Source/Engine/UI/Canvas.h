@@ -19,7 +19,15 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class Camera;
 class UIElement;
+
+enum ScreenMatchMode
+{
+	SCREEN_MATCH_WIDTH_OR_HEIGHT,
+	SCREEN_MATCH_EXPAND_TO_FILL,
+	SCREEN_MATCH_SHRINK_TO_FIT
+};
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -38,14 +46,28 @@ public:
 	Canvas();
 	~Canvas();
 
+	void			Initialize(Camera* orthoCamera, const Vector2& resolution, ScreenMatchMode mode, float widthHeightBlend = 1.0f);
 	virtual void	Render() const override;
 
-	void			SetBounds(float height, float aspect);
-	bool			UpdateBounds(NamedProperties& args);
+	void			SetOrthoCamera(Camera* orthoCamera);
+	void			SetScreenMatchMode(ScreenMatchMode mode, float widthHeightBlend = 1.0f);
+	void			SetResolution(float height, float width);
+	bool			Event_OrthoResize(NamedProperties& args);
+
+
+private:
+	//-----Private Methods-----
+
+	void			UpdateScaleForCurrentMatchMode();
 
 
 private:
 	//-----Private Data-----
+
+	Vector2				m_resolution = Vector2(100.f);
+	Camera*				m_orthoCamera = nullptr;
+	ScreenMatchMode		m_matchMode = SCREEN_MATCH_WIDTH_OR_HEIGHT;
+	float				m_widthOrHeightBlend = 1.0f; // 1.0 is match to height
 
 };
 

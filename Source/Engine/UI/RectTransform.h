@@ -67,37 +67,41 @@ public:
 
 	RectTransform(Canvas* canvas);
 
-	void SetLeftPadding(float left);
-	void SetRightPadding(float right);
-	void SetHorizontalPadding(float left, float right);
+	void	SetLeftPadding(float left);
+	void	SetRightPadding(float right);
+	void	SetHorizontalPadding(float left, float right);
 
-	void SetTopPadding(float top);
-	void SetBottomPadding(float bottom);
-	void SetVerticalPadding(float top, float bottom);
-	void SetPadding(float left, float right, float top, float bottom);
+	void	SetTopPadding(float top);
+	void	SetBottomPadding(float bottom);
+	void	SetVerticalPadding(float top, float bottom);
+	void	SetPadding(float left, float right, float top, float bottom);
 
-	void SetXPosition(float x);
-	void SetYPosition(float y);
-	void SetPosition(const Vector2& position);
+	void	SetXPosition(float x);
+	void	SetYPosition(float y);
+	void	SetPosition(const Vector2& position);
 
-	void SetWidth(float width);
-	void SetHeight(float height);
-	void SetDimensions(float width, float height);
-	void SetDimensions(const Vector2& dimensions);
+	void	SetWidth(float width);
+	void	SetHeight(float height);
+	void	SetDimensions(float width, float height);
+	void	SetDimensions(const Vector2& dimensions);
 
-	void SetPivot(const Vector2& pivot);
-	void SetOrientation(float orientationDegrees);
-	void SetAnchors(const AABB2& anchors);
-	void SetAnchors(float minX, float minY, float maxX, float maxY);
-	void SetAnchors(AnchorPreset anchorPreset);
-	void SetParentTransform(const RectTransform* parent);
+	void	SetPivot(const Vector2& pivot);
+	void	SetOrientation(float orientationDegrees);
+	void	SetAnchors(const AABB2& anchors);
+	void	SetAnchors(float minX, float minY, float maxX, float maxY);
+	void	SetAnchors(AnchorPreset anchorPreset);
+	void	SetParentTransform(const RectTransform* parent);
+	void	SetScale(float xScale, float yScale);
+	void	SetScale(float uniformScale);
+	void	SetScale(const Vector2& scale);
 
-	bool IsPaddingHorizontal() const;
-	bool IsPaddingVertical() const;
-	OBB2 GetBounds() const;
+	bool	IsPaddingHorizontal() const;
+	bool	IsPaddingVertical() const;
+	OBB2	GetBounds() const;
+	Vector2 GetScale() const;
 
-	float GetWidth() const { return m_width; }
-	float GetHeight() const { return m_height; }
+	float	GetWidth() const { return m_width; }
+	float	GetHeight() const { return m_height; }
 
 
 private:

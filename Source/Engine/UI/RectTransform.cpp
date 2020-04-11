@@ -276,6 +276,28 @@ void RectTransform::SetParentTransform(const RectTransform* parent)
 
 
 //-------------------------------------------------------------------------------------------------
+void RectTransform::SetScale(float xScale, float yScale)
+{
+	m_scale.x = xScale;
+	m_scale.y = yScale;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RectTransform::SetScale(float uniformScale)
+{
+	SetScale(uniformScale, uniformScale);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RectTransform::SetScale(const Vector2& scale)
+{
+	SetScale(scale.x, scale.y);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 bool RectTransform::IsPaddingHorizontal() const
 {
 	return m_anchorMode == AnchorMode::X_PADDING_Y_PADDING || m_anchorMode == AnchorMode::X_PADDING_Y_POSITIONAL;
@@ -294,7 +316,8 @@ OBB2 RectTransform::GetBounds() const
 {
 	if (m_parent != nullptr)
 	{
-		const OBB2 refBounds = m_parent->GetBounds();
+		OBB2 refBounds = m_parent->GetBounds();
+		Vector2 scale = GetScale();
 		Vector2 parentDimensions = refBounds.GetDimensions();
 
 		// Get anchor positions
@@ -313,15 +336,16 @@ OBB2 RectTransform::GetBounds() const
 			bounds.maxs.x = anchorPositions.maxs.x - m_rightPadding;
 
 			// Scale
-			float deltaWidth = (m_scale.x - 1.0f) * m_width;
+			float deltaWidth = (scale.x - 1.0f) * m_width;
 			bounds.mins.x -= deltaWidth * m_pivot.x;
 			bounds.maxs.x += deltaWidth * (1.0f - m_pivot.x);
 		}
 		else
 		{
 			// Account for the pivot + scale
-			bounds.mins.x = m_xPosition + -1.0f * (m_pivot.x * m_width);
-			bounds.maxs.x = bounds.mins.x + m_width;
+			float scaledWidth = m_width * scale.x;
+			bounds.mins.x = anchorPositions.mins.x + m_xPosition + -1.0f * (m_pivot.x * scaledWidth);
+			bounds.maxs.x = bounds.mins.x + scaledWidth;
 		}
 
 		// Vertical
@@ -331,15 +355,16 @@ OBB2 RectTransform::GetBounds() const
 			bounds.maxs.y = anchorPositions.maxs.y - m_topPadding;
 
 			// Scale
-			float deltaHeight = (m_scale.y - 1.0f) * m_height;
+			float deltaHeight = (scale.y - 1.0f) * m_height;
 			bounds.mins.y -= deltaHeight * m_pivot.y;
 			bounds.maxs.y += deltaHeight * (1.0f - m_pivot.y);
 		}
 		else
 		{
-			// Account for the pivot
-			bounds.mins.y = m_yPosition + -1.0f * (m_pivot.y * m_height);
-			bounds.maxs.y = bounds.mins.y + m_height;
+			// Account for the pivot + scale
+			float scaledHeight = m_height * scale.y;
+			bounds.mins.y = anchorPositions.mins.y + m_yPosition + -1.0f * (m_pivot.y * scaledHeight);
+			bounds.maxs.y = bounds.mins.y + scaledHeight;
 		}
 
 		// Rotation
@@ -347,16 +372,30 @@ OBB2 RectTransform::GetBounds() const
 
 		return OBB2(bounds, orientation);
 	}
-	else if (m_canvas != nullptr)
-	{
-		return OBB2(m_canvas->GetBounds(), 0.f);
-	}
 	else
 	{
-		// I am a canvas, just return my bounds unmodified
+		// Just return my absolute bounds
 		AABB2 bounds = AABB2(m_width, m_height);
-		return OBB2(bounds, 0.f);
+
+		float scaledWidth = m_width * m_scale.x;
+		bounds.mins.x = m_xPosition + -1.0f * (m_pivot.x * scaledWidth);
+		bounds.maxs.x = bounds.mins.x + scaledWidth;
+
+		float scaledHeight = m_height * m_scale.y;
+		bounds.mins.y = m_yPosition + -1.0f * (m_pivot.y * scaledHeight);
+		bounds.maxs.y = bounds.mins.y + scaledHeight;
+
+		return OBB2(bounds, m_orientation);
 	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector2 RectTransform::GetScale() const
+{
+	Vector2 parentScale = (m_parent != nullptr ? m_parent->GetScale() : Vector2::ONES);
+	
+	return Vector2(m_scale.x * parentScale.x, m_scale.y * parentScale.y);
 }
 
 

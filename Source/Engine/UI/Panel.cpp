@@ -43,7 +43,6 @@ Panel::Panel(Canvas* canvas)
 //-------------------------------------------------------------------------------------------------
 void Panel::Render() const
 {
-
 	AABB2 bounds = GetBounds();
 
 	MeshBuilder mb;
@@ -57,5 +56,6 @@ void Panel::Render() const
 	mb.UpdateMesh<Vertex3D_PCU>(*draw.m_mesh);
 
 	g_renderContext->DrawRenderable(*m_renderable);
+
 	UIElement::Render();
 }
