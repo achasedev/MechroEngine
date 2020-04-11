@@ -100,6 +100,7 @@ public:
 	OBB2	GetBounds() const;
 	Vector2 GetScale() const;
 
+	Vector2 GetPivot() const { return m_pivot; }
 	float	GetWidth() const { return m_width; }
 	float	GetHeight() const { return m_height; }
 

@@ -43,17 +43,8 @@ Panel::Panel(Canvas* canvas)
 //-------------------------------------------------------------------------------------------------
 void Panel::Render() const
 {
-	AABB2 bounds = GetBounds();
-
-	MeshBuilder mb;
-	mb.Clear();
-	mb.BeginBuilding(true);
-
-	mb.PushQuad2D(bounds);
-	mb.FinishBuilding();
-
-	RenderableDraw draw = m_renderable->GetDraw(0);
-	mb.UpdateMesh<Vertex3D_PCU>(*draw.m_mesh);
+	Matrix44 modelMatrix = CalculateModelMatrix();
+	m_renderable->SetRenderableMatrix(modelMatrix);
 
 	g_renderContext->DrawRenderable(*m_renderable);
 

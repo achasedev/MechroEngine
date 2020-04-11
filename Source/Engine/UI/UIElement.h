@@ -44,7 +44,8 @@ public:
 	void AddChild(UIElement* child);
 	void SetCanvas(Canvas* canvas);
 
-	OBB2 GetBounds() const;
+	OBB2 CalculateFinalBounds() const;
+	Matrix44 CalculateModelMatrix() const;
 
 
 public:

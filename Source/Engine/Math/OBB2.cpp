@@ -33,7 +33,7 @@
 
 //-------------------------------------------------------------------------------------------------
 OBB2::OBB2(float minX, float minY, float maxX, float maxY, float initialDegrees)
-	: AABB2(minX, minY, maxX, maxY)
+	: alignedBounds(AABB2(minX, minY, maxX, maxY))
 	, orientationDegrees(initialDegrees)
 {
 }
@@ -41,7 +41,7 @@ OBB2::OBB2(float minX, float minY, float maxX, float maxY, float initialDegrees)
 
 //-------------------------------------------------------------------------------------------------
 OBB2::OBB2(const Vector2& mins, const Vector2& maxs, float initialDegrees)
-	: AABB2(mins, maxs)
+	: alignedBounds(AABB2(mins, maxs))
 	, orientationDegrees(initialDegrees)
 {
 }
@@ -49,7 +49,7 @@ OBB2::OBB2(const Vector2& mins, const Vector2& maxs, float initialDegrees)
 
 //-------------------------------------------------------------------------------------------------
 OBB2::OBB2(const AABB2& initialBounds, float initialDegrees)
-	: AABB2(initialBounds)
+	: alignedBounds(AABB2(initialBounds))
 	, orientationDegrees(initialDegrees)
 {
 }
@@ -57,7 +57,7 @@ OBB2::OBB2(const AABB2& initialBounds, float initialDegrees)
 
 //-------------------------------------------------------------------------------------------------
 OBB2::OBB2(const AABB2& initialBounds)
-	: AABB2(initialBounds)
+	: alignedBounds(AABB2(initialBounds))
 	, orientationDegrees(0.f)
 {
 }

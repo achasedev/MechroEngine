@@ -316,16 +316,18 @@ OBB2 RectTransform::GetBounds() const
 {
 	if (m_parent != nullptr)
 	{
-		OBB2 refBounds = m_parent->GetBounds();
+		OBB2 orientedRefBounds = m_parent->GetBounds();
+		AABB2& alignedRefBounds = orientedRefBounds.alignedBounds;
+
 		Vector2 scale = GetScale();
-		Vector2 parentDimensions = refBounds.GetDimensions();
+		Vector2 parentDimensions = orientedRefBounds.GetDimensions();
 
 		// Get anchor positions
 		AABB2 anchorPositions = AABB2::ZERO_TO_ONE;
-		anchorPositions.mins.x = m_anchors.mins.x * parentDimensions.x + refBounds.mins.x;
-		anchorPositions.maxs.x = m_anchors.maxs.x * parentDimensions.x + refBounds.mins.x;
-		anchorPositions.mins.y = m_anchors.mins.y * parentDimensions.y + refBounds.mins.y;
-		anchorPositions.maxs.y = m_anchors.maxs.y * parentDimensions.y + refBounds.mins.y;
+		anchorPositions.mins.x = m_anchors.mins.x * parentDimensions.x + alignedRefBounds.mins.x;
+		anchorPositions.maxs.x = m_anchors.maxs.x * parentDimensions.x + alignedRefBounds.mins.x;
+		anchorPositions.mins.y = m_anchors.mins.y * parentDimensions.y + alignedRefBounds.mins.y;
+		anchorPositions.maxs.y = m_anchors.maxs.y * parentDimensions.y + alignedRefBounds.mins.y;
 
 		AABB2 bounds;
 
@@ -368,7 +370,7 @@ OBB2 RectTransform::GetBounds() const
 		}
 
 		// Rotation
-		float orientation = refBounds.orientationDegrees + m_orientation;
+		float orientation = orientedRefBounds.orientationDegrees + m_orientation;
 
 		return OBB2(bounds, orientation);
 	}

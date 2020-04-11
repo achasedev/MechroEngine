@@ -27,7 +27,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class OBB2 : public AABB2
+class OBB2
 {
 public:
 	//-----Public Methods-----
@@ -38,10 +38,13 @@ public:
 	OBB2(const AABB2& initialBounds);
 	OBB2(const AABB2& initialBounds, float initialDegrees);
 
+	Vector2 GetDimensions() const { return alignedBounds.GetDimensions(); }
+
 
 public:
 	//------Public Data-----
 
+	AABB2 alignedBounds;
 	float orientationDegrees;
 
 };

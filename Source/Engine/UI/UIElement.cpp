@@ -81,8 +81,29 @@ void UIElement::SetCanvas(Canvas* canvas)
 	m_canvas = canvas;
 }
 
+
 //-------------------------------------------------------------------------------------------------
-OBB2 UIElement::GetBounds() const
+OBB2 UIElement::CalculateFinalBounds() const
 {
 	return m_transform.GetBounds();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Matrix44 UIElement::CalculateModelMatrix() const
+{
+	OBB2 finalBounds = CalculateFinalBounds();
+
+	// Account for pivot:
+	// - Translate in normalized space
+	// - Apply translation/rotation/scale (now rotating about correct point)
+	// - Translate back in new scaled space to "undo" the translation to line up the rotation pivot
+
+	Vector3 translation = Vector3(finalBounds.alignedBounds.GetBottomLeft(), 0.f);
+	Vector3 rotation = Vector3(0.f, 0.f, finalBounds.orientationDegrees);
+	Vector3 scale = Vector3(finalBounds.alignedBounds.GetWidth(), finalBounds.alignedBounds.GetHeight(), 1.0f);
+	Vector3 pivotTranslation = Vector3(m_transform.GetPivot(), 0.f);
+	Vector3 postRotateCorrection = Vector3(pivotTranslation.x * scale.x, pivotTranslation.y * scale.y, 0.f);
+
+	return Matrix44::MakeTranslation(postRotateCorrection) * Matrix44::MakeModelMatrix(translation, rotation, scale) * Matrix44::MakeTranslation(-1.0f * pivotTranslation);
 }
