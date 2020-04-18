@@ -48,6 +48,7 @@ typedef unsigned long long uint64;
 
 class DebugSIDSystem;
 class EventSystem;
+class FontLoader;
 class InputSystem;
 class JobSystem;
 class RenderContext;
@@ -58,6 +59,7 @@ class Window;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 extern DebugSIDSystem*	g_debugSIDSystem;
 extern EventSystem*		g_eventSystem;
+extern FontLoader*	g_ftFontSystem;
 extern InputSystem*		g_inputSystem;
 extern JobSystem*		g_jobSystem;
 extern RenderContext*	g_renderContext;

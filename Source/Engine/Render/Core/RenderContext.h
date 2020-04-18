@@ -130,7 +130,7 @@ private:
 	UniformBuffer			m_modelMatrixUBO;
 
 	// Sampler
-	SamplerMode				m_samplerMode = SAMPLER_MODE_LINEAR;
+	SamplerMode				m_samplerMode = SAMPLER_MODE_POINT;
 	Sampler*				m_samplers[NUM_SAMPLER_MODES];
 
 };

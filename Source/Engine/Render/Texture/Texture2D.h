@@ -43,8 +43,9 @@ public:
 
 	bool CreateFromFile(const char* filepath);
 	bool CreateFromImage(const Image& image);
+	bool CreateFromBuffer(const uint8* buffer, uint32 bufferSize, int width, int height, uint32 numComponents, const char* filepath = "PATH NOT SPECIFIED");
 	bool CreateFromDxTexture2D(ID3D11Texture2D* dxTexture2D);
-	bool CreateAsColorRenderTarget(uint32 width, uint32 height);
+	bool CreateAsColorRenderTarget(uint32 width, uint32 height, bool createAsShaderResource = false);
 	bool CreateAsDepthStencilTarget(uint32 width, uint32 height);
 
 };

@@ -4,10 +4,12 @@
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
+#pragma warning(disable : 4201) // Keep the structs anonymous so we can still do myVector.x even when x is part of a struct
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Utility/Swizzle.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -33,6 +35,7 @@ class Vector3
 {
 
 public:
+	//-----Public Methods-----
 
 	Vector3() {}
 	Vector3(float value);
@@ -55,16 +58,16 @@ public:
 	bool					operator!=(const Vector3& compare) const;
 	friend const Vector3	operator*(float uniformScaler, const Vector3& vecToScale);
 
-	float	GetLength() const;
-	float	GetLengthSquared() const;
-	float	Normalize();							
-	Vector3 GetNormalized() const;
-	Vector2 XY() const;
-	Vector2 XZ() const;
+	float					GetLength() const;
+	float					GetLengthSquared() const;
+	float					Normalize();							
+	Vector3					GetNormalized() const;
 
-	static Vector3 Slerp(const Vector3& start, const Vector3& end, float percent);
+	static Vector3			Slerp(const Vector3& start, const Vector3& end, float percent);
+
 
 public:
+	//-----Public Static Data-----
 
 	const static Vector3 ZERO;
 	const static Vector3 ONES;
@@ -75,10 +78,50 @@ public:
 	const static Vector3 MINUS_Y_AXIS;
 	const static Vector3 MINUS_Z_AXIS;
 
+
 public:
+	//-----Public Member Data-----
 
-	float x;
-	float y;
-	float z;
+	union
+	{
+		// Array access
+		float data[3];
 
+		// Coordinate access
+		struct
+		{
+			float x;
+			float y;
+			float z;
+		};
+
+		// Color channel access
+		struct
+		{
+			float r;
+			float g;
+			float b;
+		};
+
+		// Swizzles!
+		// Must be unioned to not pad out the length of Vector2
+		// Swizzles have no data, so no fear of overwrite
+		union
+		{
+			Swizzle<Vector3, float, 0, 0, 0> xxx, rrr;
+			Swizzle<Vector3, float, 1, 1, 1> yyy, ggg;
+			Swizzle<Vector3, float, 2, 2, 2> zzz, bbb;
+
+			Swizzle<Vector2, float, 0, 0> xx;
+			Swizzle<Vector2, float, 0, 1> xy;
+			Swizzle<Vector2, float, 0, 2> xz;
+			Swizzle<Vector2, float, 1, 0> yx;
+			Swizzle<Vector2, float, 1, 1> yy;
+			Swizzle<Vector2, float, 1, 2> yz;
+			Swizzle<Vector2, float, 2, 0> zx;
+			Swizzle<Vector2, float, 2, 1> zy;
+			Swizzle<Vector2, float, 2, 2> zz;
+		};
+	};
 };
+#pragma warning(default : 4201)

@@ -134,6 +134,13 @@ bool Texture2D::CreateFromFile(const char* filepath)
 //-------------------------------------------------------------------------------------------------
 bool Texture2D::CreateFromImage(const Image& image)
 {
+	return CreateFromBuffer(image.GetData(), image.GetSize(), image.GetTexelWidth(), image.GetTexelHeight(), image.GetNumComponentsPerTexel(), image.GetFilePath());
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool Texture2D::CreateFromBuffer(const uint8* buffer, uint32 bufferSize, int width, int height, uint32 numComponents, const char* filepath /*= "PATH NOT SPECIFIED"*/)
+{
 	Clear();
 
 	ID3D11Device* dxDevice = g_renderContext->GetDxDevice();
@@ -144,37 +151,37 @@ bool Texture2D::CreateFromImage(const Image& image)
 	D3D11_TEXTURE2D_DESC texDesc;
 	memset(&texDesc, 0, sizeof(D3D11_TEXTURE2D_DESC));
 
-	texDesc.Width = image.GetTexelWidth();
-	texDesc.Height = image.GetTexelHeight();
+	texDesc.Width = width;
+	texDesc.Height = height;
 	texDesc.MipLevels = 1; // Set to 0 for full chain
 	texDesc.ArraySize = 1;
-	texDesc.Usage = (D3D11_USAGE) ToDXMemoryUsage(m_memoryUsage);
-	texDesc.Format = GetDxTextureFormatFromComponentCount(image.GetNumComponentsPerTexel());         
+	texDesc.Usage = (D3D11_USAGE)ToDXMemoryUsage(m_memoryUsage);
+	texDesc.Format = GetDxTextureFormatFromComponentCount(numComponents);
 	texDesc.BindFlags = GetDxBindFromTextureUsageFlags(m_textureUsage);
 	texDesc.CPUAccessFlags = 0U;
 	texDesc.MiscFlags = 0U;
 	texDesc.SampleDesc.Count = 1;
 	texDesc.SampleDesc.Quality = 0;
 
-	
+
 	D3D11_SUBRESOURCE_DATA data;
 	memset(&data, 0, sizeof(D3D11_SUBRESOURCE_DATA));
 
-	uint32 pitch = image.GetTexelWidth() * image.GetNumComponentsPerTexel(); // Assumes component size == 1 byte
+	uint32 pitch = width * numComponents; // Assumes component size == 1 byte
 	data.SysMemPitch = pitch;
-	data.pSysMem = image.GetData();
+	data.pSysMem = buffer;
 
 	ID3D11Texture2D* tex2D = nullptr;
 	HRESULT hr = dxDevice->CreateTexture2D(&texDesc, &data, &tex2D);
 
 	bool succeeded = SUCCEEDED(hr);
-	ASSERT_RECOVERABLE(succeeded, "Couldn't create Texture2D for image %s, error code: %u", image.GetFilePath(), hr);
+	ASSERT_RECOVERABLE(succeeded, "Couldn't create Texture2D for image %s, error code: %u", filepath, hr);
 
 	if (succeeded)
 	{
 		m_dxHandle = tex2D;
-		m_dimensions = IntVector3(image.GetDimensions(), 0);
-		m_byteSize = image.GetSize();
+		m_dimensions = IntVector3(width, height, 0);
+		m_byteSize = bufferSize;
 	}
 
 	return succeeded;
@@ -200,13 +207,19 @@ bool Texture2D::CreateFromDxTexture2D(ID3D11Texture2D* dxTexture2D)
 
 
 //-------------------------------------------------------------------------------------------------
-bool Texture2D::CreateAsColorRenderTarget(uint32 width, uint32 height)
+bool Texture2D::CreateAsColorRenderTarget(uint32 width, uint32 height, bool createAsShaderResource /*= false*/)
 {
 	Clear();
 
 	ID3D11Device* dxDevice = g_renderContext->GetDxDevice();
 
 	m_textureUsage = TEXTURE_USAGE_RENDER_TARGET_BIT;
+
+	if (createAsShaderResource)
+	{
+		m_textureUsage |= TEXTURE_USAGE_SHADER_RESOURCE_BIT;
+	}
+
 	m_memoryUsage = GPU_MEMORY_USAGE_GPU;
 
 	D3D11_TEXTURE2D_DESC texDesc;

@@ -21,7 +21,10 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class DepthStencilTargetView;
 class Image;
+class RenderTargetView;
+class ShaderResourceView;
 struct ID3D11Resource;
 
 struct TextureViewInfo

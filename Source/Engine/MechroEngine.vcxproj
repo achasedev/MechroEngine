@@ -101,7 +101,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)../MechroEngine/Source/;$(SolutionDir)Source/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../MechroEngine/Source/;$(SolutionDir)Source/;$(SolutionDir)../MechroEngine/Source/Thirdparty/freetype/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -118,7 +118,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)../MechroEngine/Source/;$(SolutionDir)Source/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../MechroEngine/Source/;$(SolutionDir)Source/;$(SolutionDir)../MechroEngine/Source/Thirdparty/freetype/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -133,7 +133,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)../MechroEngine/Source/;$(SolutionDir)Source/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../MechroEngine/Source/;$(SolutionDir)Source/;$(SolutionDir)../MechroEngine/Source/Thirdparty/freetype/include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -151,7 +151,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)../MechroEngine/Source/;$(SolutionDir)Source/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../MechroEngine/Source/;$(SolutionDir)Source/;$(SolutionDir)../MechroEngine/Source/Thirdparty/freetype/include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -176,6 +176,9 @@
     <ClCompile Include="Render\Core\DrawCall.cpp" />
     <ClCompile Include="Render\Core\DX11Common.cpp" />
     <ClCompile Include="Render\Buffer\IndexBuffer.cpp" />
+    <ClCompile Include="Render\Font\Font.cpp" />
+    <ClCompile Include="Render\Font\FontAtlas.cpp" />
+    <ClCompile Include="Render\Font\FontLoader.cpp" />
     <ClCompile Include="Render\Material.cpp" />
     <ClCompile Include="Render\Mesh\Mesh.cpp" />
     <ClCompile Include="Render\Mesh\MeshBuilder.cpp" />
@@ -220,10 +223,9 @@
     <ClCompile Include="Utility\StringUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\ThirdParty\stb\stb_image.h" />
-    <ClInclude Include="..\ThirdParty\stb\stb_image_write.h" />
     <ClInclude Include="Event\EventSubscription.h" />
     <ClInclude Include="Event\EventSystem.h" />
+    <ClInclude Include="Framework\CommentSnippets.h" />
     <ClInclude Include="IO\InputSystem.h" />
     <ClInclude Include="IO\Joypad.h" />
     <ClInclude Include="IO\KeyButtonState.h" />
@@ -234,7 +236,12 @@
     <ClInclude Include="Math\AABB3.h" />
     <ClInclude Include="Math\IntVector3.h" />
     <ClInclude Include="Math\OBB2.h" />
+    <ClInclude Include="Utility\Swizzle.h" />
     <ClInclude Include="Render\Camera\Camera.h" />
+    <ClInclude Include="Render\Font\Font.h" />
+    <ClInclude Include="Render\Font\FontAtlas.h" />
+    <ClInclude Include="Render\Font\FontLoader.h" />
+    <ClInclude Include="Render\Texture\SpritePacker.h" />
     <ClInclude Include="Render\View\RenderTargetView.h" />
     <ClInclude Include="Render\Core\DrawCall.h" />
     <ClInclude Include="Render\Core\DX11Common.h" />

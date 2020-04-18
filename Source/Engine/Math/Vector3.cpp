@@ -222,20 +222,6 @@ Vector3 Vector3::GetNormalized() const
 
 
 //-------------------------------------------------------------------------------------------------
-Vector2 Vector3::XY() const
-{
-	return Vector2(x, y);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-Vector2 Vector3::XZ() const
-{
-	return Vector2(x, z);
-}
-
-
-//-------------------------------------------------------------------------------------------------
 Vector3 Vector3::Slerp(const Vector3& start, const Vector3& end, float percent)
 {
 	float dot = DotProduct(start, end);
