@@ -40,8 +40,12 @@ public:
 	//-----Public Methods-----
 
 
+	FontAtlas*			CreateOrGetAtlasForPixelHeight(uint32 pixelHeight);
+
+	const uint8*		RenderGlyphForPixelHeight(const char glyph, uint32 pixelHeight, int& out_glyphWidth, int& out_glyphHeight) const;
 	
-	std::string GetSourceFile() const { return m_sourceFilepath; }
+	std::string			GetSourceFile() const { return m_sourceFilepath; }
+	const FontAtlas*	GetFontAtlasForPixelHeight(uint32 pixelHeight);
 
 
 private:
@@ -51,16 +55,10 @@ private:
 private:
 	//-----Private Data-----
 
-	void*			m_ftFace = nullptr;
-	uint32			m_point = 10;
-	IntVector2		m_referenceDpi = IntVector2(72);
-	std::string		m_sourceFilepath;
-
-
-
-
-	std::map<uint32, FontAtlas*> m_atlasRegistry;
-
+	void*							m_ftFace = nullptr;
+	uint32							m_pixelHeight = 0;
+	std::string						m_sourceFilepath;
+	std::map<uint32, FontAtlas*>	m_atlasRegistry;
 
 };
 

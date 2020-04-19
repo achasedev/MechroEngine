@@ -39,7 +39,7 @@
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 static FT_Library s_library;
-FontLoader* g_ftFontSystem = nullptr;
+FontLoader* g_FontLoader = nullptr;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
@@ -52,7 +52,7 @@ FontLoader* g_ftFontSystem = nullptr;
 //-------------------------------------------------------------------------------------------------
 void FontLoader::Initialize()
 {
-	g_ftFontSystem = new FontLoader();
+	g_FontLoader = new FontLoader();
 
 	// Initialize the FT library
 	FT_Error error = FT_Init_FreeType(&s_library);
@@ -64,12 +64,12 @@ void FontLoader::Initialize()
 void FontLoader::Shutdown()
 {
 	FT_Done_FreeType(s_library);
-	SAFE_DELETE_POINTER(g_ftFontSystem);
+	SAFE_DELETE_POINTER(g_FontLoader);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Font* FontLoader::LoadFontFace(const char* sourceFilepath, uint32 faceIndex)
+Font* FontLoader::LoadFont(const char* sourceFilepath, uint32 faceIndex)
 {
 	FT_Face face;
 	FT_Error error = FT_New_Face(s_library, sourceFilepath, faceIndex, &face);
@@ -82,8 +82,6 @@ Font* FontLoader::LoadFontFace(const char* sourceFilepath, uint32 faceIndex)
 	{
 		ERROR_AND_DIE("Couldn't load font file %s", sourceFilepath);
 	}
-
-	FT_Set_Char_Size(face, 0, 36 * 64, 72, 72);
 
 	Font* fontFace = new Font();
 	fontFace->m_ftFace = (void*)face;

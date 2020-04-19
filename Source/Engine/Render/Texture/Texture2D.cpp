@@ -164,15 +164,22 @@ bool Texture2D::CreateFromBuffer(const uint8* buffer, uint32 bufferSize, int wid
 	texDesc.SampleDesc.Quality = 0;
 
 
+	D3D11_SUBRESOURCE_DATA* initialData = nullptr;
 	D3D11_SUBRESOURCE_DATA data;
-	memset(&data, 0, sizeof(D3D11_SUBRESOURCE_DATA));
 
-	uint32 pitch = width * numComponents; // Assumes component size == 1 byte
-	data.SysMemPitch = pitch;
-	data.pSysMem = buffer;
+	if (buffer != nullptr)
+	{
+		memset(&data, 0, sizeof(D3D11_SUBRESOURCE_DATA));
 
+		uint32 pitch = width * numComponents; // Assumes component size == 1 byte
+		data.SysMemPitch = pitch;
+		data.pSysMem = buffer;
+
+		initialData = &data;
+	}
+	
 	ID3D11Texture2D* tex2D = nullptr;
-	HRESULT hr = dxDevice->CreateTexture2D(&texDesc, &data, &tex2D);
+	HRESULT hr = dxDevice->CreateTexture2D(&texDesc, initialData, &tex2D);
 
 	bool succeeded = SUCCEEDED(hr);
 	ASSERT_RECOVERABLE(succeeded, "Couldn't create Texture2D for image %s, error code: %u", filepath, hr);

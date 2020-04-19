@@ -33,9 +33,23 @@
 
 //-------------------------------------------------------------------------------------------------
 Image::Image(const IntVector2& dimensions, const Rgba& color /*= Rgba::WHITE*/)
-	: m_dimensions(dimensions)
-	, m_numComponentsPerTexel(4)
 {
+	Initialize(dimensions, color);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Image::~Image()
+{
+	SAFE_FREE_POINTER(m_data);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Image::Initialize(const IntVector2& dimensions, const Rgba& color /*= Rgba::WHITE*/)
+{
+	m_dimensions = dimensions;
+	m_numComponentsPerTexel = 4;
 	m_data = (uint8*)malloc(sizeof(uint8) * m_numComponentsPerTexel * GetTexelCount());
 
 	for (uint32 texelIndex = 0; texelIndex < GetTexelCount(); ++texelIndex)
@@ -47,13 +61,6 @@ Image::Image(const IntVector2& dimensions, const Rgba& color /*= Rgba::WHITE*/)
 		m_data[offset + 2] = color.b;
 		m_data[offset + 3] = color.a;
 	}
-}
-
-
-//-------------------------------------------------------------------------------------------------
-Image::~Image()
-{
-	SAFE_FREE_POINTER(m_data);
 }
 
 

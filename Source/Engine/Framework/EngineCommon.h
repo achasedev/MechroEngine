@@ -59,7 +59,7 @@ class Window;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 extern DebugSIDSystem*	g_debugSIDSystem;
 extern EventSystem*		g_eventSystem;
-extern FontLoader*	g_ftFontSystem;
+extern FontLoader*	g_FontLoader;
 extern InputSystem*		g_inputSystem;
 extern JobSystem*		g_jobSystem;
 extern RenderContext*	g_renderContext;

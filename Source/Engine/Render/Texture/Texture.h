@@ -51,6 +51,9 @@ public:
 	virtual RenderTargetView*			CreateOrGetColorTargetView(const TextureViewInfo* viewInfo = nullptr);
 	virtual DepthStencilTargetView*		CreateOrGetDepthStencilTargetView(const TextureViewInfo* viewInfo = nullptr);
 
+	int									GetWidth() { return m_dimensions.x; }
+	int									GetHeight() { return m_dimensions.y; }
+
 
 protected:
 	//------Protected Methods-----

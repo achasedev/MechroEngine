@@ -4,6 +4,7 @@
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
+#pragma warning(disable : 4201) // Keep the structs anonymous in the union for usability
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
@@ -46,7 +47,7 @@ public:
 
 
 public:
-	//-----Public Data-----
+	//-----Public Static Data-----
 
 	static const Rgba WHITE;
 	static const Rgba BLACK;
@@ -55,13 +56,22 @@ public:
 	static const Rgba BLUE;
 
 public:
+	//-----Public Member Data-----
 
-	uint8 r;
-	uint8 g;
-	uint8 b;
-	uint8 a;
-
+	union
+	{
+		uint8 data[4];
+		struct
+		{
+			uint8 r;
+			uint8 g;
+			uint8 b;
+			uint8 a;
+		};
+	};
 };
+
+#pragma warning(default : 4201)
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS

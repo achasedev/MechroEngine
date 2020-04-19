@@ -71,7 +71,7 @@ private:
 	template <size_t OFFSET>
 	inline void Get(COMP_TYPE* out) const
 	{
-		*out = GetPointer<OFFSET>();
+		*out = *GetPointer<OFFSET>();
 	}
 
 	template <size_t OFFSET, size_t OFFSET1, size_t... REM_OFFSETS>

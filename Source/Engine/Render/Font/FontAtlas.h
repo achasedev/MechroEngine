@@ -37,21 +37,20 @@ class FontAtlas
 public:
 	//-----Public Methods-----
 
-	void		Initialize(Texture2D* texture = nullptr);
+	void		Initialize(const Font* font, uint32 pixelHeight, Texture2D* texture = nullptr);
 
-	uint32		GetPoint() const { return m_point; }
-	Texture2D*	GetTexture() const { return m_glyphTextureAtlas; }
-	AABB2		GetUVsForGlyph(const char glyph);
+	uint32		GetPixelHeight() const { return m_pixelHeight; }
+	Texture2D*	GetTexture();
+	AABB2		CreateOrGetUVsForGlyph(const char glyph);
 
 
 private:
 	//-----Private Data-----
 
-	uint32							m_point = 1;
+	uint32							m_pixelHeight = 1;
 	std::map<const char, AABB2>		m_glyphUVs;
-	Font*							m_ownerFont = nullptr;
+	const Font*						m_ownerFont = nullptr;
 	SpritePacker*					m_glyphPacker = nullptr;
-	Texture2D*						m_glyphTextureAtlas = nullptr;
 
 };
 

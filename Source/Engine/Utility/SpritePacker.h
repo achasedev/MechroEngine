@@ -8,6 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Framework/EngineCommon.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -16,6 +17,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class AABB2;
+class Image;
 class Texture2D;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -29,13 +32,35 @@ class Texture2D;
 //-------------------------------------------------------------------------------------------------
 class SpritePacker
 {
+public:
+	//-----Public Methods-----
+
+	void		Initialize(Texture2D* texture);
+	void		Initialize(uint32 texelWidth, uint32 texelHeigth);
+
+	bool		PackSprite(const uint8* src, int spriteWidth, int spriteHeight, int srcComponentCount, AABB2& out_uvs);
+	void		UpdateTexture();
+
+	Texture2D*	GetTexture();
+
+
+private:
+	//-----Private Methods-----
+
+	void		MoveHeadToNextLine();
+	void		BlitSpriteToImage(const uint8* src, int spriteWidth, int spriteHeight, int srcComponentCount);
+	AABB2		CalculateUVsForSprite(int spriteWidth, int spriteHeight);
+
 
 private:
 	//-----Private Data-----
 
+	IntVector2						m_writePosition = IntVector2::ZERO;
+	int								m_maxHeightThisLine = 0;
+	bool							m_imageDirty = true;
 
-	Texture2D* m_spriteAtlas = nullptr;
-
+	Image*							m_image = nullptr;
+	Texture2D*						m_texture = nullptr;
 };
 
 

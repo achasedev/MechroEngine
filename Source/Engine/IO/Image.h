@@ -40,6 +40,7 @@ public:
 	Image(const IntVector2& dimensions, const Rgba& color = Rgba::WHITE);
 	~Image();
 
+	void		Initialize(const IntVector2& dimensions, const Rgba& color = Rgba::WHITE);
 	bool		LoadFromFile(const char* filepath, bool flipVertically = true);
 
 	void		SetTexelColor(uint32 x, uint32 y, Rgba color);

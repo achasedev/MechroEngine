@@ -36,7 +36,7 @@ public:
 	IntVector2() {}
 	IntVector2(const IntVector2& copyFrom);	
 	explicit IntVector2(int initialX, int initialY);
-	explicit IntVector2(uint32 initialX,uint32 initialY);
+	explicit IntVector2(uint32 initialX, uint32 initialY);
 	explicit IntVector2(float initialX, float initialY);
 	explicit IntVector2(const Vector2& floatVector);
 	~IntVector2() {}

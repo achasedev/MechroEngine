@@ -124,4 +124,5 @@ public:
 		};
 	};
 };
+
 #pragma warning(default : 4201)

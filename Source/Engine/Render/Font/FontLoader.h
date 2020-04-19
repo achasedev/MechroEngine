@@ -37,7 +37,7 @@ public:
 	static void Initialize();
 	static void Shutdown();
 
-	Font* LoadFontFace(const char* sourceFilepath, uint32 faceIndex);
+	Font*		LoadFont(const char* sourceFilepath, uint32 faceIndex);
 
 
 private:
