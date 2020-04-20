@@ -74,6 +74,14 @@ AABB2::AABB2(float width, float height)
 
 
 //-------------------------------------------------------------------------------------------------
+AABB2::AABB2(const AABB2& copy)
+{
+	mins = copy.mins;
+	maxs = copy.maxs;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void AABB2::StretchToIncludePoint(float x, float y)
 {
 	if (x < mins.x)
@@ -232,6 +240,14 @@ Vector2 AABB2::GetTopRight() const
 Vector2 AABB2::GetTopLeft() const
 {
 	return Vector2(mins.x, maxs.y);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void AABB2::operator=(const AABB2& copy)
+{
+	mins = copy.mins;
+	maxs = copy.maxs;
 }
 
 

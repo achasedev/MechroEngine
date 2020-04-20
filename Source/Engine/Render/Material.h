@@ -35,7 +35,7 @@ class Material
 public:
 	//-----Public Methods-----
 
-	Material() {}
+	Material();
 	Material(const char* name);
 	Material(const char* name, Shader* shader, ShaderResourceView* albedo);
 

@@ -204,6 +204,8 @@ bool Texture2D::CreateFromDxTexture2D(ID3D11Texture2D* dxTexture2D)
 	dxTexture2D->GetDesc(&desc);
 
 	m_dxHandle = dxTexture2D;
+	m_dxHandle->AddRef();
+
 	m_dimensions = IntVector3(desc.Width, desc.Height, 0U);
 	m_byteSize = m_dimensions.x * m_dimensions.y * GetComponentCountFromDxTextureFormat(desc.Format);
 	m_memoryUsage = FromDXMemoryUsage(desc.Usage);
@@ -300,4 +302,11 @@ bool Texture2D::CreateAsDepthStencilTarget(uint32 width, uint32 height)
 	}
 
 	return succeeded;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float Texture2D::GetAspect() const
+{
+	return static_cast<float>(m_dimensions.x) / static_cast<float>(m_dimensions.y);
 }

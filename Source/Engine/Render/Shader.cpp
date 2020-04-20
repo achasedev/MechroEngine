@@ -124,9 +124,11 @@ bool ShaderStage::LoadFromShaderSource(const char* filename, const void* source,
 	case SHADER_STAGE_VERTEX:
 		dxDevice->CreateVertexShader(byteCode->GetBufferPointer(), byteCode->GetBufferSize(), nullptr, &m_vertexShader);
 		m_compiledSource = byteCode; // Save off byte code for input layouts
+		m_stageType = SHADER_STAGE_VERTEX;
 		break;
 	case SHADER_STAGE_FRAGMENT:
-		dxDevice->CreatePixelShader(byteCode->GetBufferPointer(), byteCode->GetBufferSize(), nullptr, &m_fragmentShader);	
+		dxDevice->CreatePixelShader(byteCode->GetBufferPointer(), byteCode->GetBufferSize(), nullptr, &m_fragmentShader);
+		m_stageType = SHADER_STAGE_FRAGMENT;
 		DX_SAFE_RELEASE(byteCode); // Don't need byte code for fragment shaders
 		break;
 	default:

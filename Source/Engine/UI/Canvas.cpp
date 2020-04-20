@@ -11,6 +11,8 @@
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Render/Camera/Camera.h"
+#include "Engine/Render/Core/RenderContext.h"
+#include "Engine/Render/Texture/Texture2D.h"
 #include "Engine/UI/Canvas.h"
 #include "Engine/UI/UIElement.h"
 #include "Engine/Utility/NamedProperties.h"
@@ -44,24 +46,17 @@ Canvas::Canvas()
 //-------------------------------------------------------------------------------------------------
 Canvas::~Canvas()
 {
-	g_eventSystem->UnsubscribeEventCallbackObjectMethod("ortho-resize", &Canvas::Event_OrthoResize, *this);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void Canvas::Initialize(Camera* orthoCamera, const Vector2& resolution, ScreenMatchMode mode, float widthHeightBlend /*= 1.0f*/)
+void Canvas::Initialize(Texture2D* outputTexture, const Vector2& resolution, ScreenMatchMode mode, float widthHeightBlend /*= 1.0f*/)
 {
-	m_orthoCamera = orthoCamera;
+	m_outputTexture = outputTexture;
 	m_matchMode = mode;
 	m_widthOrHeightBlend = widthHeightBlend;
 	m_resolution = Vector2(resolution.x, resolution.y);
-	m_transform.SetPosition(orthoCamera->GetOrthoBounds().GetTopLeft());
 	m_transform.SetDimensions(resolution.x, resolution.y);
-	m_transform.SetPivot(Vector2(0.f, 1.0f));
-
-	UpdateScaleForCurrentMatchMode();
-
-	g_eventSystem->SubscribeEventCallbackObjectMethod("ortho-resize", &Canvas::Event_OrthoResize, *this);
 }
 
 
@@ -73,19 +68,10 @@ void Canvas::Render() const
 
 
 //-------------------------------------------------------------------------------------------------
-void Canvas::SetOrthoCamera(Camera* orthoCamera)
-{
-	m_orthoCamera = orthoCamera;
-}
-
-
-//-------------------------------------------------------------------------------------------------
 void Canvas::SetScreenMatchMode(ScreenMatchMode mode, float widthHeightBlend /*= 1.0f*/)
 {
 	m_matchMode = mode;
 	m_widthOrHeightBlend = widthHeightBlend;
-
-	UpdateScaleForCurrentMatchMode();
 }
 
 
@@ -94,49 +80,47 @@ void Canvas::SetResolution(float width, float height)
 {
 	m_resolution = Vector2(width, height);
 	m_transform.SetDimensions(width, height);
-
-	UpdateScaleForCurrentMatchMode();
 }
 
 
 //-------------------------------------------------------------------------------------------------
-bool Canvas::Event_OrthoResize(NamedProperties& args)
+Texture2D* Canvas::GetOutputTexture() const
 {
-	UNUSED(args);
-
-	AABB2 orthoBounds = args.Get("ortho-bounds", m_orthoCamera->GetOrthoBounds());
-	m_transform.SetPosition(orthoBounds.GetTopLeft());
-
-	UpdateScaleForCurrentMatchMode();
-
-	return false;
+	return m_outputTexture;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void Canvas::UpdateScaleForCurrentMatchMode()
+Matrix44 Canvas::GenerateOrtho()
 {
-	AABB2 orthoBounds = m_orthoCamera->GetOrthoBounds();
-	Vector2 orthoDimensions = orthoBounds.GetDimensions();
+	AABB2 orthoBounds;
+	orthoBounds.left = 0.f;
+	orthoBounds.top = m_resolution.y;
 
-	float widthScalar = orthoDimensions.x / m_resolution.x;
-	float heightScalar = orthoDimensions.y / m_resolution.y;
+	float targetAspect = m_outputTexture->GetAspect();
 
-	float newScale = 1.0f;
+	float heightToFillVertical = m_resolution.y;
+	float heightToFillHorizontal = m_resolution.x / targetAspect;
+
+	float finalHeight = 0.f;
+
 	switch (m_matchMode)
 	{
 	case SCREEN_MATCH_WIDTH_OR_HEIGHT:
-		newScale = (heightScalar * m_widthOrHeightBlend) + (widthScalar * (1.0f - m_widthOrHeightBlend));
+		finalHeight = (heightToFillVertical * m_widthOrHeightBlend) + (heightToFillHorizontal * (1.0f - m_widthOrHeightBlend));
 		break;
 	case SCREEN_MATCH_EXPAND_TO_FILL:
-		newScale = Max(widthScalar, heightScalar);
+		finalHeight = Min(heightToFillVertical, heightToFillHorizontal);
 		break;
 	case SCREEN_MATCH_SHRINK_TO_FIT:
-		newScale = Min(widthScalar, heightScalar);
+		finalHeight = Max(heightToFillVertical, heightToFillHorizontal);
 		break;
 	default:
 		break;
 	}
-	
-	m_transform.SetScale(newScale);
+
+	orthoBounds.bottom = orthoBounds.top - finalHeight;
+	orthoBounds.right = finalHeight * targetAspect;
+
+	return Matrix44::MakeOrtho(orthoBounds.GetBottomLeft(), orthoBounds.GetTopRight(), -1.0f, 1.0f);
 }

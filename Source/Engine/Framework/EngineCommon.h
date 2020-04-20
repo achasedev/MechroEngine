@@ -37,6 +37,8 @@
 // For setting shader debug compile flags
 //#define DEBUG_SHADERS
 
+// For setting DX device debug flags
+// #define DEBUG_DX_DEVICE
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS

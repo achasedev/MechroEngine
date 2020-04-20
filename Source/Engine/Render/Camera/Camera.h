@@ -19,8 +19,9 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class RenderTargetView;
 class DepthStencilTargetView;
+class RenderTargetView;
+class Texture2D;
 class UniformBuffer;
 
 enum CameraProjection
@@ -46,8 +47,9 @@ public:
 	Camera();
 	~Camera();
 
-	void					SetColorTargetView(RenderTargetView* colorTargetView, bool ownsColorTargetView);
-	void					SetDepthStencilTargetView(DepthStencilTargetView* depthTargetView, bool ownsTarget);
+	void					SetRenderTarget(Texture2D* renderTarget, bool ownsTarget);
+	void					SetDepthTarget(Texture2D* depthTarget, bool ownsTarget);
+	void					SetProjection(CameraProjection projectionType, const Matrix44& projection);
 	void					SetProjectionOrthographic(float orthoHeight, float aspect);
 	void					SetProjectionPerspective(float fovDegrees, float nearZ, float farZ);
 	void					UpdateUBO();
@@ -62,9 +64,12 @@ public:
 	void					SetCameraMatrix(const Matrix44& cameraMatrix);
 	void					SetViewMatrix(const Matrix44& viewMatrix);
 
-	RenderTargetView*		GetColorTargetView() const { return m_colorTargetView; }
-	DepthStencilTargetView* GetDepthStencilTargetView() const { return m_depthTargetView; }
+	Texture2D*				GetRenderTarget() const;
+	Texture2D*				GetDepthTarget() const;
 	UniformBuffer*			GetUniformBuffer() const { return m_cameraUBO; }
+
+	RenderTargetView*		GetRenderTargetView();
+	DepthStencilTargetView*	GetDepthStencilTargetView();
 
 	Matrix44				GetCameraMatrix();
 	Matrix44				GetViewMatrix();
@@ -97,10 +102,10 @@ private:
 	CameraProjection		m_currentProjection = CAMERA_PROJECTION_NONE;
 
 	// Render Target
-	RenderTargetView*		m_colorTargetView = nullptr;
-	DepthStencilTargetView* m_depthTargetView = nullptr;
-	bool					m_ownsColorTargetView = false;
-	bool					m_ownsDepthTargetView = false;
+	Texture2D*				m_renderTarget = nullptr;
+	Texture2D*				m_depthTarget = nullptr;
+	bool					m_ownsRenderTarget = false;
+	bool					m_ownsDepthTarget = false;
 
 	// Misc
 	UniformBuffer*			m_cameraUBO = nullptr;

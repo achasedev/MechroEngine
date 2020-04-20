@@ -9,6 +9,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Render/Core/DX11Common.h"
+#include "Engine/Render/Texture/Texture.h"
 #include "Engine/Render/View/TextureView.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -35,4 +36,32 @@
 TextureView::~TextureView()
 {
 	DX_SAFE_RELEASE(m_dxView);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int TextureView::GetWidth() const
+{
+	return m_sourceTexture->GetWidth();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int TextureView::GetHeight() const
+{
+	return m_sourceTexture->GetHeight();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float TextureView::GetAspect() const
+{
+	return static_cast<float>(GetWidth()) / static_cast<float>(GetHeight());
+}
+
+
+//-------------------------------------------------------------------------------------------------
+uint32 TextureView::GetCreateInfoHash() const
+{
+	return m_createInfoHash;
 }

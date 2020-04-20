@@ -9,6 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Math/Vector2.h"
+#pragma warning(disable : 4201) // Keep the structs anonymous
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -35,6 +36,7 @@ public:
 	explicit AABB2(const Vector2& mins, const Vector2& maxs);
 	explicit AABB2(const Vector2& center, float radiusX, float radiusY);
 	explicit AABB2(const Vector2& minsAndMaxs);
+	AABB2(const AABB2& copy);
 	~AABB2() {}
 
 	void	StretchToIncludePoint(float x, float y);
@@ -56,6 +58,7 @@ public:
 	Vector2 GetTopRight() const;
 	Vector2 GetTopLeft() const;
 
+	void operator=(const AABB2& copy);
 	void operator+=(const Vector2& translation);
 	void operator-=(const Vector2& antiTranslation);
 	AABB2 operator+(const Vector2& translation) const;
@@ -71,11 +74,29 @@ public:
 
 
 public:
+	//-----Public Member Data-----
 
-	Vector2 mins;
-	Vector2 maxs;
+	union
+	{
+		struct 
+		{
+			Vector2 mins;
+			Vector2 maxs;
+		};
+
+		struct
+		{
+			float left;
+			float bottom;
+			float right;
+			float top;
+		};
+	};
+
 
 };
+
+#pragma warning(default : 4201) // Keep the structs anonymous
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS

@@ -20,6 +20,7 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Camera;
+class Texture2D;
 class UIElement;
 
 enum ScreenMatchMode
@@ -46,27 +47,22 @@ public:
 	Canvas();
 	~Canvas();
 
-	void			Initialize(Camera* orthoCamera, const Vector2& resolution, ScreenMatchMode mode, float widthHeightBlend = 1.0f);
-	virtual void	Render() const override;
+	void				Initialize(Texture2D* outputTexture, const Vector2& resolution, ScreenMatchMode mode, float widthHeightBlend = 1.0f);
+	Matrix44			GenerateOrtho();
+	virtual void		Render() const override;
 
-	void			SetOrthoCamera(Camera* orthoCamera);
-	void			SetScreenMatchMode(ScreenMatchMode mode, float widthHeightBlend = 1.0f);
-	void			SetResolution(float height, float width);
-	bool			Event_OrthoResize(NamedProperties& args);
+	void				SetScreenMatchMode(ScreenMatchMode mode, float widthHeightBlend = 1.0f);
+	void				SetResolution(float height, float width);
 
-
-private:
-	//-----Private Methods-----
-
-	void			UpdateScaleForCurrentMatchMode();
+	Texture2D*			GetOutputTexture() const;
 
 
 private:
 	//-----Private Data-----
 
 	Vector2				m_resolution = Vector2(100.f);
-	Camera*				m_orthoCamera = nullptr;
 	ScreenMatchMode		m_matchMode = SCREEN_MATCH_WIDTH_OR_HEIGHT;
+	Texture2D*			m_outputTexture = nullptr;
 	float				m_widthOrHeightBlend = 1.0f; // 1.0 is match to height
 
 };

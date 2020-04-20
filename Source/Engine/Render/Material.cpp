@@ -47,6 +47,16 @@ Material::Material(const char* name, Shader* shader, ShaderResourceView* albedo)
 
 
 //-------------------------------------------------------------------------------------------------
+Material::Material()
+{
+	for (int viewIndex = 0; viewIndex < MAX_SRV_SLOTS; ++viewIndex)
+	{
+		m_shaderResourceViews[viewIndex] = nullptr;
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void Material::SetShader(Shader* shader)
 {
 	m_shader = shader;

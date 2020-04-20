@@ -43,13 +43,13 @@ Texture::~Texture()
 
 
 //-------------------------------------------------------------------------------------------------
-ShaderResourceView* Texture::CreateOrGetShaderResourceView(const TextureViewInfo* viewInfo /*= nullptr*/)
+ShaderResourceView* Texture::CreateOrGetShaderResourceView(const TextureViewCreateInfo* viewInfo /*= nullptr*/)
 {
 	ASSERT_OR_DIE(m_dxHandle != nullptr, "Attempted to create a view for an uninitialized Texture!");
 	ASSERT_OR_DIE((m_textureUsage & TEXTURE_USAGE_SHADER_RESOURCE_BIT) != 0, "Attempted to create a ShaderResourceView for a texture that doesn't support it!");
 
 	// Default the info
-	TextureViewInfo defaultInfo;
+	TextureViewCreateInfo defaultInfo;
 	defaultInfo.m_viewType = m_textureUsage;
 
 	if (viewInfo == nullptr)
@@ -77,14 +77,15 @@ ShaderResourceView* Texture::CreateOrGetShaderResourceView(const TextureViewInfo
 			ShaderResourceView* shaderResourceView = new ShaderResourceView();
 
 			shaderResourceView->m_dxSRV = dxSRV;
-			shaderResourceView->m_dimensions = IntVector3(m_dimensions.x, m_dimensions.y, 0);
 			shaderResourceView->m_sourceTexture = this;
 			shaderResourceView->m_byteSize = m_byteSize;
 			shaderResourceView->m_usage = TEXTURE_USAGE_SHADER_RESOURCE_BIT;
+			shaderResourceView->m_createInfo = *viewInfo;
+			uint32 infoHash = HashData((void*)viewInfo, sizeof(viewInfo));
+			shaderResourceView->m_createInfoHash = infoHash;
 
 			// Add it to the map
-			uint32 infoHash = HashData((void*)viewInfo, sizeof(viewInfo));
-			m_views[infoHash] = shaderResourceView;
+			m_views.push_back(shaderResourceView);
 
 			return shaderResourceView;
 		}
@@ -95,13 +96,13 @@ ShaderResourceView* Texture::CreateOrGetShaderResourceView(const TextureViewInfo
 
 
 //-------------------------------------------------------------------------------------------------
-RenderTargetView* Texture::CreateOrGetColorTargetView(const TextureViewInfo* viewInfo /*= nullptr*/)
+RenderTargetView* Texture::CreateOrGetColorTargetView(const TextureViewCreateInfo* viewInfo /*= nullptr*/)
 {
 	ASSERT_OR_DIE(m_dxHandle != nullptr, "Attempted to create a view for an uninitialized Texture!");
 	ASSERT_OR_DIE((m_textureUsage & TEXTURE_USAGE_RENDER_TARGET_BIT) != 0, "Attempted to create a ColorTargetView for a texture that doesn't support it!");
 
 	// Default the info
-	TextureViewInfo defaultInfo;
+	TextureViewCreateInfo defaultInfo;
 	defaultInfo.m_viewType = m_textureUsage;
 
 	if (viewInfo == nullptr)
@@ -129,14 +130,15 @@ RenderTargetView* Texture::CreateOrGetColorTargetView(const TextureViewInfo* vie
 			RenderTargetView* colorTargetView = new RenderTargetView();
 
 			colorTargetView->m_dxRTV = dxRTV;
-			colorTargetView->m_dimensions = m_dimensions;
 			colorTargetView->m_sourceTexture = this;
 			colorTargetView->m_byteSize = m_byteSize;
 			colorTargetView->m_usage = TEXTURE_USAGE_RENDER_TARGET_BIT;
+			colorTargetView->m_createInfo = *viewInfo;
+			uint32 infoHash = HashData((void*)viewInfo, sizeof(viewInfo));
+			colorTargetView->m_createInfoHash = infoHash;
 
 			// Add it to the map
-			uint32 infoHash = HashData((void*)viewInfo, sizeof(viewInfo));
-			m_views[infoHash] = colorTargetView;
+			m_views.push_back(colorTargetView);
 
 			return colorTargetView;
 		}
@@ -150,13 +152,13 @@ RenderTargetView* Texture::CreateOrGetColorTargetView(const TextureViewInfo* vie
 
 
 //-------------------------------------------------------------------------------------------------
-DepthStencilTargetView* Texture::CreateOrGetDepthStencilTargetView(const TextureViewInfo* viewInfo /*= nullptr*/)
+DepthStencilTargetView* Texture::CreateOrGetDepthStencilTargetView(const TextureViewCreateInfo* viewInfo /*= nullptr*/)
 {
 	ASSERT_OR_DIE(m_dxHandle != nullptr, "Attempted to create a view for an uninitialized Texture!");
 	ASSERT_OR_DIE((m_textureUsage & TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT) != 0, "Attempted to create a DepthStencilView for a texture that doesn't support it!");
 
 	// Default the info
-	TextureViewInfo defaultInfo;
+	TextureViewCreateInfo defaultInfo;
 	defaultInfo.m_viewType = m_textureUsage;
 
 	if (viewInfo == nullptr)
@@ -190,14 +192,15 @@ DepthStencilTargetView* Texture::CreateOrGetDepthStencilTargetView(const Texture
 			DepthStencilTargetView* depthStencilView = new DepthStencilTargetView();
 
 			depthStencilView->m_dxDSV = dxDSV;
-			depthStencilView->m_dimensions = m_dimensions;
 			depthStencilView->m_sourceTexture = this;
 			depthStencilView->m_byteSize = m_byteSize;
 			depthStencilView->m_usage = TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT;
+			depthStencilView->m_createInfo = *viewInfo;
+			uint32 infoHash = HashData((void*)viewInfo, sizeof(viewInfo));
+			depthStencilView->m_createInfoHash = infoHash;
 
 			// Add it to the map
-			uint32 infoHash = HashData((void*)viewInfo, sizeof(viewInfo));
-			m_views[infoHash] = depthStencilView;
+			m_views.push_back(depthStencilView);
 
 			return depthStencilView;
 		}
@@ -212,14 +215,7 @@ DepthStencilTargetView* Texture::CreateOrGetDepthStencilTargetView(const Texture
 
 //-------------------------------------------------------------------------------------------------
 void Texture::Clear()
-{
-	DX_SAFE_RELEASE(m_dxHandle);
-	
-	m_memoryUsage = GPU_MEMORY_USAGE_DYNAMIC;
-	m_textureUsage = 0U;
-	m_dimensions = IntVector3::ZERO;
-	m_byteSize = 0;
-	
+{	
 	uint32 numViews = (uint32) m_views.size();
 	for (uint32 viewIndex = 0; viewIndex < numViews; ++viewIndex)
 	{
@@ -227,18 +223,29 @@ void Texture::Clear()
 	}
 
 	m_views.clear();
+
+	DX_SAFE_RELEASE(m_dxHandle);
+
+	m_memoryUsage = GPU_MEMORY_USAGE_DYNAMIC;
+	m_textureUsage = 0U;
+	m_dimensions = IntVector3::ZERO;
+	m_byteSize = 0;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-TextureView* Texture::GetView(const TextureViewInfo* viewInfo) const
+TextureView* Texture::GetView(const TextureViewCreateInfo* viewInfo) const
 {
 	if (viewInfo != nullptr)
 	{
 		uint32 infoHash = HashData((void*)viewInfo, sizeof(viewInfo));
-		if (m_views.find(infoHash) != m_views.end())
+		uint32 numViews = (uint32)m_views.size();
+		for (uint32 viewIndex = 0; viewIndex < numViews; ++viewIndex)
 		{
-			return m_views.at(infoHash);
+			if (m_views[viewIndex]->GetCreateInfoHash() == infoHash)
+			{
+				return m_views[viewIndex];
+			}
 		}
 	}
 

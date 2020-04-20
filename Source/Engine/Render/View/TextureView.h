@@ -32,6 +32,11 @@ struct ID3D11ShaderResourceView;
 struct ID3D11RenderTargetView;
 struct ID3D11DepthStencilView;
 
+struct TextureViewCreateInfo
+{
+	TextureUsageBits m_viewType = 0;
+};
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -46,20 +51,24 @@ class TextureView
 	friend class Texture;
 
 public:
+	//-----Public Methods-----
 
 	virtual ~TextureView();
 
-	int GetWidth() const { return m_dimensions.x; }
-	int GetHeight() const { return m_dimensions.y; }
+	int		GetWidth() const;
+	int		GetHeight() const;
+	float	GetAspect() const;
+	uint32	GetCreateInfoHash() const;
 
 
 protected:
 	//-----Protected Data-----
 
-	TextureUsageBits	m_usage = 0;
-	const Texture*		m_sourceTexture = nullptr;
-	IntVector3			m_dimensions = IntVector3::ZERO;
-	uint32				m_byteSize = 0;
+	TextureUsageBits				m_usage = 0;
+	const Texture*					m_sourceTexture = nullptr;
+	uint32							m_byteSize = 0;
+	TextureViewCreateInfo			m_createInfo;
+	uint32							m_createInfoHash = 0U;
 
 	union
 	{

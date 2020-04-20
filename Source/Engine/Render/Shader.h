@@ -53,12 +53,13 @@ public:
 	ShaderStage() {}
 	~ShaderStage();
 
-	bool LoadFromShaderSource(const char* filename, const void* source, const size_t sourceByteSize, ShaderStageType stageType);
-	bool IsValid() const { return m_handle != nullptr; }
+	bool				LoadFromShaderSource(const char* filename, const void* source, const size_t sourceByteSize, ShaderStageType stageType);
+	bool				IsValid() const { return m_handle != nullptr; }
 
 	ID3D11VertexShader* GetAsVertexShader() const { return m_vertexShader; }
-	ID3D11PixelShader* GetAsFragmentShader() const { return m_fragmentShader; }
-	ID3DBlob* GetCompiledSource() const { return m_compiledSource; }
+	ID3D11PixelShader*	GetAsFragmentShader() const { return m_fragmentShader; }
+	ID3DBlob*			GetCompiledSource() const { return m_compiledSource; }
+
 
 private:
 	//-----Private Data-----
@@ -68,9 +69,9 @@ private:
 
 	union
 	{
-		ID3D11Resource* m_handle = nullptr;
+		ID3D11Resource*		m_handle = nullptr;
 		ID3D11VertexShader* m_vertexShader;
-		ID3D11PixelShader* m_fragmentShader;
+		ID3D11PixelShader*	m_fragmentShader;
 	};
 
 };

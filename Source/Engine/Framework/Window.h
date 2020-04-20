@@ -41,7 +41,7 @@ public:
 	static void		Initialize(float aspect, const char* windowTitle);
 	static void		Shutdown();
 
-	void			UpdateBounds();
+	void			ResizeWindowToWindowsRect();
 	void			RegisterMessageHandler(WindowsMessageHandler handler);
 	void			UnregisterMessageHandler(WindowsMessageHandler handler);
 

@@ -11,11 +11,11 @@
 #include "Engine/Render/Buffer/UniformBuffer.h"
 #include "Engine/Render/Camera/Camera.h"
 #include "Engine/Render/Core/RenderContext.h"
-#include "Engine/Render/View/RenderTargetView.h"
-#include "Engine/Render/View/ShaderResourceView.h"
-#include "Engine/Render/View/DepthStencilTargetView.h"
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Framework/Window.h"
+#include "Engine/Render/Texture/Texture2D.h"
+#include "Engine/Render/View/DepthStencilTargetView.h"
+#include "Engine/Render/View/RenderTargetView.h"
 #include "Engine/Utility/NamedProperties.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -70,13 +70,8 @@ Camera::Camera()
 	m_transform.rotation = Quaternion::IDENTITY;
 	m_transform.scale = Vector3::ONES;
 
-	m_colorTargetView = new RenderTargetView();
-
-	// Set the target to the backbuffer (for now)
-	SetColorTargetView(g_renderContext->GetDefaultColorTargetView(), false);
-
-	// Set the depth target to default depth
-	SetDepthStencilTargetView(g_renderContext->GetDefaultDepthStencilTargetView(), false);
+	// Default to backbuffer for render target
+	SetRenderTarget(g_renderContext->GetDefaultRenderTarget(), false);
 
 	g_eventSystem->SubscribeEventCallbackObjectMethod("window-resize", &Camera::Event_WindowResize, *this);
 }
@@ -89,15 +84,41 @@ Camera::~Camera()
 
 	SAFE_DELETE_POINTER(m_cameraUBO);
 
-	if (m_ownsColorTargetView)
+	if (m_ownsRenderTarget)
 	{
-		SAFE_DELETE_POINTER(m_colorTargetView);
+		SAFE_DELETE_POINTER(m_renderTarget);
 	}
 
-	if (m_ownsDepthTargetView)
+	if (m_ownsDepthTarget)
 	{
-		SAFE_DELETE_POINTER(m_depthTargetView);
+		SAFE_DELETE_POINTER(m_depthTarget);
 	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Camera::SetRenderTarget(Texture2D* renderTarget, bool ownsTarget)
+{
+	if (m_ownsRenderTarget)
+	{
+		SAFE_DELETE_POINTER(m_renderTarget);
+	}
+
+	m_renderTarget = renderTarget;
+	m_ownsRenderTarget = ownsTarget;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Camera::SetDepthTarget(Texture2D* depthTarget, bool ownsTarget)
+{
+	if (m_ownsDepthTarget)
+	{
+		SAFE_DELETE_POINTER(m_depthTarget);
+	}
+
+	m_depthTarget = depthTarget;
+	m_ownsDepthTarget = ownsTarget;
 }
 
 
@@ -125,28 +146,10 @@ void Camera::SetRotation(const Vector3& rotation)
 
 
 //-------------------------------------------------------------------------------------------------
-void Camera::SetColorTargetView(RenderTargetView* colorTargetView, bool ownsColorTargetView)
+void Camera::SetProjection(CameraProjection projectionType, const Matrix44& projection)
 {
-	if (m_colorTargetView != nullptr && m_ownsColorTargetView)
-	{
-		SAFE_DELETE_POINTER(m_colorTargetView);
-	}
-
-	m_colorTargetView = colorTargetView;
-	m_ownsColorTargetView = ownsColorTargetView;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void Camera::SetDepthStencilTargetView(DepthStencilTargetView* depthTargetView, bool ownsDepthTargetView)
-{
-	if (m_depthTargetView != nullptr && m_ownsDepthTargetView)
-	{
-		SAFE_DELETE_POINTER(m_depthTargetView);
-	}
-
-	m_depthTargetView = depthTargetView;
-	m_ownsDepthTargetView = ownsDepthTargetView;
+	m_currentProjection = projectionType;
+	m_projectionMatrix = projection;
 }
 
 
@@ -230,6 +233,38 @@ void Camera::SetViewMatrix(const Matrix44& viewMatrix)
 }
 
 
+Texture2D* Camera::GetRenderTarget() const
+{
+	return m_renderTarget;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Texture2D* Camera::GetDepthTarget() const
+{
+	return m_depthTarget;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+RenderTargetView* Camera::GetRenderTargetView()
+{
+	return m_renderTarget->CreateOrGetColorTargetView();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+DepthStencilTargetView* Camera::GetDepthStencilTargetView()
+{
+	if (m_depthTarget != nullptr)
+	{
+		return m_depthTarget->CreateOrGetDepthStencilTargetView();
+	}
+
+	return nullptr;
+}
+
+
 //-------------------------------------------------------------------------------------------------
 Matrix44 Camera::GetCameraMatrix()
 {
@@ -307,11 +342,6 @@ bool Camera::Event_WindowResize(NamedProperties& args)
 		float height = m_orthoBounds.GetHeight();
 		float aspect = args.Get("client-aspect", m_orthoBounds.GetAspect());
 		SetProjectionOrthographic(height, aspect);
-
-		NamedProperties orthoArgs;
-		orthoArgs.Set("ortho-bounds", m_orthoBounds);
-
-		FireEvent("ortho-resize");
 	}
 
 	return false;

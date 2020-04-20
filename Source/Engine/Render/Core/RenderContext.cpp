@@ -7,6 +7,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Event/EventSystem.h"
 #include "Engine/Render/Buffer/UniformBuffer.h"
 #include "Engine/Render/Buffer/VertexBuffer.h"
 #include "Engine/Render/Camera/Camera.h"
@@ -27,6 +28,7 @@
 #include "Engine/Framework/Window.h"
 #include "Engine/IO/Image.h"
 #include "Engine/Math/MathUtils.h"
+#include "Engine/Utility/NamedProperties.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -71,12 +73,16 @@ void RenderContext::Initialize()
 
 	g_renderContext->DxInit();
 	g_renderContext->PostDxInit();
+
+	g_eventSystem->SubscribeEventCallbackObjectMethod("window-resize", &RenderContext::Event_WindowResize, *g_renderContext);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void RenderContext::Shutdown()
 {
+	g_eventSystem->UnsubscribeEventCallbackObjectMethod("window-resize", &RenderContext::Event_WindowResize, *g_renderContext);
+
 	SAFE_DELETE_POINTER(g_renderContext);
 }
 
@@ -91,7 +97,6 @@ void RenderContext::BeginFrame()
 	// Store it off
 	m_defaultColorTarget->CreateFromDxTexture2D(backbuffer);
 
-	// Release the local reference to the backbuffer
 	DX_SAFE_RELEASE(backbuffer);
 }
 
@@ -101,9 +106,6 @@ void RenderContext::EndFrame()
 {
 	// Swap buffers
 	m_dxSwapChain->Present(0, 0);
-
-	// TEMP - Move to EndCamera()
-	m_dxContext->OMSetRenderTargets(0, nullptr, nullptr);
 }
 
 
@@ -113,7 +115,7 @@ void RenderContext::BeginCamera(Camera* camera)
 	m_currentCamera = camera;
 
 	// Render to the camera's target
-	RenderTargetView* colorView = camera->GetColorTargetView();
+	RenderTargetView* colorView = camera->GetRenderTargetView();
 	ASSERT_OR_DIE(colorView != nullptr, "Beginning camera will null target view!");
 
 	ID3D11RenderTargetView* rtv = colorView->GetDxHandle();
@@ -159,10 +161,10 @@ void RenderContext::ClearScreen(const Rgba& color)
 	colors[2] = color.GetBlueFloat();
 	colors[3] = color.GetAlphaFloat();
 
-	if (m_currentCamera->GetColorTargetView() != nullptr)
+	if (m_currentCamera->GetRenderTargetView() != nullptr)
 	{
 		ID3D11RenderTargetView* dxRTV = nullptr;
-		dxRTV = m_currentCamera->GetColorTargetView()->GetDxHandle();
+		dxRTV = m_currentCamera->GetRenderTargetView()->GetDxHandle();
 		m_dxContext->ClearRenderTargetView(dxRTV, colors);
 	}
 }
@@ -317,7 +319,11 @@ void RenderContext::DxInit()
 	HWND hwnd = (HWND)g_window->GetWindowContext();
 
 	// Creation Flags
-	unsigned int device_flags = 0U;
+	unsigned int deviceFlags = 0U;
+
+#ifdef DEBUG_DX_DEVICE
+	deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+#endif
 
 	// Setup our Swap Chain
 	DXGI_SWAP_CHAIN_DESC swap_desc;
@@ -337,7 +343,7 @@ void RenderContext::DxInit()
 	HRESULT hr = ::D3D11CreateDeviceAndSwapChain(nullptr, // Adapter, if nullptr, will use adapter window is primarily on.
 		D3D_DRIVER_TYPE_HARDWARE,	// Driver Type - We want to use the GPU (HARDWARE)
 		nullptr,					// Software Module - DLL that implements software mode (we do not use)
-		device_flags,				// device creation options
+		deviceFlags,				// device creation options
 		nullptr,					// feature level (use default)
 		0U,							// number of feature levels to attempt
 		D3D11_SDK_VERSION,			// SDK Version to use
@@ -387,18 +393,25 @@ void RenderContext::InitDefaultColorAndDepthViews()
 	backbuffer->GetDesc(&desc);
 
 	// Color target
-	m_defaultColorTarget = new Texture2D();
+	if (m_defaultColorTarget == nullptr)
+	{
+		m_defaultColorTarget = new Texture2D();
+	}
+
 	m_defaultColorTarget->CreateFromDxTexture2D(backbuffer);
 
 	// Depth target
-	m_defaultDepthStencilTarget = new Texture2D();
+	if (m_defaultDepthStencilTarget == nullptr)
+	{
+		m_defaultDepthStencilTarget = new Texture2D();
+	}
+
 	m_defaultDepthStencilTarget->CreateAsDepthStencilTarget(desc.Width, desc.Height);
 
 	// Create default views for both
 	m_defaultColorTarget->CreateOrGetColorTargetView();
 	m_defaultDepthStencilTarget->CreateOrGetDepthStencilTargetView();
 
-	// Release the local reference to the backbuffer
 	DX_SAFE_RELEASE(backbuffer);
 }
 
@@ -484,7 +497,7 @@ IDXGISwapChain* RenderContext::GetDxSwapChain()
 
 
 //-------------------------------------------------------------------------------------------------
-RenderTargetView* RenderContext::GetDefaultColorTargetView() const
+RenderTargetView* RenderContext::GetDefaultRenderTargetView() const
 {
 	return m_defaultColorTarget->CreateOrGetColorTargetView();
 }
@@ -494,4 +507,22 @@ RenderTargetView* RenderContext::GetDefaultColorTargetView() const
 DepthStencilTargetView* RenderContext::GetDefaultDepthStencilTargetView() const
 {
 	return m_defaultDepthStencilTarget->CreateOrGetDepthStencilTargetView();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool RenderContext::Event_WindowResize(NamedProperties& args)
+{
+	m_defaultDepthStencilTarget->Clear();
+	m_defaultColorTarget->Clear();
+
+	int clientWidth = args.Get("client-width", 0);
+	int clientHeight = args.Get("client-height", 0);
+
+	HRESULT hr = m_dxSwapChain->ResizeBuffers(0, clientWidth, clientHeight, DXGI_FORMAT_UNKNOWN, 0);
+	ASSERT_OR_DIE(hr == S_OK, "Couldn't resize back buffers!");
+
+	InitDefaultColorAndDepthViews();
+
+	return false;
 }

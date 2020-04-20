@@ -129,7 +129,7 @@ static bool WindowMessageHandler(unsigned int msg, size_t wParam, size_t lParam)
 	{
 	case WM_SIZE: // Window was resized
 	{
-		g_window->UpdateBounds();
+		g_window->ResizeWindowToWindowsRect();
 		return true;
 	}
 	}
@@ -212,7 +212,7 @@ void Window::Shutdown()
 
 
 //-------------------------------------------------------------------------------------------------
-void Window::UpdateBounds()
+void Window::ResizeWindowToWindowsRect()
 {
 	RECT clientRect;
 	GetClientRect((HWND)m_hwnd, &clientRect);
@@ -233,6 +233,8 @@ void Window::UpdateBounds()
 	NamedProperties args;
 	args.Set("client-bounds", m_clientPixelBounds);
 	args.Set("client-aspect", GetClientAspect());
+	args.Set("client-width", static_cast<int>(m_clientPixelBounds.GetWidth()));
+	args.Set("client-height", static_cast<int>(m_clientPixelBounds.GetHeight()));
 
 	FireEvent("window-resize", args);
 }

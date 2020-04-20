@@ -12,7 +12,7 @@
 #include "Engine/Math/IntVector3.h"
 #include "Engine/Render/Buffer/RenderBuffer.h"
 #include "Engine/Render/View/TextureView.h"
-#include <map>
+#include <vector>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -26,11 +26,6 @@ class Image;
 class RenderTargetView;
 class ShaderResourceView;
 struct ID3D11Resource;
-
-struct TextureViewInfo
-{
-	TextureUsageBits m_viewType = 0;
-};
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -47,19 +42,20 @@ public:
 	//-----Public Methods-----
 
 	virtual ~Texture();
-	virtual ShaderResourceView*			CreateOrGetShaderResourceView(const TextureViewInfo* viewInfo = nullptr);
-	virtual RenderTargetView*			CreateOrGetColorTargetView(const TextureViewInfo* viewInfo = nullptr);
-	virtual DepthStencilTargetView*		CreateOrGetDepthStencilTargetView(const TextureViewInfo* viewInfo = nullptr);
 
-	int									GetWidth() { return m_dimensions.x; }
-	int									GetHeight() { return m_dimensions.y; }
+	void								Clear();
+	virtual ShaderResourceView*			CreateOrGetShaderResourceView(const TextureViewCreateInfo* viewInfo = nullptr);
+	virtual RenderTargetView*			CreateOrGetColorTargetView(const TextureViewCreateInfo* viewInfo = nullptr);
+	virtual DepthStencilTargetView*		CreateOrGetDepthStencilTargetView(const TextureViewCreateInfo* viewInfo = nullptr);
+
+	int									GetWidth() const { return m_dimensions.x; }
+	int									GetHeight() const { return m_dimensions.y; }
 
 
 protected:
 	//------Protected Methods-----
 
-	void								Clear();
-	TextureView*						GetView(const TextureViewInfo* viewInfo) const;
+	TextureView*						GetView(const TextureViewCreateInfo* viewInfo) const;
 
 
 protected:
@@ -70,7 +66,7 @@ protected:
 	TextureUsageBits					m_textureUsage = 0;
 	IntVector3							m_dimensions = IntVector3::ZERO;
 	uint32								m_byteSize = 0;
-	std::map<uint32, TextureView*>		m_views;
+	std::vector<TextureView*>			m_views;
 
 };
 

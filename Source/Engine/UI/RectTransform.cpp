@@ -377,16 +377,7 @@ OBB2 RectTransform::GetBounds() const
 	{
 		// Just return my absolute bounds
 		AABB2 bounds = AABB2(m_width, m_height);
-
-		float scaledWidth = m_width * m_scale.x;
-		bounds.mins.x = m_xPosition + -1.0f * (m_pivot.x * scaledWidth);
-		bounds.maxs.x = bounds.mins.x + scaledWidth;
-
-		float scaledHeight = m_height * m_scale.y;
-		bounds.mins.y = m_yPosition + -1.0f * (m_pivot.y * scaledHeight);
-		bounds.maxs.y = bounds.mins.y + scaledHeight;
-
-		return OBB2(bounds, m_orientation);
+		return OBB2(bounds, 0.f);
 	}
 }
 

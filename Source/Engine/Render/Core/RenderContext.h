@@ -90,11 +90,13 @@ public:
 	ID3D11DeviceContext*				GetDxContext();
 	IDXGISwapChain*						GetDxSwapChain();
 
-	Texture2D*							GetDefaultColorTarget() const { return m_defaultColorTarget; }
+	Texture2D*							GetDefaultRenderTarget() const { return m_defaultColorTarget; }
 	Texture2D*							GetDefaultDepthStencilTarget() const { return m_defaultDepthStencilTarget; }
 
-	RenderTargetView*					GetDefaultColorTargetView() const;
+	RenderTargetView*					GetDefaultRenderTargetView() const;
 	DepthStencilTargetView*				GetDefaultDepthStencilTargetView() const;
+
+	bool								Event_WindowResize(NamedProperties& args);
 
 
 private:
