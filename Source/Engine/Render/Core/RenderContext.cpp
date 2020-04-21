@@ -8,6 +8,8 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Event/EventSystem.h"
+#include "Engine/Job/EngineJobs.h"
+#include "Engine/Job/JobSystem.h"
 #include "Engine/Render/Buffer/UniformBuffer.h"
 #include "Engine/Render/Buffer/VertexBuffer.h"
 #include "Engine/Render/Camera/Camera.h"
@@ -310,6 +312,82 @@ void RenderContext::Draw(const DrawCall& drawCall)
 	{
 		m_dxContext->Draw(draw.m_elementCount, draw.m_startIndex);
 	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RenderContext::SaveTextureToImage(Texture2D* texture, const char* filepath)
+{
+	ASSERT_RETURN(texture != nullptr, NO_RETURN_VAL, "Attempted to save a null texture!");
+
+	D3D11_MAPPED_SUBRESOURCE mappedSubResource;
+	ID3D11Texture2D* dxSrcTexture = (ID3D11Texture2D*) texture->GetDxHandle();
+	ASSERT_RETURN(dxSrcTexture != nullptr, NO_RETURN_VAL, "Attempted to save an uninitialized texture!");
+
+	HRESULT hr = m_dxContext->Map(dxSrcTexture, 0, D3D11_MAP_READ, 0, &mappedSubResource);
+	ID3D11Texture2D* dxTextureMapped = dxSrcTexture;
+	bool createdStagingTexture = false;
+
+	if (FAILED(hr))
+	{
+		// Probably failed to map if the texture isn't CPU accessible
+		// Create a staging texture and copy it to that, then access
+		if (hr == E_INVALIDARG)
+		{
+			D3D11_TEXTURE2D_DESC srcTexDesc;
+			dxSrcTexture->GetDesc(&srcTexDesc);
+
+			D3D11_TEXTURE2D_DESC stageTexDesc;
+			stageTexDesc.Width = srcTexDesc.Width;
+			stageTexDesc.Height = srcTexDesc.Height;
+			stageTexDesc.MipLevels = srcTexDesc.MipLevels;
+			stageTexDesc.ArraySize = srcTexDesc.ArraySize;
+			stageTexDesc.Format = srcTexDesc.Format;
+			stageTexDesc.SampleDesc = srcTexDesc.SampleDesc;
+			stageTexDesc.Usage = D3D11_USAGE_STAGING;
+			stageTexDesc.BindFlags = 0;
+			stageTexDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+			stageTexDesc.MiscFlags = 0;
+
+			// Create staging texture
+			ID3D11Texture2D* dxStageTexture;
+			hr = m_dxDevice->CreateTexture2D(&stageTexDesc, nullptr, &dxStageTexture);
+			ASSERT_RETURN(SUCCEEDED(hr), NO_RETURN_VAL, "Couldn't create a staging texture for saving!");
+
+			// Copy source to staging
+			m_dxContext->CopyResource(dxStageTexture, dxSrcTexture);
+
+			// Now map the staging texture
+			hr = m_dxContext->Map(dxStageTexture, 0, D3D11_MAP_READ, 0, &mappedSubResource);
+			dxTextureMapped = dxStageTexture;
+			createdStagingTexture = true;
+			ASSERT_RETURN(SUCCEEDED(hr), NO_RETURN_VAL, "Couldn't map a staging texture for saving!");
+		}
+		else
+		{
+			ASSERT_RETURN(false, NO_RETURN_VAL, "Tried to save a texture to file but failed!");
+		}
+	}
+
+	// Setup Job info
+	int texelWidth = texture->GetWidth();
+	int texelHeight = texture->GetHeight();
+	int numComponentsPerTexel = mappedSubResource.RowPitch / texelWidth;
+	int totalBytes = texelWidth * texelHeight * numComponentsPerTexel;
+	void* imgData = malloc(totalBytes); // The job will free this buffer
+	memcpy(imgData, mappedSubResource.pData, totalBytes);
+
+	// Unmap and clean up staging texture if used
+	m_dxContext->Unmap(dxTextureMapped, 0);
+
+	if (createdStagingTexture)
+	{
+		DX_SAFE_RELEASE(dxTextureMapped)
+	}
+
+	// Kick the job
+	SaveTextureJob* saveTexJob = new SaveTextureJob(texelWidth, texelHeight, numComponentsPerTexel, filepath, imgData);
+	g_jobSystem->QueueJob(saveTexJob);
 }
 
 

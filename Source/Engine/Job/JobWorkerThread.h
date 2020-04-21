@@ -39,7 +39,6 @@ public:
 	
 	std::string		GetName() const { return m_name; }
 	bool			IsRunning() const { return m_isRunning; }
-	//std::thread&	GetThreadHandle() { return m_threadHandle; }
 
 	void StopRunning() { m_isRunning = false; }
 	void Join();

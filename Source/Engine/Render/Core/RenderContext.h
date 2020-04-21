@@ -86,6 +86,8 @@ public:
 	void								DrawRenderable(Renderable& renderable);
 	void								Draw(const DrawCall& drawCall);
 
+	void								SaveTextureToImage(Texture2D* texture, const char* filepath);
+
 	ID3D11Device*						GetDxDevice();
 	ID3D11DeviceContext*				GetDxContext();
 	IDXGISwapChain*						GetDxSwapChain();

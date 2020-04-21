@@ -49,3 +49,4 @@ std::string ToString(const IntVector2& inValue);
 std::string ToString(const AABB2& inValue);
 std::string ToString(const AABB3& inValue);
 std::string ToString(const NamedProperties& inValue);
+std::string ToString(void* inValue); // For allowing pointers to be stored in NamedProperties

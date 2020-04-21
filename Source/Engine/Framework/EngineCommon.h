@@ -25,6 +25,7 @@
 #define UNIMPLEMENTED()  QUOTE(__FILE__) " (" QUOTE(__LINE__) ")" ; ERROR_AND_DIE("Function unimplemented!") 
 #define _CAT(A,B) A##B
 #define CAT(A,B) _CAT(A,B)
+#define NO_RETURN_VAL
 
 //-------------------------------------------------------------------------------------------------
 // COMPILE-TIME OPTIONS
@@ -38,7 +39,7 @@
 //#define DEBUG_SHADERS
 
 // For setting DX device debug flags
-// #define DEBUG_DX_DEVICE
+#define DEBUG_DX_DEVICE
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS

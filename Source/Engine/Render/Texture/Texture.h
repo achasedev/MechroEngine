@@ -50,6 +50,7 @@ public:
 
 	int									GetWidth() const { return m_dimensions.x; }
 	int									GetHeight() const { return m_dimensions.y; }
+	ID3D11Resource*						GetDxHandle() const { return m_dxHandle; }
 
 
 protected:

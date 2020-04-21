@@ -143,7 +143,17 @@ void JobWorkerThread::MarkJobAsFinished(Job* finishedJob)
 		}
 
 		ASSERT_OR_DIE(foundRunning, "Job finished but wasn't in running array!");
-		finishedJobs.push_back(finishedJob);
+
+		// If a job can be auto-finalized, let it
+		if (finishedJob->IsAutoFinalizing())
+		{
+			finishedJob->Finalize();
+			delete finishedJob;
+		}
+		else
+		{
+			finishedJobs.push_back(finishedJob);
+		}
 	}
 	g_jobSystem->m_finishedLock.unlock();
 	g_jobSystem->m_runningLock.unlock();

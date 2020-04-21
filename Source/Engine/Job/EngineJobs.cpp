@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: April 17th, 2020
+/// Date Created: April 20th, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -8,11 +8,9 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
-#include "Engine/Render/Font/Font.h"
-#include "Engine/Render/Font/FontAtlas.h"
-#include "Engine/Render/Texture/Texture2D.h"
-#include "Engine/Utility/SpritePacker.h"
-#include "Engine/Utility/StringUtils.h"
+#include "Engine/Job/EngineJobs.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "ThirdParty/stb/stb_image_write.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -35,54 +33,32 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-void FontAtlas::Initialize(const Font* font, uint32 pixelHeight, Texture2D* texture /*= nullptr*/)
+SaveTextureJob::SaveTextureJob(int texelWidth, int texelHeight, int numComponentsPerTexel, const char* filepath, void* data)
+	: Job(true) // Auto finalizes
+	, m_texelWidth(texelWidth)
+	, m_texelHeight(texelHeight)
+	, m_numComponentsPerTexel(numComponentsPerTexel)
+	, m_destFilepath(filepath)
+	, m_data(data)
 {
-	if (texture == nullptr)
-	{
-		texture = new Texture2D();
-		texture->CreateFromBuffer(nullptr, 0U, 512, 512, 4U, Stringf("Font %s, pixel height %u", font->GetSourceFile().c_str(), pixelHeight).c_str());
-	}
-
-	m_glyphPacker = new SpritePacker();
-	m_glyphPacker->Initialize(texture);
-	m_ownerFont = font;
-	m_pixelHeight = pixelHeight;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Texture2D* FontAtlas::GetTexture()
+void SaveTextureJob::Execute()
 {
-	return m_glyphPacker->GetTexture();
+	ASSERT_RETURN(m_data != nullptr, NO_RETURN_VAL, "Save texture job received null data!");
+	stbi_write_png(m_destFilepath.c_str(), m_texelWidth, m_texelHeight, m_numComponentsPerTexel, m_data, 0);
+
+	// Free the buffer
+	SAFE_FREE_POINTER(m_data);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-AABB2 FontAtlas::CreateOrGetUVsForGlyph(const char glyph)
+void SaveTextureJob::Finalize()
 {
-	bool glyphExists = m_glyphUVs.find(glyph) != m_glyphUVs.end();
-
-	if (glyphExists)
-	{
-		return m_glyphUVs.at(glyph);
-	}
-
-	// Have Freetype create a rendering for our pixel height, then pack it in the atlas
-	int glyphWidth = 0;
-	int glyphHeight = 0;
-	AABB2 glyphUVs = AABB2::ZERO_TO_ONE;
-
-	const uint8* glyphSrc = m_ownerFont->RenderGlyphForPixelHeight(glyph, m_pixelHeight, glyphWidth, glyphHeight);
-
-	if (glyphSrc != nullptr)
-	{
-		bool glyphPacked = m_glyphPacker->PackSprite(glyphSrc, glyphWidth, glyphHeight, 1U, glyphUVs);
-
-		if (glyphPacked)
-		{
-			m_glyphUVs[glyph] = glyphUVs;
-		}
-	}
-
-	return glyphUVs;
+	// Nothing 
+	int x = 0;
+	x = 5;
 }

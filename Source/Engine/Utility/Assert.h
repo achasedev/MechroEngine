@@ -169,3 +169,30 @@ int SystemDialogue_YesNoCancel(const std::string& messageTitle, const std::strin
 	}																							\
 }
 #endif
+
+
+//-----------------------------------------------------------------------------------------------
+// ASSERT_RETURN
+//
+// Removed if DISABLE_ASSERTS is defined, typically in a Final build configuration.
+// Triggers if condition is false.
+// Depending on the platform, this typically:
+//	- Logs a warning message to the console and/or log file
+//	- Opens an warning/message dialogue box
+//	- Triggers a debug breakpoint (if appropriate development suite is present)
+//	- Continues execution, returning from the function this assert is placed
+//
+#if defined(DISABLE_ASSERTS)
+#define ASSERT_RETURN(condition, returnVal, format, ...) { (void)(condition); }
+#else
+#define ASSERT_RETURN(condition, returnVal, format, ...)												\
+{																								\
+	if(!(condition))																			\
+	{																							\
+		const char* conditionText = #condition;													\
+		std::string errorMessageText = Stringf(format, __VA_ARGS__);							\
+		RecoverableWarning(__FILE__,  __FUNCTION__, __LINE__, errorMessageText, conditionText);	\
+		return returnVal;																							\
+	}																							\
+}
+#endif

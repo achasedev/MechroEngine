@@ -45,6 +45,9 @@ JobSystem::JobSystem()
 void JobSystem::Initialize()
 {
 	g_jobSystem = new JobSystem();
+
+	// Create one thread just for general work
+	g_jobSystem->CreateWorkerThread("DEFAULT", WORKER_FLAGS_ALL);
 }
 
 

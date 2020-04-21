@@ -34,7 +34,8 @@ class Job
 public:
 	//-----Public Methods-----
 
-	Job() {}
+	Job(bool autoFinalizing)
+		: m_autoFinalizing(autoFinalizing) {}
 	virtual ~Job() {}
 
 	virtual void	Execute() = 0;
@@ -42,6 +43,7 @@ public:
 	int				GetID() const { return m_jobID; }
 	int				GetType() const { return m_jobType; }
 	uint32			GetFlags() const { return m_jobFlags; }
+	bool			IsAutoFinalizing() const { return m_autoFinalizing; }
 
 
 protected:
@@ -50,9 +52,9 @@ protected:
 	int		m_jobID = -1;
 	int		m_jobType = -1;
 	uint32	m_jobFlags = 0xffffffff;
+	bool	m_autoFinalizing = false;
 
 };
-
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
