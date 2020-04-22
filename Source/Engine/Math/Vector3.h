@@ -62,6 +62,8 @@ public:
 	float					GetLengthSquared() const;
 	float					Normalize();							
 	Vector3					GetNormalized() const;
+	float					SafeNormalize(const Vector3& fallbackNorm);
+	Vector3					GetNormalizeSafe(const Vector3& fallbackNorm) const;
 
 	static Vector3			Slerp(const Vector3& start, const Vector3& end, float percent);
 

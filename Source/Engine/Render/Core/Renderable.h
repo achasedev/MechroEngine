@@ -42,11 +42,15 @@ class Renderable
 public:
 	//-----Public Methods-----
 
+	void			SetDrawMatrix(uint32 drawIndex, const Matrix44& drawMatrix);
+	void			SetDrawMaterial(uint32 drawIndex, Material* material);
+	void			SetDrawMesh(uint32 drawIndex, Mesh* mesh);
+	void			SetDraw(uint32 drawIndex, const RenderableDraw& draw);
 	void			SetRenderableMatrix(const Matrix44& rendMatrix) { m_matrix = rendMatrix; }
 	void			AddDraw(Mesh* mesh, Material* material, Matrix44 drawMatrix = Matrix44::IDENTITY);
 
 	uint32			GetNumDrawCalls() const { return (uint32)m_draws.size(); }
-	RenderableDraw	GetDraw(uint32 drawIndex) const { return m_draws[drawIndex]; }
+	RenderableDraw	GetDraw(uint32 drawIndex) const;
 	Matrix44		GetModelMatrix() const { return m_matrix; }
 
 

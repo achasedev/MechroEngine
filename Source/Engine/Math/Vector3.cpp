@@ -220,6 +220,35 @@ Vector3 Vector3::GetNormalized() const
 	return normalizedForm;
 }
 
+//-------------------------------------------------------------------------------------------------
+float Vector3::SafeNormalize(const Vector3& fallbackNorm)
+{
+	if (*this == Vector3::ZERO)
+	{
+		*this = fallbackNorm;
+		return fallbackNorm.GetLength();
+	}
+
+	float length = GetLength();
+	float oneOverLength = (1.f / length);
+
+	x *= oneOverLength;
+	y *= oneOverLength;
+	z *= oneOverLength;
+
+	return length;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector3 Vector3::GetNormalizeSafe(const Vector3& fallbackNorm) const
+{
+	Vector3 normalizedForm = *this;
+	normalizedForm.SafeNormalize(fallbackNorm);
+
+	return normalizedForm;
+}
+
 
 //-------------------------------------------------------------------------------------------------
 Vector3 Vector3::Slerp(const Vector3& start, const Vector3& end, float percent)

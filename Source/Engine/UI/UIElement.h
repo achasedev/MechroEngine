@@ -39,13 +39,14 @@ public:
 	UIElement(Canvas* canvas);
 	virtual ~UIElement();
 
-	virtual void Render() const;
+	virtual void Render();
 
 	void AddChild(UIElement* child);
 	void SetCanvas(Canvas* canvas);
 
-	OBB2 CalculateFinalBounds() const;
-	Matrix44 CalculateModelMatrix() const;
+	OBB2		CalculateFinalBounds() const;
+	Matrix44	CalculateModelMatrix() const;
+	Matrix44	CalculateModelMatrix(const OBB2& finalBounds) const;
 
 
 public:

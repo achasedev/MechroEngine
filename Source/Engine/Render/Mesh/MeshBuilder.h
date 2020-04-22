@@ -20,6 +20,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class Font;
 class Mesh;
 class Rgba;
 class Vector2;
@@ -61,11 +62,12 @@ public:
 	void	PushIndex(uint32 index);
 
 	// 2D Helpers
-	void	PushTriangle2D(const Vector2& first, const Vector2& second, const Vector2& third, const Rgba& tint /*= Rgba::WHITE*/);
+	void	PushTriangle2D(const Vector2& first, const Vector2& second, const Vector2& third, const Rgba& tint = Rgba::WHITE);
 	void	PushQuad2D(const AABB2& quad, const AABB2& uvs = AABB2::ZERO_TO_ONE, const Rgba& tint = Rgba::WHITE);
+	void	PushText(const char* text, uint32 pixelHeight, Font* font, const AABB2& textBounds, const Vector2& canvasUnitsPerPixel, const Rgba& color = Rgba::WHITE);
 
 	// 3D Helpers
-	void	PushTriangle3D(const Vector3& first, const Vector3& second, const Vector3& third, const Rgba& tint /*= Rgba::WHITE*/);
+	void	PushTriangle3D(const Vector3& first, const Vector3& second, const Vector3& third, const Rgba& tint = Rgba::WHITE);
 	void	PushQuad3D(const Vector3& bottomLeft, const Vector3& topLeft, const Vector3& topRight, const Vector3& bottomRight, const AABB2& uvs = AABB2::ZERO_TO_ONE, const Rgba& tint = Rgba::WHITE);
 	void	PushQuad3D(const Vector3& position, const Vector2& dimensions, const AABB2& uvs = AABB2::ZERO_TO_ONE, const Rgba& tint = Rgba::WHITE, const Vector3& rightVector = Vector3::X_AXIS, const Vector3& upVector = Vector3::Y_AXIS, const Vector2& pivot = Vector2(0.5f, 0.5f));
 	void	PushCube(const Vector3& center, const Vector3& dimensions, const AABB2& topUVs = AABB2::ZERO_TO_ONE, const AABB2& sideUVs = AABB2::ZERO_TO_ONE, const AABB2& bottomUVs = AABB2::ZERO_TO_ONE, const Rgba& tint = Rgba::WHITE);

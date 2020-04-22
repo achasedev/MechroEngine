@@ -30,6 +30,38 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
+void Renderable::SetDrawMatrix(uint32 drawIndex, const Matrix44& drawMatrix)
+{
+	m_draws.resize(drawIndex + 1);
+	m_draws[drawIndex].m_drawMatrix = drawMatrix;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Renderable::SetDrawMaterial(uint32 drawIndex, Material* material)
+{
+	m_draws.resize(drawIndex + 1);
+	m_draws[drawIndex].m_material = material;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Renderable::SetDrawMesh(uint32 drawIndex, Mesh* mesh)
+{
+	m_draws.resize(drawIndex + 1);
+	m_draws[drawIndex].m_mesh = mesh;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Renderable::SetDraw(uint32 drawIndex, const RenderableDraw& draw)
+{
+	m_draws.resize(drawIndex + 1);
+	m_draws[drawIndex] = draw;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void Renderable::AddDraw(Mesh* mesh, Material* material, Matrix44 drawMatrix /*= Matrix44::IDENTITY*/)
 {
 	RenderableDraw rendDraw;
@@ -38,4 +70,16 @@ void Renderable::AddDraw(Mesh* mesh, Material* material, Matrix44 drawMatrix /*=
 	rendDraw.m_drawMatrix = drawMatrix;
 
 	m_draws.push_back(rendDraw);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+RenderableDraw Renderable::GetDraw(uint32 drawIndex) const
+{
+	if (drawIndex < GetNumDrawCalls())
+	{
+		return m_draws[drawIndex];
+	}
+
+	return RenderableDraw();
 }

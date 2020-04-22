@@ -215,6 +215,7 @@
     <ClCompile Include="UI\Panel.cpp" />
     <ClCompile Include="UI\RectTransform.cpp" />
     <ClCompile Include="UI\UIElement.cpp" />
+    <ClCompile Include="UI\UIText.cpp" />
     <ClCompile Include="Utility\Assert.cpp" />
     <ClCompile Include="Utility\Hash.cpp" />
     <ClCompile Include="Utility\LockJanitor.cpp" />
@@ -239,6 +240,7 @@
     <ClInclude Include="Math\AABB3.h" />
     <ClInclude Include="Math\IntVector3.h" />
     <ClInclude Include="Math\OBB2.h" />
+    <ClInclude Include="UI\UIText.h" />
     <ClInclude Include="Utility\Swizzle.h" />
     <ClInclude Include="Render\Camera\Camera.h" />
     <ClInclude Include="Render\Font\Font.h" />

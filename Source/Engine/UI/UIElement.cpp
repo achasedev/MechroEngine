@@ -53,7 +53,7 @@ UIElement::~UIElement()
 
 
 //-------------------------------------------------------------------------------------------------
-void UIElement::Render() const
+void UIElement::Render()
 {
 	// Parent should already have rendered themselves
 	// Now render the children on top
@@ -92,7 +92,13 @@ OBB2 UIElement::CalculateFinalBounds() const
 Matrix44 UIElement::CalculateModelMatrix() const
 {
 	OBB2 finalBounds = CalculateFinalBounds();
+	return CalculateModelMatrix(finalBounds);
+}
 
+
+//-------------------------------------------------------------------------------------------------
+Matrix44 UIElement::CalculateModelMatrix(const OBB2& finalBounds) const
+{
 	// Account for pivot:
 	// - Translate in normalized space
 	// - Apply translation/rotation/scale (now rotating about correct point)

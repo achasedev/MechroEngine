@@ -35,7 +35,7 @@ public:
 
 	Panel(Canvas* canvas);
 
-	virtual void	Render() const override;
+	virtual void	Render() override;
 
 	void			SetRenderable(Renderable* renderable) { m_renderable = renderable; }
 

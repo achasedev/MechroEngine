@@ -72,6 +72,13 @@ const std::string Stringf(const int maxLength, const char* format, ...)
 
 
 //-------------------------------------------------------------------------------------------------
+int GetStringLength(const char* str)
+{
+	return static_cast<int>(strlen(str));
+}
+
+
+//-------------------------------------------------------------------------------------------------
 std::string ToString(float inValue)
 {
 	return Stringf("%f", inValue);

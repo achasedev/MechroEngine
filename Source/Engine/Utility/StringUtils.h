@@ -36,8 +36,9 @@ class Vector4;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-const std::string Stringf(const char* format, ...);
-const std::string Stringf(const int maxLength, const char* format, ...);
+const std::string	Stringf(const char* format, ...);
+const std::string	Stringf(const int maxLength, const char* format, ...);
+int					GetStringLength(const char* str);
 
 std::string ToString(float inValue);
 std::string ToString(int inValue);

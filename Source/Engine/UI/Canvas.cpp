@@ -61,7 +61,7 @@ void Canvas::Initialize(Texture2D* outputTexture, const Vector2& resolution, Scr
 
 
 //-------------------------------------------------------------------------------------------------
-void Canvas::Render() const
+void Canvas::Render()
 {
 	UIElement::Render();
 }
@@ -91,7 +91,73 @@ Texture2D* Canvas::GetOutputTexture() const
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44 Canvas::GenerateOrtho()
+float Canvas::GetAspect() const
+{
+	return m_resolution.x / m_resolution.y;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// The current DPI of the canvas in both dimensions
+Vector2 Canvas::GetPixelsPerUnit() const
+{
+	AABB2 visibleBounds = GenerateOrthoBounds();
+	float horizontalPPU = static_cast<float>(m_outputTexture->GetWidth()) / visibleBounds.GetWidth();
+	float verticalPPU = static_cast<float>(m_outputTexture->GetHeight()) / visibleBounds.GetHeight();
+
+	return Vector2(horizontalPPU, verticalPPU);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Returns the number of canvas units per pixel in both dimensions
+Vector2 Canvas::GetCanvasUnitsPerPixel() const
+{
+	AABB2 visibleBounds = GenerateOrthoBounds();
+	float horizontalUnitsPerPixel = visibleBounds.GetWidth() / static_cast<float>(m_outputTexture->GetWidth());
+	float verticalUnitsPerPixel = visibleBounds.GetHeight() / static_cast<float>(m_outputTexture->GetHeight());
+
+	return Vector2(horizontalUnitsPerPixel, verticalUnitsPerPixel);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+uint32 Canvas::ToPixelWidth(float canvasWidth) const
+{
+	float horizontalPPU = GetPixelsPerUnit().x;
+	return (uint32)RoundToNearestInt(canvasWidth * horizontalPPU);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+uint32 Canvas::ToPixelHeight(float canvasHeight) const
+{
+	float verticalPPU = GetPixelsPerUnit().y;
+	return (uint32)RoundToNearestInt(canvasHeight * verticalPPU);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float Canvas::ToCanvasWidth(uint32 pixelWidth) const
+{
+	float horizontalUnitsPerPixel = GetCanvasUnitsPerPixel().x;
+	return pixelWidth * horizontalUnitsPerPixel;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float Canvas::ToCanvasHeight(uint32 pixelHeight) const
+{
+	float verticalUnitsPerPixel = GetCanvasUnitsPerPixel().y;
+	return pixelHeight * verticalUnitsPerPixel;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Determine what the bounding box in Canvas coordinates that will be visible based on Canvas matching
+// The top left of the bounding box will *always* be the top left of the output texture!
+// This is so the canvas will always be fixed to the top left
+AABB2 Canvas::GenerateOrthoBounds() const
 {
 	AABB2 orthoBounds;
 	orthoBounds.left = 0.f;
@@ -122,5 +188,13 @@ Matrix44 Canvas::GenerateOrtho()
 	orthoBounds.bottom = orthoBounds.top - finalHeight;
 	orthoBounds.right = finalHeight * targetAspect;
 
+	return orthoBounds;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Matrix44 Canvas::GenerateOrthoMatrix() const
+{
+	AABB2 orthoBounds = GenerateOrthoBounds();
 	return Matrix44::MakeOrtho(orthoBounds.GetBottomLeft(), orthoBounds.GetTopRight(), -1.0f, 1.0f);
 }

@@ -7,10 +7,12 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Render/Mesh/MeshBuilder.h"
 #include "Engine/Math/AABB3.h"
 #include "Engine/Math/OBB2.h"
 #include "Engine/Math/MathUtils.h"
+#include "Engine/Render/Font/Font.h"
+#include "Engine/Render/Font/FontAtlas.h"
+#include "Engine/Render/Mesh/MeshBuilder.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -164,6 +166,39 @@ void MeshBuilder::PushQuad2D(const AABB2& quad, const AABB2& uvs /*= AABB2::ZERO
 
 
 //-------------------------------------------------------------------------------------------------
+// Assumes position is in canvas space!
+// It's the responsibility of the caller to determine what the final pixel height will be and provide it
+void MeshBuilder::PushText(const char* text, uint32 pixelHeight, Font* font, const AABB2& textBounds, const Vector2& canvasUnitsPerPixel, const Rgba& color /*= Rgba::WHITE*/)
+{
+	ASSERT_RETURN(m_isBuilding, NO_RETURN_VAL, "Meshbuilder not setup!");
+
+	Vector2 runningPos = textBounds.GetBottomLeft();
+	int strLen = GetStringLength(text);
+	FontAtlas* atlas = font->CreateOrGetAtlasForPixelHeight(pixelHeight);
+
+	for (int charIndex = 0; charIndex < strLen; ++charIndex)
+	{
+		char currChar = text[charIndex];
+
+		GlyphInfo info = atlas->CreateOrGetGlyphInfo(currChar);
+
+		AABB2 glyphBounds;
+		glyphBounds.mins = runningPos;
+		
+		// The vertex shader creates the bounds shape from a ZERO_TO_ONE AABB2, so these bounds need to be normalized within this space
+		glyphBounds.right = runningPos.x + (canvasUnitsPerPixel.x * static_cast<float>(info.m_glyphPixelDimensions.x)) / textBounds.GetWidth();
+		glyphBounds.top = runningPos.y + (canvasUnitsPerPixel.y * static_cast<float>(info.m_glyphPixelDimensions.y)) / textBounds.GetHeight();
+
+		PushQuad2D(glyphBounds, info.m_glyphUVs, color);
+
+		// Update running position
+		runningPos.x += (static_cast<float>(info.m_pixelAdvances.x) * canvasUnitsPerPixel.x) / textBounds.GetWidth();
+		runningPos.y += (static_cast<float>(info.m_pixelAdvances.y) * canvasUnitsPerPixel.y) / textBounds.GetHeight();
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void MeshBuilder::PushTriangle3D(const Vector3& first, const Vector3& second, const Vector3& third, const Rgba& tint /*= Rgba::WHITE*/)
 {
 	SetColor(tint);
@@ -185,8 +220,8 @@ void MeshBuilder::PushTriangle3D(const Vector3& first, const Vector3& second, co
 void MeshBuilder::PushQuad3D(const Vector3& bottomLeft, const Vector3& topLeft, const Vector3& topRight, const Vector3& bottomRight, const AABB2& uvs /*= AABB2::ZERO_TO_ONE*/, const Rgba& tint /*= Rgba::WHITE*/)
 {
 	// Calculate normal
-	Vector3 quadRight = (bottomRight - bottomLeft).GetNormalized();
-	Vector3 quadUp = (topRight - bottomRight).GetNormalized();
+	Vector3 quadRight = (bottomRight - bottomLeft).GetNormalizeSafe(Vector3::X_AXIS);
+	Vector3 quadUp = (topRight - bottomRight).GetNormalizeSafe(Vector3::Y_AXIS);
 	Vector3 normal = CrossProduct(quadUp, quadRight);
 
 	// Begin adding to the mesh

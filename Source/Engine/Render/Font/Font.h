@@ -10,6 +10,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Math/AABB2.h"
 #include "Engine/Math/IntVector2.h"
+#include "Engine/Render/Font/FontAtlas.h"
 #include <map>
 #include <string>
 
@@ -20,7 +21,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class FontAtlas;
 class Texture2D;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -39,17 +39,12 @@ class Font
 public:
 	//-----Public Methods-----
 
-
 	FontAtlas*			CreateOrGetAtlasForPixelHeight(uint32 pixelHeight);
 
-	const uint8*		RenderGlyphForPixelHeight(const char glyph, uint32 pixelHeight, int& out_glyphWidth, int& out_glyphHeight) const;
+	const uint8*		RenderGlyphForPixelHeight(const char glyph, uint32 pixelHeight, GlyphInfo& out_info) const;
 	
 	std::string			GetSourceFile() const { return m_sourceFilepath; }
-	const FontAtlas*	GetFontAtlasForPixelHeight(uint32 pixelHeight);
-
-
-private:
-	//-----Private Methods-----
+	FontAtlas*			GetFontAtlasForPixelHeight(uint32 pixelHeight);
 
 
 private:

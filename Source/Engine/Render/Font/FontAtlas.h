@@ -23,6 +23,14 @@ class Font;
 class SpritePacker;
 class Texture2D;
 
+struct GlyphInfo
+{
+	AABB2		m_glyphUVs = AABB2::ZERO_TO_ONE;
+	IntVector2	m_glyphPixelDimensions = IntVector2(10);
+	IntVector2	m_pixelAdvances = IntVector2::ZERO;
+};
+
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -37,20 +45,22 @@ class FontAtlas
 public:
 	//-----Public Methods-----
 
-	void		Initialize(const Font* font, uint32 pixelHeight, Texture2D* texture = nullptr);
+	void			Initialize(const Font* font, uint32 pixelHeight, uint32 maxPixelAdvance, uint32 pixelLineSpacing, Texture2D* texture = nullptr);
 
-	uint32		GetPixelHeight() const { return m_pixelHeight; }
-	Texture2D*	GetTexture();
-	AABB2		CreateOrGetUVsForGlyph(const char glyph);
+	uint32			GetPixelHeight() const { return m_pixelHeight; }
+	Texture2D*		GetTexture();
+	GlyphInfo		CreateOrGetGlyphInfo(const char glyph);
 
 
 private:
 	//-----Private Data-----
 
-	uint32							m_pixelHeight = 1;
-	std::map<const char, AABB2>		m_glyphUVs;
-	const Font*						m_ownerFont = nullptr;
-	SpritePacker*					m_glyphPacker = nullptr;
+	uint32								m_pixelHeight = 1U;
+	std::map<const char, GlyphInfo>		m_glyphUVs;
+	const Font*							m_ownerFont = nullptr;
+	SpritePacker*						m_glyphPacker = nullptr;
+	uint32								m_maxHorizontalPixelAdvance = 0U;
+	uint32								m_verticalPixelAdvance = 0U;
 
 };
 

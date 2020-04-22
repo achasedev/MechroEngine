@@ -48,13 +48,22 @@ public:
 	~Canvas();
 
 	void				Initialize(Texture2D* outputTexture, const Vector2& resolution, ScreenMatchMode mode, float widthHeightBlend = 1.0f);
-	Matrix44			GenerateOrtho();
-	virtual void		Render() const override;
+	AABB2				GenerateOrthoBounds() const;
+	Matrix44			GenerateOrthoMatrix() const;
+	virtual void		Render() override;
 
 	void				SetScreenMatchMode(ScreenMatchMode mode, float widthHeightBlend = 1.0f);
 	void				SetResolution(float height, float width);
 
 	Texture2D*			GetOutputTexture() const;
+
+	float				GetAspect() const;
+	Vector2				GetPixelsPerUnit() const;
+	Vector2				GetCanvasUnitsPerPixel() const;
+	uint32				ToPixelWidth(float canvasWidth) const;
+	uint32				ToPixelHeight(float canvasHeight) const;
+	float				ToCanvasWidth(uint32 pixelWidth) const;
+	float				ToCanvasHeight(uint32 pixelHeight) const;
 
 
 private:

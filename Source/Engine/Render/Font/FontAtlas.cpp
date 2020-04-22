@@ -35,18 +35,20 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-void FontAtlas::Initialize(const Font* font, uint32 pixelHeight, Texture2D* texture /*= nullptr*/)
+void FontAtlas::Initialize(const Font* font, uint32 pixelHeight, uint32 maxHorizontalPixelAdvance, uint32 verticalPixelAdvance, Texture2D* texture /*= nullptr*/)
 {
 	if (texture == nullptr)
 	{
 		texture = new Texture2D();
-		texture->CreateFromBuffer(nullptr, 0U, 512, 512, 4U, Stringf("Font %s, pixel height %u", font->GetSourceFile().c_str(), pixelHeight).c_str());
+		texture->CreateFromBuffer(nullptr, 0U, pixelHeight * 16U, pixelHeight * 16U, 4U, Stringf("Font %s, pixel height %u", font->GetSourceFile().c_str(), pixelHeight).c_str());
 	}
 
 	m_glyphPacker = new SpritePacker();
 	m_glyphPacker->Initialize(texture);
 	m_ownerFont = font;
 	m_pixelHeight = pixelHeight;
+	m_maxHorizontalPixelAdvance = maxHorizontalPixelAdvance;
+	m_verticalPixelAdvance = verticalPixelAdvance;
 }
 
 
@@ -58,7 +60,7 @@ Texture2D* FontAtlas::GetTexture()
 
 
 //-------------------------------------------------------------------------------------------------
-AABB2 FontAtlas::CreateOrGetUVsForGlyph(const char glyph)
+GlyphInfo FontAtlas::CreateOrGetGlyphInfo(const char glyph)
 {
 	bool glyphExists = m_glyphUVs.find(glyph) != m_glyphUVs.end();
 
@@ -68,21 +70,15 @@ AABB2 FontAtlas::CreateOrGetUVsForGlyph(const char glyph)
 	}
 
 	// Have Freetype create a rendering for our pixel height, then pack it in the atlas
-	int glyphWidth = 0;
-	int glyphHeight = 0;
-	AABB2 glyphUVs = AABB2::ZERO_TO_ONE;
-
-	const uint8* glyphSrc = m_ownerFont->RenderGlyphForPixelHeight(glyph, m_pixelHeight, glyphWidth, glyphHeight);
+	GlyphInfo info;
+	const uint8* glyphSrc = m_ownerFont->RenderGlyphForPixelHeight(glyph, m_pixelHeight, info);
 
 	if (glyphSrc != nullptr)
 	{
-		bool glyphPacked = m_glyphPacker->PackSprite(glyphSrc, glyphWidth, glyphHeight, 1U, glyphUVs);
-
-		if (glyphPacked)
-		{
-			m_glyphUVs[glyph] = glyphUVs;
-		}
+		m_glyphPacker->PackSprite(glyphSrc, info.m_glyphPixelDimensions.x, info.m_glyphPixelDimensions.y, 1U, info.m_glyphUVs);
 	}
 
-	return glyphUVs;
+	m_glyphUVs[glyph] = info;
+
+	return info;
 }

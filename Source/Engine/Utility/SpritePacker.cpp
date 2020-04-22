@@ -152,5 +152,10 @@ AABB2 SpritePacker::CalculateUVsForSprite(int spriteWidth, int spriteHeight)
 	float endU = static_cast<float>(m_writePosition.x + spriteWidth) / imageWidth;
 	float endV = static_cast<float>(m_writePosition.y + spriteHeight) / imageWidth;
 
+	// Flip on Y
+	float temp = endV;
+	endV = startV;
+	startV = temp;
+
 	return AABB2(startU, startV, endU, endV);
 }

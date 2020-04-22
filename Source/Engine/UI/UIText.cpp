@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: April 11th, 2020
+/// Date Created: April 21st, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -8,12 +8,14 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
-#include "Engine/Math/MathUtils.h"
+#include "Engine/Render/Core/RenderContext.h"
 #include "Engine/Render/Font/Font.h"
 #include "Engine/Render/Font/FontAtlas.h"
+#include "Engine/Render/Material.h"
+#include "Engine/Render/Mesh/MeshBuilder.h"
 #include "Engine/Render/Texture/Texture2D.h"
-#include "ThirdParty/freetype/include/ft2build.h"
-#include FT_FREETYPE_H
+#include "Engine/UI/Canvas.h"
+#include "Engine/UI/UIText.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -27,71 +29,105 @@
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
-
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
+
 //-------------------------------------------------------------------------------------------------
-FontAtlas* Font::CreateOrGetAtlasForPixelHeight(uint32 pixelHeight)
+UIText::UIText(Canvas* canvas)
+	: UIElement(canvas)
 {
-	FontAtlas* atlas = GetFontAtlasForPixelHeight(pixelHeight);
-
-	if (atlas == nullptr)
-	{
-		FT_Face face = (FT_Face)m_ftFace;
-		FT_Set_Pixel_Sizes(face, 0, pixelHeight);
-
-		int maxAdvance = RoundToNearestInt((1.f / 64.f) * static_cast<float>(face->size->metrics.max_advance));
-		int lineHeight = RoundToNearestInt((1.f / 64.f) * static_cast<float>(face->size->metrics.height));
-
-		atlas = new FontAtlas();
-		atlas->Initialize(this, pixelHeight, maxAdvance, lineHeight);
-
-		m_atlasRegistry[pixelHeight] = atlas;
-	}
-
-	return atlas;
+	m_mesh = new Mesh();
+	m_material = new Material();
 }
 
 
 //-------------------------------------------------------------------------------------------------
-const uint8* Font::RenderGlyphForPixelHeight(const char glyph, uint32 pixelHeight, GlyphInfo& out_info) const
+UIText::~UIText()
 {
-	FT_Face face = (FT_Face)m_ftFace;
-	FT_Set_Pixel_Sizes(face, 0, pixelHeight);
-
-	int glyphIndex = FT_Get_Char_Index(face, glyph);
-	FT_Error error = FT_Load_Glyph(face, glyphIndex, FT_LOAD_DEFAULT);
-
-	ASSERT_OR_DIE(!error, "Error occured when loading glyph!");
-
-	FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
-
-	FT_Bitmap bitmap = face->glyph->bitmap;
-
-	out_info.m_glyphPixelDimensions.x = bitmap.width;
-	out_info.m_glyphPixelDimensions.y = bitmap.rows;
-	out_info.m_pixelAdvances.x = RoundToNearestInt(((1.f / 64.f) * static_cast<float>(face->glyph->advance.x)));
-	out_info.m_pixelAdvances.y = RoundToNearestInt(((1.f / 64.f) * static_cast<float>(face->glyph->advance.y)));
-
-	return bitmap.buffer;
+	SAFE_DELETE_POINTER(m_material);
+	SAFE_DELETE_POINTER(m_mesh);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-FontAtlas* Font::GetFontAtlasForPixelHeight(uint32 pixelHeight)
+void UIText::Render()
 {
-	bool fontExists = m_atlasRegistry.find(pixelHeight) != m_atlasRegistry.end();
-
-	if (fontExists)
+	if (m_text.size() > 0)
 	{
-		return m_atlasRegistry.at(pixelHeight);
+		// Check if the text or the scale changed which would require a rebuild
+		OBB2 finalBounds = CalculateFinalBounds();
+		uint32 pixelHeight = CalculatePixelHeightForBounds(finalBounds);
+		UpdateMesh(pixelHeight, finalBounds);
+
+		Renderable rend;
+		rend.SetRenderableMatrix(CalculateModelMatrix(finalBounds));
+		m_material->SetAlbedoTextureView(m_font->GetFontAtlasForPixelHeight(m_glyphPixelHeight)->GetTexture()->CreateOrGetShaderResourceView());
+		rend.SetDrawMaterial(0, m_material);
+		rend.SetDrawMesh(0, m_mesh);
+
+		g_renderContext->DrawRenderable(rend);
+
+		static bool save = false;
+		if (!save)
+		{
+			g_renderContext->SaveTextureToImage(m_font->GetFontAtlasForPixelHeight(m_glyphPixelHeight)->GetTexture(), "Data/Fonts/test.png");
+			save = true;
+		}
 	}
 
-	return nullptr;
+	UIElement::Render();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void UIText::SetText(const std::string& text, const Rgba& color /*= Rgba::WHITE*/)
+{
+	m_text = text;
+	m_textColor = color;
+	m_textIsDirty = true;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void UIText::SetFont(Font* font, Shader* shader)
+{
+	m_font = font;
+	m_material->SetShader(shader);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+uint32 UIText::CalculatePixelHeightForBounds(const OBB2& finalBounds)
+{
+	float canvasHeight = finalBounds.alignedBounds.GetHeight();
+	return m_canvas->ToPixelHeight(canvasHeight);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void UIText::UpdateMesh(uint32 currCalculatedPixelHeight, const OBB2& finalBounds)
+{
+	if (m_textIsDirty || m_glyphPixelHeight != currCalculatedPixelHeight)
+	{
+		MeshBuilder mb;
+		mb.BeginBuilding(true);
+
+		// Send the bounds as if they're at 0,0
+		// The model matrix will handle the positioning
+		mb.PushText(m_text.c_str(), currCalculatedPixelHeight, m_font, AABB2(Vector2::ZERO, finalBounds.alignedBounds.GetDimensions()), m_canvas->GetCanvasUnitsPerPixel(), m_textColor);
+
+		mb.FinishBuilding();
+		mb.UpdateMesh<Vertex3D_PCU>(*m_mesh);
+		mb.Clear();
+
+		m_glyphPixelHeight = currCalculatedPixelHeight;
+		m_textIsDirty = false;
+	}
 }

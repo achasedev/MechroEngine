@@ -283,7 +283,11 @@ void RenderContext::DrawRenderable(Renderable& renderable)
 		DrawCall dc;
 		dc.SetFromRenderable(renderable, drawIndex);
 
-		Draw(dc);
+		if (dc.GetMesh() != nullptr && dc.GetMaterial() != nullptr)
+		{
+			Draw(dc);
+			// TODO: Print a warning
+		}
 	}
 }
 
