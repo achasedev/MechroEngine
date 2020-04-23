@@ -42,6 +42,14 @@ JobSystem::JobSystem()
 
 
 //-------------------------------------------------------------------------------------------------
+JobSystem::~JobSystem()
+{
+	DestroyAllWorkerThreads();
+	DestroyAllJobs();
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void JobSystem::Initialize()
 {
 	g_jobSystem = new JobSystem();

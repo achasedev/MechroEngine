@@ -53,8 +53,6 @@ class JobSystem
 public:
 	//-----Public Methods-----
 
-	JobSystem();
-
 	static void			Initialize();
 	static void			Shutdown();
 
@@ -75,6 +73,10 @@ public:
 
 private:
 	//-----Private Methods-----
+
+	JobSystem();
+	~JobSystem();
+	JobSystem(const JobSystem& copy) = delete;
 
 	void				DestroyAllJobs();
 	int					GetNextJobID();
