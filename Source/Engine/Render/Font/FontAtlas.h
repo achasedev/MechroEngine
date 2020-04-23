@@ -26,8 +26,14 @@ class Texture2D;
 struct GlyphInfo
 {
 	AABB2		m_glyphUVs = AABB2::ZERO_TO_ONE;
-	IntVector2	m_glyphPixelDimensions = IntVector2(10);
-	IntVector2	m_pixelAdvances = IntVector2::ZERO;
+	uint32		m_pixelWidth = 0;
+	uint32		m_pixelHeight = 0;
+	int			m_pixelHorizontalAdvance = 0;
+	int			m_pixelVerticalAdvance = 0;
+	int			m_pixelLeftSideBearing = 0;
+	int			m_pixelRightSideBearing = 0;
+	int			m_pixelTopSideBearing = 0;
+	int			m_pixelBottomSideBearing = 0;
 };
 
 

@@ -72,12 +72,22 @@ const uint8* Font::RenderGlyphForPixelHeight(const char glyph, uint32 pixelHeigh
 
 	FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
 
-	FT_Bitmap bitmap = face->glyph->bitmap;
+	FT_GlyphSlot glyphSlot = face->glyph;
+	FT_Bitmap bitmap = glyphSlot->bitmap;
 
-	out_info.m_glyphPixelDimensions.x = bitmap.width;
-	out_info.m_glyphPixelDimensions.y = bitmap.rows;
-	out_info.m_pixelAdvances.x = RoundToNearestInt(((1.f / 64.f) * static_cast<float>(face->glyph->advance.x)));
-	out_info.m_pixelAdvances.y = RoundToNearestInt(((1.f / 64.f) * static_cast<float>(face->glyph->advance.y)));
+	out_info.m_pixelWidth = bitmap.width;
+	out_info.m_pixelHeight = bitmap.rows;
+
+	out_info.m_pixelHorizontalAdvance = RoundToNearestInt(((1.0f / 64.0f) * glyphSlot->advance.x));
+	out_info.m_pixelVerticalAdvance = RoundToNearestInt(((1.0f / 64.0f) * glyphSlot->advance.y));
+
+	// Offsets from the origin position to the top and the left of the glyph start
+	out_info.m_pixelLeftSideBearing = RoundToNearestInt((1.0f / 64.0f) * glyphSlot->metrics.horiBearingX);
+	out_info.m_pixelTopSideBearing = RoundToNearestInt((1.0f / 64.0f) * glyphSlot->metrics.horiBearingY);
+
+	// Other bearings are just the leftover offsets
+	out_info.m_pixelRightSideBearing = out_info.m_pixelHorizontalAdvance - out_info.m_pixelLeftSideBearing - out_info.m_pixelWidth;
+	out_info.m_pixelBottomSideBearing = out_info.m_pixelHeight - out_info.m_pixelTopSideBearing;
 
 	return bitmap.buffer;
 }

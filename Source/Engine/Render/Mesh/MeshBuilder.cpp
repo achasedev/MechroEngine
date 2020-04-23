@@ -30,6 +30,14 @@
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
+//-------------------------------------------------------------------------------------------------
+float ConvertPixelOffsetToNormalizedOffset(int pixelOffset, float pixelsPerUnit, float referenceRange)
+{
+	float valueInRange = static_cast<float>(pixelOffset) * pixelsPerUnit;
+	return valueInRange / referenceRange;
+}
+
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -173,6 +181,9 @@ void MeshBuilder::PushText(const char* text, uint32 pixelHeight, Font* font, con
 	ASSERT_RETURN(m_isBuilding, NO_RETURN_VAL, "Meshbuilder not setup!");
 
 	Vector2 runningPos = textBounds.GetBottomLeft();
+	float textBoundsWidth = textBounds.GetWidth();
+	float textBoundsHeight = textBounds.GetHeight();
+
 	int strLen = GetStringLength(text);
 	FontAtlas* atlas = font->CreateOrGetAtlasForPixelHeight(pixelHeight);
 
@@ -182,18 +193,23 @@ void MeshBuilder::PushText(const char* text, uint32 pixelHeight, Font* font, con
 
 		GlyphInfo info = atlas->CreateOrGetGlyphInfo(currChar);
 
+		// Calculate the starting position for the glyph
+		Vector2 startOffset;
+		startOffset.x = ConvertPixelOffsetToNormalizedOffset(info.m_pixelLeftSideBearing, canvasUnitsPerPixel.x, textBoundsWidth);
+		startOffset.y = -1.0f * ConvertPixelOffsetToNormalizedOffset(info.m_pixelBottomSideBearing, canvasUnitsPerPixel.y, textBoundsHeight);
+
 		AABB2 glyphBounds;
-		glyphBounds.mins = runningPos;
+		glyphBounds.mins = runningPos + startOffset;
 		
 		// The vertex shader creates the bounds shape from a ZERO_TO_ONE AABB2, so these bounds need to be normalized within this space
-		glyphBounds.right = runningPos.x + (canvasUnitsPerPixel.x * static_cast<float>(info.m_glyphPixelDimensions.x)) / textBounds.GetWidth();
-		glyphBounds.top = runningPos.y + (canvasUnitsPerPixel.y * static_cast<float>(info.m_glyphPixelDimensions.y)) / textBounds.GetHeight();
+		glyphBounds.right = glyphBounds.left + ConvertPixelOffsetToNormalizedOffset(info.m_pixelWidth, canvasUnitsPerPixel.x, textBoundsWidth);
+		glyphBounds.top = glyphBounds.bottom + ConvertPixelOffsetToNormalizedOffset(info.m_pixelHeight, canvasUnitsPerPixel.y, textBoundsHeight);
 
 		PushQuad2D(glyphBounds, info.m_glyphUVs, color);
 
 		// Update running position
-		runningPos.x += (static_cast<float>(info.m_pixelAdvances.x) * canvasUnitsPerPixel.x) / textBounds.GetWidth();
-		runningPos.y += (static_cast<float>(info.m_pixelAdvances.y) * canvasUnitsPerPixel.y) / textBounds.GetHeight();
+		runningPos.x += ConvertPixelOffsetToNormalizedOffset(info.m_pixelHorizontalAdvance, canvasUnitsPerPixel.x, textBoundsWidth);
+		runningPos.y += ConvertPixelOffsetToNormalizedOffset(info.m_pixelVerticalAdvance, canvasUnitsPerPixel.y, textBoundsHeight);
 	}
 }
 

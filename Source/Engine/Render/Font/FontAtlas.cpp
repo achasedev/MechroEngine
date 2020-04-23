@@ -39,6 +39,7 @@ void FontAtlas::Initialize(const Font* font, uint32 pixelHeight, uint32 maxHoriz
 {
 	if (texture == nullptr)
 	{
+		// TODO: Don't use pixel height, instead use the max dimension of the face bounding box
 		texture = new Texture2D();
 		texture->CreateFromBuffer(nullptr, 0U, pixelHeight * 16U, pixelHeight * 16U, 4U, Stringf("Font %s, pixel height %u", font->GetSourceFile().c_str(), pixelHeight).c_str());
 	}
@@ -75,7 +76,7 @@ GlyphInfo FontAtlas::CreateOrGetGlyphInfo(const char glyph)
 
 	if (glyphSrc != nullptr)
 	{
-		m_glyphPacker->PackSprite(glyphSrc, info.m_glyphPixelDimensions.x, info.m_glyphPixelDimensions.y, 1U, info.m_glyphUVs);
+		m_glyphPacker->PackSprite(glyphSrc, info.m_pixelWidth, info.m_pixelHeight, 1U, info.m_glyphUVs);
 	}
 
 	m_glyphUVs[glyph] = info;
