@@ -381,9 +381,10 @@ void RenderContext::SaveTextureToImage(Texture2D* texture, const char* filepath)
 	}
 
 	// Setup Job info
-	int texelWidth = texture->GetWidth();
-	int texelHeight = texture->GetHeight();
-	int numComponentsPerTexel = mappedSubResource.RowPitch / texelWidth;
+	// Mapping the texture map pad out the texture to a 16 or 4 byte alignment, so use those dimensions here
+	int numComponentsPerTexel = 4;
+	int texelWidth = mappedSubResource.RowPitch / 4;
+	int texelHeight = mappedSubResource.DepthPitch / mappedSubResource.RowPitch;
 	int totalBytes = texelWidth * texelHeight * numComponentsPerTexel;
 	void* imgData = malloc(totalBytes); // The job will free this buffer
 	memcpy(imgData, mappedSubResource.pData, totalBytes);
