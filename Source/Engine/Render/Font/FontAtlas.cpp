@@ -8,6 +8,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
+#include "Engine/Math/MathUtils.h"
 #include "Engine/Render/Font/Font.h"
 #include "Engine/Render/Font/FontAtlas.h"
 #include "Engine/Render/Texture/Texture2D.h"
@@ -41,7 +42,16 @@ void FontAtlas::Initialize(const Font* font, uint32 pixelHeight, uint32 maxHoriz
 	{
 		// TODO: Don't use pixel height, instead use the max dimension of the face bounding box
 		texture = new Texture2D();
-		texture->CreateFromBuffer(nullptr, 0U, pixelHeight * 16U, pixelHeight * 16U, 4U, Stringf("Font %s, pixel height %u", font->GetSourceFile().c_str(), pixelHeight).c_str());
+
+		// Just an estimation on the smallest power of two dimensions for the texture that can hold all the sprites
+		// This may not be large enough, but most likely will be too large
+		uint32 size = 2U;
+		while (size < 8U * pixelHeight && size <= 2048U)
+		{
+			size *= 2U;
+		}
+
+		texture->CreateFromBuffer(nullptr, 0U, size, size, 4U, Stringf("Font %s, pixel height %u", font->GetSourceFile().c_str(), pixelHeight).c_str());
 	}
 
 	m_glyphPacker = new SpritePacker();

@@ -23,6 +23,7 @@ struct ID3D11Resource;
 struct ID3D11VertexShader;
 class VertexLayout;
 
+// Vertex information
 struct ShaderInputLayout
 {
 	ID3D11InputLayout* m_dxInputLayout = nullptr;
@@ -35,6 +36,59 @@ enum ShaderStageType
 	SHADER_STAGE_VERTEX,
 	SHADER_STAGE_FRAGMENT
 };
+
+// 1:1 to DX blend ops
+enum BlendOp
+{
+	BLEND_OP_ADD,
+	BLEND_OP_SUBTRACT,
+	BLEND_OP_REV_SUBTRACT,
+	BLEND_OP_MIN,
+	BLEND_OP_MAX,
+	NUM_BLEND_OPS
+};
+
+// 1:1 to DX blend factors
+enum BlendFactor
+{
+	BLEND_FACTOR_ZERO,
+	BLEND_FACTOR_ONE,
+	BLEND_FACTOR_SRC_COLOR,
+	BLEND_FACTOR_INV_SRC_COLOR,
+	BLEND_FACTOR_SRC_ALPHA,
+	BLEND_FACTOR_INV_SRC_ALPHA,
+	BLEND_FACTOR_DEST_ALPHA,
+	BLEND_FACTOR_INV_DEST_ALPHA,
+	BLEND_FACTOR_DEST_COLOR,
+	BLEND_FACTOR_INV_DEST_COLOR,
+	BLEND_FACTOR_SRC_ALPHA_SAT,
+	BLEND_FACTOR_BLEND_FACTOR,
+	BLEND_FACTOR_INV_BLEND_FACTOR,
+	BLEND_FACTOR_SRC1_COLOR,
+	BLEND_FACTOR_INV_SRC1_COLOR,
+	BLEND_FACTOR_SRC1_ALPHA,
+	BLEND_FACTOR_INV_SRC1_ALPHA,
+	NUM_BLEND_FACTORS
+};
+
+// For setting blend mode factors and operators
+struct BlendInfo
+{
+	BlendOp		m_op;
+	BlendFactor m_srcFactor;
+	BlendFactor m_dstFactor;
+};
+
+
+// Convenience common blend modes
+enum BlendPreset
+{
+	BLEND_PRESET_OPAQUE,
+	BLEND_PRESET_ALPHA,
+	BLEND_PRESET_ADDITIVE
+};
+
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -82,22 +136,35 @@ class Shader
 public:
 	//-----Public Methods-----
 
+	Shader();
 	~Shader();
 
-	bool CreateFromFile(const char* filename);
-	bool CreateInputLayoutForVertexLayout(const VertexLayout* vertexLayout);
+	bool				CreateFromFile(const char* filename);
+	bool				CreateInputLayoutForVertexLayout(const VertexLayout* vertexLayout);
+	void				UpdateBlendState();
 
-	ID3D11VertexShader* GetVertexStage() { return m_vertexShader.GetAsVertexShader(); }
-	ID3D11PixelShader* GetFragmentStage() { return m_fragmentShader.GetAsFragmentShader(); }
-	ID3D11InputLayout* GetInputLayout() { return m_shaderInputLayout.m_dxInputLayout; }
+	void				SetBlend(BlendPreset blendPreset);
+	void				SetBlend(const BlendInfo& colorBlend, const BlendInfo& alphaBlend);
+	void				SetColorBlend(const BlendInfo& blend);
+	void				SetAlphaBlend(const BlendInfo& blend);
+
+	ID3D11VertexShader* GetVertexStage() const { return m_vertexShader.GetAsVertexShader(); }
+	ID3D11PixelShader*	GetFragmentStage() const { return m_fragmentShader.GetAsFragmentShader(); }
+	ID3D11InputLayout*	GetInputLayout() const { return m_shaderInputLayout.m_dxInputLayout; }
+	ID3D11BlendState*	GetDXBlendState() const { return m_dxBlendState; }
 
 
 private:
 	//-----Private Data-----
 
-	ShaderStage m_vertexShader;
-	ShaderStage m_fragmentShader;
-	ShaderInputLayout m_shaderInputLayout;
+	ShaderStage			m_vertexShader;
+	ShaderStage			m_fragmentShader;
+	ShaderInputLayout	m_shaderInputLayout;
+
+	BlendInfo			m_colorBlend;
+	BlendInfo			m_alphaBlend;
+	ID3D11BlendState*	m_dxBlendState = nullptr;
+	bool				m_blendStateDirty = true;
 
 };
 

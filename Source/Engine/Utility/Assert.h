@@ -72,10 +72,28 @@ int SystemDialogue_YesNoCancel(const std::string& messageTitle, const std::strin
 //	- Triggers a debug breakpoint (if appropriate development suite is present)
 //	- Continues execution
 //
-#define ERROR_RECOVERABLE(format, ...)												\
+#define ERROR_RECOVERABLE(format, ...)															\
 {																								\
-		std::string errorMessageText = Stringf(format, __VA_ARGS__);							\
+	std::string errorMessageText = Stringf(format, __VA_ARGS__);								\
 	RecoverableWarning(__FILE__,  __FUNCTION__, __LINE__, errorMessageText);					\
+}
+
+//-----------------------------------------------------------------------------------------------
+// ERROR_RETURN
+//
+// Present in all builds.
+// No condition; always triggers if reached.
+// Depending on the platform, this typically:
+//	- Logs a warning message to the console and/or log file
+//	- Opens an warning/message dialogue box
+//	- Triggers a debug breakpoint (if appropriate development suite is present)
+//	- Continues execution, returning from the current function and returning returnVal
+//
+#define ERROR_RETURN(returnVal, format, ...)													\
+{																								\
+	std::string errorMessageText = Stringf(format, __VA_ARGS__);								\
+	RecoverableWarning(__FILE__,  __FUNCTION__, __LINE__, errorMessageText);					\
+	return returnVal;																			\
 }
 
 //-----------------------------------------------------------------------------------------------
@@ -185,14 +203,14 @@ int SystemDialogue_YesNoCancel(const std::string& messageTitle, const std::strin
 #if defined(DISABLE_ASSERTS)
 #define ASSERT_RETURN(condition, returnVal, format, ...) { (void)(condition); }
 #else
-#define ASSERT_RETURN(condition, returnVal, format, ...)												\
+#define ASSERT_RETURN(condition, returnVal, format, ...)										\
 {																								\
 	if(!(condition))																			\
 	{																							\
 		const char* conditionText = #condition;													\
 		std::string errorMessageText = Stringf(format, __VA_ARGS__);							\
 		RecoverableWarning(__FILE__,  __FUNCTION__, __LINE__, errorMessageText, conditionText);	\
-		return returnVal;																							\
+		return returnVal;																		\
 	}																							\
 }
 #endif

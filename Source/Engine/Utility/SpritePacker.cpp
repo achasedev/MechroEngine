@@ -60,7 +60,7 @@ bool SpritePacker::PackSprite(const uint8* src, int spriteWidth, int spriteHeigh
 {
 	// Fixed size for now
 	int verticalSpace = m_image->GetTexelHeight() - m_writePosition.y;
-	ASSERT_RECOVERABLE(verticalSpace > 0, "SpritePacker ran out of vertical space!");
+	ASSERT_RECOVERABLE(verticalSpace > 0, "SpritePacker ran out of vertical space! Use a larger texture that's a power of 2 in dimensions!");
 	if (verticalSpace <= 0)
 	{
 		return false;
@@ -72,6 +72,9 @@ bool SpritePacker::PackSprite(const uint8* src, int spriteWidth, int spriteHeigh
 	if (horizontalSpace < spriteWidth)
 	{
 		MoveHeadToNextLine();
+
+		// Ensure there is enough vertical space after the line return
+		ASSERT_OR_DIE(m_writePosition.y + spriteHeight < m_image->GetTexelHeight(), "SpritePacker ran out of vertical space! Use a larger texture that's a power of 2 in dimensions!");
 	}
 
 	BlitSpriteToImage(src, spriteWidth, spriteHeight, srcComponentCount);
@@ -115,6 +118,8 @@ void SpritePacker::MoveHeadToNextLine()
 	m_writePosition.x = 0;
 	m_writePosition.y += m_maxHeightThisLine;
 	m_maxHeightThisLine = 0;
+
+	ASSERT_OR_DIE(m_writePosition.y < m_texture->GetHeight(), "SpritePacker ran out of vertical space! Use a larger texture that's a power of 2 in dimensions!");
 }
 
 
@@ -129,9 +134,19 @@ void SpritePacker::BlitSpriteToImage(const uint8* src, int spriteWidth, int spri
 
 			Rgba texelColor = Rgba::BLACK;
 
-			for (int componentIndex = 0; componentIndex < srcComponentCount; ++componentIndex)
+			if (srcComponentCount == 1)
 			{
-				texelColor.data[componentIndex] = currSpriteTexel[componentIndex];
+				// For single byte component fonts, set all color channels to pure white and use value as alpha
+				texelColor = Rgba::WHITE;
+				texelColor.a = currSpriteTexel[0];
+			}
+			else
+			{
+				// Set the channels in order
+				for (int componentIndex = 0; componentIndex < srcComponentCount; ++componentIndex)
+				{
+					texelColor.data[componentIndex] = currSpriteTexel[componentIndex];
+				}
 			}
 
 			m_image->SetTexelColor(m_writePosition.x + xTexelIndex, m_writePosition.y + yTexelIndex, texelColor);

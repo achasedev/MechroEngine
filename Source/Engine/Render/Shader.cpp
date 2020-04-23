@@ -89,6 +89,52 @@ ID3DBlob* CompileHLSL(const char* filename, const void* sourceCode, const size_t
 }
 
 
+//-------------------------------------------------------------------------------------------------
+D3D11_BLEND ToDXBlendFactor(BlendFactor blendFactor)
+{
+	switch (blendFactor)
+	{
+	case BLEND_FACTOR_ZERO:				return D3D11_BLEND_ZERO; break;
+	case BLEND_FACTOR_ONE:				return D3D11_BLEND_ONE; break;
+	case BLEND_FACTOR_SRC_COLOR:		return D3D11_BLEND_SRC_COLOR; break;
+	case BLEND_FACTOR_INV_SRC_COLOR:	return D3D11_BLEND_INV_SRC_COLOR; break;
+	case BLEND_FACTOR_SRC_ALPHA:		return D3D11_BLEND_SRC_ALPHA; break;
+	case BLEND_FACTOR_INV_SRC_ALPHA:	return D3D11_BLEND_INV_SRC_ALPHA; break;
+	case BLEND_FACTOR_DEST_ALPHA:		return D3D11_BLEND_DEST_ALPHA; break;
+	case BLEND_FACTOR_INV_DEST_ALPHA:	return D3D11_BLEND_INV_DEST_ALPHA; break;
+	case BLEND_FACTOR_DEST_COLOR:		return D3D11_BLEND_DEST_COLOR; break;
+	case BLEND_FACTOR_INV_DEST_COLOR:	return D3D11_BLEND_INV_DEST_COLOR; break;
+	case BLEND_FACTOR_SRC_ALPHA_SAT:	return D3D11_BLEND_SRC_ALPHA_SAT; break;
+	case BLEND_FACTOR_BLEND_FACTOR:		return D3D11_BLEND_BLEND_FACTOR; break;
+	case BLEND_FACTOR_INV_BLEND_FACTOR: return D3D11_BLEND_INV_BLEND_FACTOR; break;
+	case BLEND_FACTOR_SRC1_COLOR:		return D3D11_BLEND_SRC1_COLOR; break;
+	case BLEND_FACTOR_INV_SRC1_COLOR:	return D3D11_BLEND_INV_SRC1_COLOR; break;
+	case BLEND_FACTOR_SRC1_ALPHA:		return D3D11_BLEND_SRC1_ALPHA; break;
+	case BLEND_FACTOR_INV_SRC1_ALPHA:	return D3D11_BLEND_INV_SRC1_ALPHA; break;
+	default:
+		ERROR_RETURN(D3D11_BLEND_ONE, "Invalid Blend Op!");
+		break;
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+D3D11_BLEND_OP ToDXBlendOp(BlendOp blendOp)
+{
+	switch (blendOp)
+	{
+	case BLEND_OP_ADD:			return D3D11_BLEND_OP_ADD; break;
+	case BLEND_OP_SUBTRACT:		return D3D11_BLEND_OP_SUBTRACT; break;
+	case BLEND_OP_REV_SUBTRACT: return D3D11_BLEND_OP_REV_SUBTRACT; break;
+	case BLEND_OP_MIN:			return D3D11_BLEND_OP_MIN; break;
+	case BLEND_OP_MAX:			return D3D11_BLEND_OP_MAX; break;
+	default:
+		ERROR_RETURN(D3D11_BLEND_OP_ADD, "Invalid Blend Op!");
+		break;
+	}
+}
+
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -136,6 +182,14 @@ bool ShaderStage::LoadFromShaderSource(const char* filename, const void* source,
 	}
 
 	return IsValid();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Shader::Shader()
+{
+	// Default blend state to opaque
+	SetBlend(BLEND_PRESET_OPAQUE);
 }
 
 
@@ -212,4 +266,112 @@ bool Shader::CreateInputLayoutForVertexLayout(const VertexLayout* vertexLayout)
 	}
 
 	return createdNewLayout;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Shader::UpdateBlendState()
+{
+	if (m_dxBlendState == nullptr || m_blendStateDirty)
+	{
+		DX_SAFE_RELEASE(m_dxBlendState);
+
+		D3D11_BLEND_DESC blendDesc;
+		memset(&blendDesc, 0, sizeof(blendDesc));
+
+		blendDesc.AlphaToCoverageEnable = false;	// used in MSAA to treat alpha as coverage (i.e. for foliage rendering)
+		blendDesc.IndependentBlendEnable = false;	// For different blends for different outputs
+
+		// Blending is setting put the equation...
+		// FinalColor = BlendOp( SrcFactor * outputColor, DestFactor * destColor )
+		// where outputColor is what the pixel shader outputs
+		// and destColor is the color already in the pixel shader
+
+		// With independent blend disabled, we only need to set the 0th blend
+		blendDesc.RenderTarget[0].BlendEnable = TRUE;
+
+		// Color
+		blendDesc.RenderTarget[0].BlendOp = ToDXBlendOp(m_colorBlend.m_op);      
+		blendDesc.RenderTarget[0].SrcBlend = ToDXBlendFactor(m_colorBlend.m_srcFactor);
+		blendDesc.RenderTarget[0].DestBlend = ToDXBlendFactor(m_colorBlend.m_dstFactor);
+
+		// Alpha
+		blendDesc.RenderTarget[0].BlendOpAlpha = ToDXBlendOp(m_alphaBlend.m_op);
+		blendDesc.RenderTarget[0].SrcBlendAlpha = ToDXBlendFactor(m_alphaBlend.m_srcFactor);
+		blendDesc.RenderTarget[0].DestBlendAlpha = ToDXBlendFactor(m_alphaBlend.m_dstFactor);
+
+		// No masking
+		blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+		ID3D11Device* dxDevice = g_renderContext->GetDxDevice();
+		HRESULT hr = dxDevice->CreateBlendState(&blendDesc, &m_dxBlendState);
+
+		ASSERT_RETURN(SUCCEEDED(hr), NO_RETURN_VAL, "Couldn't create blend state!");
+
+		m_blendStateDirty = false;
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Shader::SetBlend(BlendPreset blendPreset)
+{
+	BlendInfo colorBlend, alphaBlend;
+	switch (blendPreset)
+	{
+	case BLEND_PRESET_OPAQUE:
+		colorBlend.m_op = BLEND_OP_ADD;
+		colorBlend.m_srcFactor = BLEND_FACTOR_ONE;
+		colorBlend.m_dstFactor = BLEND_FACTOR_ZERO;
+		alphaBlend.m_op = BLEND_OP_ADD;
+		alphaBlend.m_srcFactor = BLEND_FACTOR_ONE;
+		alphaBlend.m_dstFactor = BLEND_FACTOR_ONE;
+		break;
+	case BLEND_PRESET_ALPHA:
+		colorBlend.m_op = BLEND_OP_ADD;
+		colorBlend.m_srcFactor = BLEND_FACTOR_SRC_ALPHA;
+		colorBlend.m_dstFactor = BLEND_FACTOR_INV_SRC_ALPHA;
+		alphaBlend.m_op = BLEND_OP_ADD;
+		alphaBlend.m_srcFactor = BLEND_FACTOR_ONE;
+		alphaBlend.m_dstFactor = BLEND_FACTOR_ONE;
+		break;
+	case BLEND_PRESET_ADDITIVE:
+		colorBlend.m_op = BLEND_OP_ADD;
+		colorBlend.m_srcFactor = BLEND_FACTOR_ONE;
+		colorBlend.m_dstFactor = BLEND_FACTOR_ONE;
+		alphaBlend.m_op = BLEND_OP_ADD;
+		alphaBlend.m_srcFactor = BLEND_FACTOR_ONE;
+		alphaBlend.m_dstFactor = BLEND_FACTOR_ONE;
+		break;
+	default:
+		ERROR_RETURN(NO_RETURN_VAL, "Invalid Blend Preset!");
+		break;
+	}
+
+	SetBlend(colorBlend, alphaBlend);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Shader::SetBlend(const BlendInfo& colorBlend, const BlendInfo& alphaBlend)
+{
+	m_colorBlend = colorBlend;
+	m_alphaBlend = alphaBlend;
+	m_blendStateDirty = true;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Shader::SetColorBlend(const BlendInfo& blend)
+{
+	m_colorBlend = blend;
+	m_blendStateDirty = true;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Shader::SetAlphaBlend(const BlendInfo& blend)
+{
+	m_alphaBlend = blend;
+	m_blendStateDirty = true;
 }

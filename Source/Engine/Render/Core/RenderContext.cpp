@@ -215,6 +215,11 @@ void RenderContext::BindShader(Shader* shader)
 	{
 		m_dxContext->VSSetShader(shader->GetVertexStage(), 0, 0);
 		m_dxContext->PSSetShader(shader->GetFragmentStage(), 0, 0);
+
+		shader->UpdateBlendState();
+		float black[] = { 0.f, 0.f, 0.f, 0.f };
+		m_dxContext->OMSetBlendState(shader->GetDXBlendState(), black, 0xFFFFFFFF);
+
 		m_currentShader = shader;
 	}
 }
@@ -342,6 +347,8 @@ void RenderContext::SaveTextureToImage(Texture2D* texture, const char* filepath)
 			dxSrcTexture->GetDesc(&srcTexDesc);
 
 			D3D11_TEXTURE2D_DESC stageTexDesc;
+			memset(&stageTexDesc, 0, sizeof(stageTexDesc));
+
 			stageTexDesc.Width = srcTexDesc.Width;
 			stageTexDesc.Height = srcTexDesc.Height;
 			stageTexDesc.MipLevels = srcTexDesc.MipLevels;
@@ -390,7 +397,7 @@ void RenderContext::SaveTextureToImage(Texture2D* texture, const char* filepath)
 	}
 
 	// Kick the job
-	SaveTextureJob* saveTexJob = new SaveTextureJob(texelWidth, texelHeight, numComponentsPerTexel, filepath, imgData);
+	SaveTextureJob* saveTexJob = new SaveTextureJob(texelWidth, texelHeight, 4, filepath, imgData);
 	g_jobSystem->QueueJob(saveTexJob);
 }
 
