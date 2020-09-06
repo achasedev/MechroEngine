@@ -1,16 +1,14 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: February 15th, 2020
-/// Description: 
+/// Date Created: September 4th, 2020
+/// Description: Class to load QEF voxel matrix files
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Framework/EngineCommon.h"
-#include "Engine/Math/Vector4.h"
-#pragma warning(disable : 4201) // Keep the structs anonymous in the union for usability
+#include <string>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -19,6 +17,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class Mesh;
+class File;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -29,50 +29,25 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Rgba
+class QEFLoader
 {
 public:
 	//-----Public Methods-----
 
-	Rgba();
-	explicit Rgba(int red, int green, int blue, int alpha);
-	explicit Rgba(float red, float green, float blue, float alpha);
-	Rgba(const Rgba& copy);
+	bool	LoadFile(const char* filepath);
+	Mesh*	CreateMesh();
+	void	Clear();
 
-	float	GetRedFloat() const;
-	float	GetBlueFloat() const;
-	float	GetGreenFloat() const;
-	float	GetAlphaFloat() const;
-	Vector4 GetAsFloats() const;
+	bool	HasFileLoaded() const { return m_file != nullptr; }
 
 
-public:
-	//-----Public Static Data-----
+private:
+	//-----Private Data-----
 
-	static const Rgba WHITE;
-	static const Rgba BLACK;
-	static const Rgba RED;
-	static const Rgba GREEN;
-	static const Rgba BLUE;
+	File* m_file = nullptr;
 
-
-public:
-	//-----Public Member Data-----
-
-	union
-	{
-		uint8 data[4];
-		struct
-		{
-			uint8 r;
-			uint8 g;
-			uint8 b;
-			uint8 a;
-		};
-	};
 };
 
-#pragma warning(default : 4201)
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS

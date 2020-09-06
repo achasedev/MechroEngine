@@ -86,6 +86,14 @@ float Normalize(uint8 inValue)
 
 
 //-------------------------------------------------------------------------------------------------
+uint8 NormalizedFloatToByte(float inValue)
+{
+	float scaledValue = Clamp(inValue * 255.f, 0.f, 255.0f);
+	return static_cast<uint8>(RoundToNearestInt(scaledValue));
+}
+
+
+//-------------------------------------------------------------------------------------------------
 Vector2 PolarToCartesian(float radius, float angleRadians)
 {
 	Vector2 result;

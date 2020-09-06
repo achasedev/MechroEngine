@@ -68,15 +68,15 @@ bool CloseFile(FILE* fileHandle)
 
 
 //-------------------------------------------------------------------------------------------------
-void* FileReadToNewBuffer(char const *filename, size_t& out_size)
+void* FileReadToNewBuffer(const char* filepath, size_t& out_size)
 {
-	FILE* fp = OpenFile(filename, "r");
+	out_size = 0U;
+	
+	FILE* fp = OpenFile(filepath, "r");
 	if (fp == nullptr)
 	{
 		return nullptr;
 	}
-
-	out_size = 0U;
 
 	fseek(fp, 0L, SEEK_END);
 	out_size = ftell(fp);
@@ -95,10 +95,10 @@ void* FileReadToNewBuffer(char const *filename, size_t& out_size)
 
 
 //-------------------------------------------------------------------------------------------------
-bool FileWriteFromBuffer(char const *filename, char const* buffer, int bufferSize)
+bool FileWriteFromBuffer(const char* filepath, const char* buffer, int bufferSize)
 {
 	FILE *fp = nullptr;
-	fopen_s(&fp, filename, "w+");
+	fopen_s(&fp, filepath, "w+");
 	if (fp == nullptr)
 	{
 		return false;
@@ -107,6 +107,21 @@ bool FileWriteFromBuffer(char const *filename, char const* buffer, int bufferSiz
 	fwrite(buffer, sizeof(char), bufferSize, fp);
 
 	return CloseFile(fp);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+std::string GetFileExtension(const char* filepath)
+{
+	std::string path(filepath);
+	size_t index = path.find_last_of(".");
+
+	if (index == std::string::npos)
+	{
+		return "";
+	}
+
+	return path.substr(index);
 }
 
 

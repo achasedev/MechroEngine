@@ -7,9 +7,11 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Framework/Rgba.h"
 #include "Engine/Math/AABB2.h"
 #include "Engine/Math/AABB3.h"
 #include "Engine/Math/IntVector2.h"
+#include "Engine/Math/MathUtils.h"
 #include "Engine/Math/Vector2.h"
 #include "Engine/Math/Vector3.h"
 #include "Engine/Math/Vector4.h"
@@ -75,6 +77,32 @@ const std::string Stringf(const int maxLength, const char* format, ...)
 int GetStringLength(const char* str)
 {
 	return static_cast<int>(strlen(str));
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Tokenize(const std::string& stringToTokenize, const char delimiter, std::vector<std::string>& out_tokens)
+{
+	// Set up the substring indices
+	size_t subStringStartIndex = stringToTokenize.find_first_not_of(delimiter);
+	if (subStringStartIndex == (int)std::string::npos) { return; }	// Return if the entire string is just delimiters
+	size_t subStringEndPostion = stringToTokenize.find(delimiter, subStringStartIndex + 1);
+
+	// Iterate across the entire string
+	while (subStringEndPostion != (int)std::string::npos)
+	{
+		// Create the substring
+		size_t substringLength = (subStringEndPostion - subStringStartIndex);
+		out_tokens.push_back(std::string(stringToTokenize, subStringStartIndex, substringLength));
+
+		// Update the indices
+		subStringStartIndex = stringToTokenize.find_first_not_of(delimiter, subStringEndPostion + 1);
+		if (subStringStartIndex == (int)std::string::npos) { return; } // Return if the rest of the string is just delimiters
+		subStringEndPostion = stringToTokenize.find(delimiter, subStringStartIndex + 1);
+	}
+
+	// Add the rest of the string
+	out_tokens.push_back(std::string(stringToTokenize, subStringStartIndex));
 }
 
 
@@ -153,6 +181,53 @@ std::string ToString(void* inValue)
 {
 	return Stringf("Pointer at address: %x", inValue);
 }
+
+
+//-------------------------------------------------------------------------------------------------
+int StringToInt(const std::string& inValue)
+{
+	return atoi(inValue.c_str());
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float StringToFloat(const std::string& inValue)
+{
+	return static_cast<float>(atof(inValue.c_str()));
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Rgba StringToRgba(const std::string& inValue)
+{
+	// TODO: Check for ',' as a delimiter first
+	ASSERT_RETURN(inValue.size() > 0, Rgba::BLACK, "Emtpy string!");
+
+	std::vector<std::string> colorTokens;
+	Tokenize(inValue, ' ', colorTokens);
+
+	ASSERT_RECOVERABLE(colorTokens.size() < 5, "Too many components for an RGBA, only using the first 4!");
+
+	// Check if the string is in floats or ints
+	bool isFloats = inValue.find('.') != std::string::npos;
+
+	Rgba color;
+	for (uint32 colorIndex = 0; colorIndex < colorTokens.size(); ++colorIndex)
+	{
+		if (isFloats)
+		{
+			color.data[colorIndex] = NormalizedFloatToByte(StringToFloat(colorTokens[colorIndex]));
+		}
+		else
+		{
+			int colorUnclamped = StringToInt(colorTokens[colorIndex].c_str());
+			color.data[colorIndex] = static_cast<uint8>(Clamp(colorUnclamped, 0, 255));
+		}
+	}
+
+	return color;
+}
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS

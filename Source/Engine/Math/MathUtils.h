@@ -59,6 +59,8 @@ Vector3	Abs(const Vector3& inValue);
 //-------------------------------------------------------------------------------------------------
 // Scalar Functions
 float Normalize(uint8 inValue);
+uint8 NormalizedFloatToByte(float inValue);
+
 
 //-------------------------------------------------------------------------------------------------
 // Coordinate system

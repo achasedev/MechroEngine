@@ -35,11 +35,11 @@ public:
 	File() {}
 	~File();
 
-	bool Open(const char* filepath, const char* flags);
-	const char* LoadFileToMemory();
-	bool Close();
-	void Write(const char* buffer, size_t length);
-	void Flush();
+	bool			Open(const char* filepath, const char* flags);
+	const char*		LoadFileToMemory();
+	bool			Close();
+	void			Write(const char* buffer, size_t length);
+	void			Flush();
 
 	bool			IsOpened() const { return m_filePointer != nullptr; }
 	size_t			GetSize() const { return m_size; }
@@ -54,10 +54,10 @@ public:
 private:
 	//-----Private Data-----
 
-	void*		m_filePointer = nullptr;
-	std::string m_filePathOpened;
-	size_t		m_size = 0;
-	const char* m_data = nullptr;
+	void*			m_filePointer = nullptr;
+	std::string		m_filePathOpened;
+	size_t			m_size = 0;
+	const char*		m_data = nullptr;
 
 	// For parsing file contents loaded into memory
 	unsigned int	m_offset = 0;
@@ -73,5 +73,6 @@ private:
 
 std::string	GetWorkingDirectory();
 std::string	GetFullFilePath(const std::string& localFilePath);
-void*		FileReadToNewBuffer(char const *filename, size_t& out_size);
-bool		FileWriteFromBuffer(char const *filename, char const* buffer, int bufferSize);
+void*		FileReadToNewBuffer(const char* filepath, size_t& out_size);
+bool		FileWriteFromBuffer(const char* filepath, const char* buffer, int bufferSize);
+std::string GetFileExtension(const char* filepath); // Includes the "."

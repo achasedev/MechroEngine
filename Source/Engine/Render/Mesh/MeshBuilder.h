@@ -44,18 +44,18 @@ public:
 	MeshBuilder() {};
 	~MeshBuilder();
 
-	void BeginBuilding(bool useIndices);
-	void FinishBuilding();
-	void Clear();
+	void	BeginBuilding(bool useIndices);
+	void	FinishBuilding();
+	void	Clear();
 	
 	// VertexMaster Stamp
-	void SetColor(const Rgba& color);
-	void SetUV(const Vector2& uv);
-	void SetNormal(const Vector3& normal);
-	void SetTangent(const Vector4& tangent);
+	void	SetColor(const Rgba& color);
+	void	SetUV(const Vector2& uv);
+	void	SetNormal(const Vector3& normal);
+	void	SetTangent(const Vector4& tangent);
 
-	void SetDrawInstruction(const DrawInstruction& instruction);
-	void SetDrawInstruction(bool useIndices, uint32 startIndex, uint32 elementCount);
+	void	SetDrawInstruction(const DrawInstruction& instruction);
+	void	SetDrawInstruction(bool useIndices, uint32 startIndex, uint32 elementCount);
 
 	uint32	PushVertex(const Vector3& position);
 	uint32	PushVertex(const VertexMaster& master);
@@ -72,8 +72,8 @@ public:
 	void	PushQuad3D(const Vector3& position, const Vector2& dimensions, const AABB2& uvs = AABB2::ZERO_TO_ONE, const Rgba& tint = Rgba::WHITE, const Vector3& rightVector = Vector3::X_AXIS, const Vector3& upVector = Vector3::Y_AXIS, const Vector2& pivot = Vector2(0.5f, 0.5f));
 	void	PushCube(const Vector3& center, const Vector3& dimensions, const AABB2& topUVs = AABB2::ZERO_TO_ONE, const AABB2& sideUVs = AABB2::ZERO_TO_ONE, const AABB2& bottomUVs = AABB2::ZERO_TO_ONE, const Rgba& tint = Rgba::WHITE);
 
-	uint32 GetVertexCount() const { return (uint32)m_vertices.size(); }
-	uint32 GetIndexCount() const { return (uint32)m_indices.size(); }
+	uint32	GetVertexCount() const { return (uint32)m_vertices.size(); }
+	uint32	GetIndexCount() const { return (uint32)m_indices.size(); }
 
 	//-------------------------------------------------------------------------------------------------
 	template <typename VERT_TYPE>

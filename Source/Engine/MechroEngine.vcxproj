@@ -224,6 +224,7 @@
     <ClCompile Include="Utility\SpritePacker.cpp" />
     <ClCompile Include="Utility\StringID.cpp" />
     <ClCompile Include="Utility\StringUtils.cpp" />
+    <ClCompile Include="Voxel\QEFLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Event\EventSubscription.h" />
@@ -297,6 +298,7 @@
     <ClInclude Include="Utility\SmartPointer.h" />
     <ClInclude Include="Utility\StringID.h" />
     <ClInclude Include="Utility\StringUtils.h" />
+    <ClInclude Include="Voxel\QEFLoader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

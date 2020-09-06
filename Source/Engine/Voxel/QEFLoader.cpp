@@ -1,14 +1,17 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: February 15th, 2020
-/// Description: 
+/// Date Created: September 4th, 2020
+/// Description: Implementation of the QEFLoader class
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Framework/EngineCommon.h"
 #include "Engine/Framework/Rgba.h"
-#include "Engine/Math/MathUtils.h"
+#include "Engine/IO/File.h"
+#include "Engine/Render/Mesh/MeshBuilder.h"
+#include "Engine/Voxel/QEFLoader.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -21,11 +24,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-const Rgba Rgba::WHITE	= Rgba(255, 255, 255, 255);
-const Rgba Rgba::BLACK	= Rgba(0, 0, 0, 255);
-const Rgba Rgba::RED	= Rgba(255, 0, 0, 255);
-const Rgba Rgba::GREEN	= Rgba(0, 255, 0, 255);
-const Rgba Rgba::BLUE	= Rgba(0, 0, 255, 255);
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
@@ -36,72 +34,102 @@ const Rgba Rgba::BLUE	= Rgba(0, 0, 255, 255);
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-Rgba::Rgba()
-	: Rgba(255, 255, 255, 255)
+bool QEFLoader::LoadFile(const char* filepath)
 {
+	if (m_file != nullptr)
+	{
+		Clear();
+	}
+
+	ASSERT_RECOVERABLE(GetFileExtension(filepath) == ".qef", "Path is not to a .qef file?");
+
+	m_file = new File();
+	bool success = m_file->Open(filepath, "r");
+
+	if (!success)
+	{
+		Clear();
+		return false;
+	}
+
+	m_file->LoadFileToMemory();
+	return true;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Rgba::Rgba(float red, float green, float blue, float alpha)
-	: r(NormalizedFloatToByte(red))
-	, g(NormalizedFloatToByte(green))
-	, b(NormalizedFloatToByte(blue))
-	, a(NormalizedFloatToByte(alpha))
+Mesh* QEFLoader::CreateMesh()
 {
+	ASSERT_RETURN(m_file != nullptr, nullptr, "QEFLoader can't make a mesh without loading a file first!");
+
+	std::string currLine;
+
+	// Qubicle Exchange Format
+	m_file->GetNextLine(currLine);
+	ASSERT_RECOVERABLE(currLine == "Qubicle Exchange Format", "Bad QEF header?");
+
+	// Version <VERSION NUMBER>
+	m_file->GetNextLine(currLine);
+
+	// www.minddesk.com
+	m_file->GetNextLine(currLine);
+	
+	// Next line is the XYZ dimensions of the model (size of its bounding box)
+	std::string dimensionsText;
+	m_file->GetNextLine(dimensionsText);
+
+	// Next line is the number of unique colors used in the model
+	std::string colorCountText;
+	m_file->GetNextLine(colorCountText);
+	int numColors = StringToInt(colorCountText);
+
+	// Next numColor lines are the colors
+	Rgba* colors = (Rgba*)malloc(sizeof(Rgba) * numColors);
+
+	std::string colorText;
+	for (int i = 0; i < numColors; ++i)
+	{
+		m_file->GetNextLine(colorText);
+		colors[i] = StringToRgba(colorText);
+	}
+
+	// Now get all the voxels and build a mesh
+	MeshBuilder mb;
+	mb.BeginBuilding(true);
+
+	m_file->GetNextLine(currLine);
+	while (!m_file->IsAtEndOfFile())
+	{
+		ASSERT_RECOVERABLE(currLine.size() > 0, "Empty string?");
+		
+		std::vector<std::string> voxelTokens;
+		Tokenize(currLine, ' ', voxelTokens);
+
+		// Should always have x, y, z, color index, visibility mask
+		ASSERT_OR_DIE(voxelTokens.size() == 5, "Invalid voxel line!");
+
+		Vector3 position;
+
+		position.x = StringToFloat(voxelTokens[0]);
+		position.y = StringToFloat(voxelTokens[1]);
+		position.z = StringToFloat(voxelTokens[2]);
+		
+		int colorIndex = StringToInt(voxelTokens[3]);
+		mb.PushCube(position + Vector3(0.5f), Vector3::ONES, AABB2::ZERO_TO_ONE, AABB2::ZERO_TO_ONE, AABB2::ZERO_TO_ONE, colors[colorIndex]);
+
+		m_file->GetNextLine(currLine);
+	}
+
+	mb.FinishBuilding();
+	Mesh* mesh = mb.CreateMesh<Vertex3D_PCU>();
+	mb.Clear();
+
+	return mesh;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Rgba::Rgba(int red, int green, int blue, int alpha)
-	: r(static_cast<uint8>(red))
-	, g(static_cast<uint8>(green))
-	, b(static_cast<uint8>(blue))
-	, a(static_cast<uint8>(alpha))
+void QEFLoader::Clear()
 {
-}
-
-
-//-------------------------------------------------------------------------------------------------
-Rgba::Rgba(const Rgba& copy)
-	: r(copy.r)
-	, g(copy.g)
-	, b(copy.b)
-	, a(copy.a)
-{
-}
-
-
-//-------------------------------------------------------------------------------------------------
-float Rgba::GetRedFloat() const
-{
-	return Normalize(r);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-float Rgba::GetGreenFloat() const
-{
-	return Normalize(g);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-float Rgba::GetBlueFloat() const
-{
-	return Normalize(b);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-float Rgba::GetAlphaFloat() const
-{
-	return Normalize(a);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-Vector4 Rgba::GetAsFloats() const
-{
-	return Vector4(Normalize(r), Normalize(g), Normalize(b), Normalize(a));
+	SAFE_DELETE_POINTER(m_file);
 }
