@@ -135,6 +135,20 @@ D3D11_BLEND_OP ToDXBlendOp(BlendOp blendOp)
 }
 
 
+//-------------------------------------------------------------------------------------------------
+D3D11_FILL_MODE ToDXFillMode(FillMode fillMode)
+{
+	switch (fillMode)
+	{
+	case FILL_MODE_SOLID:		return D3D11_FILL_SOLID; break;
+	case FILL_MODE_WIREFRAME:	return D3D11_FILL_WIREFRAME; break;
+	default:
+		ERROR_RETURN(D3D11_FILL_SOLID, "Invalid Fill Mode!");
+		break;
+	}
+}
+
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -314,6 +328,37 @@ void Shader::UpdateBlendState()
 
 
 //-------------------------------------------------------------------------------------------------
+void Shader::UpdateRasterizerState()
+{
+	if (m_dxRasterizerState == nullptr || m_rasterizerStateDirty)
+	{
+		DX_SAFE_RELEASE(m_dxRasterizerState);
+
+		D3D11_RASTERIZER_DESC rasterDesc;
+		memset(&rasterDesc, 0, sizeof(rasterDesc));
+
+		rasterDesc.FillMode = ToDXFillMode(m_fillMode);
+		rasterDesc.CullMode = D3D11_CULL_BACK;
+		rasterDesc.FrontCounterClockwise = FALSE;
+		rasterDesc.DepthBias = 0;
+		rasterDesc.SlopeScaledDepthBias = 0.0f;
+		rasterDesc.DepthBiasClamp = 0.0f;
+		rasterDesc.DepthClipEnable = true;
+		rasterDesc.ScissorEnable = false;
+		rasterDesc.MultisampleEnable = false;
+		rasterDesc.AntialiasedLineEnable = false;
+
+		ID3D11Device* dxDevice = g_renderContext->GetDxDevice();
+		HRESULT hr = dxDevice->CreateRasterizerState(&rasterDesc, &m_dxRasterizerState);
+
+		ASSERT_RETURN(SUCCEEDED(hr), NO_RETURN_VAL, "Couldn't create rasterizer state!");
+
+		m_blendStateDirty = false;
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void Shader::SetBlend(BlendPreset blendPreset)
 {
 	BlendInfo colorBlend, alphaBlend;
@@ -374,4 +419,12 @@ void Shader::SetAlphaBlend(const BlendInfo& blend)
 {
 	m_alphaBlend = blend;
 	m_blendStateDirty = true;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Shader::SetFillMode(FillMode fillMode)
+{
+	m_fillMode = fillMode;
+	m_rasterizerStateDirty = true;
 }

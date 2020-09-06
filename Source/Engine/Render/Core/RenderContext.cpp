@@ -220,6 +220,9 @@ void RenderContext::BindShader(Shader* shader)
 		float black[] = { 0.f, 0.f, 0.f, 0.f };
 		m_dxContext->OMSetBlendState(shader->GetDXBlendState(), black, 0xFFFFFFFF);
 
+		shader->UpdateRasterizerState();
+		m_dxContext->RSSetState(shader->GetDXRasterizerState());
+
 		m_currentShader = shader;
 	}
 }

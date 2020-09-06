@@ -20,6 +20,7 @@
 struct ID3D11InputLayout;
 struct ID3D11PixelShader;
 struct ID3D11Resource;
+struct ID3D11RasterizerState;
 struct ID3D11VertexShader;
 class VertexLayout;
 
@@ -79,7 +80,6 @@ struct BlendInfo
 	BlendFactor m_dstFactor;
 };
 
-
 // Convenience common blend modes
 enum BlendPreset
 {
@@ -88,6 +88,11 @@ enum BlendPreset
 	BLEND_PRESET_ADDITIVE
 };
 
+enum FillMode
+{
+	FILL_MODE_SOLID,
+	FILL_MODE_WIREFRAME
+};
 
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -139,32 +144,39 @@ public:
 	Shader();
 	~Shader();
 
-	bool				CreateFromFile(const char* filename);
-	bool				CreateInputLayoutForVertexLayout(const VertexLayout* vertexLayout);
-	void				UpdateBlendState();
+	bool					CreateFromFile(const char* filename);
+	bool					CreateInputLayoutForVertexLayout(const VertexLayout* vertexLayout);
+	void					UpdateBlendState();
+	void					UpdateRasterizerState();
 
-	void				SetBlend(BlendPreset blendPreset);
-	void				SetBlend(const BlendInfo& colorBlend, const BlendInfo& alphaBlend);
-	void				SetColorBlend(const BlendInfo& blend);
-	void				SetAlphaBlend(const BlendInfo& blend);
+	void					SetBlend(BlendPreset blendPreset);
+	void					SetBlend(const BlendInfo& colorBlend, const BlendInfo& alphaBlend);
+	void					SetColorBlend(const BlendInfo& blend);
+	void					SetAlphaBlend(const BlendInfo& blend);
+	void					SetFillMode(FillMode fillMode);
 
-	ID3D11VertexShader* GetVertexStage() const { return m_vertexShader.GetAsVertexShader(); }
-	ID3D11PixelShader*	GetFragmentStage() const { return m_fragmentShader.GetAsFragmentShader(); }
-	ID3D11InputLayout*	GetInputLayout() const { return m_shaderInputLayout.m_dxInputLayout; }
-	ID3D11BlendState*	GetDXBlendState() const { return m_dxBlendState; }
+	ID3D11VertexShader*		GetVertexStage() const { return m_vertexShader.GetAsVertexShader(); }
+	ID3D11PixelShader*		GetFragmentStage() const { return m_fragmentShader.GetAsFragmentShader(); }
+	ID3D11InputLayout*		GetInputLayout() const { return m_shaderInputLayout.m_dxInputLayout; }
+	ID3D11BlendState*		GetDXBlendState() const { return m_dxBlendState; }
+	ID3D11RasterizerState*	GetDXRasterizerState() const { return m_dxRasterizerState; }
 
 
 private:
 	//-----Private Data-----
 
-	ShaderStage			m_vertexShader;
-	ShaderStage			m_fragmentShader;
-	ShaderInputLayout	m_shaderInputLayout;
+	ShaderStage				m_vertexShader;
+	ShaderStage				m_fragmentShader;
+	ShaderInputLayout		m_shaderInputLayout;
 
-	BlendInfo			m_colorBlend;
-	BlendInfo			m_alphaBlend;
-	ID3D11BlendState*	m_dxBlendState = nullptr;
-	bool				m_blendStateDirty = true;
+	BlendInfo				m_colorBlend;
+	BlendInfo				m_alphaBlend;
+	ID3D11BlendState*		m_dxBlendState = nullptr;
+	bool					m_blendStateDirty = true;
+
+	FillMode				m_fillMode = FILL_MODE_SOLID;
+	ID3D11RasterizerState*	m_dxRasterizerState = nullptr;
+	bool					m_rasterizerStateDirty = true;
 
 };
 
