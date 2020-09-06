@@ -115,7 +115,45 @@ Mesh* QEFLoader::CreateMesh()
 		position.z = StringToFloat(voxelTokens[2]);
 		
 		int colorIndex = StringToInt(voxelTokens[3]);
-		mb.PushCube(position + Vector3(0.5f), Vector3::ONES, AABB2::ZERO_TO_ONE, AABB2::ZERO_TO_ONE, AABB2::ZERO_TO_ONE, colors[colorIndex]);
+
+		// Check the visibility mask to determine which faces to push
+		int visibility = StringToInt(voxelTokens[4]);
+
+		// Right
+		if ((visibility & 2) == 2)
+		{
+			mb.PushQuad3D(position + Vector3(1.f, 0.f, 0.f), Vector2::ONES, AABB2::ZERO_TO_ONE, colors[colorIndex], Vector3::Z_AXIS, Vector3::Y_AXIS, Vector2::ZERO);
+		}
+
+		// Left
+		if ((visibility & 4) == 4)
+		{
+			mb.PushQuad3D(position + Vector3(0.f, 0.f, 1.f), Vector2::ONES, AABB2::ZERO_TO_ONE, colors[colorIndex], Vector3::MINUS_Z_AXIS, Vector3::Y_AXIS, Vector2::ZERO);
+		}
+
+		// Top
+		if ((visibility & 8) == 8)
+		{
+			mb.PushQuad3D(position + Vector3(0.f, 1.f, 0.f), Vector2::ONES, AABB2::ZERO_TO_ONE, colors[colorIndex], Vector3::X_AXIS, Vector3::Z_AXIS, Vector2::ZERO);
+		}
+
+		// Bottom
+		if ((visibility & 16) == 16)
+		{
+			mb.PushQuad3D(position + Vector3(0.f, 0.f, 1.f), Vector2::ONES, AABB2::ZERO_TO_ONE, colors[colorIndex], Vector3::X_AXIS, Vector3::MINUS_Z_AXIS, Vector2::ZERO);
+		}
+
+		// Front
+		if ((visibility & 32) == 32)
+		{
+			mb.PushQuad3D(position + Vector3(1.f, 0.f, 1.f), Vector2::ONES, AABB2::ZERO_TO_ONE, colors[colorIndex], Vector3::MINUS_X_AXIS, Vector3::Y_AXIS, Vector2::ZERO);
+		}
+
+		// Back
+		if ((visibility & 64) == 64)
+		{
+			mb.PushQuad3D(position, Vector2::ONES, AABB2::ZERO_TO_ONE, colors[colorIndex], Vector3::X_AXIS, Vector3::Y_AXIS, Vector2::ZERO);
+		}
 
 		m_file->GetNextLine(currLine);
 	}
