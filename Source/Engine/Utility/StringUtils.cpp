@@ -11,6 +11,7 @@
 #include "Engine/Math/AABB2.h"
 #include "Engine/Math/AABB3.h"
 #include "Engine/Math/IntVector2.h"
+#include "Engine/Math/IntVector3.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Math/Vector2.h"
 #include "Engine/Math/Vector3.h"
@@ -228,6 +229,26 @@ Rgba StringToRgba(const std::string& inValue)
 	return color;
 }
 
+
+//-------------------------------------------------------------------------------------------------
+IntVector3 StringToIntVector3(const std::string& inValue)
+{
+	// TODO: Check for ',' as a delimiter first
+	ASSERT_RETURN(inValue.size() > 0, IntVector3::ZERO, "Emtpy string!");
+
+	std::vector<std::string> tokens;
+	Tokenize(inValue, ' ', tokens);
+
+	ASSERT_RECOVERABLE(tokens.size() < 4, "Too many components for an IntVector3, only using the first 3!");
+
+	IntVector3 returnValue(0);
+	for (uint32 i = 0; i < tokens.size(); ++i)
+	{
+		returnValue.data[i] = StringToInt(tokens[i].c_str());
+	}
+
+	return returnValue;
+}
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS

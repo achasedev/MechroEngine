@@ -19,6 +19,7 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Vector2;
+class IntVector3;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -43,6 +44,8 @@ public:
 	explicit Vector3(float initialX, float initialY, float initialZ);
 	explicit Vector3(int initialX, int initialY, int initialZ);
 	explicit Vector3(const Vector2& xyVector, float initialZ);
+	explicit Vector3(const IntVector3& intVector);
+
 	~Vector3() {}
 
 	const Vector3			operator+(const Vector3& addVector) const;

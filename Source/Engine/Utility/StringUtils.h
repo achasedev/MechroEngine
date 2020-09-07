@@ -21,6 +21,7 @@
 class AABB2;
 class AABB3;
 class IntVector2;
+class IntVector3;
 class NamedProperties;
 class Rgba;
 class Vector2;
@@ -58,3 +59,4 @@ std::string			ToString(void* inValue); // For allowing pointers to be stored in 
 int					StringToInt(const std::string& inValue);
 float				StringToFloat(const std::string& inValue);
 Rgba				StringToRgba(const std::string& inValue);
+IntVector3			StringToIntVector3(const std::string& inValue);

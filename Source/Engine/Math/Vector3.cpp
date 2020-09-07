@@ -7,10 +7,10 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/Vector3.h"
-
 #include "Engine/Framework/EngineCommon.h"
+#include "Engine/Math/IntVector3.h"
 #include "Engine/Math/MathUtils.h"
+#include "Engine/Math/Vector3.h"
 #include <math.h>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -80,6 +80,15 @@ Vector3::Vector3(const Vector2& xyVector, float initialZ)
 	: x(xyVector.x)
 	, y(xyVector.y)
 	, z(initialZ)
+{
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector3::Vector3(const IntVector3& intVector)
+	: x(static_cast<float>(intVector.x))
+	, y(static_cast<float>(intVector.y))
+	, z(static_cast<float>(intVector.z))
 {
 }
 
