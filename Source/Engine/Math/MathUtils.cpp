@@ -289,9 +289,10 @@ float GetAngleBetweenMinusOneEightyAndOneEighty(float angleDegrees)
 
 
 //-------------------------------------------------------------------------------------------------
+// Returns angle between 0.f (inclusive) and 360.f (exclusive)
 float GetAngleBetweenZeroThreeSixty(float angleDegrees)
 {
-	while (angleDegrees > 360.f)
+	while (angleDegrees >= 360.f)
 	{
 		angleDegrees -= 360.f;
 	}
@@ -607,6 +608,44 @@ bool Refract(const Vector3& incidentVector, const Vector3& normal, float niOverN
 	}
 
 	return false;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector2 RotateByAngleDegrees(const Vector2& vector, float deltaAngleDegrees)
+{
+	float simplifiedAngle = GetAngleBetweenZeroThreeSixty(deltaAngleDegrees);
+
+	// Optimizations
+	if (simplifiedAngle == 0.f)
+	{
+		return vector;
+	}
+
+	if (simplifiedAngle == 90.f)
+	{
+		return Vector2(-vector.y, vector.x);
+	}
+
+	if (simplifiedAngle == 180.f)
+	{
+		return -1.0f * vector;
+	}
+
+	if (simplifiedAngle == 270.f)
+	{
+		return Vector2(vector.y, -vector.x);
+	}
+
+	// Do the actual math
+	float cs = CosDegrees(simplifiedAngle);
+	float sn = SinDegrees(simplifiedAngle);
+
+	Vector2 result;
+	result.x = vector.x * cs - vector.y * sn;
+	result.y = vector.x * sn + vector.y * cs;
+
+	return result;
 }
 
 
