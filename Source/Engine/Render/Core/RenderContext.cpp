@@ -29,6 +29,7 @@
 #include "Engine/IO/File.h"
 #include "Engine/Framework/Window.h"
 #include "Engine/IO/Image.h"
+#include "Engine/Math/Polygon2D.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Utility/NamedProperties.h"
 
@@ -313,8 +314,6 @@ void RenderContext::Draw(const DrawCall& drawCall)
 	UpdateInputLayout(mesh->GetVertexLayout());
 	UpdateModelMatrixUBO(drawCall.GetModelMatrix());
 
-	// TODO: Other render state? (cull mode, fill mode, winding order, blending, depth func)
-
 	DrawInstruction draw = mesh->GetDrawInstruction();
 	if (draw.m_useIndices)
 	{
@@ -324,6 +323,28 @@ void RenderContext::Draw(const DrawCall& drawCall)
 	{
 		m_dxContext->Draw(draw.m_elementCount, draw.m_startIndex);
 	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RenderContext::DrawPolygon2D(const Polygon2D& polygon, Material* material, const Rgba& color /*= Rgba::WHITE*/)
+{
+	uint32 numVertices = polygon.GetNumVertices();
+	std::vector<Vertex3D_PCU> vertices;
+
+	for (uint32 i = 0; i < numVertices; ++i)
+	{
+		Vector3 position = Vector3(polygon.GetVertexAtIndex(i), 0.f);
+		vertices.push_back(Vertex3D_PCU(position, color, Vector2::ZERO));
+
+		uint32 nextIndex = ((i == (numVertices - 1U)) ? 0 : i + 1U);
+		Vector3 nextPosition = Vector3(polygon.GetVertexAtIndex(nextIndex), 0.f);
+		vertices.push_back(Vertex3D_PCU(nextPosition, color, Vector2::ZERO));
+	}
+
+	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+	DrawVertexArray(vertices.data(), vertices.size(), nullptr, 0U, material);
+	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
 

@@ -51,7 +51,7 @@ Polygon2D::Polygon2D(uint32 reserveSize)
 void Polygon2D::AddVertex(const Vector2& vertex)
 {
 #ifndef DISABLE_ASSERTS
-	for (int i = 0; i < m_vertices.size(); ++i)
+	for (uint32 i = 0; i < m_vertices.size(); ++i)
 	{
 		if (m_vertices[i] == vertex)
 		{
@@ -67,9 +67,9 @@ void Polygon2D::AddVertex(const Vector2& vertex)
 //-------------------------------------------------------------------------------------------------
 void Polygon2D::AddVertices(const std::vector<Vector2>& vertices)
 {
-	int numVertsToAdd = vertices.size();
+	uint32 numVertsToAdd = vertices.size();
 
-	for (int i = 0; i < numVertsToAdd; ++i)
+	for (uint32 i = 0; i < numVertsToAdd; ++i)
 	{
 		AddVertex(vertices[i]);
 	}
@@ -84,6 +84,16 @@ void Polygon2D::Clear()
 
 
 //-------------------------------------------------------------------------------------------------
+void Polygon2D::Translate(const Vector2& translation)
+{
+	for (uint32 vertexIndex = 0; vertexIndex < m_vertices.size(); ++vertexIndex)
+	{
+		m_vertices[vertexIndex] += translation;
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
 Vector2 Polygon2D::GetVertexAtIndex(uint32 index) const
 {
 	ASSERT_OR_DIE(index < m_vertices.size(), "Index out of bounds!");
@@ -93,7 +103,7 @@ Vector2 Polygon2D::GetVertexAtIndex(uint32 index) const
 
 
 //-------------------------------------------------------------------------------------------------
-Vector2 Polygon2D::GetFarthestVertexInDirection(const Vector2& directionInLocalSpace) const
+Vector2 Polygon2D::GetFarthestVertexInDirection(const Vector2& direction) const
 {
 	ASSERT_OR_DIE(m_vertices.size() > 0, "No vertices to return!");
 
@@ -106,13 +116,13 @@ Vector2 Polygon2D::GetFarthestVertexInDirection(const Vector2& directionInLocalS
 	float maxDot = -1.f;
 	int bestIndex = -1;
 
-	for (int vertexIndex = 0; vertexIndex < m_vertices.size(); ++vertexIndex)
+	for (uint32 vertexIndex = 0; vertexIndex < m_vertices.size(); ++vertexIndex)
 	{
 		// Treat the vertex position as a vector from 0,0
 		const Vector2& currVector = m_vertices[vertexIndex];
 
-		float dot = DotProduct(currVector, directionInLocalSpace);
-		if (dot > maxDot)
+		float dot = DotProduct(currVector, direction);
+		if (bestIndex == -1 || dot > maxDot)
 		{
 			maxDot = dot;
 			bestIndex = vertexIndex;
@@ -120,4 +130,22 @@ Vector2 Polygon2D::GetFarthestVertexInDirection(const Vector2& directionInLocalS
 	}
 
 	return m_vertices[bestIndex];
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector2 Polygon2D::GetCenter() const
+{
+	uint32 numVertices = m_vertices.size();
+	ASSERT_RETURN(numVertices > 0U, Vector2::ZERO, "Polygon2D has no vertices!");
+
+	Vector2 average = Vector2::ZERO;
+	for (uint32 i = 0; i < numVertices; ++i)
+	{
+		average += m_vertices[i];
+	}
+
+	average /= static_cast<float>(numVertices);
+
+	return average;
 }

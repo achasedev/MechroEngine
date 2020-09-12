@@ -28,6 +28,7 @@ class IndexBuffer;
 class Material;
 class Matrix44;
 class Mesh;
+class Polygon2D;
 class Renderable;
 class Sampler;
 class Shader;
@@ -85,6 +86,8 @@ public:
 	void								DrawMeshWithMaterial(Mesh& mesh, Material* material);
 	void								DrawRenderable(Renderable& renderable);
 	void								Draw(const DrawCall& drawCall);
+	
+	void								DrawPolygon2D(const Polygon2D& polygon, Material* material, const Rgba& color = Rgba::WHITE);
 
 	void								SaveTextureToImage(Texture2D* texture, const char* filepath);
 
@@ -154,7 +157,14 @@ void RenderContext::DrawVertexArray(const VERT_TYPE* vertices, uint32 numVertice
 	drawInstruction.m_startIndex = 0;
 	m_immediateMesh.SetDrawInstruction(drawInstruction);
 
-	DrawMesh(m_immediateMesh);
+	if (material == nullptr)
+	{
+		DrawMesh(m_immediateMesh);
+	}
+	else
+	{
+		DrawMeshWithMaterial(m_immediateMesh, material);
+	}
 }
 
 

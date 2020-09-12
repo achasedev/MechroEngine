@@ -8,9 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Framework/EngineCommon.h"
-#include "Engine/Math/Vector2.h"
-#include <vector>
+#include "Engine/Math/Polygon2D.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -29,40 +27,10 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Polygon2D
+namespace Physics2D
 {
-public:
-	//-----Public Methods-----
-
-	// Constructor/Destructors
-	Polygon2D() {}
-	Polygon2D(const std::vector<Vector2> vertices);
-	Polygon2D(uint32 reserveSize);
-
-	// Mutators
-	void	AddVertex(const Vector2& vertex);
-	void	AddVertices(const std::vector<Vector2>& vertices);
-	void	Clear();
-
-	// TODO: Find a different way to update polygon position/rotation
-	void	Translate(const Vector2& translation);
-
-	// Accessors
-	uint32	GetNumVertices() const { return m_vertices.size(); }
-	Vector2 GetVertexAtIndex(uint32 index) const;
-	Vector2 GetFarthestVertexInDirection(const Vector2& directionInLocalSpace) const;
-
-	// Producers
-	Vector2 GetCenter() const;
-
-
-private:
-	//-----Private Data-----
-
-	std::vector<Vector2> m_vertices;
-
-
-};
+	bool ArePolygonsColliding(const Polygon2D& a, const Polygon2D& b); // Make sure these are in world space
+}
 
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
