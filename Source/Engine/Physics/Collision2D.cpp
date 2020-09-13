@@ -26,6 +26,13 @@ enum EvolveSimplexResult
 	SIMPLEX_STILL_EVOLVING
 };
 
+struct EdgeTestResult2D
+{
+	Vector2 m_normal;
+	float	m_distance = -1.f;
+	int		m_indexIntoSimplex = -1;
+};
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -35,14 +42,14 @@ enum EvolveSimplexResult
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-Vector2 GetFarthestVertexInDirectionOfMinkowskiDifference(const Polygon2D& first, const Polygon2D& second, Vector2& direction)
+static Vector2 GetFarthestVertexInDirectionOfMinkowskiDifference(const Polygon2D& first, const Polygon2D& second, Vector2& direction)
 {
 	return (first.GetFarthestVertexInDirection(direction) - second.GetFarthestVertexInDirection(-1.0f * direction));
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void SetupSimplex(const Polygon2D& first, const Polygon2D& second, std::vector <Vector2>& simplex)
+static void SetupSimplex(const Polygon2D& first, const Polygon2D& second, std::vector <Vector2>& simplex)
 {
 	// A vertex
 	Vector2 direction = second.GetCenter() - first.GetCenter();
@@ -134,6 +141,35 @@ static EvolveSimplexResult EvolveSimplex(const Polygon2D& first, const Polygon2D
 
 
 //-------------------------------------------------------------------------------------------------
+static EdgeTestResult2D GetClosestEdgeToOrigin2D(const std::vector<Vector2>& simplex)
+{
+	EdgeTestResult2D result;
+	
+	uint32 numVertices = simplex.size();
+	for (uint32 i = 0; i < numVertices; ++i)
+	{
+		uint32 j = ((i == numVertices - 1) ? 0 : i + 1);
+		Vector2 edge = simplex[j] - simplex[i];
+
+		// Outward facing normal should be the right perp
+		Vector2 edgeNormal = Vector2(-edge.y, edge.x);
+		edgeNormal.Normalize();
+
+		float distanceToOrigin = DotProduct(simplex[i], edgeNormal);
+
+		if (result.m_indexIntoSimplex == -1 || Abs(distanceToOrigin) < result.m_distance)
+		{
+			result.m_distance = distanceToOrigin;
+			result.m_indexIntoSimplex = i;
+			result.m_normal = edgeNormal;
+		}
+	}
+
+	return result;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 bool Physics2D::ArePolygonsColliding(const Polygon2D& first, const Polygon2D& second)
 {
 	EvolveSimplexResult result = SIMPLEX_STILL_EVOLVING;
@@ -150,6 +186,57 @@ bool Physics2D::ArePolygonsColliding(const Polygon2D& first, const Polygon2D& se
 	return (result == INTERSECTION_FOUND);
 }
 
+
+//-------------------------------------------------------------------------------------------------
+CollisionResult2D Physics2D::CheckCollision(const Polygon2D& first, const Polygon2D& second)
+{
+	EvolveSimplexResult result = SIMPLEX_STILL_EVOLVING;
+	std::vector<Vector2> simplex;
+
+	// Set up initial vertices
+	SetupSimplex(first, second, simplex);
+
+	while (result == SIMPLEX_STILL_EVOLVING)
+	{
+		result = EvolveSimplex(first, second, simplex);
+	}
+
+	if (result == INTERSECTION_FOUND)
+	{
+		for (uint32 iteration = 0; iteration < 16U; ++iteration)
+		{
+			EdgeTestResult2D testResult = GetClosestEdgeToOrigin2D(simplex);
+
+			Vector2 expandedMinkowskiPoint = GetFarthestVertexInDirectionOfMinkowskiDifference(first, second, testResult.m_normal);
+			float distanceToMinkowskiEdge = DotProduct(testResult.m_normal, expandedMinkowskiPoint);
+
+			float diff = Abs(testResult.m_distance - distanceToMinkowskiEdge);
+			if (diff < DEFAULT_EPSILON)
+			{
+				// Difference is close enough, this is the right edge
+				CollisionResult2D finalResult;
+				finalResult.m_intersectionFound = true;
+				finalResult.m_normal = testResult.m_normal;
+				finalResult.m_penetrationDistance = testResult.m_distance;
+
+				return finalResult;
+			}
+			else
+			{
+				// Our simplex edge is inside the Minkowski difference shape, not on the edge
+				// Add this point to our simplex at the right posiion and try again
+				simplex.insert(simplex.begin() + testResult.m_indexIntoSimplex + 1, expandedMinkowskiPoint);
+			}
+		}
+
+		ERROR_RECOVERABLE("Couldn't find the Minkowski edge?");
+	}
+
+	CollisionResult2D finalResult;
+	finalResult.m_intersectionFound = false;
+
+	return finalResult;
+}
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
