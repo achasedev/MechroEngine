@@ -20,8 +20,10 @@
 struct CollisionResult2D
 {
 	bool m_intersectionFound;
-	Vector2 m_normal;
-	float m_penetrationDistance;
+	Vector2 m_penNormal;
+	Vector2 m_tangent;
+	Vector2 m_supportPoint;
+	float m_penDistance;
 };
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

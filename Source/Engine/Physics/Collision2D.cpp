@@ -14,6 +14,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#define NUM_EPA_ITERATIONS 16U
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
@@ -29,6 +30,7 @@ enum EvolveSimplexResult
 struct EdgeTestResult2D
 {
 	Vector2 m_normal;
+	Vector2 m_directionAlongEdge;
 	float	m_distance = -1.f;
 	int		m_indexIntoSimplex = -1;
 };
@@ -151,8 +153,8 @@ static EdgeTestResult2D GetClosestEdgeToOrigin2D(const std::vector<Vector2>& sim
 		uint32 j = ((i == numVertices - 1) ? 0 : i + 1);
 		Vector2 edge = simplex[j] - simplex[i];
 
-		// Outward facing normal should be the right perp
-		Vector2 edgeNormal = Vector2(-edge.y, edge.x);
+		// Outward facing normal should be the left perp
+		Vector2 edgeNormal = Vector2(edge.y, -edge.x);
 		edgeNormal.Normalize();
 
 		float distanceToOrigin = DotProduct(simplex[i], edgeNormal);
@@ -162,6 +164,7 @@ static EdgeTestResult2D GetClosestEdgeToOrigin2D(const std::vector<Vector2>& sim
 			result.m_distance = distanceToOrigin;
 			result.m_indexIntoSimplex = i;
 			result.m_normal = edgeNormal;
+			result.m_directionAlongEdge = edge.GetNormalized();
 		}
 	}
 
@@ -203,7 +206,8 @@ CollisionResult2D Physics2D::CheckCollision(const Polygon2D& first, const Polygo
 
 	if (result == INTERSECTION_FOUND)
 	{
-		for (uint32 iteration = 0; iteration < 16U; ++iteration)
+		// Use EPA (Expanding Polytope Algorithm) to find the edge we're overlapping with
+		for (uint32 iteration = 0; iteration < NUM_EPA_ITERATIONS; ++iteration)
 		{
 			EdgeTestResult2D testResult = GetClosestEdgeToOrigin2D(simplex);
 
@@ -216,8 +220,10 @@ CollisionResult2D Physics2D::CheckCollision(const Polygon2D& first, const Polygo
 				// Difference is close enough, this is the right edge
 				CollisionResult2D finalResult;
 				finalResult.m_intersectionFound = true;
-				finalResult.m_normal = testResult.m_normal;
-				finalResult.m_penetrationDistance = testResult.m_distance;
+				finalResult.m_penNormal = testResult.m_normal;
+				finalResult.m_penDistance = testResult.m_distance;
+				finalResult.m_tangent = testResult.m_directionAlongEdge;
+				finalResult.m_supportPoint = simplex[testResult.m_indexIntoSimplex];
 
 				return finalResult;
 			}
