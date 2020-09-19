@@ -175,6 +175,7 @@
     <ClCompile Include="Math\OBB2.cpp" />
     <ClCompile Include="Math\Polygon2D.cpp" />
     <ClCompile Include="Physics\Collision2D.cpp" />
+    <ClCompile Include="Physics\RigidBody2D.cpp" />
     <ClCompile Include="Render\Camera\Camera.cpp" />
     <ClCompile Include="Render\Core\DrawCall.cpp" />
     <ClCompile Include="Render\Core\DX11Common.cpp" />
@@ -244,7 +245,9 @@
     <ClInclude Include="Math\IntVector3.h" />
     <ClInclude Include="Math\OBB2.h" />
     <ClInclude Include="Math\Polygon2D.h" />
+    <ClInclude Include="Physics\Arbiter2D.h" />
     <ClInclude Include="Physics\Collision2D.h" />
+    <ClInclude Include="Physics\RigidBody2D.h" />
     <ClInclude Include="UI\UIText.h" />
     <ClInclude Include="Utility\Swizzle.h" />
     <ClInclude Include="Render\Camera\Camera.h" />

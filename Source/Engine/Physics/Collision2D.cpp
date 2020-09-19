@@ -10,6 +10,7 @@
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Physics/Collision2D.h"
+#include "Engine/Physics/RigidBody2D.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -248,3 +249,159 @@ CollisionResult2D Physics2D::CheckCollision(const Polygon2D& first, const Polygo
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
+//-------------------------------------------------------------------------------------------------
+Collider2D::Collider2D()
+{
+	m_colliderID = INVALID_COLLIDER_ID;
+	m_transform = nullptr;
+	m_shape = nullptr;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+CollisionScene2D::~CollisionScene2D()
+{
+	RemoveAllColliders();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void CollisionScene2D::FrameStep()
+{
+	PerformBroadphase();
+	ApplyForces();
+	PerformPresteps();
+	ApplyImpulseIterations();
+	UpdatePositions();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void CollisionScene2D::PerformBroadphase()
+{
+	// O(n^2) broad-phase
+	// TODO: Make this less garbage
+	for (uint32 firstBodyIndex = 0; firstBodyIndex < m_bodies.size(); ++firstBodyIndex)
+	{
+		RigidBody2D* body1 = m_bodies[firstBodyIndex];
+
+		for (uint32 secondBodyIndex = firstBodyIndex + 1; secondBodyIndex < m_bodies.size(); ++secondBodyIndex)
+		{
+			RigidBody2D* body2 = m_bodies[secondBodyIndex];
+
+			// If both bodies are static don't bother with physics (though maybe this should be an assert)
+			if (body1->GetInverseMass() == 0.0f && body2->GetInverseMass() == 0.0f)
+				continue;
+
+			Arbiter2D newArb(body1, body2);
+			ArbiterKey key(bi, bj);
+
+			if (newArb.numContacts > 0)
+			{
+				ArbIter iter = arbiters.find(key);
+				if (iter == arbiters.end())
+				{
+					arbiters.insert(ArbPair(key, newArb));
+				}
+				else
+				{
+					iter->second.Update(newArb.contacts, newArb.numContacts);
+				}
+			}
+			else
+			{
+				arbiters.erase(key);
+			}
+		}
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+ColliderID CollisionScene2D::AddCollider(const Polygon2D* shape, Transform* transform)
+{
+	for (uint32 colliderIndex = 0; colliderIndex < m_numColliders; ++colliderIndex)
+	{
+		Collider2D& currCollider = m_colliders[colliderIndex];
+
+		if (currCollider.m_colliderID != INVALID_COLLIDER_ID)
+		{
+			currCollider.m_colliderID = m_nextColliderID++;
+			currCollider.m_transform = transform;
+			currCollider.m_shape = shape;
+		}
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+ColliderID CollisionScene2D::AddCollider(const Polygon2D* shape, Transform* transform)
+{
+	ASSERT_RETURN(shape != nullptr, INVALID_COLLIDER_ID, "Tried to add a collider with no shape!");
+	ASSERT_RETURN(transform != nullptr, INVALID_COLLIDER_ID, "Tried to add a collider with no transform!");
+
+	bool colliderAdded = false;
+	for (uint32 colliderIndex = 0; colliderIndex < m_numColliders; ++colliderIndex)
+	{
+		Collider2D& currCollider = m_colliders[colliderIndex];
+
+		if (currCollider.m_colliderID == INVALID_COLLIDER_ID)
+		{
+			currCollider.m_colliderID = m_nextColliderID++;
+			currCollider.m_transform = transform;
+			currCollider.m_shape = shape;
+			colliderAdded = true;
+		}
+	}
+
+	ASSERT_RECOVERABLE(colliderAdded, "CollisionScene ran out of room for colliders!");
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void CollisionScene2D::RemoveCollider(ColliderID idToRemove)
+{
+	bool colliderFound = false;
+	for (uint32 colliderIndex = 0; colliderIndex < m_numColliders; ++colliderIndex)
+	{
+		Collider2D& currCollider = m_colliders[colliderIndex];
+
+		if (currCollider.m_colliderID == idToRemove)
+		{
+			currCollider.m_colliderID = INVALID_COLLIDER_ID;
+			currCollider.m_transform = nullptr;
+			currCollider.m_shape = nullptr;
+			colliderFound = true;
+		}
+	}
+
+	ASSERT_RECOVERABLE(colliderFound, "Couldn't find collider with id %i", idToRemove);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void CollisionScene2D::RemoveAllColliders()
+{
+	for (uint32 colliderIndex = 0; colliderIndex < m_numColliders; ++colliderIndex)
+	{
+		Collider2D& currCollider = m_colliders[colliderIndex];
+
+		if (currCollider.m_colliderID != INVALID_COLLIDER_ID)
+		{
+			currCollider.m_colliderID = INVALID_COLLIDER_ID;
+			currCollider.m_transform = nullptr;
+			currCollider.m_shape = nullptr;
+		}
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void CollisionScene2D::PerformCollisionStep()
+{
+	// TODO: Add collision layers
+	// TODO: Add collision order/pass index
+	// TODO: Broadphase? Quadtree something?
+
+
+}

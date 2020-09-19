@@ -118,6 +118,7 @@ float	DotProduct(const Vector2& a, const Vector2& b);
 float	DotProduct(const Vector3& a, const Vector3& b);
 float	DotProduct(const Vector4& a, const Vector4& b);
 float	DotProduct(const Quaternion& a, const Quaternion& b);
+float	CrossProduct(const Vector2& a, const Vector2& b); // Performs a 3D cross product by using z = 0, and returns the z component of the result
 Vector3 CrossProduct(const Vector3& a, const Vector3& b);
 Vector3 Reflect(const Vector3& incidentVector, const Vector3& normal);
 bool	Refract(const Vector3& incidentVector, const Vector3& normal, float niOverNt, Vector3& out_refractedVector); // Returns true if the given vector will refract across the surface, false otherwise
@@ -175,9 +176,15 @@ bool AreMostlyEqual(const Vector2& a, const Vector2& b, float epsilon = DEFAULT_
 bool AreMostlyEqual(const Vector3& a, const Vector3& b, float epsilon = DEFAULT_EPSILON);
 bool AreMostlyEqual(const Quaternion& a, const Quaternion& b, float epsilon = DEFAULT_EPSILON);
 
+
 //-------------------------------------------------------------------------------------------------
-// Overlapping
-bool DoAABB2sOverlap(const AABB2& boxOne, const AABB2& boxTwo);
+// Geometry
+bool	DoAABB2sOverlap(const AABB2& boxOne, const AABB2& boxTwo);
+float	GetShortestDistanceToLineSegment2D(const Vector2& lineStart, const Vector2& lineEnd, const Vector2& point);
+float	GetShortestDistanceToTriangle2D(const Vector2& a, const Vector2& b, const Vector2& c, const Vector2& point);
+float	GetShortestDistanceToPolygon2D(const Polygon2D& polygon, const Vector2& point);
+float	GetShortestDistanceBetweenPolygons2D(const Polygon2D& polygonA, const Polygon2D& polygonB);
+
 
 //-------------------------------------------------------------------------------------------------
 // Templates

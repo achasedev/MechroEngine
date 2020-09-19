@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: September 9th, 2020
+/// Date Created: September 17th, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,19 +8,17 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/Polygon2D.h"
-#include "Engine/Physics/Arbiter2D.h"
-#include <map>
+#include "Engine/Framework/EngineCommon.h"
+#include "Engine/Math/Vector2.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#define INVALID_RIGIDBODY_ID -1
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-typedef int RigidBodyID;
+class Polygon2D;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -31,70 +29,72 @@ typedef int RigidBodyID;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Collider2D
-{
-	friend class CollisionScene2D;
-
-public:
-	//-----Public Methods-----
-
-	Collider2D();
-
-
-private:
-	//-----Private Data-----
-
-	const Polygon2D*	m_shape = nullptr;
-	Transform*			m_transform = nullptr;
-};
-
-
-//-------------------------------------------------------------------------------------------------
-class CollisionScene2D
+class RigidBody2D
 {
 public:
 	//-----Public Methods-----
 
-	CollisionScene2D() {}
-	~CollisionScene2D();
+	// Mutators
+	void SetPosition(const Vector2& position) { m_position = position; }
+	void SetRotationDegrees(float rotationDegrees) { m_rotationDegrees = rotationDegrees; }
+	void SetVelocity(const Vector2& velocity) { m_velocity = velocity; }
+	void SetAngularVelocity(float angularVelocityDegrees) { m_angularVelocityDegrees = angularVelocityDegrees; }
+	void SetFriction(float friction) { m_friction = friction; }
+	void SetMass(float mass);
 
-	RigidBodyID	AddBody(const Polygon2D* shape, Transform* transform);
-	void		RemoveBody(RigidBodyID idToRemove);
-	void		RemoveAllBodies();
+	// Accessors
+	Vector2				GetPosition() const { return m_position; }
+	float				GetRotationDegrees() const { return m_rotationDegrees; }
+	Vector2				GetVelocity() const { return m_velocity; }
+	float				GetAngularVelocity() const { return m_angularVelocityDegrees; }
+	float				GetFriction() const { return m_friction; }
+	float				GetMass() const { return m_mass; }
+	float				GetInverseMass() const { return m_invMass; }
+	float				GetInertia() const { return m_inertia; }
+	float				GetInverseInertia() const { return m_invInertia; }
+	float				GetDensity() const { return m_density; }
+	Vector2				GetForce() const { return m_force; }
+	float				GetTorque() const { return m_torque; }
+	const Polygon2D*	GetShape() const { return m_shape; } // Const because you shouldn't be changing this >.>
 
-	void		FrameStep();
-	void		PerformRayCast(const Vector2& start, const Vector2& direction, float maxDistance);
+	// Producers
+	bool	IsStatic() const { return m_invMass == 0.f; }
+
+
+private:
+	//-----Private Methods-----
+
+	void CalculateMassProperties(float mass);
+
 
 private:
 	//-----Private Data-----
+	
+	// Positional
+	Vector2		m_position					= Vector2::ZERO;
+	float		m_rotationDegrees			= 0.f;
+	Vector2		m_centerOfMass				= Vector2::ZERO;
 
-	void PerformBroadphase();
-	void ApplyForces();
-	void PerformArbiterPreSteps();
-	void ApplyImpulseIterations();
-	void UpdatePositions();
+	// Velocity
+	Vector2		m_velocity					= Vector2::ZERO;
+	float		m_angularVelocityDegrees	= 0.f;
 
+	// Mass + friction
+	float		m_friction					= 0.2f;
+	float		m_mass						= FLT_MAX;
+	float		m_invMass					= 0.f; // For static bodies, invMass == 0
+	float		m_inertia					= FLT_MAX;
+	float		m_invInertia				= 0.f; // For static bodies, invI == 0
+	float		m_density					= FLT_MAX;
 
-private:
-	//-----Private Data-----
+	// Forces
+	Vector2		m_force						= Vector2::ZERO;
+	float		m_torque					= 0.f;
 
-	int m_nextRigidbodyID = 0;
-	std::vector<RigidBody2D*> m_bodies;
-	std::map<ArbiterKey2D, Arbiter2D> m_arbiters;
+	// Shape
+	Polygon2D*	m_shape						= nullptr;
 
 };
-
-
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// NAMESPACE DECLARATIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------------------------------
-namespace Physics2D
-{
-	bool				ArePolygonsColliding(const Polygon2D& first, const Polygon2D& second);
-	CollisionResult2D	CheckCollision(const Polygon2D& first, const Polygon2D& second);
-}
 
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
