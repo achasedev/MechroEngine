@@ -41,6 +41,17 @@ struct Contact2D
 	//EdgePair m_edgePairs;
 };
 
+struct CollisionSeparation2D
+{
+	CollisionSeparation2D() {}
+	CollisionSeparation2D(bool collisionFound)
+		: m_collisionFound(collisionFound) {}
+
+	bool	m_collisionFound = false;
+	Vector2 m_dirFromFirst;
+	float	m_separation;
+};
+
 
 //-------------------------------------------------------------------------------------------------
 struct ArbiterKey2D
@@ -93,17 +104,17 @@ public:
 
 	Arbiter2D(RigidBody2D* body1, RigidBody2D* body2);
 
-	void	Collide();
+	void			DetectCollision();
 
 	// Accessors
-	int		GetNumContacts() const { return m_numContacts; }
-	float	GetFriction() const { return m_friction; }
+	int				GetNumContacts() const { return m_numContacts; }
+	float			GetFriction() const { return m_friction; }
 
 
 private:
-	//-----Private Data-----
+	//-----Private Methods-----
 
-	void CalculateContactPoints();
+	void			CalculateContactPoints(const Polygon2D* poly1, const Polygon2D* poly2, const CollisionSeparation2D& separation);
 
 
 private:
@@ -113,7 +124,7 @@ private:
 	RigidBody2D*	m_body2 = nullptr;
 
 	Contact2D		m_contacts[MAX_CONTACT_POINTS];
-	int				m_numContacts = -1;
+	uint32			m_numContacts = 0;
 	float			m_friction = -1.0f; // Combined Frictions
 
 };

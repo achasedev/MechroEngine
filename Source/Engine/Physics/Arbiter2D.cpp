@@ -29,17 +29,6 @@ enum EvolveSimplexResult
 	SIMPLEX_STILL_EVOLVING
 };
 
-struct CollisionSeparation2D
-{
-	CollisionSeparation2D() {}
-	CollisionSeparation2D(bool collisionFound)
-		: m_collisionFound(collisionFound) {}
-
-	bool	m_collisionFound = false;
-	Vector2 m_dirFromA;
-	float	m_separation;
-};
-
 struct CollisionFeatureEdge2D
 {
 	Vector2 m_furthestVertex;
@@ -59,7 +48,11 @@ struct CollisionFeatureEdge2D
 //-------------------------------------------------------------------------------------------------
 static Vector2 GetMinkowskiDiffSupport(const Polygon2D* first, const Polygon2D* second, const Vector2& direction)
 {
-	return (first->GetFarthestVertexInDirection(direction) - second->GetFarthestVertexInDirection(-1.0f * direction));
+	Vector2 firstVertex, secondVertex;
+	first->GetFarthestVertexInDirection(direction, firstVertex);
+	second->GetFarthestVertexInDirection(-1.0f * direction, secondVertex);
+
+	return firstVertex - secondVertex;
 }
 
 
@@ -167,7 +160,7 @@ static uint32 GetSimplexSeparation2D(const std::vector<Vector2>& simplex, Collis
 		if (Abs(distanceToOrigin) < out_separation.m_separation)
 		{
 			out_separation.m_separation = distanceToOrigin;
-			out_separation.m_dirFromA = edgeNormal;
+			out_separation.m_dirFromFirst = edgeNormal;
 			closestIndex = i;
 		}
 	}
@@ -184,8 +177,8 @@ static CollisionSeparation2D PerformEPA(const Polygon2D* first, const Polygon2D*
 		CollisionSeparation2D simplexSeparation;
 		uint32 simplexIndex = GetSimplexSeparation2D(simplex, simplexSeparation);
 
-		Vector2 expandedMinkowskiPoint = GetMinkowskiDiffSupport(first, second, simplexSeparation.m_dirFromA);
-		float distanceToMinkowskiEdge = DotProduct(simplexSeparation.m_dirFromA, expandedMinkowskiPoint);
+		Vector2 expandedMinkowskiPoint = GetMinkowskiDiffSupport(first, second, simplexSeparation.m_dirFromFirst);
+		float distanceToMinkowskiEdge = DotProduct(simplexSeparation.m_dirFromFirst, expandedMinkowskiPoint);
 
 		float diff = Abs(simplexSeparation.m_separation - distanceToMinkowskiEdge);
 		if (diff < DEFAULT_EPSILON)
@@ -253,6 +246,10 @@ static CollisionFeatureEdge2D GetFeatureEdge2D(const Polygon2D* polygon, const V
 	float prevDot = DotProduct(prevNormal, outwardSeparationNormal);
 	float nextDot = DotProduct(nextNormal, outwardSeparationNormal);
 
+	// ...sanity checks that they're outward along the separation normal
+	ASSERT_OR_DIE(prevDot >= 0, "Normals are going against each other!");
+	ASSERT_OR_DIE(nextDot >= 0, "Normals are going against each other!");
+
 	CollisionFeatureEdge2D featureEdge;
 	featureEdge.m_furthestVertex = vertex;
 	
@@ -270,6 +267,19 @@ static CollisionFeatureEdge2D GetFeatureEdge2D(const Polygon2D* polygon, const V
 	}
 
 	return featureEdge;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+static void ClipIncidentEdgeToReferenceEdge(const Vector2& incident1, const Vector2& incident2, const Vector2& refEdgeDirection, float offset, Contact2D* out_contacts, uint32& out_numContacts)
+{
+	float dot1 = DotProduct(incident1, refEdgeDirection);
+	float dot2 = DotProduct(incident2, refEdgeDirection);
+
+	if (dot1 - offset >= 0)
+	{
+
+	}
 }
 
 
@@ -300,14 +310,17 @@ Arbiter2D::Arbiter2D(RigidBody2D* body1, RigidBody2D* body2)
 //-------------------------------------------------------------------------------------------------
 void Arbiter2D::DetectCollision()
 {
+	const Polygon2D* poly1 = m_body1->GetShape();
+	const Polygon2D* poly2 = m_body2->GetShape();
+
 	// Detect collision
-	CollisionSeparation2D separation = CalculateSeparation2D(m_body1->GetShape(), m_body2->GetShape());
+	CollisionSeparation2D separation = CalculateSeparation2D(poly1, poly2);
 
 	if (separation.m_collisionFound)
 	{
 		// Find the contact points of the collision
 		// http://www.dyn4j.org/2011/11/contact-points-using-clipping/ for reference
-		CalculateContactPoints();
+		CalculateContactPoints(poly1, poly2, separation);
 	}
 	else
 	{
@@ -320,12 +333,42 @@ void Arbiter2D::DetectCollision()
 void Arbiter2D::CalculateContactPoints(const Polygon2D* poly1, const Polygon2D* poly2, const CollisionSeparation2D& separation)
 {
 	// Find the best edges for each polygon (normal is from A)
-	CollisionFeatureEdge2D edge1 = GetFeatureEdge2D(poly1, separation.m_dirFromA);
-	CollisionFeatureEdge2D edge2 = GetFeatureEdge2D(poly2, -1.0f * separation.m_dirFromA);
+	CollisionFeatureEdge2D edge1 = GetFeatureEdge2D(poly1, separation.m_dirFromFirst);
+	CollisionFeatureEdge2D edge2 = GetFeatureEdge2D(poly2, -1.0f * separation.m_dirFromFirst);
 
 	// Determine which is the reference edge and which is the incident edge
+	// Reference edge is the one more closely perpendicular to the separation direction
+	float dot1 = DotProduct(edge1.m_normal, separation.m_dirFromFirst);
+	float dot2 = DotProduct(edge2.m_normal, separation.m_dirFromFirst);
 
-	// Clip the indident edge to the reference edge
+	const CollisionFeatureEdge2D* referenceEdge = nullptr;
+	const CollisionFeatureEdge2D* incidentEdge = nullptr;
+	Vector2 clippingNormal = separation.m_dirFromFirst;
 
+	bool flipRefNormal = false;
+	if (dot1 >= dot2)
+	{
+		// poly1 is our reference
+		referenceEdge = &edge1;
+		incidentEdge = &edge2;
+	}
+	else
+	{
+		// poly2 is our reference
+		referenceEdge = &edge2;
+		incidentEdge = &edge1;
+
+		// If we end up flipping the edges around, we need to clip on the opposite side of the reference
+		// edge during the final step of clipping, so denote this with this nice bool
+		flipRefNormal = true;
+	}
+
+	Vector2 refEdgeDirection = referenceEdge->m_vertex2 - referenceEdge->m_vertex1;
+	refEdgeDirection.Normalize();
+
+	// Clip the incident edge to the reference edge
+	// First determine the min value the dot would need to be in order to be inside the clipping edge
+	float minDot = DotProduct(refEdgeDirection, referenceEdge->m_vertex1);
+	ClipIncidentEdgeToReferenceEdge(incidentEdge->m_vertex1, incidentEdge->m_vertex2, refEdgeDirection, minDot, m_contacts, m_numContacts);
 
 }
