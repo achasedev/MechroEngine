@@ -28,11 +28,11 @@ enum EvolveSimplexResult
 	SIMPLEX_STILL_EVOLVING
 };
 
-struct EdgeTestResult2D
+struct SeparationTestResult2D
 {
 	Vector2 m_normal;
 	Vector2 m_directionAlongEdge;
-	float	m_distance = -1.f;
+	float	m_separation = -1.f;
 	int		m_indexIntoSimplex = -1;
 };
 
@@ -45,7 +45,7 @@ struct EdgeTestResult2D
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-static Vector2 GetFarthestVertexInDirectionOfMinkowskiDifference(const Polygon2D& first, const Polygon2D& second, Vector2& direction)
+static Vector2 GetMinkowskiDiffSupport(const Polygon2D& first, const Polygon2D& second, Vector2& direction)
 {
 	return (first.GetFarthestVertexInDirection(direction) - second.GetFarthestVertexInDirection(-1.0f * direction));
 }
@@ -56,11 +56,11 @@ static void SetupSimplex(const Polygon2D& first, const Polygon2D& second, std::v
 {
 	// A vertex
 	Vector2 direction = second.GetCenter() - first.GetCenter();
-	simplex.push_back(GetFarthestVertexInDirectionOfMinkowskiDifference(first, second, direction));
+	simplex.push_back(GetMinkowskiDiffSupport(first, second, direction));
 
 	// B vertex
 	direction = -1.0f * direction;
-	simplex.push_back(GetFarthestVertexInDirectionOfMinkowskiDifference(first, second, direction));
+	simplex.push_back(GetMinkowskiDiffSupport(first, second, direction));
 
 	// C vertex
 	Vector2 a = simplex[0];
@@ -85,7 +85,7 @@ static void SetupSimplex(const Polygon2D& first, const Polygon2D& second, std::v
 		simplex[1] = temp;
 	}
 
-	simplex.push_back(GetFarthestVertexInDirectionOfMinkowskiDifference(first, second, abPerp));
+	simplex.push_back(GetMinkowskiDiffSupport(first, second, abPerp));
 }
 
 
@@ -115,7 +115,7 @@ static EvolveSimplexResult EvolveSimplex(const Polygon2D& first, const Polygon2D
 		Vector2 newAB = evolvingSimplex[1] - evolvingSimplex[0];
 		Vector2 newABPerp = Vector2(-newAB.y, newAB.x);
 
-		evolvingSimplex.push_back(GetFarthestVertexInDirectionOfMinkowskiDifference(first, second, newABPerp));
+		evolvingSimplex.push_back(GetMinkowskiDiffSupport(first, second, newABPerp));
 
 		// Check if we even went past the origin
 		bool wentPastOrigin = (DotProduct(newABPerp, evolvingSimplex[2]) >= 0);
@@ -131,7 +131,7 @@ static EvolveSimplexResult EvolveSimplex(const Polygon2D& first, const Polygon2D
 		Vector2 newAB = evolvingSimplex[1] - evolvingSimplex[0];
 		Vector2 newABPerp = Vector2(-newAB.y, newAB.x);
 
-		evolvingSimplex.push_back(GetFarthestVertexInDirectionOfMinkowskiDifference(first, second, newABPerp));
+		evolvingSimplex.push_back(GetMinkowskiDiffSupport(first, second, newABPerp));
 
 		// Check if we even went past the origin
 		bool wentPastOrigin = (DotProduct(newABPerp, evolvingSimplex[2]) >= 0);
@@ -144,9 +144,9 @@ static EvolveSimplexResult EvolveSimplex(const Polygon2D& first, const Polygon2D
 
 
 //-------------------------------------------------------------------------------------------------
-static EdgeTestResult2D GetClosestEdgeToOrigin2D(const std::vector<Vector2>& simplex)
+static SeparationTestResult2D GetSimplexSeparation2D(const std::vector<Vector2>& simplex)
 {
-	EdgeTestResult2D result;
+	SeparationTestResult2D result;
 	
 	uint32 numVertices = simplex.size();
 	for (uint32 i = 0; i < numVertices; ++i)
@@ -160,9 +160,9 @@ static EdgeTestResult2D GetClosestEdgeToOrigin2D(const std::vector<Vector2>& sim
 
 		float distanceToOrigin = DotProduct(simplex[i], edgeNormal);
 
-		if (result.m_indexIntoSimplex == -1 || Abs(distanceToOrigin) < result.m_distance)
+		if (result.m_indexIntoSimplex == -1 || Abs(distanceToOrigin) < result.m_separation)
 		{
-			result.m_distance = distanceToOrigin;
+			result.m_separation = distanceToOrigin;
 			result.m_indexIntoSimplex = i;
 			result.m_normal = edgeNormal;
 			result.m_directionAlongEdge = edge.GetNormalized();
@@ -210,19 +210,19 @@ CollisionResult2D Physics2D::CheckCollision(const Polygon2D& first, const Polygo
 		// Use EPA (Expanding Polytope Algorithm) to find the edge we're overlapping with
 		for (uint32 iteration = 0; iteration < NUM_EPA_ITERATIONS; ++iteration)
 		{
-			EdgeTestResult2D testResult = GetClosestEdgeToOrigin2D(simplex);
+			SeparationTestResult2D testResult = GetSimplexSeparation2D(simplex);
 
-			Vector2 expandedMinkowskiPoint = GetFarthestVertexInDirectionOfMinkowskiDifference(first, second, testResult.m_normal);
+			Vector2 expandedMinkowskiPoint = GetMinkowskiDiffSupport(first, second, testResult.m_normal);
 			float distanceToMinkowskiEdge = DotProduct(testResult.m_normal, expandedMinkowskiPoint);
 
-			float diff = Abs(testResult.m_distance - distanceToMinkowskiEdge);
+			float diff = Abs(testResult.m_separation - distanceToMinkowskiEdge);
 			if (diff < DEFAULT_EPSILON)
 			{
 				// Difference is close enough, this is the right edge
 				CollisionResult2D finalResult;
 				finalResult.m_intersectionFound = true;
 				finalResult.m_penNormal = testResult.m_normal;
-				finalResult.m_penDistance = testResult.m_distance;
+				finalResult.m_penDistance = testResult.m_separation;
 				finalResult.m_tangent = testResult.m_directionAlongEdge;
 				finalResult.m_supportPoint = simplex[testResult.m_indexIntoSimplex];
 
@@ -294,6 +294,8 @@ void CollisionScene2D::PerformBroadphase()
 				continue;
 
 			Arbiter2D newArb(body1, body2);
+			newArb.DetectCollision();
+
 			ArbiterKey key(bi, bj);
 
 			if (newArb.numContacts > 0)

@@ -50,7 +50,9 @@ public:
 	// Accessors
 	uint32	GetNumVertices() const { return m_vertices.size(); }
 	Vector2 GetVertexAtIndex(uint32 index) const;
-	Vector2 GetFarthestVertexInDirection(const Vector2& directionInLocalSpace) const;
+	Vector2 GetPreviousVertexToIndex(uint32 index) const;
+	Vector2 GetNextVertexToIndex(uint32 index) const;
+	int		GetFarthestVertexInDirection(const Vector2& directionInLocalSpace, Vector2& out_vertex) const;
 
 	// Producers
 	Vector2 GetCenter() const;

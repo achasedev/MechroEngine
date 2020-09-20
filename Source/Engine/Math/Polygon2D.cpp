@@ -103,14 +103,15 @@ Vector2 Polygon2D::GetVertexAtIndex(uint32 index) const
 
 
 //-------------------------------------------------------------------------------------------------
-Vector2 Polygon2D::GetFarthestVertexInDirection(const Vector2& direction) const
+int Polygon2D::GetFarthestVertexInDirection(const Vector2& direction, Vector2& out_vertex) const
 {
 	ASSERT_OR_DIE(m_vertices.size() > 0, "No vertices to return!");
 
 	// Early out...but this shouldn't happen
 	if (m_vertices.size() == 1U)
 	{
-		return m_vertices[0];
+		out_vertex = m_vertices[0];
+		return 0;
 	}
 
 	float maxDot = -1.f;
@@ -129,7 +130,8 @@ Vector2 Polygon2D::GetFarthestVertexInDirection(const Vector2& direction) const
 		}
 	}
 
-	return m_vertices[bestIndex];
+	out_vertex = m_vertices[bestIndex];
+	return bestIndex;
 }
 
 

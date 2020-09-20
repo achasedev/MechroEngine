@@ -103,6 +103,12 @@ public:
 private:
 	//-----Private Data-----
 
+	void CalculateContactPoints();
+
+
+private:
+	//-----Private Data-----
+
 	RigidBody2D*	m_body1 = nullptr;
 	RigidBody2D*	m_body2 = nullptr;
 
