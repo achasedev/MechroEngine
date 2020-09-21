@@ -10,17 +10,16 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Math/Polygon2D.h"
 #include "Engine/Physics/Arbiter2D.h"
+#include "Engine/Physics/RigidBody2D.h"
 #include <map>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#define INVALID_RIGIDBODY_ID -1
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-typedef int RigidBodyID;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -31,36 +30,20 @@ typedef int RigidBodyID;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Collider2D
-{
-	friend class CollisionScene2D;
-
-public:
-	//-----Public Methods-----
-
-	Collider2D();
-
-
-private:
-	//-----Private Data-----
-
-	const Polygon2D*	m_shape = nullptr;
-	Transform*			m_transform = nullptr;
-};
-
-
-//-------------------------------------------------------------------------------------------------
-class CollisionScene2D
+class PhysicsScene2D
 {
 public:
 	//-----Public Methods-----
 
-	CollisionScene2D() {}
-	~CollisionScene2D();
+	PhysicsScene2D() {}
+	~PhysicsScene2D();
 
-	RigidBodyID	AddBody(const Polygon2D* shape, Transform* transform);
+	RigidBodyID	AddBody(const Polygon2D* shape);
 	void		RemoveBody(RigidBodyID idToRemove);
 	void		RemoveAllBodies();
+
+	RigidBody2D* GetBody(RigidBodyID bodyID) const;
+	Arbiter2D*	 GetThatArbiter() const { return m_arbiters.size() > 0 ? (m_arbiters.begin()->second) : nullptr; }
 
 	void		FrameStep();
 	void		PerformRayCast(const Vector2& start, const Vector2& direction, float maxDistance);
@@ -80,22 +63,9 @@ private:
 
 	int m_nextRigidbodyID = 0;
 	std::vector<RigidBody2D*> m_bodies;
-	std::map<ArbiterKey2D, Arbiter2D> m_arbiters;
+	std::map<ArbiterKey2D, Arbiter2D*> m_arbiters;
 
 };
-
-
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// NAMESPACE DECLARATIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------------------------------
-namespace Physics2D
-{
-	bool				ArePolygonsColliding(const Polygon2D& first, const Polygon2D& second);
-	CollisionResult2D	CheckCollision(const Polygon2D& first, const Polygon2D& second);
-}
-
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS

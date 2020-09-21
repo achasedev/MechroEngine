@@ -12,6 +12,7 @@
 #include "Engine/Math/AABB2.h"
 #include "Engine/Math/IntVector2.h"
 #include "Engine/Math/Matrix44.h"
+#include "Engine/Math/Polygon2D.h"
 #include "Engine/Math/Quaternion.h"
 #include "Engine/Math/Vector2.h"
 #include "Engine/Math/Vector3.h"

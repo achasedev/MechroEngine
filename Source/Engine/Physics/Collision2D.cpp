@@ -15,26 +15,10 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#define NUM_EPA_ITERATIONS 16U
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-enum EvolveSimplexResult
-{
-	NO_INTERSECTION,
-	INTERSECTION_FOUND,
-	SIMPLEX_STILL_EVOLVING
-};
-
-struct SeparationTestResult2D
-{
-	Vector2 m_normal;
-	Vector2 m_directionAlongEdge;
-	float	m_separation = -1.f;
-	int		m_indexIntoSimplex = -1;
-};
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -44,240 +28,60 @@ struct SeparationTestResult2D
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
-//-------------------------------------------------------------------------------------------------
-static Vector2 GetMinkowskiDiffSupport(const Polygon2D& first, const Polygon2D& second, Vector2& direction)
-{
-	return (first.GetFarthestVertexInDirection(direction) - second.GetFarthestVertexInDirection(-1.0f * direction));
-}
-
-
-//-------------------------------------------------------------------------------------------------
-static void SetupSimplex(const Polygon2D& first, const Polygon2D& second, std::vector <Vector2>& simplex)
-{
-	// A vertex
-	Vector2 direction = second.GetCenter() - first.GetCenter();
-	simplex.push_back(GetMinkowskiDiffSupport(first, second, direction));
-
-	// B vertex
-	direction = -1.0f * direction;
-	simplex.push_back(GetMinkowskiDiffSupport(first, second, direction));
-
-	// C vertex
-	Vector2 a = simplex[0];
-	Vector2 b = simplex[1];
-	Vector2 ab = b - a;
-	Vector2 abPerp = Vector2(-ab.y, ab.x);
-
-	// Make sure the new direction is pointing towards the origin
-	Vector2 aToOrigin = -1.0f * a;
-
-	if (DotProduct(abPerp, aToOrigin) < 0.f)
-	{
-		abPerp *= -1.0f;
-
-		// So....we're going to do "left-side" perps - flip components and negate the X component, 
-		// so the perp of AB will pivot +90 degrees on A
-		// Therefore, I want to make it so that the left-side perp is pointing towards the origin for AB. 
-		// If it isn't, just switch A and B around, so now it is. Then we can safely just use the left-side 
-		// perp on BC and CA below to test if the origin is inside.
-		Vector2 temp = a;
-		simplex[0] = b;
-		simplex[1] = temp;
-	}
-
-	simplex.push_back(GetMinkowskiDiffSupport(first, second, abPerp));
-}
-
-
-//-------------------------------------------------------------------------------------------------
-static EvolveSimplexResult EvolveSimplex(const Polygon2D& first, const Polygon2D& second, std::vector<Vector2>& evolvingSimplex)
-{
-	ASSERT_OR_DIE(evolvingSimplex.size() == 3, "Wrong number of verts for simplex!");
-
-	Vector2 a = evolvingSimplex[0];
-	Vector2 b = evolvingSimplex[1];
-	Vector2 c = evolvingSimplex[2];
-
-	Vector2 cToOrigin = -1.0f * c;
-	Vector2 bc = c - b;
-	Vector2 ca = a - c;
-
-	Vector2 bcPerp = Vector2(-bc.y, bc.x);
-	Vector2 caPerp = Vector2(-ca.y, ca.x);
-
-	if (DotProduct(bcPerp, cToOrigin) < 0) // Check if origin is outside bc side
-	{
-		evolvingSimplex.clear();
-		evolvingSimplex.push_back(c);
-		evolvingSimplex.push_back(b);
-
-		// Swapping order of b and c means left-hand perp of 0 and 1 is now pointing towards origin
-		Vector2 newAB = evolvingSimplex[1] - evolvingSimplex[0];
-		Vector2 newABPerp = Vector2(-newAB.y, newAB.x);
-
-		evolvingSimplex.push_back(GetMinkowskiDiffSupport(first, second, newABPerp));
-
-		// Check if we even went past the origin
-		bool wentPastOrigin = (DotProduct(newABPerp, evolvingSimplex[2]) >= 0);
-		return (wentPastOrigin ? SIMPLEX_STILL_EVOLVING : NO_INTERSECTION);
-	}
-	else if (DotProduct(caPerp, cToOrigin) < 0) // Check if origin is outside ca side
-	{
-		evolvingSimplex.clear();
-		evolvingSimplex.push_back(a);
-		evolvingSimplex.push_back(c);
-
-		// Keeping this order of a and c means left-hand perp of 0 and 1 is now pointing towards origin
-		Vector2 newAB = evolvingSimplex[1] - evolvingSimplex[0];
-		Vector2 newABPerp = Vector2(-newAB.y, newAB.x);
-
-		evolvingSimplex.push_back(GetMinkowskiDiffSupport(first, second, newABPerp));
-
-		// Check if we even went past the origin
-		bool wentPastOrigin = (DotProduct(newABPerp, evolvingSimplex[2]) >= 0);
-		return (wentPastOrigin ? SIMPLEX_STILL_EVOLVING : NO_INTERSECTION);
-	}
-
-	// Otherwise both sides contain t	he origin, so intersection!
-	return INTERSECTION_FOUND;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-static SeparationTestResult2D GetSimplexSeparation2D(const std::vector<Vector2>& simplex)
-{
-	SeparationTestResult2D result;
-	
-	uint32 numVertices = simplex.size();
-	for (uint32 i = 0; i < numVertices; ++i)
-	{
-		uint32 j = ((i == numVertices - 1) ? 0 : i + 1);
-		Vector2 edge = simplex[j] - simplex[i];
-
-		// Outward facing normal should be the left perp
-		Vector2 edgeNormal = Vector2(edge.y, -edge.x);
-		edgeNormal.Normalize();
-
-		float distanceToOrigin = DotProduct(simplex[i], edgeNormal);
-
-		if (result.m_indexIntoSimplex == -1 || Abs(distanceToOrigin) < result.m_separation)
-		{
-			result.m_separation = distanceToOrigin;
-			result.m_indexIntoSimplex = i;
-			result.m_normal = edgeNormal;
-			result.m_directionAlongEdge = edge.GetNormalized();
-		}
-	}
-
-	return result;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-bool Physics2D::ArePolygonsColliding(const Polygon2D& first, const Polygon2D& second)
-{
-	EvolveSimplexResult result = SIMPLEX_STILL_EVOLVING;
-	std::vector<Vector2> simplex;
-
-	// Set up initial vertices
-	SetupSimplex(first, second, simplex);
-
-	while (result == SIMPLEX_STILL_EVOLVING)
-	{
-		result = EvolveSimplex(first, second, simplex);
-	}
-
-	return (result == INTERSECTION_FOUND);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-CollisionResult2D Physics2D::CheckCollision(const Polygon2D& first, const Polygon2D& second)
-{
-	EvolveSimplexResult result = SIMPLEX_STILL_EVOLVING;
-	std::vector<Vector2> simplex;
-
-	// Set up initial vertices
-	SetupSimplex(first, second, simplex);
-
-	while (result == SIMPLEX_STILL_EVOLVING)
-	{
-		result = EvolveSimplex(first, second, simplex);
-	}
-
-	if (result == INTERSECTION_FOUND)
-	{
-		// Use EPA (Expanding Polytope Algorithm) to find the edge we're overlapping with
-		for (uint32 iteration = 0; iteration < NUM_EPA_ITERATIONS; ++iteration)
-		{
-			SeparationTestResult2D testResult = GetSimplexSeparation2D(simplex);
-
-			Vector2 expandedMinkowskiPoint = GetMinkowskiDiffSupport(first, second, testResult.m_normal);
-			float distanceToMinkowskiEdge = DotProduct(testResult.m_normal, expandedMinkowskiPoint);
-
-			float diff = Abs(testResult.m_separation - distanceToMinkowskiEdge);
-			if (diff < DEFAULT_EPSILON)
-			{
-				// Difference is close enough, this is the right edge
-				CollisionResult2D finalResult;
-				finalResult.m_intersectionFound = true;
-				finalResult.m_penNormal = testResult.m_normal;
-				finalResult.m_penDistance = testResult.m_separation;
-				finalResult.m_tangent = testResult.m_directionAlongEdge;
-				finalResult.m_supportPoint = simplex[testResult.m_indexIntoSimplex];
-
-				return finalResult;
-			}
-			else
-			{
-				// Our simplex edge is inside the Minkowski difference shape, not on the edge
-				// Add this point to our simplex at the right posiion and try again
-				simplex.insert(simplex.begin() + testResult.m_indexIntoSimplex + 1, expandedMinkowskiPoint);
-			}
-		}
-
-		ERROR_RECOVERABLE("Couldn't find the Minkowski edge?");
-	}
-
-	CollisionResult2D finalResult;
-	finalResult.m_intersectionFound = false;
-
-	return finalResult;
-}
-
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-Collider2D::Collider2D()
+PhysicsScene2D::~PhysicsScene2D()
 {
-	m_colliderID = INVALID_COLLIDER_ID;
-	m_transform = nullptr;
-	m_shape = nullptr;
+	//RemoveAllBodies();
 }
 
 
 //-------------------------------------------------------------------------------------------------
-CollisionScene2D::~CollisionScene2D()
+RigidBodyID PhysicsScene2D::AddBody(const Polygon2D* shape)
 {
-	RemoveAllColliders();
+	RigidBody2D* body = new RigidBody2D();
+	body->m_shape = shape;
+	body->SetMassProperties(1.0f);
+	body->m_id = m_nextRigidbodyID++;
+
+	m_bodies.push_back(body);
+
+	return body->m_id;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void CollisionScene2D::FrameStep()
+RigidBody2D* PhysicsScene2D::GetBody(RigidBodyID bodyID) const
+{
+	for (uint32 bodyIndex = 0; bodyIndex < m_bodies.size(); ++bodyIndex)
+	{
+		if (m_bodies[bodyIndex]->m_id == bodyID)
+		{
+			return m_bodies[bodyIndex];
+		}
+	}
+
+	ERROR_RECOVERABLE("Couldn't find RigidBody2D!");
+	return nullptr;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void PhysicsScene2D::FrameStep()
 {
 	PerformBroadphase();
-	ApplyForces();
-	PerformPresteps();
-	ApplyImpulseIterations();
-	UpdatePositions();
+	//ApplyForces();
+	//PerformArbiterPreSteps();
+	//ApplyImpulseIterations();
+	//UpdatePositions();
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void CollisionScene2D::PerformBroadphase()
+void PhysicsScene2D::PerformBroadphase()
 {
 	// O(n^2) broad-phase
 	// TODO: Make this less garbage
@@ -293,117 +97,20 @@ void CollisionScene2D::PerformBroadphase()
 			if (body1->GetInverseMass() == 0.0f && body2->GetInverseMass() == 0.0f)
 				continue;
 
-			Arbiter2D newArb(body1, body2);
-			newArb.DetectCollision();
+			Arbiter2D* newArb = new Arbiter2D(body1, body2);
+			newArb->DetectCollision();
 
-			ArbiterKey key(bi, bj);
+			ArbiterKey2D key(body1, body2);
 
-			if (newArb.numContacts > 0)
+			if (newArb->GetNumContacts() > 0)
 			{
-				ArbIter iter = arbiters.find(key);
-				if (iter == arbiters.end())
-				{
-					arbiters.insert(ArbPair(key, newArb));
-				}
-				else
-				{
-					iter->second.Update(newArb.contacts, newArb.numContacts);
-				}
+				// TODO: Need to preserve info or something or something
+				m_arbiters[key] = newArb;
 			}
 			else
 			{
-				arbiters.erase(key);
+				m_arbiters.erase(key);
 			}
 		}
 	}
-}
-
-
-//-------------------------------------------------------------------------------------------------
-ColliderID CollisionScene2D::AddCollider(const Polygon2D* shape, Transform* transform)
-{
-	for (uint32 colliderIndex = 0; colliderIndex < m_numColliders; ++colliderIndex)
-	{
-		Collider2D& currCollider = m_colliders[colliderIndex];
-
-		if (currCollider.m_colliderID != INVALID_COLLIDER_ID)
-		{
-			currCollider.m_colliderID = m_nextColliderID++;
-			currCollider.m_transform = transform;
-			currCollider.m_shape = shape;
-		}
-	}
-}
-
-
-//-------------------------------------------------------------------------------------------------
-ColliderID CollisionScene2D::AddCollider(const Polygon2D* shape, Transform* transform)
-{
-	ASSERT_RETURN(shape != nullptr, INVALID_COLLIDER_ID, "Tried to add a collider with no shape!");
-	ASSERT_RETURN(transform != nullptr, INVALID_COLLIDER_ID, "Tried to add a collider with no transform!");
-
-	bool colliderAdded = false;
-	for (uint32 colliderIndex = 0; colliderIndex < m_numColliders; ++colliderIndex)
-	{
-		Collider2D& currCollider = m_colliders[colliderIndex];
-
-		if (currCollider.m_colliderID == INVALID_COLLIDER_ID)
-		{
-			currCollider.m_colliderID = m_nextColliderID++;
-			currCollider.m_transform = transform;
-			currCollider.m_shape = shape;
-			colliderAdded = true;
-		}
-	}
-
-	ASSERT_RECOVERABLE(colliderAdded, "CollisionScene ran out of room for colliders!");
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void CollisionScene2D::RemoveCollider(ColliderID idToRemove)
-{
-	bool colliderFound = false;
-	for (uint32 colliderIndex = 0; colliderIndex < m_numColliders; ++colliderIndex)
-	{
-		Collider2D& currCollider = m_colliders[colliderIndex];
-
-		if (currCollider.m_colliderID == idToRemove)
-		{
-			currCollider.m_colliderID = INVALID_COLLIDER_ID;
-			currCollider.m_transform = nullptr;
-			currCollider.m_shape = nullptr;
-			colliderFound = true;
-		}
-	}
-
-	ASSERT_RECOVERABLE(colliderFound, "Couldn't find collider with id %i", idToRemove);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void CollisionScene2D::RemoveAllColliders()
-{
-	for (uint32 colliderIndex = 0; colliderIndex < m_numColliders; ++colliderIndex)
-	{
-		Collider2D& currCollider = m_colliders[colliderIndex];
-
-		if (currCollider.m_colliderID != INVALID_COLLIDER_ID)
-		{
-			currCollider.m_colliderID = INVALID_COLLIDER_ID;
-			currCollider.m_transform = nullptr;
-			currCollider.m_shape = nullptr;
-		}
-	}
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void CollisionScene2D::PerformCollisionStep()
-{
-	// TODO: Add collision layers
-	// TODO: Add collision order/pass index
-	// TODO: Broadphase? Quadtree something?
-
-
 }

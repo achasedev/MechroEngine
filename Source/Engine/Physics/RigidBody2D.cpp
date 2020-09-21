@@ -34,15 +34,26 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-void RigidBody2D::SetMass(float mass)
+void RigidBody2D::GetWorldShape(Polygon2D& out_polygon) const
 {
+	out_polygon.Clear();
 
-	if (mass < FLT_MAX)
+	for (uint32 vertexIndex = 0; vertexIndex < m_shape->GetNumVertices(); ++vertexIndex)
 	{
-		ASSERT_RETURN(mass > 0.f, NO_RETURN_VAL, "Setting a RigidBody2D mass to 0.f!");
-		CalculateMassProperties(mass);
+		Vector2 currVertex = m_shape->GetVertexAtIndex(vertexIndex);
+
+		// TODO: Rotate
+		currVertex += m_position;
+
+		out_polygon.AddVertex(currVertex);
 	}
-	else
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RigidBody2D::SetMassProperties(float mass)
+{
+	if (mass == FLT_MAX)
 	{
 		// Just set these to sensible defaults
 		m_mass = mass;
@@ -50,13 +61,11 @@ void RigidBody2D::SetMass(float mass)
 		m_inertia = FLT_MAX;
 		m_invInertia = 0.f;
 		m_density = FLT_MAX;
+		return;
 	}
-}
 
+	ASSERT_RETURN(mass > 0.f, NO_RETURN_VAL, "Setting 0.f mass!");
 
-//-------------------------------------------------------------------------------------------------
-void RigidBody2D::CalculateMassProperties(float mass)
-{
 	float area = 0.f;
 	Vector2 center = Vector2::ZERO;
 	float inertia = 0.f;
@@ -96,4 +105,5 @@ void RigidBody2D::CalculateMassProperties(float mass)
 	m_invInertia = (1.0f / inertia);
 
 	m_density = density;
+	m_centerOfMass = center;
 }

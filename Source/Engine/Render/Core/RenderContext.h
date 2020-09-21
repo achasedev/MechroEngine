@@ -87,6 +87,8 @@ public:
 	void								DrawRenderable(Renderable& renderable);
 	void								Draw(const DrawCall& drawCall);
 	
+	void								DrawPoint2D(const Vector2& position, float radius, Material* material, const Rgba& color = Rgba::WHITE);
+	void								DrawLine2D(const Vector2& start, const Vector2& end, Material* material, const Rgba& color = Rgba::WHITE);
 	void								DrawPolygon2D(const Polygon2D& polygon, Material* material, const Rgba& color = Rgba::WHITE);
 
 	void								SaveTextureToImage(Texture2D* texture, const char* filepath);

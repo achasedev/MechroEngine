@@ -29,14 +29,6 @@ enum EvolveSimplexResult
 	SIMPLEX_STILL_EVOLVING
 };
 
-struct CollisionFeatureEdge2D
-{
-	Vector2 m_furthestVertex;
-	Vector2 m_vertex1;
-	Vector2 m_vertex2;
-	Vector2 m_normal;
-};
-
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -157,9 +149,9 @@ static uint32 GetSimplexSeparation2D(const std::vector<Vector2>& simplex, Collis
 
 		float distanceToOrigin = DotProduct(simplex[i], edgeNormal);
 
-		if (Abs(distanceToOrigin) < out_separation.m_separation)
+		if (Abs(distanceToOrigin) < Abs(out_separation.m_separation))
 		{
-			out_separation.m_separation = distanceToOrigin;
+			out_separation.m_separation = Abs(distanceToOrigin);
 			out_separation.m_dirFromFirst = edgeNormal;
 			closestIndex = i;
 		}
@@ -175,6 +167,7 @@ static CollisionSeparation2D PerformEPA(const Polygon2D* first, const Polygon2D*
 	for (uint32 iteration = 0; iteration < NUM_EPA_ITERATIONS; ++iteration)
 	{
 		CollisionSeparation2D simplexSeparation;
+		simplexSeparation.m_collisionFound = true;
 		uint32 simplexIndex = GetSimplexSeparation2D(simplex, simplexSeparation);
 
 		Vector2 expandedMinkowskiPoint = GetMinkowskiDiffSupport(first, second, simplexSeparation.m_dirFromFirst);
@@ -195,6 +188,7 @@ static CollisionSeparation2D PerformEPA(const Polygon2D* first, const Polygon2D*
 	}
 
 	ERROR_RECOVERABLE("Couldn't find the Minkowski edge?");
+	return CollisionSeparation2D(false);
 }
 
 
@@ -246,14 +240,10 @@ static CollisionFeatureEdge2D GetFeatureEdge2D(const Polygon2D* polygon, const V
 	float prevDot = DotProduct(prevNormal, outwardSeparationNormal);
 	float nextDot = DotProduct(nextNormal, outwardSeparationNormal);
 
-	// ...sanity checks that they're outward along the separation normal
-	ASSERT_OR_DIE(prevDot >= 0, "Normals are going against each other!");
-	ASSERT_OR_DIE(nextDot >= 0, "Normals are going against each other!");
-
 	CollisionFeatureEdge2D featureEdge;
 	featureEdge.m_furthestVertex = vertex;
 	
-	if (nextDot > prevDot)
+	if (nextDot - prevDot >= DEFAULT_EPSILON)
 	{
 		featureEdge.m_vertex1 = vertex;
 		featureEdge.m_vertex2 = nextVertex;
@@ -271,14 +261,32 @@ static CollisionFeatureEdge2D GetFeatureEdge2D(const Polygon2D* polygon, const V
 
 
 //-------------------------------------------------------------------------------------------------
-static void ClipIncidentEdgeToReferenceEdge(const Vector2& incident1, const Vector2& incident2, const Vector2& refEdgeDirection, float offset, Contact2D* out_contacts, uint32& out_numContacts)
+static void ClipIncidentEdgeToReferenceEdge(const Vector2& incident1, const Vector2& incident2, const Vector2& refEdgeDirection, float offset, std::vector<Vector2>& clippedPoints)
 {
-	float dot1 = DotProduct(incident1, refEdgeDirection);
-	float dot2 = DotProduct(incident2, refEdgeDirection);
+	float distance1 = DotProduct(incident1, refEdgeDirection) - offset;
+	float distance2 = DotProduct(incident2, refEdgeDirection) - offset;
 
-	if (dot1 - offset >= 0)
+	if (distance1 >= 0)
 	{
+		clippedPoints.push_back(incident1);
+	}
 
+	if (distance2 >= 0)
+	{
+		clippedPoints.push_back(incident2);
+	}
+
+	// Special case
+	// If the two incident points are on opposite sides of the imaginary clipping line, create a new point at the clipping line
+	if (distance1 * distance2 < 0)
+	{
+		Vector2 incidentEdge = incident2 - incident1; // Don't normalize! We'll take a fractional portion of this
+		float t = distance1 / (distance1 - distance2);
+		
+		Vector2 incidentEdgeOffset = incidentEdge * t;
+		Vector2 finalPos = incident1 + incidentEdgeOffset;
+
+		clippedPoints.push_back(finalPos);
 	}
 }
 
@@ -310,21 +318,19 @@ Arbiter2D::Arbiter2D(RigidBody2D* body1, RigidBody2D* body2)
 //-------------------------------------------------------------------------------------------------
 void Arbiter2D::DetectCollision()
 {
-	const Polygon2D* poly1 = m_body1->GetShape();
-	const Polygon2D* poly2 = m_body2->GetShape();
+	Polygon2D poly1, poly2;
+	m_body1->GetWorldShape(poly1);
+	m_body2->GetWorldShape(poly2);
 
 	// Detect collision
-	CollisionSeparation2D separation = CalculateSeparation2D(poly1, poly2);
+	CollisionSeparation2D separation = CalculateSeparation2D(&poly1, &poly2);
+	m_numContacts = 0;
 
 	if (separation.m_collisionFound)
 	{
 		// Find the contact points of the collision
 		// http://www.dyn4j.org/2011/11/contact-points-using-clipping/ for reference
-		CalculateContactPoints(poly1, poly2, separation);
-	}
-	else
-	{
-		m_numContacts = 0;
+		CalculateContactPoints(&poly1, &poly2, separation);
 	}
 }
 
@@ -343,10 +349,9 @@ void Arbiter2D::CalculateContactPoints(const Polygon2D* poly1, const Polygon2D* 
 
 	const CollisionFeatureEdge2D* referenceEdge = nullptr;
 	const CollisionFeatureEdge2D* incidentEdge = nullptr;
-	Vector2 clippingNormal = separation.m_dirFromFirst;
 
 	bool flipRefNormal = false;
-	if (dot1 >= dot2)
+	if (Abs(dot1) > Abs(dot2))
 	{
 		// poly1 is our reference
 		referenceEdge = &edge1;
@@ -365,10 +370,66 @@ void Arbiter2D::CalculateContactPoints(const Polygon2D* poly1, const Polygon2D* 
 
 	Vector2 refEdgeDirection = referenceEdge->m_vertex2 - referenceEdge->m_vertex1;
 	refEdgeDirection.Normalize();
+	
+	// Keep all our results from each clip for debugging purposes
+	std::vector<Vector2> clippedPoints1;
 
-	// Clip the incident edge to the reference edge
+	// Clip the incident edge to the start of the reference edge
 	// First determine the min value the dot would need to be in order to be inside the clipping edge
-	float minDot = DotProduct(refEdgeDirection, referenceEdge->m_vertex1);
-	ClipIncidentEdgeToReferenceEdge(incidentEdge->m_vertex1, incidentEdge->m_vertex2, refEdgeDirection, minDot, m_contacts, m_numContacts);
+	float startDot = DotProduct(refEdgeDirection, referenceEdge->m_vertex1);
+	ClipIncidentEdgeToReferenceEdge(incidentEdge->m_vertex1, incidentEdge->m_vertex2, refEdgeDirection, startDot, clippedPoints1);
 
+	if (clippedPoints1.size() < 2)
+	{
+		return;
+	}
+
+	// Now clip the incident edge to the end of the reference edge
+	// So clip in the opposite direction, flip some signs
+	float endDot = DotProduct(refEdgeDirection, referenceEdge->m_vertex2);
+
+	std::vector<Vector2> clippedPoints2;
+	ClipIncidentEdgeToReferenceEdge(clippedPoints1[0], clippedPoints1[1], -1.0f * refEdgeDirection, -1.0f * endDot, clippedPoints2);
+
+	if (clippedPoints2.size() < 2)
+	{
+		return;
+	}
+
+	// Finally, clip all contacts that are outside the reference edge
+	// It's ok to not have 2 contact points after this step!
+	Vector2 refNormalForClipping = referenceEdge->m_normal;
+
+	// Get the largest depth a contact can have
+	float maxDepth = DotProduct(refNormalForClipping, referenceEdge->m_furthestVertex);
+
+	// If any of these points are "deeper" than the max depth then they are in the collision manifold
+	float penDepth1 = DotProduct(refNormalForClipping, clippedPoints2[0]) - maxDepth;
+	float penDepth2 = DotProduct(refNormalForClipping, clippedPoints2[1]) - maxDepth;
+
+	if (penDepth1 < 0.f)
+	{
+		m_contacts[0].m_position = clippedPoints2[0];
+		m_contacts[0].m_normal = refNormalForClipping;
+		m_contacts[0].m_r1 = clippedPoints2[0] - m_body1->GetCenterOfMass();
+		m_contacts[0].m_r2 = clippedPoints2[0] - m_body2->GetCenterOfMass();
+		m_contacts[0].m_separation = penDepth1;
+		m_contacts[0].m_referenceEdge = *referenceEdge;
+		m_contacts[0].m_incidentEdge = *incidentEdge;
+		m_numContacts++;
+	}
+
+	if (penDepth2 < 0.f)
+	{
+		m_contacts[m_numContacts].m_position = clippedPoints2[1];
+		m_contacts[m_numContacts].m_normal = refNormalForClipping;
+		m_contacts[m_numContacts].m_r1 = clippedPoints2[1] - m_body1->GetCenterOfMass();
+		m_contacts[m_numContacts].m_r2 = clippedPoints2[1] - m_body2->GetCenterOfMass();
+		m_contacts[m_numContacts].m_separation = penDepth2;
+		m_contacts[m_numContacts].m_referenceEdge = *referenceEdge;
+		m_contacts[m_numContacts].m_incidentEdge = *incidentEdge;
+		m_numContacts++;
+	}
+
+	ASSERT_OR_DIE(m_numContacts <= 2, "Bad number of contacts!");
 }

@@ -54,6 +54,7 @@ public:
 	static const Rgba RED;
 	static const Rgba GREEN;
 	static const Rgba BLUE;
+	static const Rgba CYAN;
 
 
 public:

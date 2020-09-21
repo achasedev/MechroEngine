@@ -9,6 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Math/Vector2.h"
+#include <map>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -19,6 +20,17 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class RigidBody2D;
+class Arbiter2D;
+
+//-------------------------------------------------------------------------------------------------
+struct CollisionFeatureEdge2D
+{
+	Vector2 m_furthestVertex;
+	Vector2 m_vertex1;
+	Vector2 m_vertex2;
+	Vector2 m_normal;
+};
+
 
 //-------------------------------------------------------------------------------------------------
 struct Contact2D
@@ -38,7 +50,9 @@ struct Contact2D
 	float m_massNormal = 0.f;
 	float m_massTangent = 0.f;
 	float m_bias = 0.f;
-	//EdgePair m_edgePairs;
+	
+	CollisionFeatureEdge2D m_referenceEdge;
+	CollisionFeatureEdge2D m_incidentEdge;
 };
 
 struct CollisionSeparation2D
@@ -49,7 +63,7 @@ struct CollisionSeparation2D
 
 	bool	m_collisionFound = false;
 	Vector2 m_dirFromFirst;
-	float	m_separation;
+	float	m_separation = FLT_MAX;
 };
 
 
@@ -72,7 +86,7 @@ struct ArbiterKey2D
 	}
 
 	// Compare memory addresses of the bodies
-	inline bool operator<(const ArbiterKey2D& other)
+	bool operator<(const ArbiterKey2D& other) const
 	{
 		if (m_body1 < other.m_body1)
 			return true;
@@ -86,6 +100,7 @@ struct ArbiterKey2D
 	RigidBody2D* m_body1;
 	RigidBody2D* m_body2;
 };
+typedef std::map<ArbiterKey2D, Arbiter2D>::iterator ArbIter;
 
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -102,30 +117,32 @@ class Arbiter2D
 public:
 	//-----Public Methods-----
 
+	Arbiter2D() {}
 	Arbiter2D(RigidBody2D* body1, RigidBody2D* body2);
 
-	void			DetectCollision();
+	void				DetectCollision();
 
 	// Accessors
-	int				GetNumContacts() const { return m_numContacts; }
-	float			GetFriction() const { return m_friction; }
+	uint32				GetNumContacts() const { return m_numContacts; }
+	const Contact2D*	GetContacts() const { return m_contacts; }
+	float				GetFriction() const { return m_friction; }
 
 
 private:
 	//-----Private Methods-----
 
-	void			CalculateContactPoints(const Polygon2D* poly1, const Polygon2D* poly2, const CollisionSeparation2D& separation);
+	void				CalculateContactPoints(const Polygon2D* poly1, const Polygon2D* poly2, const CollisionSeparation2D& separation);
 
 
 private:
 	//-----Private Data-----
 
-	RigidBody2D*	m_body1 = nullptr;
-	RigidBody2D*	m_body2 = nullptr;
+	RigidBody2D*		m_body1 = nullptr;
+	RigidBody2D*		m_body2 = nullptr;
 
-	Contact2D		m_contacts[MAX_CONTACT_POINTS];
-	uint32			m_numContacts = 0;
-	float			m_friction = -1.0f; // Combined Frictions
+	Contact2D			m_contacts[MAX_CONTACT_POINTS];
+	uint32				m_numContacts = 0;
+	float				m_friction = -1.0f; // Combined Frictions
 
 };
 

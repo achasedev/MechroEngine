@@ -103,6 +103,26 @@ Vector2 Polygon2D::GetVertexAtIndex(uint32 index) const
 
 
 //-------------------------------------------------------------------------------------------------
+Vector2 Polygon2D::GetPreviousVertexToIndex(uint32 index) const
+{
+	ASSERT_OR_DIE(index >= 0 && index < m_vertices.size(), "Bad index!");
+
+	uint32 prevIndex = (index == 0 ? m_vertices.size() - 1 : index - 1);
+	return m_vertices[prevIndex];
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector2 Polygon2D::GetNextVertexToIndex(uint32 index) const
+{
+	ASSERT_OR_DIE(index >= 0 && index < m_vertices.size(), "Bad index!");
+
+	uint32 nextIndex = (index == m_vertices.size() - 1 ? 0 : index + 1);
+	return m_vertices[nextIndex];
+}
+
+
+//-------------------------------------------------------------------------------------------------
 int Polygon2D::GetFarthestVertexInDirection(const Vector2& direction, Vector2& out_vertex) const
 {
 	ASSERT_OR_DIE(m_vertices.size() > 0, "No vertices to return!");

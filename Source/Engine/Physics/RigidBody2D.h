@@ -14,11 +14,13 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#define INVALID_RIGIDBODY_ID -1
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Polygon2D;
+typedef int RigidBodyID;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -31,6 +33,8 @@ class Polygon2D;
 //-------------------------------------------------------------------------------------------------
 class RigidBody2D
 {
+	friend class PhysicsScene2D;
+
 public:
 	//-----Public Methods-----
 
@@ -40,11 +44,11 @@ public:
 	void SetVelocity(const Vector2& velocity) { m_velocity = velocity; }
 	void SetAngularVelocity(float angularVelocityDegrees) { m_angularVelocityDegrees = angularVelocityDegrees; }
 	void SetFriction(float friction) { m_friction = friction; }
-	void SetMass(float mass);
 
 	// Accessors
 	Vector2				GetPosition() const { return m_position; }
 	float				GetRotationDegrees() const { return m_rotationDegrees; }
+	Vector2				GetCenterOfMass() const { return m_centerOfMass; }
 	Vector2				GetVelocity() const { return m_velocity; }
 	float				GetAngularVelocity() const { return m_angularVelocityDegrees; }
 	float				GetFriction() const { return m_friction; }
@@ -55,7 +59,8 @@ public:
 	float				GetDensity() const { return m_density; }
 	Vector2				GetForce() const { return m_force; }
 	float				GetTorque() const { return m_torque; }
-	const Polygon2D*	GetShape() const { return m_shape; } // Const because you shouldn't be changing this >.>
+	const Polygon2D*	GetLocalShape() const { return m_shape; } // Const because you shouldn't be changing this >.>
+	void				GetWorldShape(Polygon2D& out_polygon) const;
 
 	// Producers
 	bool	IsStatic() const { return m_invMass == 0.f; }
@@ -64,12 +69,14 @@ public:
 private:
 	//-----Private Methods-----
 
-	void CalculateMassProperties(float mass);
+	void SetMassProperties(float mass);
 
 
 private:
 	//-----Private Data-----
 	
+	RigidBodyID	m_id						= INVALID_RIGIDBODY_ID;
+
 	// Positional
 	Vector2		m_position					= Vector2::ZERO;
 	float		m_rotationDegrees			= 0.f;
@@ -92,7 +99,7 @@ private:
 	float		m_torque					= 0.f;
 
 	// Shape
-	Polygon2D*	m_shape						= nullptr;
+	const Polygon2D*	m_shape				= nullptr;
 
 };
 
