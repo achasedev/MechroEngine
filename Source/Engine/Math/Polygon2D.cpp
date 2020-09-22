@@ -67,7 +67,7 @@ void Polygon2D::AddVertex(const Vector2& vertex)
 //-------------------------------------------------------------------------------------------------
 void Polygon2D::AddVertices(const std::vector<Vector2>& vertices)
 {
-	uint32 numVertsToAdd = vertices.size();
+	uint32 numVertsToAdd = (uint32)vertices.size();
 
 	for (uint32 i = 0; i < numVertsToAdd; ++i)
 	{
@@ -107,7 +107,7 @@ Vector2 Polygon2D::GetPreviousVertexToIndex(uint32 index) const
 {
 	ASSERT_OR_DIE(index >= 0 && index < m_vertices.size(), "Bad index!");
 
-	uint32 prevIndex = (index == 0 ? m_vertices.size() - 1 : index - 1);
+	uint32 prevIndex = (index == 0 ? (uint32)m_vertices.size() - 1 : index - 1);
 	return m_vertices[prevIndex];
 }
 
@@ -158,7 +158,7 @@ int Polygon2D::GetFarthestVertexInDirection(const Vector2& direction, Vector2& o
 //-------------------------------------------------------------------------------------------------
 Vector2 Polygon2D::GetCenter() const
 {
-	uint32 numVertices = m_vertices.size();
+	uint32 numVertices = (uint32)m_vertices.size();
 	ASSERT_RETURN(numVertices > 0U, Vector2::ZERO, "Polygon2D has no vertices!");
 
 	Vector2 average = Vector2::ZERO;

@@ -350,7 +350,7 @@ void RenderContext::DrawPoint2D(const Vector2& position, float radius, Material*
 	vertices.push_back(Vertex3D_PCU(ne, color, Vector2::ZERO));
 
 	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-	DrawVertexArray(vertices.data(), vertices.size(), nullptr, 0U, material);
+	DrawVertexArray(vertices.data(), (uint32)vertices.size(), nullptr, 0U, material);
 	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
@@ -367,7 +367,7 @@ void RenderContext::DrawLine2D(const Vector2& start, const Vector2& end, Materia
 	vertices.push_back(Vertex3D_PCU(end3D, color, Vector2::ZERO));
 
 	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-	DrawVertexArray(vertices.data(), vertices.size(), nullptr, 0U, material);
+	DrawVertexArray(vertices.data(), (uint32)vertices.size(), nullptr, 0U, material);
 	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
@@ -389,7 +389,7 @@ void RenderContext::DrawPolygon2D(const Polygon2D& polygon, Material* material, 
 	}
 
 	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-	DrawVertexArray(vertices.data(), vertices.size(), nullptr, 0U, material);
+	DrawVertexArray(vertices.data(), (uint32)vertices.size(), nullptr, 0U, material);
 	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 

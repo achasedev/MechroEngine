@@ -38,7 +38,7 @@ enum EvolveSimplexResult
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-static Vector2 GetMinkowskiDiffSupport(const Polygon2D* first, const Polygon2D* second, const Vector2& direction)
+static Vector2 GetMinkowskiDiffSupport2D(const Polygon2D* first, const Polygon2D* second, const Vector2& direction)
 {
 	Vector2 firstVertex, secondVertex;
 	first->GetFarthestVertexInDirection(direction, firstVertex);
@@ -49,15 +49,15 @@ static Vector2 GetMinkowskiDiffSupport(const Polygon2D* first, const Polygon2D* 
 
 
 //-------------------------------------------------------------------------------------------------
-static void SetupSimplex(const Polygon2D* first, const Polygon2D* second, std::vector <Vector2>& simplex)
+static void SetupSimplex2D(const Polygon2D* first, const Polygon2D* second, std::vector <Vector2>& simplex)
 {
 	// A vertex
 	Vector2 direction = second->GetCenter() - first->GetCenter();
-	simplex.push_back(GetMinkowskiDiffSupport(first, second, direction));
+	simplex.push_back(GetMinkowskiDiffSupport2D(first, second, direction));
 
 	// B vertex
 	direction = -1.0f * direction;
-	simplex.push_back(GetMinkowskiDiffSupport(first, second, direction));
+	simplex.push_back(GetMinkowskiDiffSupport2D(first, second, direction));
 
 	// C vertex
 	Vector2 a = simplex[0];
@@ -79,12 +79,12 @@ static void SetupSimplex(const Polygon2D* first, const Polygon2D* second, std::v
 		simplex[1] = temp;
 	}
 
-	simplex.push_back(GetMinkowskiDiffSupport(first, second, abPerp));
+	simplex.push_back(GetMinkowskiDiffSupport2D(first, second, abPerp));
 }
 
 
 //-------------------------------------------------------------------------------------------------
-static EvolveSimplexResult EvolveSimplex(const Polygon2D* first, const Polygon2D* second, std::vector<Vector2>& evolvingSimplex)
+static EvolveSimplexResult EvolveSimplex2D(const Polygon2D* first, const Polygon2D* second, std::vector<Vector2>& evolvingSimplex)
 {
 	ASSERT_OR_DIE(evolvingSimplex.size() == 3, "Wrong number of verts for simplex!");
 
@@ -107,7 +107,7 @@ static EvolveSimplexResult EvolveSimplex(const Polygon2D* first, const Polygon2D
 		evolvingSimplex.clear();
 		evolvingSimplex.push_back(c);
 		evolvingSimplex.push_back(b);
-		evolvingSimplex.push_back(GetMinkowskiDiffSupport(first, second, -1.0f * bcPerp));
+		evolvingSimplex.push_back(GetMinkowskiDiffSupport2D(first, second, -1.0f * bcPerp));
 
 		// Check if we even went past the origin
 		bool wentPastOrigin = (DotProduct(-1.0f * bcPerp, evolvingSimplex[2]) >= 0);
@@ -120,7 +120,7 @@ static EvolveSimplexResult EvolveSimplex(const Polygon2D* first, const Polygon2D
 		evolvingSimplex.clear();
 		evolvingSimplex.push_back(a);
 		evolvingSimplex.push_back(c);
-		evolvingSimplex.push_back(GetMinkowskiDiffSupport(first, second, -1.0f * caPerp));
+		evolvingSimplex.push_back(GetMinkowskiDiffSupport2D(first, second, -1.0f * caPerp));
 
 		// Check if we even went past the origin
 		bool wentPastOrigin = (DotProduct(-1.0f * caPerp, evolvingSimplex[2]) >= 0);
@@ -136,22 +136,23 @@ static EvolveSimplexResult EvolveSimplex(const Polygon2D* first, const Polygon2D
 // Calculates the minimum distance from any edge on the simplex to the origin
 static uint32 GetSimplexSeparation2D(const std::vector<Vector2>& simplex, CollisionSeparation2D& out_separation)
 {
-	uint32 numVertices = simplex.size();
+	uint32 numVertices = (uint32)simplex.size();
 	uint32 closestIndex = 0;
 	for (uint32 i = 0; i < numVertices; ++i)
 	{
 		uint32 j = ((i == numVertices - 1) ? 0 : i + 1);
 		Vector2 edge = simplex[j] - simplex[i];
 
-		// Use the right-hand normal - this makes it point from A to B
-		Vector2 edgeNormal = Vector2(edge.y, -edge.x);
+		// Get the outward facing normal
+		Vector2 edgeNormal = Vector2(-edge.y, edge.x);
 		edgeNormal.Normalize();
 
 		float distanceToOrigin = DotProduct(simplex[i], edgeNormal);
+		ASSERT_OR_DIE(distanceToOrigin >= 0, "How is this distance negative?");
 
-		if (Abs(distanceToOrigin) < Abs(out_separation.m_separation))
+		if (distanceToOrigin < out_separation.m_separation)
 		{
-			out_separation.m_separation = Abs(distanceToOrigin);
+			out_separation.m_separation = distanceToOrigin;
 			out_separation.m_dirFromFirst = edgeNormal;
 			closestIndex = i;
 		}
@@ -170,8 +171,9 @@ static CollisionSeparation2D PerformEPA(const Polygon2D* first, const Polygon2D*
 		simplexSeparation.m_collisionFound = true;
 		uint32 simplexIndex = GetSimplexSeparation2D(simplex, simplexSeparation);
 
-		Vector2 expandedMinkowskiPoint = GetMinkowskiDiffSupport(first, second, simplexSeparation.m_dirFromFirst);
+		Vector2 expandedMinkowskiPoint = GetMinkowskiDiffSupport2D(first, second, simplexSeparation.m_dirFromFirst);
 		float distanceToMinkowskiEdge = DotProduct(simplexSeparation.m_dirFromFirst, expandedMinkowskiPoint);
+		ASSERT_OR_DIE(distanceToMinkowskiEdge >= 0, "This should always be positive!");
 
 		float diff = Abs(simplexSeparation.m_separation - distanceToMinkowskiEdge);
 		if (diff < DEFAULT_EPSILON)
@@ -199,11 +201,11 @@ static CollisionSeparation2D CalculateSeparation2D(const Polygon2D* first, const
 	std::vector<Vector2> simplex;
 
 	// Set up initial vertices
-	SetupSimplex(first, second, simplex);
+	SetupSimplex2D(first, second, simplex);
 
 	while (result == SIMPLEX_STILL_EVOLVING)
 	{
-		result = EvolveSimplex(first, second, simplex);
+		result = EvolveSimplex2D(first, second, simplex);
 	}
 
 	if (result == INTERSECTION_FOUND)
@@ -243,6 +245,7 @@ static CollisionFeatureEdge2D GetFeatureEdge2D(const Polygon2D* polygon, const V
 	CollisionFeatureEdge2D featureEdge;
 	featureEdge.m_furthestVertex = vertex;
 	
+	// Use an epsilon bias to avoid floating point errors in tie breaker cases
 	if (nextDot - prevDot >= DEFAULT_EPSILON)
 	{
 		featureEdge.m_vertex1 = vertex;
@@ -350,7 +353,6 @@ void Arbiter2D::CalculateContactPoints(const Polygon2D* poly1, const Polygon2D* 
 	const CollisionFeatureEdge2D* referenceEdge = nullptr;
 	const CollisionFeatureEdge2D* incidentEdge = nullptr;
 
-	bool flipRefNormal = false;
 	if (Abs(dot1) > Abs(dot2))
 	{
 		// poly1 is our reference
@@ -362,10 +364,6 @@ void Arbiter2D::CalculateContactPoints(const Polygon2D* poly1, const Polygon2D* 
 		// poly2 is our reference
 		referenceEdge = &edge2;
 		incidentEdge = &edge1;
-
-		// If we end up flipping the edges around, we need to clip on the opposite side of the reference
-		// edge during the final step of clipping, so denote this with this nice bool
-		flipRefNormal = true;
 	}
 
 	Vector2 refEdgeDirection = referenceEdge->m_vertex2 - referenceEdge->m_vertex1;
@@ -409,13 +407,13 @@ void Arbiter2D::CalculateContactPoints(const Polygon2D* poly1, const Polygon2D* 
 
 	if (penDepth1 < 0.f)
 	{
-		m_contacts[0].m_position = clippedPoints2[0];
-		m_contacts[0].m_normal = refNormalForClipping;
-		m_contacts[0].m_r1 = clippedPoints2[0] - m_body1->GetCenterOfMass();
-		m_contacts[0].m_r2 = clippedPoints2[0] - m_body2->GetCenterOfMass();
-		m_contacts[0].m_separation = penDepth1;
-		m_contacts[0].m_referenceEdge = *referenceEdge;
-		m_contacts[0].m_incidentEdge = *incidentEdge;
+		m_contacts[m_numContacts].m_position = clippedPoints2[0];
+		m_contacts[m_numContacts].m_normal = refNormalForClipping;
+		m_contacts[m_numContacts].m_r1 = clippedPoints2[0] - m_body1->GetCenterOfMass();
+		m_contacts[m_numContacts].m_r2 = clippedPoints2[0] - m_body2->GetCenterOfMass();
+		m_contacts[m_numContacts].m_separation = penDepth1;
+		m_contacts[m_numContacts].m_referenceEdge = *referenceEdge;
+		m_contacts[m_numContacts].m_incidentEdge = *incidentEdge;
 		m_numContacts++;
 	}
 

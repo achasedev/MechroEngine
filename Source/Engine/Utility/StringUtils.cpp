@@ -86,11 +86,11 @@ void Tokenize(const std::string& stringToTokenize, const char delimiter, std::ve
 {
 	// Set up the substring indices
 	size_t subStringStartIndex = stringToTokenize.find_first_not_of(delimiter);
-	if (subStringStartIndex == (int)std::string::npos) { return; }	// Return if the entire string is just delimiters
+	if (subStringStartIndex == std::string::npos) { return; }	// Return if the entire string is just delimiters
 	size_t subStringEndPostion = stringToTokenize.find(delimiter, subStringStartIndex + 1);
 
 	// Iterate across the entire string
-	while (subStringEndPostion != (int)std::string::npos)
+	while (subStringEndPostion != std::string::npos)
 	{
 		// Create the substring
 		size_t substringLength = (subStringEndPostion - subStringStartIndex);
@@ -98,7 +98,7 @@ void Tokenize(const std::string& stringToTokenize, const char delimiter, std::ve
 
 		// Update the indices
 		subStringStartIndex = stringToTokenize.find_first_not_of(delimiter, subStringEndPostion + 1);
-		if (subStringStartIndex == (int)std::string::npos) { return; } // Return if the rest of the string is just delimiters
+		if (subStringStartIndex == std::string::npos) { return; } // Return if the rest of the string is just delimiters
 		subStringEndPostion = stringToTokenize.find(delimiter, subStringStartIndex + 1);
 	}
 

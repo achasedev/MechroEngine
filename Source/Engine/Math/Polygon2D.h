@@ -48,7 +48,7 @@ public:
 	void	Translate(const Vector2& translation);
 
 	// Accessors
-	uint32	GetNumVertices() const { return m_vertices.size(); }
+	uint32	GetNumVertices() const { return (uint32)m_vertices.size(); }
 	Vector2 GetVertexAtIndex(uint32 index) const;
 	Vector2 GetPreviousVertexToIndex(uint32 index) const;
 	Vector2 GetNextVertexToIndex(uint32 index) const;
