@@ -344,7 +344,7 @@ void Arbiter2D::CalculateContactPoints(const Polygon2D* poly1, const Polygon2D* 
 	// Find the best edges for each polygon (normal is from A)
 	CollisionFeatureEdge2D edge1 = GetFeatureEdge2D(poly1, separation.m_dirFromFirst);
 	CollisionFeatureEdge2D edge2 = GetFeatureEdge2D(poly2, -1.0f * separation.m_dirFromFirst);
-
+	
 	// Determine which is the reference edge and which is the incident edge
 	// Reference edge is the one more closely perpendicular to the separation direction
 	float dot1 = DotProduct(edge1.m_normal, separation.m_dirFromFirst);
@@ -376,7 +376,7 @@ void Arbiter2D::CalculateContactPoints(const Polygon2D* poly1, const Polygon2D* 
 	// First determine the min value the dot would need to be in order to be inside the clipping edge
 	float startDot = DotProduct(refEdgeDirection, referenceEdge->m_vertex1);
 	ClipIncidentEdgeToReferenceEdge(incidentEdge->m_vertex1, incidentEdge->m_vertex2, refEdgeDirection, startDot, clippedPoints1);
-
+	
 	if (clippedPoints1.size() < 2)
 	{
 		return;

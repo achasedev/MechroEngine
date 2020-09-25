@@ -8,6 +8,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
+#include "Engine/Framework/GameObject.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Math/Polygon2D.h"
 #include "Engine/Physics/RigidBody2D.h"
@@ -34,18 +35,35 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
+RigidBody2D::RigidBody2D(PhysicsScene2D* scene, GameObject* owningObj)
+	: m_scene(scene)
+	, m_gameObj(owningObj)
+	, m_transform(&owningObj->m_transform) // Convenience
+{
+	ASSERT_RECOVERABLE(m_scene != nullptr, "RigidBody2D's scene is nullptr");
+	ASSERT_RECOVERABLE(m_gameObj != nullptr, "RigidBody2D's object is nullptr!");
+}
+
+
+//-------------------------------------------------------------------------------------------------
+RigidBody2D::~RigidBody2D()
+{
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void RigidBody2D::GetWorldShape(Polygon2D& out_polygon) const
 {
 	out_polygon.Clear();
+	Matrix44 toWorldMat = m_transform->GetLocalToWorldMatrix();
 
+	// Convert local space vertices to world space
 	for (uint32 vertexIndex = 0; vertexIndex < m_shape->GetNumVertices(); ++vertexIndex)
 	{
-		Vector2 currVertex = m_shape->GetVertexAtIndex(vertexIndex);
+		Vector3 currVertex3d = Vector3(m_shape->GetVertexAtIndex(vertexIndex), 0.f);
+		Vector2 worldVertex2d = toWorldMat.TransformPoint(currVertex3d).xy();
 
-		// TODO: Rotate
-		currVertex += m_position;
-
-		out_polygon.AddVertex(currVertex);
+		out_polygon.AddVertex(worldVertex2d);
 	}
 }
 

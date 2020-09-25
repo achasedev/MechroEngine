@@ -92,20 +92,20 @@ public:
 	//-----Public Data-----
 
 	// All defined in parent space!
-	Vector3		position = Vector3::ZERO;
-	Quaternion	rotation = Quaternion::IDENTITY;
-	Vector3		scale = Vector3::ONES;
+	Vector3		position			= Vector3::ZERO;
+	Quaternion	rotation			= Quaternion::IDENTITY;
+	Vector3		scale				= Vector3::ONES;
 
 
 private:
 	//-----Private Data-----
 
 	// Save previous state to determine when to update matrix
-	Vector3		m_oldPosition = Vector3::ZERO;
-	Quaternion	m_oldRotation = Quaternion::IDENTITY;
-	Vector3		m_oldScale = Vector3::ONES;
-	Matrix44	m_localMatrix = Matrix44::IDENTITY;
+	Vector3		m_oldPosition		= Vector3::ZERO;
+	Quaternion	m_oldRotation		= Quaternion::IDENTITY;
+	Vector3		m_oldScale			= Vector3::ONES;
+	Matrix44	m_localMatrix		= Matrix44::IDENTITY;
 	
-	Transform*	m_parentTransform = nullptr;
+	Transform*	m_parentTransform	= nullptr;
 
 };

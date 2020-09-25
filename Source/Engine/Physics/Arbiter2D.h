@@ -100,7 +100,7 @@ struct ArbiterKey2D
 	RigidBody2D* m_body1;
 	RigidBody2D* m_body2;
 };
-typedef std::map<ArbiterKey2D, Arbiter2D>::iterator ArbIter;
+typedef std::map<ArbiterKey2D, Arbiter2D*>::iterator ArbIter;
 
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

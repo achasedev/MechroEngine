@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: December 8th, 2019
+/// Date Created: September 9th, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,7 +8,10 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/Vector3.h"
+#include "Engine/Math/Polygon2D.h"
+#include "Engine/Physics/Arbiter2D.h"
+#include "Engine/Physics/RigidBody2D.h"
+#include <map>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -17,6 +20,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class GameObject;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -26,65 +30,41 @@
 /// CLASS DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// C FUNCTIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------------------------
-class Vector4
+//-------------------------------------------------------------------------------------------------
+class PhysicsScene2D
 {
-
 public:
 	//-----Public Methods-----
 
-	Vector4() {}
-	Vector4(const Vector4& copyFrom);
-	explicit Vector4(float initialX, float initialY, float initialZ, float initialW);
-	explicit Vector4(const Vector3& xyzVector, float wValue);
-	~Vector4() {}
+	PhysicsScene2D() {}
+	~PhysicsScene2D();
 
-	const	Vector4 operator+(const Vector4& addVector) const;
-	const	Vector4 operator-(const Vector4& subVector) const;
-	const	Vector4 operator*(float uniformScale) const;
-	const	Vector4 operator/(float uniformDivisor) const;
-	void	operator+=(const Vector4& addVector);
-	void	operator-=(const Vector4& subVector);
-	void	operator*=(const float uniformScaler);
-	void	operator/=(const float uniformDivisor);	
-	void	operator=(const Vector4& copyFrom);
-	bool	operator==(const Vector4& compare) const;
-	bool	operator!=(const Vector4& compare) const;
-	friend const Vector4 operator*(float uniformScaler, const Vector4& vecToScale);
+	RigidBody2D*	AddGameObject(GameObject* gameObject);
+	void			RemoveGameObject(GameObject* gameObject);
 
-	float	GetLength() const;
-	float	GetLengthSquared() const;
-	float	Normalize();
-	Vector4 GetNormalized() const;
+	Arbiter2D*	 GetThatArbiter() const { return m_arbiters.size() > 0 ? (m_arbiters.begin()->second) : nullptr; } // TODO: Delete this autrocity 
 
-	Vector2 xy() const;
-	Vector2 xz() const;
-	Vector3 xyz() const;
+	void		FrameStep();
+	void		PerformRayCast(const Vector2& start, const Vector2& direction, float maxDistance);
 
-
-public:
-	//-----Public Data-----
-	
-	const static Vector4 ZERO;
-	const static Vector4 ONES;
-	const static Vector4 X_AXIS;
-	const static Vector4 Y_AXIS;
-	const static Vector4 Z_AXIS;
-	const static Vector4 MINUS_X_AXIS;
-	const static Vector4 MINUS_Y_AXIS;
-	const static Vector4 MINUS_Z_AXIS;
-
-
-public:
+private:
 	//-----Private Data-----
 
-	float x;
-	float y;
-	float z;
-	float w;
+	void PerformBroadphase();
+	void ApplyForces();
+	void PerformArbiterPreSteps();
+	void ApplyImpulseIterations();
+	void UpdatePositions();
+
+
+private:
+	//-----Private Data-----
+
+	std::vector<RigidBody2D*>			m_bodies;
+	std::map<ArbiterKey2D, Arbiter2D*>	m_arbiters;
 
 };
+
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// C FUNCTIONS
+///--------------------------------------------------------------------------------------------------------------------------------------------------

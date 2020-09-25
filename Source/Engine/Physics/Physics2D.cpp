@@ -8,8 +8,9 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
+#include "Engine/Framework/GameObject.h"
 #include "Engine/Math/MathUtils.h"
-#include "Engine/Physics/Collision2D.h"
+#include "Engine/Physics/Physics2D.h"
 #include "Engine/Physics/RigidBody2D.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -35,37 +36,56 @@
 //-------------------------------------------------------------------------------------------------
 PhysicsScene2D::~PhysicsScene2D()
 {
-	//RemoveAllBodies();
+	// Ensure all GameObjects have been removed first before destroying this scene
+	// Otherwise there's going to be dangling pointers to deleted RigidBody2Ds
+	ASSERT_RECOVERABLE(m_bodies.size() == 0, "PhysicsScene being destroyed before all GameObjects were removed!");
+
+	ArbIter iter = m_arbiters.begin();
+
+	for (iter; iter != m_arbiters.end(); iter++)
+	{
+		SAFE_DELETE_POINTER(iter->second);
+	}
+
+	m_arbiters.clear();
 }
 
 
 //-------------------------------------------------------------------------------------------------
-RigidBodyID PhysicsScene2D::AddBody(const Polygon2D* shape)
+RigidBody2D* PhysicsScene2D::AddGameObject(GameObject* gameObject)
 {
-	RigidBody2D* body = new RigidBody2D();
-	body->m_shape = shape;
+	ASSERT_RETURN(gameObject->GetRigidBody2D() == nullptr, nullptr, "GameObject already has a RigidBody2D!");
+
+	RigidBody2D* body = new RigidBody2D(this, gameObject);
+	body->m_shape = gameObject->GetShape();
 	body->SetMassProperties(1.0f);
-	body->m_id = m_nextRigidbodyID++;
 
 	m_bodies.push_back(body);
+	gameObject->SetRigidBody2D(body);
 
-	return body->m_id;
+	return body;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-RigidBody2D* PhysicsScene2D::GetBody(RigidBodyID bodyID) const
+void PhysicsScene2D::RemoveGameObject(GameObject* gameObject)
 {
-	for (uint32 bodyIndex = 0; bodyIndex < m_bodies.size(); ++bodyIndex)
+	RigidBody2D* currBody = gameObject->GetRigidBody2D();
+	ASSERT_RETURN(currBody != nullptr, NO_RETURN_VAL, "Removing GameObject that isn't in the scene!");
+
+	for (uint32 i = 0; i < m_bodies.size(); ++i)
 	{
-		if (m_bodies[bodyIndex]->m_id == bodyID)
+		if (m_bodies[i] == currBody)
 		{
-			return m_bodies[bodyIndex];
+			m_bodies.erase(m_bodies.begin() + i);
+
+			SAFE_DELETE_POINTER(currBody);
+			gameObject->SetRigidBody2D(nullptr);
+			return;
 		}
 	}
 
-	ERROR_RECOVERABLE("Couldn't find RigidBody2D!");
-	return nullptr;
+	ERROR_RECOVERABLE("GameObject didn't have a RigidBody2D to remove!");
 }
 
 
@@ -105,11 +125,13 @@ void PhysicsScene2D::PerformBroadphase()
 			if (newArb->GetNumContacts() > 0)
 			{
 				// TODO: Need to preserve info or something or something
+				SAFE_DELETE_POINTER(m_arbiters[key]);
 				m_arbiters[key] = newArb;
 			}
 			else
 			{
 				m_arbiters.erase(key);
+				SAFE_DELETE_POINTER(newArb);
 			}
 		}
 	}

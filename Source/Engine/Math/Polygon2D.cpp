@@ -84,16 +84,6 @@ void Polygon2D::Clear()
 
 
 //-------------------------------------------------------------------------------------------------
-void Polygon2D::Translate(const Vector2& translation)
-{
-	for (uint32 vertexIndex = 0; vertexIndex < m_vertices.size(); ++vertexIndex)
-	{
-		m_vertices[vertexIndex] += translation;
-	}
-}
-
-
-//-------------------------------------------------------------------------------------------------
 Vector2 Polygon2D::GetVertexAtIndex(uint32 index) const
 {
 	ASSERT_OR_DIE(index < m_vertices.size(), "Index out of bounds!");

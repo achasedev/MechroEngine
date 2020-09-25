@@ -1,14 +1,16 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: December 8th, 2019
+/// Date Created: September 24th, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/Vector3.h"
+#include "Engine/Framework/EngineCommon.h"
+#include "Engine/Framework/GameObject.h"
+#include "Engine/Physics/Physics2D.h"
+#include "Engine/Physics/RigidBody2D.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -23,68 +25,21 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// CLASS DECLARATIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
-//-----------------------------------------------------------------------------------------------
-class Vector4
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// CLASS IMPLEMENTATIONS
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------
+GameObject::~GameObject()
 {
+	if (m_rigidBody != nullptr)
+	{
+		PhysicsScene2D* physicsScene = m_rigidBody->GetScene();
+		physicsScene->RemoveGameObject(this);
+	}
 
-public:
-	//-----Public Methods-----
-
-	Vector4() {}
-	Vector4(const Vector4& copyFrom);
-	explicit Vector4(float initialX, float initialY, float initialZ, float initialW);
-	explicit Vector4(const Vector3& xyzVector, float wValue);
-	~Vector4() {}
-
-	const	Vector4 operator+(const Vector4& addVector) const;
-	const	Vector4 operator-(const Vector4& subVector) const;
-	const	Vector4 operator*(float uniformScale) const;
-	const	Vector4 operator/(float uniformDivisor) const;
-	void	operator+=(const Vector4& addVector);
-	void	operator-=(const Vector4& subVector);
-	void	operator*=(const float uniformScaler);
-	void	operator/=(const float uniformDivisor);	
-	void	operator=(const Vector4& copyFrom);
-	bool	operator==(const Vector4& compare) const;
-	bool	operator!=(const Vector4& compare) const;
-	friend const Vector4 operator*(float uniformScaler, const Vector4& vecToScale);
-
-	float	GetLength() const;
-	float	GetLengthSquared() const;
-	float	Normalize();
-	Vector4 GetNormalized() const;
-
-	Vector2 xy() const;
-	Vector2 xz() const;
-	Vector3 xyz() const;
-
-
-public:
-	//-----Public Data-----
-	
-	const static Vector4 ZERO;
-	const static Vector4 ONES;
-	const static Vector4 X_AXIS;
-	const static Vector4 Y_AXIS;
-	const static Vector4 Z_AXIS;
-	const static Vector4 MINUS_X_AXIS;
-	const static Vector4 MINUS_Y_AXIS;
-	const static Vector4 MINUS_Z_AXIS;
-
-
-public:
-	//-----Private Data-----
-
-	float x;
-	float y;
-	float z;
-	float w;
-
-};
+	SAFE_DELETE_POINTER(m_shape);
+}

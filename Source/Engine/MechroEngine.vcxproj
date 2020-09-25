@@ -164,6 +164,7 @@
   <ItemGroup>
     <ClCompile Include="Event\EventSubscription.cpp" />
     <ClCompile Include="Event\EventSystem.cpp" />
+    <ClCompile Include="Framework\GameObject.cpp" />
     <ClCompile Include="IO\InputSystem.cpp" />
     <ClCompile Include="IO\Joypad.cpp" />
     <ClCompile Include="IO\Mouse.cpp" />
@@ -175,7 +176,7 @@
     <ClCompile Include="Math\OBB2.cpp" />
     <ClCompile Include="Math\Polygon2D.cpp" />
     <ClCompile Include="Physics\Arbiter2D.cpp" />
-    <ClCompile Include="Physics\Collision2D.cpp" />
+    <ClCompile Include="Physics\Physics2D.cpp" />
     <ClCompile Include="Physics\RigidBody2D.cpp" />
     <ClCompile Include="Render\Camera\Camera.cpp" />
     <ClCompile Include="Render\Core\DrawCall.cpp" />
@@ -234,6 +235,7 @@
     <ClInclude Include="Event\EventSubscription.h" />
     <ClInclude Include="Event\EventSystem.h" />
     <ClInclude Include="Framework\CommentSnippets.h" />
+    <ClInclude Include="Framework\GameObject.h" />
     <ClInclude Include="IO\InputSystem.h" />
     <ClInclude Include="IO\Joypad.h" />
     <ClInclude Include="IO\KeyButtonState.h" />
@@ -247,7 +249,7 @@
     <ClInclude Include="Math\OBB2.h" />
     <ClInclude Include="Math\Polygon2D.h" />
     <ClInclude Include="Physics\Arbiter2D.h" />
-    <ClInclude Include="Physics\Collision2D.h" />
+    <ClInclude Include="Physics\Physics2D.h" />
     <ClInclude Include="Physics\RigidBody2D.h" />
     <ClInclude Include="UI\UIText.h" />
     <ClInclude Include="Utility\Swizzle.h" />

@@ -1,17 +1,14 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: September 9th, 2020
+/// Date Created: September 24th, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
+#include "Engine/Math/Transform.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/Polygon2D.h"
-#include "Engine/Physics/Arbiter2D.h"
-#include "Engine/Physics/RigidBody2D.h"
-#include <map>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -20,7 +17,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-
+class Polygon2D;
+class RigidBody2D;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -30,42 +28,40 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class PhysicsScene2D
+class GameObject
 {
 public:
 	//-----Public Methods-----
 
-	PhysicsScene2D() {}
-	~PhysicsScene2D();
+	GameObject() {}
+	~GameObject();
 
-	RigidBodyID	AddBody(const Polygon2D* shape);
-	void		RemoveBody(RigidBodyID idToRemove);
-	void		RemoveAllBodies();
+	// Mutators
+	void			SetShape(Polygon2D* shape) { m_shape = shape; }
+	void			SetRigidBody2D(RigidBody2D* body)  { m_rigidBody = body; }
 
-	RigidBody2D* GetBody(RigidBodyID bodyID) const;
-	Arbiter2D*	 GetThatArbiter() const { return m_arbiters.size() > 0 ? (m_arbiters.begin()->second) : nullptr; }
+	// Accessors
+	Polygon2D*		GetShape() const { return m_shape; }
+	RigidBody2D*	GetRigidBody2D() const { return m_rigidBody; }
 
-	void		FrameStep();
-	void		PerformRayCast(const Vector2& start, const Vector2& direction, float maxDistance);
+	// Producers
+	bool			HasPhysics() const { return m_rigidBody != nullptr; }
 
-private:
-	//-----Private Data-----
 
-	void PerformBroadphase();
-	void ApplyForces();
-	void PerformArbiterPreSteps();
-	void ApplyImpulseIterations();
-	void UpdatePositions();
+public:
+	//-----Public Data-----
+
+	mutable Transform		m_transform;
 
 
 private:
 	//-----Private Data-----
 
-	int m_nextRigidbodyID = 0;
-	std::vector<RigidBody2D*> m_bodies;
-	std::map<ArbiterKey2D, Arbiter2D*> m_arbiters;
+	Polygon2D*				m_shape = nullptr;
+	RigidBody2D*			m_rigidBody = nullptr;
 
 };
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS

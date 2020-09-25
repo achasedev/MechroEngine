@@ -44,9 +44,6 @@ public:
 	void	AddVertices(const std::vector<Vector2>& vertices);
 	void	Clear();
 
-	// TODO: Find a different way to update polygon position/rotation
-	void	Translate(const Vector2& translation);
-
 	// Accessors
 	uint32	GetNumVertices() const { return (uint32)m_vertices.size(); }
 	Vector2 GetVertexAtIndex(uint32 index) const;

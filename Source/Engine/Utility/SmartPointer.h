@@ -115,7 +115,7 @@ template <typename T>
 SmartPointer<T>::SmartPointer(const SmartPointer<T>& copy)
 {
 	// Check for self copy
-	ASSERT_OR_DIE(this != &copy, "Smartpointer self assignment!");
+	ASSERT_RETURN(this != &copy, NO_RETURN_VAL, "Smartpointer self assignment!");
 
 	// Check for whether it points to the same thing
 	if (m_pointer == copy.m_pointer)
@@ -132,6 +132,7 @@ SmartPointer<T>::SmartPointer(const SmartPointer<T>& copy)
 	m_pointer = copy.m_pointer;
 	m_refCount = copy.m_refCount;
 
+	// Should never happen...?
 	if (m_refCount != nullptr)
 	{
 		m_refCount->AddRef();
