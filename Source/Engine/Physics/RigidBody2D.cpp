@@ -69,6 +69,14 @@ void RigidBody2D::GetWorldShape(Polygon2D& out_polygon) const
 
 
 //-------------------------------------------------------------------------------------------------
+Vector2 RigidBody2D::GetCenterOfMassWs() const
+{
+	Matrix44 toWorld = m_transform->GetLocalToWorldMatrix();
+	return toWorld.TransformPoint(m_centerOfMassLs).xy();
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void RigidBody2D::SetMassProperties(float mass)
 {
 	if (mass == FLT_MAX)
@@ -90,7 +98,7 @@ void RigidBody2D::SetMassProperties(float mass)
 
 	// THE IDEA
 	// Determine the moment of inertia at the origin while we find the center of mass
-	// Then use parallel axis theorem at the end to determine interia at the center of mass
+	// Then use parallel axis theorem at the end to determine inertia at the center of mass
 	uint32 numVertices = m_shape->GetNumVertices();
 	for (uint32 currIndex = 0; currIndex < numVertices; ++currIndex)
 	{
@@ -123,5 +131,5 @@ void RigidBody2D::SetMassProperties(float mass)
 	m_invInertia = (1.0f / inertia);
 
 	m_density = density;
-	m_centerOfMass = center;
+	m_centerOfMassLs = center;
 }

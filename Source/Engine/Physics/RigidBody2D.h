@@ -42,16 +42,16 @@ public:
 	//-----Public Methods-----
 
 	// Mutators
-	void SetPosition(const Vector2& position) { m_transform->position = Vector3(position, 0.f); }
-	void SetRotationDegrees(float rotationDegrees) { m_transform->SetRotation(Vector3(0.f, 0.f, rotationDegrees)); }
-	void SetVelocity(const Vector2& velocity) { m_velocity = velocity; }
-	void SetAngularVelocity(float angularVelocityDegrees) { m_angularVelocityDegrees = angularVelocityDegrees; }
-	void SetFriction(float friction) { m_friction = friction; }
+	void				SetPosition(const Vector2& position) { m_transform->position = Vector3(position, 0.f); }
+	void				SetRotationDegrees(float rotationDegrees) { m_transform->SetRotation(Vector3(0.f, 0.f, rotationDegrees)); }
+	void				SetVelocity(const Vector2& velocity) { m_velocity = velocity; }
+	void				SetAngularVelocity(float angularVelocityDegrees) { m_angularVelocityDegrees = angularVelocityDegrees; }
+	void				SetFriction(float friction) { m_friction = friction; }
 
 	// Accessors
 	GameObject*			GetGameObject() const { return m_gameObj; }
 	PhysicsScene2D*		GetScene() const { return m_scene; }
-	Vector2				GetCenterOfMass() const { return m_centerOfMass; }
+	Vector2				GetCenterOfMassLs() const { return m_centerOfMassLs; }
 	Vector2				GetVelocity() const { return m_velocity; }
 	float				GetAngularVelocity() const { return m_angularVelocityDegrees; }
 	float				GetFriction() const { return m_friction; }
@@ -67,6 +67,7 @@ public:
 
 	// Producers
 	bool				IsStatic() const { return m_invMass == 0.f; }
+	Vector2				GetCenterOfMassWs() const;
 
 
 private:
@@ -83,12 +84,12 @@ private:
 	//-----Private Data-----
 	
 	// Misc
-	GameObject*			m_gameObj = nullptr;
-	PhysicsScene2D*		m_scene = nullptr;
+	GameObject*			m_gameObj					= nullptr;
+	PhysicsScene2D*		m_scene						= nullptr;
 
 	// Positional
 	Transform*			m_transform;
-	Vector2				m_centerOfMass				= Vector2::ZERO;
+	Vector2				m_centerOfMassLs			= Vector2::ZERO;
 
 	// Velocity
 	Vector2				m_velocity					= Vector2::ZERO;

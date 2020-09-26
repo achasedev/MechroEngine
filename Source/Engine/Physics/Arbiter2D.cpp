@@ -409,8 +409,8 @@ void Arbiter2D::CalculateContactPoints(const Polygon2D* poly1, const Polygon2D* 
 	{
 		m_contacts[m_numContacts].m_position = clippedPoints2[0];
 		m_contacts[m_numContacts].m_normal = refNormalForClipping;
-		m_contacts[m_numContacts].m_r1 = clippedPoints2[0] - m_body1->GetCenterOfMass();
-		m_contacts[m_numContacts].m_r2 = clippedPoints2[0] - m_body2->GetCenterOfMass();
+		m_contacts[m_numContacts].m_r1 = clippedPoints2[0] - m_body1->GetCenterOfMassWs();
+		m_contacts[m_numContacts].m_r2 = clippedPoints2[0] - m_body2->GetCenterOfMassWs();
 		m_contacts[m_numContacts].m_separation = penDepth1;
 		m_contacts[m_numContacts].m_referenceEdge = *referenceEdge;
 		m_contacts[m_numContacts].m_incidentEdge = *incidentEdge;
@@ -421,8 +421,8 @@ void Arbiter2D::CalculateContactPoints(const Polygon2D* poly1, const Polygon2D* 
 	{
 		m_contacts[m_numContacts].m_position = clippedPoints2[1];
 		m_contacts[m_numContacts].m_normal = refNormalForClipping;
-		m_contacts[m_numContacts].m_r1 = clippedPoints2[1] - m_body1->GetCenterOfMass();
-		m_contacts[m_numContacts].m_r2 = clippedPoints2[1] - m_body2->GetCenterOfMass();
+		m_contacts[m_numContacts].m_r1 = clippedPoints2[1] - m_body1->GetCenterOfMassWs();
+		m_contacts[m_numContacts].m_r2 = clippedPoints2[1] - m_body2->GetCenterOfMassWs();
 		m_contacts[m_numContacts].m_separation = penDepth2;
 		m_contacts[m_numContacts].m_referenceEdge = *referenceEdge;
 		m_contacts[m_numContacts].m_incidentEdge = *incidentEdge;

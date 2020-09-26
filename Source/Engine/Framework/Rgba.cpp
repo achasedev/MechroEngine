@@ -21,12 +21,14 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-const Rgba Rgba::WHITE	= Rgba(255, 255, 255, 255);
-const Rgba Rgba::BLACK	= Rgba(0, 0, 0, 255);
-const Rgba Rgba::RED	= Rgba(255, 0, 0, 255);
-const Rgba Rgba::GREEN	= Rgba(0, 255, 0, 255);
-const Rgba Rgba::BLUE	= Rgba(0, 0, 255, 255);
-const Rgba Rgba::CYAN	= Rgba(0, 255, 255, 255);
+const Rgba Rgba::WHITE		= Rgba(255, 255, 255, 255);
+const Rgba Rgba::BLACK		= Rgba(0, 0, 0, 255);
+const Rgba Rgba::RED		= Rgba(255, 0, 0, 255);
+const Rgba Rgba::GREEN		= Rgba(0, 255, 0, 255);
+const Rgba Rgba::BLUE		= Rgba(0, 0, 255, 255);
+const Rgba Rgba::CYAN		= Rgba(0, 255, 255, 255);
+const Rgba Rgba::MAGENTA	= Rgba(255, 0, 255, 255);
+const Rgba Rgba::YELLOW		= Rgba(255, 255, 0, 255);
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
