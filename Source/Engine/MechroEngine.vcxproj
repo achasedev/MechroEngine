@@ -176,6 +176,7 @@
     <ClCompile Include="Math\OBB2.cpp" />
     <ClCompile Include="Math\Polygon2D.cpp" />
     <ClCompile Include="Physics\Arbiter2D.cpp" />
+    <ClCompile Include="Physics\Collision2D.cpp" />
     <ClCompile Include="Physics\Physics2D.cpp" />
     <ClCompile Include="Physics\RigidBody2D.cpp" />
     <ClCompile Include="Render\Camera\Camera.cpp" />
@@ -249,6 +250,7 @@
     <ClInclude Include="Math\OBB2.h" />
     <ClInclude Include="Math\Polygon2D.h" />
     <ClInclude Include="Physics\Arbiter2D.h" />
+    <ClInclude Include="Physics\Collsion2D.h" />
     <ClInclude Include="Physics\Physics2D.h" />
     <ClInclude Include="Physics\RigidBody2D.h" />
     <ClInclude Include="UI\UIText.h" />

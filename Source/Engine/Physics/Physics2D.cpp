@@ -24,6 +24,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+const Vector2 PhysicsScene2D::DEFAULT_GRAVITY = Vector2(0.f, -9.8f);
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
@@ -90,13 +91,13 @@ void PhysicsScene2D::RemoveGameObject(GameObject* gameObject)
 
 
 //-------------------------------------------------------------------------------------------------
-void PhysicsScene2D::FrameStep()
+void PhysicsScene2D::FrameStep(float deltaSeconds)
 {
 	PerformBroadphase();
-	//ApplyForces();
+	ApplyForces(deltaSeconds);
 	//PerformArbiterPreSteps();
 	//ApplyImpulseIterations();
-	//UpdatePositions();
+	UpdatePositions(deltaSeconds);
 }
 
 
@@ -134,5 +135,45 @@ void PhysicsScene2D::PerformBroadphase()
 				SAFE_DELETE_POINTER(newArb);
 			}
 		}
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void PhysicsScene2D::ApplyForces(float deltaSeconds)
+{
+	uint32 numBodies = (uint32) m_bodies.size();
+
+	for (uint32 bodyIndex = 0; bodyIndex < numBodies; ++bodyIndex)
+	{
+		RigidBody2D* body = m_bodies[bodyIndex];
+
+		if (body->m_invMass == 0.f)
+		{
+			continue;
+		}
+
+		// Force = Mass * Acceleration :)
+		body->m_velocity += (body->m_invMass * body->m_force + m_gravity) * deltaSeconds;
+		body->m_angularVelocityDegrees += (body->m_invInertia * body->m_torque) * deltaSeconds;
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void PhysicsScene2D::UpdatePositions(float deltaSeconds)
+{
+	uint32 numBodies = (uint32)m_bodies.size();
+
+	for (uint32 bodyIndex = 0; bodyIndex < numBodies; ++bodyIndex)
+	{
+		RigidBody2D* body = m_bodies[bodyIndex];
+
+		body->m_transform->position += Vector3(body->m_velocity * deltaSeconds, 0.f);
+		body->m_transform->Rotate(0.f, 0.f, body->m_angularVelocityDegrees * deltaSeconds);
+
+		// Zero out forces, they're per-frame
+		body->m_force = Vector2::ZERO;
+		body->m_torque = 0.f;
 	}
 }

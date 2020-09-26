@@ -44,22 +44,25 @@ public:
 
 	Arbiter2D*	 GetThatArbiter() const { return m_arbiters.size() > 0 ? (m_arbiters.begin()->second) : nullptr; } // TODO: Delete this autrocity 
 
-	void		FrameStep();
+	void		FrameStep(float deltaSeconds);
 	void		PerformRayCast(const Vector2& start, const Vector2& direction, float maxDistance);
 
 private:
 	//-----Private Data-----
 
 	void PerformBroadphase();
-	void ApplyForces();
+	void ApplyForces(float deltaSeconds);
 	void PerformArbiterPreSteps();
 	void ApplyImpulseIterations();
-	void UpdatePositions();
+	void UpdatePositions(float deltaSeconds);
+
+	static const Vector2 DEFAULT_GRAVITY;
 
 
 private:
 	//-----Private Data-----
 
+	Vector2								m_gravity = DEFAULT_GRAVITY;
 	std::vector<RigidBody2D*>			m_bodies;
 	std::map<ArbiterKey2D, Arbiter2D*>	m_arbiters;
 
