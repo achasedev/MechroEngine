@@ -36,6 +36,7 @@ class Transform;
 //-------------------------------------------------------------------------------------------------
 class RigidBody2D
 {
+	friend class Arbiter2D;
 	friend class PhysicsScene2D;
 
 public:
@@ -44,7 +45,7 @@ public:
 	// Mutators
 	void				SetPosition(const Vector2& position) { m_transform->position = Vector3(position, 0.f); }
 	void				SetRotationDegrees(float rotationDegrees) { m_transform->SetRotation(Vector3(0.f, 0.f, rotationDegrees)); }
-	void				SetVelocity(const Vector2& velocity) { m_velocity = velocity; }
+	void				SetVelocity(const Vector2& velocity) { m_velocityWs = velocity; }
 	void				SetAngularVelocity(float angularVelocityDegrees) { m_angularVelocityDegrees = angularVelocityDegrees; }
 	void				SetFriction(float friction) { m_friction = friction; }
 
@@ -52,7 +53,7 @@ public:
 	GameObject*			GetGameObject() const { return m_gameObj; }
 	PhysicsScene2D*		GetScene() const { return m_scene; }
 	Vector2				GetCenterOfMassLs() const { return m_centerOfMassLs; }
-	Vector2				GetVelocity() const { return m_velocity; }
+	Vector2				GetVelocity() const { return m_velocityWs; }
 	float				GetAngularVelocity() const { return m_angularVelocityDegrees; }
 	float				GetFriction() const { return m_friction; }
 	float				GetMass() const { return m_mass; }
@@ -60,9 +61,9 @@ public:
 	float				GetInertia() const { return m_inertia; }
 	float				GetInverseInertia() const { return m_invInertia; }
 	float				GetDensity() const { return m_density; }
-	Vector2				GetForce() const { return m_force; }
+	Vector2				GetForce() const { return m_forceWs; }
 	float				GetTorque() const { return m_torque; }
-	const Polygon2D*	GetLocalShape() const { return m_shape; } // Const because you shouldn't be changing this >.>
+	const Polygon2D*	GetLocalShape() const { return m_shapeLs; } // Const because you shouldn't be changing this >.>
 	void				GetWorldShape(Polygon2D& out_polygon) const;
 
 	// Producers
@@ -92,7 +93,7 @@ private:
 	Vector2				m_centerOfMassLs			= Vector2::ZERO;
 
 	// Velocity
-	Vector2				m_velocity					= Vector2::ZERO;
+	Vector2				m_velocityWs				= Vector2::ZERO;
 	float				m_angularVelocityDegrees	= 0.f;
 
 	// Mass + friction
@@ -104,11 +105,11 @@ private:
 	float				m_density					= FLT_MAX;
 
 	// Forces
-	Vector2				m_force						= Vector2::ZERO;
+	Vector2				m_forceWs					= Vector2::ZERO;
 	float				m_torque					= 0.f;
 
 	// Shape
-	const Polygon2D*	m_shape						= nullptr;
+	const Polygon2D*	m_shapeLs					= nullptr;
 
 };
 

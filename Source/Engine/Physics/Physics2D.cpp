@@ -25,6 +25,7 @@
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 const Vector2 PhysicsScene2D::DEFAULT_GRAVITY = Vector2(0.f, -9.8f);
+const uint32 PhysicsScene2D::NUM_IMPULSE_ITERATIONS = 10U;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
@@ -58,7 +59,7 @@ RigidBody2D* PhysicsScene2D::AddGameObject(GameObject* gameObject)
 	ASSERT_RETURN(gameObject->GetRigidBody2D() == nullptr, nullptr, "GameObject already has a RigidBody2D!");
 
 	RigidBody2D* body = new RigidBody2D(this, gameObject);
-	body->m_shape = gameObject->GetShape();
+	body->m_shapeLs = gameObject->GetShape();
 	body->SetMassProperties(1.0f);
 
 	m_bodies.push_back(body);
@@ -95,8 +96,8 @@ void PhysicsScene2D::FrameStep(float deltaSeconds)
 {
 	PerformBroadphase();
 	ApplyForces(deltaSeconds);
-	//PerformArbiterPreSteps();
-	//ApplyImpulseIterations();
+	PerformArbiterPreSteps(deltaSeconds);
+	ApplyImpulseIterations();
 	UpdatePositions(deltaSeconds);
 }
 
@@ -154,8 +155,39 @@ void PhysicsScene2D::ApplyForces(float deltaSeconds)
 		}
 
 		// Force = Mass * Acceleration :)
-		body->m_velocity += (body->m_invMass * body->m_force + m_gravity) * deltaSeconds;
+		body->m_velocityWs += (body->m_invMass * body->m_forceWs + m_gravity) * deltaSeconds;
 		body->m_angularVelocityDegrees += (body->m_invInertia * body->m_torque) * deltaSeconds;
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void PhysicsScene2D::PerformArbiterPreSteps(float deltaSeconds)
+{
+	uint32 numArbiters = m_arbiters.size();
+
+	ArbIter iter = m_arbiters.begin();
+
+	for (iter; iter != m_arbiters.end(); iter++)
+	{
+		iter->second->PreStep(deltaSeconds);
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void PhysicsScene2D::ApplyImpulseIterations()
+{
+	uint32 numArbiters = m_arbiters.size();
+
+	for (uint32 i = 0; i < NUM_IMPULSE_ITERATIONS; ++i)
+	{
+		ArbIter iter = m_arbiters.begin();
+
+		for (iter; iter != m_arbiters.end(); iter++)
+		{
+			iter->second->ApplyImpulse();
+		}
 	}
 }
 
@@ -169,11 +201,14 @@ void PhysicsScene2D::UpdatePositions(float deltaSeconds)
 	{
 		RigidBody2D* body = m_bodies[bodyIndex];
 
-		body->m_transform->position += Vector3(body->m_velocity * deltaSeconds, 0.f);
+		Matrix44 worldToParent = body->m_transform->GetWorldToParentMatrix();
+		Vector3 deltaVelocityWs = Vector3(body->m_velocityWs * deltaSeconds, 0.f);
+		body->m_transform->position += worldToParent.TransformVector(deltaVelocityWs).xyz();
+
 		body->m_transform->Rotate(0.f, 0.f, body->m_angularVelocityDegrees * deltaSeconds);
 
 		// Zero out forces, they're per-frame
-		body->m_force = Vector2::ZERO;
+		body->m_forceWs = Vector2::ZERO;
 		body->m_torque = 0.f;
 	}
 }

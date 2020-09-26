@@ -77,6 +77,8 @@ public:
 	Arbiter2D(RigidBody2D* body1, RigidBody2D* body2);
 
 	void				DetectCollision();
+	void				PreStep(float deltaSeconds);
+	void				ApplyImpulse();
 
 	// Accessors
 	uint32				GetNumContacts() const { return m_numContacts; }
@@ -91,7 +93,15 @@ private:
 
 
 private:
-	//-----Private Data-----
+	//-----Private Static Data-----
+
+	static const float	ALLOWED_PENETRATION;
+	static const float	BIAS_FACTOR;
+	static const bool	ACCUMULATE_IMPULSES;
+
+
+private:
+	//-----Private Member Data-----
 
 	RigidBody2D*		m_body1 = nullptr;
 	RigidBody2D*		m_body2 = nullptr;

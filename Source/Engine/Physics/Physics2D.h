@@ -42,21 +42,23 @@ public:
 	RigidBody2D*	AddGameObject(GameObject* gameObject);
 	void			RemoveGameObject(GameObject* gameObject);
 
-	Arbiter2D*	 GetThatArbiter() const { return m_arbiters.size() > 0 ? (m_arbiters.begin()->second) : nullptr; } // TODO: Delete this autrocity 
+	Arbiter2D*		GetThatArbiter() const { return m_arbiters.size() > 0 ? (m_arbiters.begin()->second) : nullptr; } // TODO: Delete this autrocity 
 
-	void		FrameStep(float deltaSeconds);
-	void		PerformRayCast(const Vector2& start, const Vector2& direction, float maxDistance);
+	void			FrameStep(float deltaSeconds);
+	void			PerformRayCast(const Vector2& start, const Vector2& direction, float maxDistance);
+
 
 private:
 	//-----Private Data-----
 
-	void PerformBroadphase();
-	void ApplyForces(float deltaSeconds);
-	void PerformArbiterPreSteps();
-	void ApplyImpulseIterations();
-	void UpdatePositions(float deltaSeconds);
+	void			PerformBroadphase();
+	void			ApplyForces(float deltaSeconds);
+	void			PerformArbiterPreSteps(float deltaSeconds);
+	void			ApplyImpulseIterations();
+	void			UpdatePositions(float deltaSeconds);
 
-	static const Vector2 DEFAULT_GRAVITY;
+	static const Vector2	DEFAULT_GRAVITY;
+	static const uint32		NUM_IMPULSE_ITERATIONS;
 
 
 private:

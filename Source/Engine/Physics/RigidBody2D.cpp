@@ -58,9 +58,9 @@ void RigidBody2D::GetWorldShape(Polygon2D& out_polygon) const
 	Matrix44 toWorldMat = m_transform->GetLocalToWorldMatrix();
 
 	// Convert local space vertices to world space
-	for (uint32 vertexIndex = 0; vertexIndex < m_shape->GetNumVertices(); ++vertexIndex)
+	for (uint32 vertexIndex = 0; vertexIndex < m_shapeLs->GetNumVertices(); ++vertexIndex)
 	{
-		Vector3 currVertex3d = Vector3(m_shape->GetVertexAtIndex(vertexIndex), 0.f);
+		Vector3 currVertex3d = Vector3(m_shapeLs->GetVertexAtIndex(vertexIndex), 0.f);
 		Vector2 worldVertex2d = toWorldMat.TransformPoint(currVertex3d).xy();
 
 		out_polygon.AddVertex(worldVertex2d);
@@ -99,13 +99,13 @@ void RigidBody2D::SetMassProperties(float mass)
 	// THE IDEA
 	// Determine the moment of inertia at the origin while we find the center of mass
 	// Then use parallel axis theorem at the end to determine inertia at the center of mass
-	uint32 numVertices = m_shape->GetNumVertices();
+	uint32 numVertices = m_shapeLs->GetNumVertices();
 	for (uint32 currIndex = 0; currIndex < numVertices; ++currIndex)
 	{
 		uint32 nextIndex = (currIndex == numVertices - 1 ? 0 : currIndex + 1);
 
-		Vector2 a = m_shape->GetVertexAtIndex(currIndex);
-		Vector2 b = m_shape->GetVertexAtIndex(nextIndex);
+		Vector2 a = m_shapeLs->GetVertexAtIndex(currIndex);
+		Vector2 b = m_shapeLs->GetVertexAtIndex(nextIndex);
 
 		float currArea = 0.5f * CrossProduct(a, b);
 		Vector2 currCenter = 0.33333f * (a + b); // No need to add origin = (0,0) here

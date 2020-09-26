@@ -60,8 +60,8 @@ struct Contact2D
 	Vector2 m_r2 = Vector2::ZERO;	// From the center of mass of body 2 to the contact
 
 	float m_separation = 0.f;
-	float m_pN = 0.f;	// accumulated normal impulse
-	float m_pT = 0.f;	// accumulated tangent impulse
+	float accumulatedNormalImpulse = 0.f;	// accumulated normal impulse
+	float m_accumulatedTangentImpulse = 0.f;	// accumulated tangent impulse
 	float m_pNB = 0.f;	// accumulated normal impulse for position bias
 	float m_massNormal = 0.f;
 	float m_massTangent = 0.f;

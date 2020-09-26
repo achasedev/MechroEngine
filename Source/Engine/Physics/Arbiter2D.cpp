@@ -24,6 +24,9 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+const float Arbiter2D::ALLOWED_PENETRATION = 0.01f;
+const float Arbiter2D::BIAS_FACTOR = 0.2f; // Always do position correction for now?
+const bool Arbiter2D::ACCUMULATE_IMPULSES = true; // Always for now?
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
@@ -69,6 +72,71 @@ void Arbiter2D::DetectCollision()
 		// Find the contact points of the collision
 		// http://www.dyn4j.org/2011/11/contact-points-using-clipping/ for reference
 		CalculateContactPoints(&poly1, &poly2, separation);
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Arbiter2D::PreStep(float deltaSeconds)
+{
+	float invDeltaSeconds = (deltaSeconds > 0.f ? 1.0f / deltaSeconds : 0.f);
+
+	for (uint32 contactIndex = 0; contactIndex < m_numContacts; ++contactIndex)
+	{
+		Contact2D* contact = m_contacts + contactIndex;
+
+		// Precompute normal mass, tangent mass, and bias
+		// Mass normal is used to calculate impulse necessary to prevent penetration
+		float r1Normal = DotProduct(contact->m_r1, contact->m_normal);
+		float r2Normal = DotProduct(contact->m_r2, contact->m_normal);
+
+		float kNormal = m_body1->m_invMass * m_body2->m_invMass;
+		kNormal += m_body1->m_invMass * (DotProduct(contact->m_r1, contact->m_r1) - r1Normal * r1Normal) + m_body2->m_invMass * (DotProduct(contact->m_r2, contact->m_r2) - r2Normal * r2Normal);
+		contact->m_massNormal = 1.0f / kNormal;
+
+		// Right-handed perp for tangent
+		// Mass tangent is used to calculate impulse to simulate friction
+		Vector2 tangent = Vector2(contact->m_normal.y, -1.0f * contact->m_normal.x);
+		float r1Tangent = DotProduct(contact->m_r1, tangent);
+		float r2Tangent = DotProduct(contact->m_r2, tangent);
+
+		float kTangent = m_body1->m_invMass * m_body2->m_invMass;;
+		kTangent += m_body1->m_invMass * (DotProduct(contact->m_r1, contact->m_r1) - r1Tangent * r1Tangent) + m_body2->m_invMass * (DotProduct(contact->m_r2, contact->m_r2) - r2Tangent * r2Tangent);
+		contact->m_massTangent = 1.0f / kTangent;
+
+		// To quote Erin Catto, this gives the normal impulse "some extra oomph"
+		// Proportional to the penetration, so if two objects are really intersecting -> greater bias -> greater normal force -> larger correction this frame
+		// Allowed penetration means this will correct over time, not instantaneously - make it less jittery?
+		contact->m_bias = -BIAS_FACTOR * invDeltaSeconds * (contact->m_separation + ALLOWED_PENETRATION); // separation is *always* negative, it's distance below the reference edge
+
+		// Apply old accumulated impulses at the beginning of the step
+		// This leads to less iterations and greater stability
+		// This is considered "warm starting"
+		if (ACCUMULATE_IMPULSES)
+		{
+			Vector2 impulse = contact->accumulatedNormalImpulse * contact->m_normal + contact->m_accumulatedTangentImpulse * tangent;
+
+			// Q. But friction impulse should be in some way related to relative velocity! Yet there's no velocity here!
+			// A. These incrementals were calculated last frame in ApplyImpulse(), so unless velocity instantaneous and largely changed outside
+			//    the physics system this warm start should feel "continuous" from where it just left off
+			m_body1->m_velocityWs -= m_body1->m_invMass * impulse;
+			m_body1->m_angularVelocityDegrees -= m_body1->m_invInertia * CrossProduct(contact->m_r1, impulse);
+
+			m_body2->m_velocityWs += m_body2->m_invMass * impulse;
+			m_body2->m_angularVelocityDegrees += m_body2->m_invInertia * CrossProduct(contact->m_r2, impulse);
+		}
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Arbiter2D::ApplyImpulse()
+{
+	for (uint32 contactIndex = 0; contactIndex < m_numContacts; ++contactIndex)
+	{
+		Contact2D* contact = m_contacts + contactIndex;
+
+		stop - do ArbIter update first
 	}
 }
 
