@@ -57,6 +57,13 @@ Arbiter2D::Arbiter2D(RigidBody2D* body1, RigidBody2D* body2)
 
 
 //-------------------------------------------------------------------------------------------------
+void Arbiter2D::Update(Contact2D* newContacts, uint32 numNewContacts)
+{
+
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void Arbiter2D::DetectCollision()
 {
 	Polygon2D poly1, poly2;
@@ -155,30 +162,59 @@ void Arbiter2D::CalculateContactPoints(const Polygon2D* poly1, const Polygon2D* 
 
 	const CollisionFeatureEdge2D* referenceEdge = nullptr;
 	const CollisionFeatureEdge2D* incidentEdge = nullptr;
+	const Polygon2D* incidentPoly = nullptr;
 
 	if (Abs(dot1) > Abs(dot2))
 	{
 		// poly1 is our reference
 		referenceEdge = &edge1;
 		incidentEdge = &edge2;
+		incidentPoly = poly2;
 	}
 	else
 	{
 		// poly2 is our reference
 		referenceEdge = &edge2;
 		incidentEdge = &edge1;
+		incidentPoly = poly1;
 	}
 
 	Vector2 refEdgeDirection = referenceEdge->m_vertex2 - referenceEdge->m_vertex1;
 	refEdgeDirection.Normalize();
 	
 	// Keep all our results from each clip for debugging purposes
-	std::vector<Vector2> clippedPoints1;
+	std::vector<ClipVertex> clippedPoints1;
 
 	// Clip the incident edge to the start of the reference edge
 	// First determine the min value the dot would need to be in order to be inside the clipping edge
+
+	// Also set up our initial vertices to be clipped
+
+	// Incident edge start vertex
+	ClipVertex initialStart;
+	initialStart.m_position = incidentEdge->m_vertex1;
+
+	int prevVertexIndex = incidentPoly->GetPreviousValidIndex(incidentEdge->m_edgeId);
+	ASSERT_OR_DIE(prevVertexIndex < 256, "We can't support Polygons with more than 256 side here :(");
+
+	int prevEdgeId = (prevVertexIndex != 0 ? prevVertexIndex : incidentPoly->GetNumVertices()); // Edges are labeled by the index of the start vertex + 1 (in other words, by the index of their end vertex, with the last edge not using 0)
+
+	initialStart.m_id.m_incidentEdgeIn = (int8)prevEdgeId;
+	initialStart.m_id.m_incidentEdgeOut = (int8)incidentEdge->m_edgeId;
+
+	// Incident edge end vertex
+	ClipVertex initialEnd;
+	initialEnd.m_position = incidentEdge->m_vertex2;
+	initialEnd.m_id.m_incidentEdgeIn = (int8)incidentEdge->m_edgeId;
+	
+	int nextVertexIndex = incidentPoly->GetNextValidIndex(incidentEdge->m_edgeId);
+	ASSERT_OR_DIE(nextVertexIndex < 256, "We can't support Polygons with more than 256 side here :(");
+
+	int nextEdgeId = (nextVertexIndex != 0 ? nextVertexIndex : incidentPoly->GetNumVertices());// Edges are labeled by the index of the start vertex + 1 (in other words, by the index of their end vertex, with the last edge not using 0)
+	initialEnd.m_id.m_incidentEdgeOut = (int8)nextEdgeId;
+
 	float startDot = DotProduct(refEdgeDirection, referenceEdge->m_vertex1);
-	ClipIncidentEdgeToReferenceEdge(incidentEdge->m_vertex1, incidentEdge->m_vertex2, refEdgeDirection, startDot, clippedPoints1);
+	ClipIncidentEdgeToReferenceEdge(initialStart, initialEnd, refEdgeDirection, startDot, clippedPoints1);
 	
 	if (clippedPoints1.size() < 2)
 	{
@@ -189,7 +225,7 @@ void Arbiter2D::CalculateContactPoints(const Polygon2D* poly1, const Polygon2D* 
 	// So clip in the opposite direction, flip some signs
 	float endDot = DotProduct(refEdgeDirection, referenceEdge->m_vertex2);
 
-	std::vector<Vector2> clippedPoints2;
+	std::vector<ClipVertex> clippedPoints2;
 	ClipIncidentEdgeToReferenceEdge(clippedPoints1[0], clippedPoints1[1], -1.0f * refEdgeDirection, -1.0f * endDot, clippedPoints2);
 
 	if (clippedPoints2.size() < 2)
@@ -205,30 +241,32 @@ void Arbiter2D::CalculateContactPoints(const Polygon2D* poly1, const Polygon2D* 
 	float maxDepth = DotProduct(refNormalForClipping, referenceEdge->m_furthestVertex);
 
 	// If any of these points are "deeper" than the max depth then they are in the collision manifold
-	float penDepth1 = DotProduct(refNormalForClipping, clippedPoints2[0]) - maxDepth;
-	float penDepth2 = DotProduct(refNormalForClipping, clippedPoints2[1]) - maxDepth;
+	float penDepth1 = DotProduct(refNormalForClipping, clippedPoints2[0].m_position) - maxDepth;
+	float penDepth2 = DotProduct(refNormalForClipping, clippedPoints2[1].m_position) - maxDepth;
 
 	if (penDepth1 < 0.f)
 	{
-		m_contacts[m_numContacts].m_position = clippedPoints2[0];
+		m_contacts[m_numContacts].m_position = clippedPoints2[0].m_position;
 		m_contacts[m_numContacts].m_normal = refNormalForClipping;
-		m_contacts[m_numContacts].m_r1 = clippedPoints2[0] - m_body1->GetCenterOfMassWs();
-		m_contacts[m_numContacts].m_r2 = clippedPoints2[0] - m_body2->GetCenterOfMassWs();
+		m_contacts[m_numContacts].m_r1 = clippedPoints2[0].m_position - m_body1->GetCenterOfMassWs();
+		m_contacts[m_numContacts].m_r2 = clippedPoints2[0].m_position - m_body2->GetCenterOfMassWs();
 		m_contacts[m_numContacts].m_separation = penDepth1;
 		m_contacts[m_numContacts].m_referenceEdge = *referenceEdge;
 		m_contacts[m_numContacts].m_incidentEdge = *incidentEdge;
+		m_contacts[m_numContacts].m_id = clippedPoints2[0].m_id;
 		m_numContacts++;
 	}
 
 	if (penDepth2 < 0.f)
 	{
-		m_contacts[m_numContacts].m_position = clippedPoints2[1];
+		m_contacts[m_numContacts].m_position = clippedPoints2[1].m_position;
 		m_contacts[m_numContacts].m_normal = refNormalForClipping;
-		m_contacts[m_numContacts].m_r1 = clippedPoints2[1] - m_body1->GetCenterOfMassWs();
-		m_contacts[m_numContacts].m_r2 = clippedPoints2[1] - m_body2->GetCenterOfMassWs();
+		m_contacts[m_numContacts].m_r1 = clippedPoints2[1].m_position - m_body1->GetCenterOfMassWs();
+		m_contacts[m_numContacts].m_r2 = clippedPoints2[1].m_position - m_body2->GetCenterOfMassWs();
 		m_contacts[m_numContacts].m_separation = penDepth2;
 		m_contacts[m_numContacts].m_referenceEdge = *referenceEdge;
 		m_contacts[m_numContacts].m_incidentEdge = *incidentEdge;
+		m_contacts[m_numContacts].m_id = clippedPoints2[1].m_id;
 		m_numContacts++;
 	}
 

@@ -46,6 +46,49 @@ struct CollisionFeatureEdge2D
 	Vector2 m_vertex1;
 	Vector2 m_vertex2;
 	Vector2 m_normal;
+	int		m_edgeId = -1;
+};
+
+//-------------------------------------------------------------------------------------------------
+struct EdgePairID
+{
+	union
+	{
+		struct
+		{
+			// !!! Only two of these will be set! !!!
+			// We're labeling the id of the edge into this point and edge out of this point
+			// For a given point, both could be from incident poly, or 1 from incident poly and 1 from reference poly
+
+			// Edge IDs - always labeled after the index of their endpoint, since we need 0 to be a cleared/invalid ID
+			//
+			//        ^ y
+			//        |
+			//        e2
+			//   v1 ------ v2
+			//    |        |
+			// e1 |		   | e3  --> x
+			//    |        |
+			//   v0 ------ v3
+			//        e4
+			//
+			// For example, for a contact point at v3 for the given incident poly above, it will start off with
+			// incident in as e2, incident out as e3. After clipping, it's possible one of these two will be cleared
+			// and have a reference set instead, such as clearing incident in to 0 and setting reference in to reference edge e7
+			int8 m_incidentEdgeIn;
+			int8 m_incidentEdgeOut;
+			int8 m_referenceEdgeIn;
+			int8 m_referenceEdgeOut;
+		};
+		int m_value = 0;
+	};
+};
+
+//-------------------------------------------------------------------------------------------------
+struct ClipVertex
+{
+	Vector2		m_position;
+	EdgePairID	m_id;
 };
 
 //-------------------------------------------------------------------------------------------------
@@ -69,6 +112,8 @@ struct Contact2D
 
 	CollisionFeatureEdge2D m_referenceEdge;
 	CollisionFeatureEdge2D m_incidentEdge;
+
+	EdgePairID m_id;
 };
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -91,4 +136,4 @@ uint32					GetSimplexSeparation2D(const std::vector<Vector2>& simplex, Collision
 CollisionSeparation2D	PerformEPA(const Polygon2D* first, const Polygon2D* second, std::vector<Vector2>& simplex);
 CollisionSeparation2D	CalculateSeparation2D(const Polygon2D* first, const Polygon2D* second);
 CollisionFeatureEdge2D	GetFeatureEdge2D(const Polygon2D* polygon, const Vector2& outwardSeparationNormal);
-void					ClipIncidentEdgeToReferenceEdge(const Vector2& incident1, const Vector2& incident2, const Vector2& refEdgeDirection, float offset, std::vector<Vector2>& clippedPoints);
+void					ClipIncidentEdgeToReferenceEdge(const ClipVertex& incident1, const ClipVertex& incident2, const Vector2& refEdgeDirection, float offset, std::vector<ClipVertex>& clippedPoints);

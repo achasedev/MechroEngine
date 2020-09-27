@@ -46,13 +46,15 @@ public:
 
 	// Accessors
 	uint32	GetNumVertices() const { return (uint32)m_vertices.size(); }
-	Vector2 GetVertexAtIndex(uint32 index) const;
-	Vector2 GetPreviousVertexToIndex(uint32 index) const;
-	Vector2 GetNextVertexToIndex(uint32 index) const;
+	Vector2 GetVertexAtIndex(int index) const;
+	int		GetPreviousVertexToIndex(int index, Vector2& out_prevVertex) const;
+	int		GetNextVertexToIndex(int index, Vector2& out_nextVertex) const;
 	int		GetFarthestVertexInDirection(const Vector2& directionInLocalSpace, Vector2& out_vertex) const;
 
 	// Producers
 	Vector2 GetCenter() const;
+	int		GetPreviousValidIndex(int index) const;
+	int		GetNextValidIndex(int index) const;
 
 
 private:

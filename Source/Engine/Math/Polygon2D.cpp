@@ -51,7 +51,7 @@ Polygon2D::Polygon2D(uint32 reserveSize)
 void Polygon2D::AddVertex(const Vector2& vertex)
 {
 #ifndef DISABLE_ASSERTS
-	for (uint32 i = 0; i < m_vertices.size(); ++i)
+	for (uint32 i = 0; i < (uint32)m_vertices.size(); ++i)
 	{
 		if (m_vertices[i] == vertex)
 		{
@@ -84,31 +84,31 @@ void Polygon2D::Clear()
 
 
 //-------------------------------------------------------------------------------------------------
-Vector2 Polygon2D::GetVertexAtIndex(uint32 index) const
+Vector2 Polygon2D::GetVertexAtIndex(int index) const
 {
-	ASSERT_OR_DIE(index < m_vertices.size(), "Index out of bounds!");
+	ASSERT_OR_DIE(index >= 0 && index < m_vertices.size(), "Index out of bounds!");
 
 	return m_vertices[index];
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Vector2 Polygon2D::GetPreviousVertexToIndex(uint32 index) const
+int Polygon2D::GetPreviousVertexToIndex(int index, Vector2& out_prevVertex) const
 {
-	ASSERT_OR_DIE(index >= 0 && index < m_vertices.size(), "Bad index!");
+	int prevIndex = GetPreviousValidIndex(index);
 
-	uint32 prevIndex = (index == 0 ? (uint32)m_vertices.size() - 1 : index - 1);
-	return m_vertices[prevIndex];
+	out_prevVertex = m_vertices[prevIndex];
+	return prevIndex;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Vector2 Polygon2D::GetNextVertexToIndex(uint32 index) const
+int Polygon2D::GetNextVertexToIndex(int index, Vector2& out_nextVertex) const
 {
-	ASSERT_OR_DIE(index >= 0 && index < m_vertices.size(), "Bad index!");
+	int nextIndex = GetNextValidIndex(index);
 
-	uint32 nextIndex = (index == m_vertices.size() - 1 ? 0 : index + 1);
-	return m_vertices[nextIndex];
+	out_nextVertex = m_vertices[nextIndex];
+	return nextIndex;
 }
 
 
@@ -127,7 +127,7 @@ int Polygon2D::GetFarthestVertexInDirection(const Vector2& direction, Vector2& o
 	float maxDot = -1.f;
 	int bestIndex = -1;
 
-	for (uint32 vertexIndex = 0; vertexIndex < m_vertices.size(); ++vertexIndex)
+	for (int vertexIndex = 0; vertexIndex < m_vertices.size(); ++vertexIndex)
 	{
 		// Treat the vertex position as a vector from 0,0
 		const Vector2& currVector = m_vertices[vertexIndex];
@@ -160,4 +160,24 @@ Vector2 Polygon2D::GetCenter() const
 	average /= static_cast<float>(numVertices);
 
 	return average;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int Polygon2D::GetPreviousValidIndex(int index) const
+{
+	ASSERT_OR_DIE(index >= 0 && index < m_vertices.size(), "Bad index!");
+	int prevIndex = (index == 0 ? (int)m_vertices.size() - 1 : index - 1);
+
+	return prevIndex;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int Polygon2D::GetNextValidIndex(int index) const
+{
+	ASSERT_OR_DIE(index >= 0 && index < m_vertices.size(), "Bad index!");
+	int nextIndex = (index == m_vertices.size() - 1 ? 0 : index + 1);
+
+	return nextIndex;
 }

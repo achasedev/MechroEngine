@@ -17,6 +17,7 @@
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #define NUM_EPA_ITERATIONS 16U
+#define NO_EDGE 0
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
@@ -178,7 +179,7 @@ CollisionSeparation2D PerformEPA(const Polygon2D* first, const Polygon2D* second
 		{
 			// Our simplex edge is inside the Minkowski difference shape, not on the edge
 			// Add this point to our simplex at the right posiion and try again
-			simplex.insert(simplex.begin() + simplexIndex + 1, expandedMinkowskiPoint);
+			simplex.insert(simplex.begin() + simplexIndex + 1U, expandedMinkowskiPoint);
 		}
 	}
 
@@ -220,8 +221,10 @@ CollisionFeatureEdge2D GetFeatureEdge2D(const Polygon2D* polygon, const Vector2&
 	int vertexIndex = polygon->GetFarthestVertexInDirection(outwardSeparationNormal, vertex);
 
 	// This vertex is part of the feature edge - but it could be paired with the previous or next vertex (Clockwise winding order)
-	Vector2 prevVertex = polygon->GetPreviousVertexToIndex(vertexIndex);
-	Vector2 nextVertex = polygon->GetNextVertexToIndex(vertexIndex);
+	Vector2 prevVertex, nextVertex;
+
+	int prevVertexIndex = polygon->GetPreviousVertexToIndex(vertexIndex, prevVertex);
+	int nextVertexIndex = polygon->GetNextVertexToIndex(vertexIndex, nextVertex);
 
 	Vector2 prevEdge = (vertex - prevVertex);
 	Vector2 nextEdge = (nextVertex - vertex);
@@ -244,12 +247,14 @@ CollisionFeatureEdge2D GetFeatureEdge2D(const Polygon2D* polygon, const Vector2&
 		featureEdge.m_vertex1 = vertex;
 		featureEdge.m_vertex2 = nextVertex;
 		featureEdge.m_normal = nextNormal;
+		featureEdge.m_edgeId = nextVertexIndex; // Edges are ID'd by the index of their end vertex, 0 reserved for invalid
 	}
 	else
 	{
 		featureEdge.m_vertex1 = prevVertex;
 		featureEdge.m_vertex2 = vertex;
 		featureEdge.m_normal = prevNormal;
+		featureEdge.m_edgeId = vertexIndex; // Edges are ID'd by the index of their end vertex, 0 reserved for invalid
 	}
 
 	return featureEdge;
@@ -257,32 +262,52 @@ CollisionFeatureEdge2D GetFeatureEdge2D(const Polygon2D* polygon, const Vector2&
 
 
 //-------------------------------------------------------------------------------------------------
-void ClipIncidentEdgeToReferenceEdge(const Vector2& incident1, const Vector2& incident2, const Vector2& refEdgeDirection, float offset, std::vector<Vector2>& clippedPoints)
+void ClipIncidentEdgeToReferenceEdge(const ClipVertex& incident1, const ClipVertex& incident2, const Vector2& refEdgeDirection, float offset, std::vector<ClipVertex>& out_clippedPoints)
 {
-	float distance1 = DotProduct(incident1, refEdgeDirection) - offset;
-	float distance2 = DotProduct(incident2, refEdgeDirection) - offset;
+	Vector2 incident1Pos = incident1.m_position;
+	Vector2 incident2Pos = incident2.m_position;
+
+	float distance1 = DotProduct(incident1Pos, refEdgeDirection) - offset;
+	float distance2 = DotProduct(incident2Pos, refEdgeDirection) - offset;
 
 	if (distance1 >= 0)
 	{
-		clippedPoints.push_back(incident1);
+		out_clippedPoints.push_back(incident1);
 	}
 
 	if (distance2 >= 0)
 	{
-		clippedPoints.push_back(incident2);
+		out_clippedPoints.push_back(incident2);
 	}
 
 	// Special case
 	// If the two incident points are on opposite sides of the imaginary clipping line, create a new point at the clipping line
 	if (distance1 * distance2 < 0)
 	{
-		Vector2 incidentEdge = incident2 - incident1; // Don't normalize! We'll take a fractional portion of this
+		Vector2 incidentEdge = incident2Pos - incident1Pos; // Don't normalize! We'll take a fractional portion of this
 		float t = distance1 / (distance1 - distance2);
 
 		Vector2 incidentEdgeOffset = incidentEdge * t;
-		Vector2 finalPos = incident1 + incidentEdgeOffset;
+		Vector2 finalPos = incident1Pos + incidentEdgeOffset;
 
-		clippedPoints.push_back(finalPos);
+		ClipVertex clipVertex;
+		clipVertex.m_position = finalPos;
+
+		// Update the ID of the two edges this vertex is "between"
+		if (distance2 < 0)
+		{
+			// We clipped the edge end point
+			clipVertex.m_id = incident2.m_id;
+			clipVertex.m_id.m_first = NO_EDGE;
+		}
+		else
+		{
+			// We clipped the edge start point
+			clipVertex.m_id = incident1.m_id;
+			clipVertex.m_id.m_second = NO_EDGE;
+		}
+
+		out_clippedPoints.push_back(clipVertex);
 	}
 }
 

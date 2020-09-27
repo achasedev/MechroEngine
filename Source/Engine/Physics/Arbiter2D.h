@@ -76,6 +76,7 @@ public:
 	Arbiter2D() {}
 	Arbiter2D(RigidBody2D* body1, RigidBody2D* body2);
 
+	void				Update(Contact2D* newContacts, uint32 numNewContacts);
 	void				DetectCollision();
 	void				PreStep(float deltaSeconds);
 	void				ApplyImpulse();
