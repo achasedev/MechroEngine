@@ -39,15 +39,46 @@ RigidBody2D::RigidBody2D(PhysicsScene2D* scene, GameObject* owningObj)
 	: m_scene(scene)
 	, m_gameObj(owningObj)
 	, m_transform(&owningObj->m_transform) // Convenience
+	, m_shapeLs(owningObj->GetShape())
 {
 	ASSERT_RECOVERABLE(m_scene != nullptr, "RigidBody2D's scene is nullptr");
 	ASSERT_RECOVERABLE(m_gameObj != nullptr, "RigidBody2D's object is nullptr!");
+	ASSERT_RECOVERABLE(m_shapeLs != nullptr, "RigidBody2D's shape is nullptr!");
+
+	CalculateCenterOfMass(); // Purely positional, assumes uniform mass density
+
 }
 
 
 //-------------------------------------------------------------------------------------------------
 RigidBody2D::~RigidBody2D()
 {
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RigidBody2D::CalculateCenterOfMass()
+{
+	float area = 0.f;
+	Vector2 center = Vector2::ZERO;
+
+	uint32 numVertices = m_shapeLs->GetNumVertices();
+	for (uint32 currIndex = 0; currIndex < numVertices; ++currIndex)
+	{
+		uint32 nextIndex = (currIndex == numVertices - 1 ? 0 : currIndex + 1);
+
+		Vector2 a = m_shapeLs->GetVertexAtIndex(currIndex);
+		Vector2 b = m_shapeLs->GetVertexAtIndex(nextIndex);
+
+		float currArea = 0.5f * CrossProduct(a, b);
+		Vector2 currCenter = 0.33333f * (a + b); // No need to add origin = (0,0) here
+
+		// Update running totals
+		center = (center * area + currCenter * currArea) / (area + currArea); // Move center weighted by areas
+		area += currArea;
+	}
+
+	m_centerOfMassLs = center;
 }
 
 

@@ -56,10 +56,6 @@ struct EdgePairID
 	{
 		struct
 		{
-			// !!! Only two of these will be set! !!!
-			// We're labeling the id of the edge into this point and edge out of this point
-			// For a given point, both could be from incident poly, or 1 from incident poly and 1 from reference poly
-
 			// Edge IDs - always labeled after the index of their endpoint, since we need 0 to be a cleared/invalid ID
 			//
 			//        ^ y
@@ -72,13 +68,10 @@ struct EdgePairID
 			//   v0 ------ v3
 			//        e4
 			//
-			// For example, for a contact point at v3 for the given incident poly above, it will start off with
-			// incident in as e2, incident out as e3. After clipping, it's possible one of these two will be cleared
-			// and have a reference set instead, such as clearing incident in to 0 and setting reference in to reference edge e7
 			int8 m_incidentEdgeIn;
 			int8 m_incidentEdgeOut;
-			int8 m_referenceEdgeIn;
-			int8 m_referenceEdgeOut;
+			int8 m_minRefEdgeClipped;
+			int8 m_maxRefEdgeClipped;
 		};
 		int m_value = 0;
 	};
@@ -103,9 +96,9 @@ struct Contact2D
 	Vector2 m_r2 = Vector2::ZERO;	// From the center of mass of body 2 to the contact
 
 	float m_separation = 0.f;
-	float accumulatedNormalImpulse = 0.f;	// accumulated normal impulse
-	float m_accumulatedTangentImpulse = 0.f;	// accumulated tangent impulse
-	float m_pNB = 0.f;	// accumulated normal impulse for position bias
+	float m_accNormalImpulse = 0.f;	// accumulated normal impulse
+	float m_accTangentImpulse = 0.f;	// accumulated tangent impulse
+	float m_normalBiasImpulse = 0.f;	// accumulated normal impulse for position bias
 	float m_massNormal = 0.f;
 	float m_massTangent = 0.f;
 	float m_bias = 0.f;

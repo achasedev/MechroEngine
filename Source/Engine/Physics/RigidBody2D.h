@@ -47,7 +47,9 @@ public:
 	void				SetRotationDegrees(float rotationDegrees) { m_transform->SetRotation(Vector3(0.f, 0.f, rotationDegrees)); }
 	void				SetVelocity(const Vector2& velocity) { m_velocityWs = velocity; }
 	void				SetAngularVelocity(float angularVelocityDegrees) { m_angularVelocityDegrees = angularVelocityDegrees; }
+	void				SetMassProperties(float mass);
 	void				SetFriction(float friction) { m_friction = friction; }
+	void				SetAffectedByGravity(bool affected) { m_affectedByGravity = affected; }
 
 	// Accessors
 	GameObject*			GetGameObject() const { return m_gameObj; }
@@ -65,6 +67,7 @@ public:
 	float				GetTorque() const { return m_torque; }
 	const Polygon2D*	GetLocalShape() const { return m_shapeLs; } // Const because you shouldn't be changing this >.>
 	void				GetWorldShape(Polygon2D& out_polygon) const;
+	bool				IsAffectedByGravity() const { return m_affectedByGravity; }
 
 	// Producers
 	bool				IsStatic() const { return m_invMass == 0.f; }
@@ -78,7 +81,7 @@ private:
 	RigidBody2D(PhysicsScene2D* owner, GameObject* gameObject);
 	~RigidBody2D();
 
-	void				SetMassProperties(float mass);
+	void				CalculateCenterOfMass();
 
 
 private:
@@ -107,6 +110,7 @@ private:
 	// Forces
 	Vector2				m_forceWs					= Vector2::ZERO;
 	float				m_torque					= 0.f;
+	bool				m_affectedByGravity			= true;
 
 	// Shape
 	const Polygon2D*	m_shapeLs					= nullptr;

@@ -298,13 +298,13 @@ void ClipIncidentEdgeToReferenceEdge(const ClipVertex& incident1, const ClipVert
 		{
 			// We clipped the edge end point
 			clipVertex.m_id = incident2.m_id;
-			clipVertex.m_id.m_first = NO_EDGE;
+			clipVertex.m_id.m_maxRefEdgeClipped = 1;
 		}
 		else
 		{
 			// We clipped the edge start point
 			clipVertex.m_id = incident1.m_id;
-			clipVertex.m_id.m_second = NO_EDGE;
+			clipVertex.m_id.m_minRefEdgeClipped = 1;
 		}
 
 		out_clippedPoints.push_back(clipVertex);

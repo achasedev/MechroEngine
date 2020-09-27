@@ -24,7 +24,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-const Vector2 PhysicsScene2D::DEFAULT_GRAVITY = Vector2(0.f, -9.8f);
+const Vector2 PhysicsScene2D::DEFAULT_GRAVITY = Vector2(0.f, -100.f);
 const uint32 PhysicsScene2D::NUM_IMPULSE_ITERATIONS = 10U;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -41,14 +41,7 @@ PhysicsScene2D::~PhysicsScene2D()
 	// Ensure all GameObjects have been removed first before destroying this scene
 	// Otherwise there's going to be dangling pointers to deleted RigidBody2Ds
 	ASSERT_RECOVERABLE(m_bodies.size() == 0, "PhysicsScene being destroyed before all GameObjects were removed!");
-
-	ArbIter iter = m_arbiters.begin();
-
-	for (iter; iter != m_arbiters.end(); iter++)
-	{
-		SAFE_DELETE_POINTER(iter->second);
-	}
-
+	m_bodies.clear();
 	m_arbiters.clear();
 }
 
@@ -59,8 +52,6 @@ RigidBody2D* PhysicsScene2D::AddGameObject(GameObject* gameObject)
 	ASSERT_RETURN(gameObject->GetRigidBody2D() == nullptr, nullptr, "GameObject already has a RigidBody2D!");
 
 	RigidBody2D* body = new RigidBody2D(this, gameObject);
-	body->m_shapeLs = gameObject->GetShape();
-	body->SetMassProperties(1.0f);
 
 	m_bodies.push_back(body);
 	gameObject->SetRigidBody2D(body);
@@ -92,6 +83,19 @@ void PhysicsScene2D::RemoveGameObject(GameObject* gameObject)
 
 
 //-------------------------------------------------------------------------------------------------
+bool PhysicsScene2D::GetThatArbiter(Arbiter2D* out_arbiter) const
+{
+	if (m_arbiters.size() > 0)
+	{ 
+		*out_arbiter = m_arbiters.begin()->second; 
+		return true;
+	}
+
+	return false;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void PhysicsScene2D::FrameStep(float deltaSeconds)
 {
 	PerformBroadphase();
@@ -115,25 +119,31 @@ void PhysicsScene2D::PerformBroadphase()
 		{
 			RigidBody2D* body2 = m_bodies[secondBodyIndex];
 
-			// If both bodies are static don't bother with physics (though maybe this should be an assert)
+			// If both bodies are static don't bother with physics (though maybe this should be a warning of sorts)
 			if (body1->GetInverseMass() == 0.0f && body2->GetInverseMass() == 0.0f)
 				continue;
 
-			Arbiter2D* newArb = new Arbiter2D(body1, body2);
-			newArb->DetectCollision();
+			Arbiter2D newArb = Arbiter2D(body1, body2);
+			newArb.DetectCollision();
 
 			ArbiterKey2D key(body1, body2);
 
-			if (newArb->GetNumContacts() > 0)
+			if (newArb.GetNumContacts() > 0)
 			{
-				// TODO: Need to preserve info or something or something
-				SAFE_DELETE_POINTER(m_arbiters[key]);
-				m_arbiters[key] = newArb;
+				// Check if an arbiter already exists for this collision, and if so update
+				ArbIter iter = m_arbiters.find(key);
+				if (iter == m_arbiters.end())
+				{
+					m_arbiters[key] = newArb;
+				}
+				else
+				{
+					iter->second.Update(newArb.GetContacts(), newArb.GetNumContacts());
+				}
 			}
 			else
 			{
 				m_arbiters.erase(key);
-				SAFE_DELETE_POINTER(newArb);
 			}
 		}
 	}
@@ -155,8 +165,13 @@ void PhysicsScene2D::ApplyForces(float deltaSeconds)
 		}
 
 		// Force = Mass * Acceleration :)
-		body->m_velocityWs += (body->m_invMass * body->m_forceWs + m_gravity) * deltaSeconds;
-		body->m_angularVelocityDegrees += (body->m_invInertia * body->m_torque) * deltaSeconds;
+		Vector2 gravity = (body->IsAffectedByGravity() ? m_gravity : Vector2::ZERO);
+		body->m_velocityWs += (body->m_invMass * body->m_forceWs + gravity) * deltaSeconds;
+		body->m_angularVelocityDegrees += RadiansToDegrees((body->m_invInertia * body->m_torque) * deltaSeconds);
+
+		// Zero out forces, they're per-frame
+		body->m_forceWs = Vector2::ZERO;
+		body->m_torque = 0.f;
 	}
 }
 
@@ -164,13 +179,11 @@ void PhysicsScene2D::ApplyForces(float deltaSeconds)
 //-------------------------------------------------------------------------------------------------
 void PhysicsScene2D::PerformArbiterPreSteps(float deltaSeconds)
 {
-	uint32 numArbiters = m_arbiters.size();
-
 	ArbIter iter = m_arbiters.begin();
 
 	for (iter; iter != m_arbiters.end(); iter++)
 	{
-		iter->second->PreStep(deltaSeconds);
+		iter->second.PreStep(deltaSeconds);
 	}
 }
 
@@ -178,15 +191,13 @@ void PhysicsScene2D::PerformArbiterPreSteps(float deltaSeconds)
 //-------------------------------------------------------------------------------------------------
 void PhysicsScene2D::ApplyImpulseIterations()
 {
-	uint32 numArbiters = m_arbiters.size();
-
 	for (uint32 i = 0; i < NUM_IMPULSE_ITERATIONS; ++i)
 	{
 		ArbIter iter = m_arbiters.begin();
 
 		for (iter; iter != m_arbiters.end(); iter++)
 		{
-			iter->second->ApplyImpulse();
+			iter->second.ApplyImpulse();
 		}
 	}
 }
@@ -206,9 +217,5 @@ void PhysicsScene2D::UpdatePositions(float deltaSeconds)
 		body->m_transform->position += worldToParent.TransformVector(deltaVelocityWs).xyz();
 
 		body->m_transform->Rotate(0.f, 0.f, body->m_angularVelocityDegrees * deltaSeconds);
-
-		// Zero out forces, they're per-frame
-		body->m_forceWs = Vector2::ZERO;
-		body->m_torque = 0.f;
 	}
 }

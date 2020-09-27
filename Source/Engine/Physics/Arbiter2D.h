@@ -56,7 +56,7 @@ struct ArbiterKey2D
 	RigidBody2D* m_body1;
 	RigidBody2D* m_body2;
 };
-typedef std::map<ArbiterKey2D, Arbiter2D*>::iterator ArbIter;
+typedef std::map<ArbiterKey2D, Arbiter2D>::iterator ArbIter;
 
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -76,7 +76,7 @@ public:
 	Arbiter2D() {}
 	Arbiter2D(RigidBody2D* body1, RigidBody2D* body2);
 
-	void				Update(Contact2D* newContacts, uint32 numNewContacts);
+	void				Update(const Contact2D* newContacts, uint32 numNewContacts);
 	void				DetectCollision();
 	void				PreStep(float deltaSeconds);
 	void				ApplyImpulse();
@@ -99,6 +99,7 @@ private:
 	static const float	ALLOWED_PENETRATION;
 	static const float	BIAS_FACTOR;
 	static const bool	ACCUMULATE_IMPULSES;
+	static const bool	WARM_START_ACCUMULATIONS;
 
 
 private:
