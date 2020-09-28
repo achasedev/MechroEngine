@@ -41,8 +41,7 @@ public:
 
 	RigidBody2D*	AddGameObject(GameObject* gameObject);
 	void			RemoveGameObject(GameObject* gameObject);
-
-	bool			GetThatArbiter(Arbiter2D* out_arbiter) const; // TODO: Delete this autrocity 
+	void			SetGravity(const Vector2& newGravity) { m_gravity = newGravity; }
 
 	void			FrameStep(float deltaSeconds);
 	void			PerformRayCast(const Vector2& start, const Vector2& direction, float maxDistance);

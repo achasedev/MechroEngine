@@ -24,7 +24,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-const Vector2 PhysicsScene2D::DEFAULT_GRAVITY = Vector2(0.f, -100.f);
+const Vector2 PhysicsScene2D::DEFAULT_GRAVITY = Vector2(0.f, -9.8f);
 const uint32 PhysicsScene2D::NUM_IMPULSE_ITERATIONS = 10U;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -83,19 +83,6 @@ void PhysicsScene2D::RemoveGameObject(GameObject* gameObject)
 
 
 //-------------------------------------------------------------------------------------------------
-bool PhysicsScene2D::GetThatArbiter(Arbiter2D* out_arbiter) const
-{
-	if (m_arbiters.size() > 0)
-	{ 
-		*out_arbiter = m_arbiters.begin()->second; 
-		return true;
-	}
-
-	return false;
-}
-
-
-//-------------------------------------------------------------------------------------------------
 void PhysicsScene2D::FrameStep(float deltaSeconds)
 {
 	PerformBroadphase();
@@ -111,7 +98,7 @@ void PhysicsScene2D::PerformBroadphase()
 {
 	// O(n^2) broad-phase
 	// TODO: Make this less garbage
-	for (uint32 firstBodyIndex = 0; firstBodyIndex < m_bodies.size(); ++firstBodyIndex)
+	for (uint32 firstBodyIndex = 0; firstBodyIndex < m_bodies.size() - 1; ++firstBodyIndex)
 	{
 		RigidBody2D* body1 = m_bodies[firstBodyIndex];
 
@@ -212,10 +199,28 @@ void PhysicsScene2D::UpdatePositions(float deltaSeconds)
 	{
 		RigidBody2D* body = m_bodies[bodyIndex];
 
-		Matrix44 worldToParent = body->m_transform->GetWorldToParentMatrix();
-		Vector3 deltaPositionWs = Vector3(body->m_velocityWs * deltaSeconds, 0.f);
-		body->m_transform->position += worldToParent.TransformVector(deltaPositionWs).xyz();
+		// Get the deltas
+		Matrix44	worldToParent				= body->m_transform->GetWorldToParentMatrix();
+		Vector3		deltaPositionWs				= Vector3(body->m_velocityWs * deltaSeconds, 0.f);
+		Vector3		deltaPositionPs				= worldToParent.TransformVector(deltaPositionWs).xyz();
+		float		deltaRotation				= body->m_angularVelocityDegrees * deltaSeconds;
 
-		body->m_transform->Rotate(0.f, 0.f, body->m_angularVelocityDegrees * deltaSeconds);
+		// Rotating about the center of mass will also update position if the center of mass and position aren't the same point!
+		// Ps == Parent space, i.e. this is relative to the parent, and if parent is nullptr then it's just world
+		Vector2		positionPs					= body->m_transform->position.xy;
+		Vector2		centerOfMassPs				= worldToParent.TransformPoint(Vector3(body->GetCenterOfMassWs(), 0.f)).xy();
+		Vector2		centerOfMassToPositionPs	= positionPs - centerOfMassPs;
+
+		// Using the angle sum rule
+		Vector2		offsetPs = Vector2(CosDegrees(deltaRotation) * centerOfMassToPositionPs.x - SinDegrees(deltaRotation) * centerOfMassToPositionPs.y, SinDegrees(deltaRotation) * centerOfMassToPositionPs.x + CosDegrees(deltaRotation) * centerOfMassToPositionPs.y);
+
+		// Determine new position after rotating
+		body->m_transform->position = Vector3(centerOfMassPs + offsetPs, 0.f);
+
+		// Apply the delta position from linear movement
+		body->m_transform->position += deltaPositionPs;
+
+		// Set rotation
+		body->m_transform->Rotate(0.f, 0.f, deltaRotation);
 	}
 }
