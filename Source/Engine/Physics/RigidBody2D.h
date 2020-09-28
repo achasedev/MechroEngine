@@ -100,7 +100,7 @@ private:
 	float				m_angularVelocityDegrees	= 0.f;
 
 	// Mass + friction
-	float				m_friction					= 0.2f;
+	float				m_friction					= 0.1f;
 	float				m_mass						= FLT_MAX;
 	float				m_invMass					= 0.f; // For static bodies, invMass == 0
 	float				m_inertia					= FLT_MAX;

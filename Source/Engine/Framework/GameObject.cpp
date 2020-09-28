@@ -41,5 +41,5 @@ GameObject::~GameObject()
 		physicsScene->RemoveGameObject(this);
 	}
 
-	SAFE_DELETE_POINTER(m_shape);
+	// GameObjects don't own their shape for now
 }

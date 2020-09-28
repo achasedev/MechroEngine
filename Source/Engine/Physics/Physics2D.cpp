@@ -213,8 +213,8 @@ void PhysicsScene2D::UpdatePositions(float deltaSeconds)
 		RigidBody2D* body = m_bodies[bodyIndex];
 
 		Matrix44 worldToParent = body->m_transform->GetWorldToParentMatrix();
-		Vector3 deltaVelocityWs = Vector3(body->m_velocityWs * deltaSeconds, 0.f);
-		body->m_transform->position += worldToParent.TransformVector(deltaVelocityWs).xyz();
+		Vector3 deltaPositionWs = Vector3(body->m_velocityWs * deltaSeconds, 0.f);
+		body->m_transform->position += worldToParent.TransformVector(deltaPositionWs).xyz();
 
 		body->m_transform->Rotate(0.f, 0.f, body->m_angularVelocityDegrees * deltaSeconds);
 	}

@@ -26,8 +26,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 const float Arbiter2D::ALLOWED_PENETRATION = 0.01f;
 const float Arbiter2D::BIAS_FACTOR = 0.2f; // Always do position correction for now?
-const bool Arbiter2D::ACCUMULATE_IMPULSES = false; // Always for now?
-const bool Arbiter2D::WARM_START_ACCUMULATIONS = false;
+const bool Arbiter2D::ACCUMULATE_IMPULSES = true; // Always for now?
+const bool Arbiter2D::WARM_START_ACCUMULATIONS = true;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
@@ -138,11 +138,26 @@ void Arbiter2D::DetectCollision()
 }
 
 
+inline float Cross(const Vector2& a, const Vector2& b)
+{
+	return a.x * b.y - a.y * b.x;
+}
+
+inline Vector2 Cross(const Vector2& a, float s)
+{
+	return Vector2(s * a.y, -s * a.x);
+}
+
+inline Vector2 Cross(float s, const Vector2& a)
+{
+	return Vector2(-s * a.y, s * a.x);
+}
+
 //-------------------------------------------------------------------------------------------------
 void Arbiter2D::PreStep(float deltaSeconds)
 {
 	float invDeltaSeconds = (deltaSeconds > 0.f ? 1.0f / deltaSeconds : 0.f);
-
+	
 	for (uint32 contactIndex = 0; contactIndex < m_numContacts; ++contactIndex)
 	{
 		Contact2D* contact = m_contacts + contactIndex;
@@ -162,7 +177,7 @@ void Arbiter2D::PreStep(float deltaSeconds)
 		float r1Tangent = DotProduct(contact->m_r1, tangent);
 		float r2Tangent = DotProduct(contact->m_r2, tangent);
 
-		float kTangent = m_body1->m_invMass + m_body2->m_invMass;;
+		float kTangent = m_body1->m_invMass + m_body2->m_invMass;
 		kTangent += m_body1->m_invInertia * (DotProduct(contact->m_r1, contact->m_r1) - r1Tangent * r1Tangent) + m_body2->m_invInertia * (DotProduct(contact->m_r2, contact->m_r2) - r2Tangent * r2Tangent);
 		contact->m_massTangent = 1.0f / kTangent;
 
@@ -182,10 +197,10 @@ void Arbiter2D::PreStep(float deltaSeconds)
 			// A. These incrementals were calculated last frame in ApplyImpulse(), so unless velocity instantaneous and largely changed outside
 			//    the physics system this warm start should feel "continuous" from where it just left off
 			m_body1->m_velocityWs -= m_body1->m_invMass * impulse;
-			m_body1->m_angularVelocityDegrees -= m_body1->m_invInertia * CrossProduct(contact->m_r1, impulse);
+			m_body1->m_angularVelocityDegrees -= RadiansToDegrees(m_body1->m_invInertia * CrossProduct(contact->m_r1, impulse));
 
 			m_body2->m_velocityWs += m_body2->m_invMass * impulse;
-			m_body2->m_angularVelocityDegrees += m_body2->m_invInertia * CrossProduct(contact->m_r2, impulse);
+			m_body2->m_angularVelocityDegrees += RadiansToDegrees(m_body2->m_invInertia * CrossProduct(contact->m_r2, impulse));
 		}
 	}
 }
@@ -194,14 +209,15 @@ void Arbiter2D::PreStep(float deltaSeconds)
 //-------------------------------------------------------------------------------------------------
 void Arbiter2D::ApplyImpulse()
 {
+	
 	for (uint32 contactIndex = 0; contactIndex < m_numContacts; ++contactIndex)
 	{
 		Contact2D* contact = m_contacts + contactIndex;
 
 		// Find how angular velocities will affect our point's velocity
 		// Always use left-hand perps to the radius, as positive angular velocity is counter clockwise
-		Vector2 angularContribution1 = m_body1->m_angularVelocityDegrees * Vector2(-1.0f * contact->m_r1.y, contact->m_r1.x);
-		Vector2 angularContribution2 = m_body2->m_angularVelocityDegrees * Vector2(-1.0f * contact->m_r2.y, contact->m_r2.x);
+		Vector2 angularContribution1 = DegreesToRadians(m_body1->m_angularVelocityDegrees) * Vector2(-1.0f * contact->m_r1.y, contact->m_r1.x);
+		Vector2 angularContribution2 = DegreesToRadians(m_body2->m_angularVelocityDegrees) * Vector2(-1.0f * contact->m_r2.y, contact->m_r2.x);
 
 		// Relative velocity at contact from body 1's point of view
 		Vector2 relativeVelocity = m_body2->m_velocityWs + angularContribution2 - m_body1->m_velocityWs - angularContribution1;
@@ -225,6 +241,9 @@ void Arbiter2D::ApplyImpulse()
 		// Apply normal impulse
 		Vector2 normalImpulse = normalImpulseMagnitude * contact->m_normal;
 
+		Vector3 pos = m_body1->m_transform->GetWorldPosition();
+		Vector2 centerOfMass = m_body1->GetCenterOfMassWs();
+
 		m_body1->m_velocityWs -= m_body1->m_invMass * normalImpulse;
 		m_body1->m_angularVelocityDegrees -= RadiansToDegrees(m_body1->m_invInertia * CrossProduct(contact->m_r1, normalImpulse));
 
@@ -232,6 +251,8 @@ void Arbiter2D::ApplyImpulse()
 		m_body2->m_angularVelocityDegrees += RadiansToDegrees(m_body2->m_invInertia * CrossProduct(contact->m_r2, normalImpulse));
 
 		// Recalculate the relative velocity
+		angularContribution1 = DegreesToRadians(m_body1->m_angularVelocityDegrees) * Vector2(-1.0f * contact->m_r1.y, contact->m_r1.x);
+		angularContribution2 = DegreesToRadians(m_body2->m_angularVelocityDegrees) * Vector2(-1.0f * contact->m_r2.y, contact->m_r2.x);
 		relativeVelocity = m_body2->m_velocityWs + angularContribution2 - m_body1->m_velocityWs - angularContribution1;
 
 		// Compute tangent impulse
@@ -258,13 +279,84 @@ void Arbiter2D::ApplyImpulse()
 
 		// Apply the tangent impulse
 		Vector2 tangentImpulse = tangentImpulseMagnitude * tangent;
-
+		
 		m_body1->m_velocityWs -= m_body1->m_invMass * tangentImpulse;
 		m_body1->m_angularVelocityDegrees -= RadiansToDegrees(m_body1->m_invInertia * CrossProduct(contact->m_r1, tangentImpulse));
-
+		
 		m_body2->m_velocityWs += m_body2->m_invMass * tangentImpulse;
 		m_body2->m_angularVelocityDegrees += RadiansToDegrees(m_body2->m_invInertia * CrossProduct(contact->m_r2, tangentImpulse));
 	}
+	/*
+	RigidBody2D* b1 = m_body1;
+	RigidBody2D* b2 = m_body2;
+
+	for (int i = 0; i < (int)m_numContacts; ++i)
+	{
+		Contact2D* c = m_contacts + i;
+		c->m_r1 = c->m_position - b1->m_transform->position.xy;
+		c->m_r2 = c->m_position - b2->m_transform->position.xy;
+
+		// Relative velocity at contact
+		Vector2 dv = b2->m_velocityWs + Cross(b2->m_angularVelocityDegrees, c->m_r2) - b1->m_velocityWs - Cross(b1->m_angularVelocityDegrees, c->m_r1);
+
+		// Compute normal impulse
+		float vn = DotProduct(dv, c->m_normal);
+
+		float dPn = c->m_massNormal * (-vn + c->m_bias);
+
+		if (false)
+		{
+			// Clamp the accumulated impulse
+			//float Pn0 = c->Pn;
+			//c->Pn = Max(Pn0 + dPn, 0.0f);
+			//dPn = c->Pn - Pn0;
+		}
+		else
+		{
+			dPn = Max(dPn, 0.0f);
+		}
+
+		// Apply contact impulse
+		Vector2 Pn = dPn * c->m_normal;
+
+		b1->m_velocityWs -= b1->m_invMass * Pn;
+		b1->m_angularVelocityDegrees -= b1->m_invInertia * Cross(c->m_r1, Pn);
+
+		b2->m_velocityWs += b2->m_invMass * Pn;
+		b2->m_angularVelocityDegrees += b2->m_invInertia * Cross(c->m_r2, Pn);
+
+		// Relative velocity at contact
+		dv = b2->m_velocityWs + Cross(b2->m_angularVelocityDegrees, c->m_r2) - b1->m_velocityWs - Cross(b1->m_angularVelocityDegrees, c->m_r1);
+
+		Vector2 tangent = Cross(c->m_normal, 1.0f);
+		float vt = DotProduct(dv, tangent);
+		float dPt = c->m_massTangent * (-vt);
+
+		if (false)
+		{
+			// Compute friction impulse
+			//float maxPt = friction * c->Pn;
+			//
+			//// Clamp friction
+			//float oldTangentImpulse = c->Pt;
+			//c->Pt = Clamp(oldTangentImpulse + dPt, -maxPt, maxPt);
+			//dPt = c->Pt - oldTangentImpulse;
+		}
+		else
+		{
+			float maxPt = m_friction * dPn;
+			dPt = Clamp(dPt, -maxPt, maxPt);
+		}
+
+		// Apply contact impulse
+		Vector2 Pt = dPt * tangent;
+
+		b1->m_velocityWs -= b1->m_invMass * Pt;
+		b1->m_angularVelocityDegrees -= RadiansToDegrees(b1->m_invInertia * Cross(c->m_r1, Pt));
+
+		b2->m_velocityWs += b2->m_invMass * Pt;
+		b2->m_angularVelocityDegrees += RadiansToDegrees(b2->m_invInertia * Cross(c->m_r2, Pt));
+	}*/
 }
 
 
