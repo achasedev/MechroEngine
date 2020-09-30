@@ -181,3 +181,25 @@ int Polygon2D::GetNextValidIndex(int index) const
 
 	return nextIndex;
 }
+
+
+//-------------------------------------------------------------------------------------------------
+// Works for concave polygons! Even self-intersecting ones!
+// i.e figure 8 shaped polygons - it will then report whether it moves more clockwise or not
+bool Polygon2D::IsWindingClockwise() const
+{
+	uint32 numVertices = (uint32)m_vertices.size();
+	float sum = 0.f;
+
+	for (uint32 index = 0; index < m_vertices.size(); ++index)
+	{
+		uint32 nextIndex = (index == numVertices - 1 ? 0 : index + 1);
+
+		Vector2 a = m_vertices[index];
+		Vector2 b = m_vertices[nextIndex];
+
+		sum += (b.x - a.x) * (a.y + b.y);
+	}
+
+	return (sum > 0);
+}

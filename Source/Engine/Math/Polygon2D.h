@@ -55,6 +55,8 @@ public:
 	Vector2 GetCenter() const;
 	int		GetPreviousValidIndex(int index) const;
 	int		GetNextValidIndex(int index) const;
+	bool	IsWindingClockwise() const;
+	bool	IsWindingCounterClockwise() const { return !IsWindingClockwise(); }
 
 
 private:

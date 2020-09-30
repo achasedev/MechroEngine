@@ -223,7 +223,7 @@ CollisionFeatureEdge2D GetFeatureEdge2D(const Polygon2D* polygon, const Vector2&
 	// This vertex is part of the feature edge - but it could be paired with the previous or next vertex (Clockwise winding order)
 	Vector2 prevVertex, nextVertex;
 
-	int prevVertexIndex = polygon->GetPreviousVertexToIndex(vertexIndex, prevVertex);
+	polygon->GetPreviousVertexToIndex(vertexIndex, prevVertex);
 	int nextVertexIndex = polygon->GetNextVertexToIndex(vertexIndex, nextVertex);
 
 	Vector2 prevEdge = (vertex - prevVertex);

@@ -585,8 +585,8 @@ Vector3 CrossProduct(const Vector3& a, const Vector3& b)
 //-------------------------------------------------------------------------------------------------
 float CrossProduct(const Vector2& a, const Vector2& b)
 {
-	Vector3 result3D = CrossProduct(Vector3(a, 0.f), Vector3(b, 0.f));
-	return result3D.z;
+	// Equivalent to CrossProduct(Vector3(a, 0.f), Vector3(b, 0.f));
+	return a.x * b.y - b.x * a.y;
 }
 
 

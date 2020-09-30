@@ -4,6 +4,7 @@
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
+#pragma warning(disable : 4201) // Keep the structs anonymous so we can still do myVector.x even when x is part of a struct
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
@@ -130,3 +131,5 @@ CollisionSeparation2D	PerformEPA(const Polygon2D* first, const Polygon2D* second
 CollisionSeparation2D	CalculateSeparation2D(const Polygon2D* first, const Polygon2D* second);
 CollisionFeatureEdge2D	GetFeatureEdge2D(const Polygon2D* polygon, const Vector2& outwardSeparationNormal);
 void					ClipIncidentEdgeToReferenceEdge(const ClipVertex& incident1, const ClipVertex& incident2, const Vector2& refEdgeDirection, float offset, std::vector<ClipVertex>& clippedPoints);
+
+#pragma warning(default : 4201)
