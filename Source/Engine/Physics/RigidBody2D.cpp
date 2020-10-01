@@ -45,8 +45,10 @@ RigidBody2D::RigidBody2D(PhysicsScene2D* scene, GameObject* owningObj)
 	ASSERT_RECOVERABLE(m_gameObj != nullptr, "RigidBody2D's object is nullptr!");
 	ASSERT_RECOVERABLE(m_shapeLs != nullptr, "RigidBody2D's shape is nullptr!");
 
-	CalculateCenterOfMass(); // Purely positional, assumes uniform mass density
+	ASSERT_RECOVERABLE(m_shapeLs->IsConvex(), "Rigidbody2D shape is not convex!");
+	ASSERT_RECOVERABLE(m_shapeLs->IsWindingClockwise(), "Rigidbody2D shape is not clockwise winding!");
 
+	CalculateCenterOfMass(); // Purely positional, assumes uniform mass density
 }
 
 

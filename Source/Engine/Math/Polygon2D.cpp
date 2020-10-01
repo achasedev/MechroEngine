@@ -203,3 +203,49 @@ bool Polygon2D::IsWindingClockwise() const
 
 	return (sum > 0);
 }
+
+
+//-------------------------------------------------------------------------------------------------
+// This may not work for self-intersecting polygons
+bool Polygon2D::IsConvex() const
+{
+	uint32 numVertices = m_vertices.size();
+	if (numVertices <= 3)
+	{
+		return true;
+	}
+
+	bool isClockwiseWinding = IsWindingClockwise();
+
+	for (uint32 aIndex = 0; aIndex < numVertices; ++aIndex)
+	{
+		uint32 bIndex = (aIndex + 1) % numVertices;
+		uint32 cIndex = (aIndex + 2) % numVertices;
+
+		Vector2 a = m_vertices[aIndex];
+		Vector2 b = m_vertices[bIndex];
+		Vector2 c = m_vertices[cIndex];
+
+		Vector2 ab = b - a;
+		Vector2 bc = c - b;
+
+		float cross = CrossProduct(ab, bc);
+
+		if (isClockwiseWinding)
+		{
+			if (cross > 0.f)
+			{
+				return false;
+			}
+		}
+		else
+		{
+			if (cross < 0.f)
+			{
+				return false;
+			}
+		}
+	}
+
+	return true;
+}

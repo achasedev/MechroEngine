@@ -125,11 +125,6 @@ void Arbiter2D::DetectCollision()
 	m_body1->GetWorldShape(poly1);
 	m_body2->GetWorldShape(poly2);
 
-#ifndef DISABLE_ASSERTS
-	ASSERT_OR_DIE(poly1.IsWindingClockwise(), "Poly1 not winding clockwise!");
-	ASSERT_OR_DIE(poly2.IsWindingClockwise(), "Poly2 not winding clockwise!");
-#endif
-
 	// Detect collision
 	CollisionSeparation2D separation = CalculateSeparation2D(&poly1, &poly2);
 	m_numContacts = 0;

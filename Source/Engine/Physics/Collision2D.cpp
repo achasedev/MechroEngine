@@ -142,7 +142,7 @@ uint32 GetSimplexSeparation2D(const std::vector<Vector2>& simplex, CollisionSepa
 		edgeNormal.Normalize();
 
 		float distanceToOrigin = DotProduct(simplex[i], edgeNormal);
-		ASSERT_OR_DIE(distanceToOrigin >= 0, "How is this distance negative?");
+		ASSERT_OR_DIE((distanceToOrigin + DEFAULT_EPSILON) >= 0, "How is this distance negative?");
 
 		if (distanceToOrigin < out_separation.m_separation)
 		{

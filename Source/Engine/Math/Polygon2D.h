@@ -57,6 +57,8 @@ public:
 	int		GetNextValidIndex(int index) const;
 	bool	IsWindingClockwise() const;
 	bool	IsWindingCounterClockwise() const { return !IsWindingClockwise(); }
+	bool	IsConvex() const;
+	bool	IsConcave() const { return !IsConvex(); }
 
 
 private:
