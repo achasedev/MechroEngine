@@ -209,7 +209,7 @@ bool Polygon2D::IsWindingClockwise() const
 // This may not work for self-intersecting polygons
 bool Polygon2D::IsConvex() const
 {
-	uint32 numVertices = m_vertices.size();
+	size_t numVertices = m_vertices.size();
 	if (numVertices <= 3)
 	{
 		return true;
@@ -217,10 +217,10 @@ bool Polygon2D::IsConvex() const
 
 	bool isClockwiseWinding = IsWindingClockwise();
 
-	for (uint32 aIndex = 0; aIndex < numVertices; ++aIndex)
+	for (size_t aIndex = 0; aIndex < numVertices; ++aIndex)
 	{
-		uint32 bIndex = (aIndex + 1) % numVertices;
-		uint32 cIndex = (aIndex + 2) % numVertices;
+		size_t bIndex = (aIndex + 1) % numVertices;
+		size_t cIndex = (aIndex + 2) % numVertices;
 
 		Vector2 a = m_vertices[aIndex];
 		Vector2 b = m_vertices[bIndex];

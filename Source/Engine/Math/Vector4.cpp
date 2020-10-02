@@ -68,6 +68,16 @@ Vector4::Vector4(const Vector3& xyzVector, float wValue)
 
 
 //-------------------------------------------------------------------------------------------------
+Vector4::Vector4(float initialValue)
+	: x(initialValue)
+	, y(initialValue)
+	, z(initialValue)
+	, w(initialValue)
+{
+}
+
+
+//-------------------------------------------------------------------------------------------------
 const Vector4 Vector4::operator+(const Vector4& addVector) const
 {
 	return Vector4((x + addVector.x), (y + addVector.y), (z + addVector.z), (w + addVector.w));

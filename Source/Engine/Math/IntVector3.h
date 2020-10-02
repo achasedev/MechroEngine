@@ -9,7 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
-#pragma warning(disable : 4201) // Keep the structs anonymous in the union for usability
+#include "Engine/Utility/Swizzle.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -28,6 +28,9 @@ class Vector3;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#pragma warning(disable : 4201) // Keep the structs anonymous in the union for usability
+
+//-------------------------------------------------------------------------------------------------
 class IntVector3
 {
 
@@ -66,14 +69,45 @@ public:
 public:
 	//-----Public Data-----
 
-	union 
+	union
 	{
-		int data[3];	
-		struct  
+		// Array access
+		int data[3];
+
+		// Coordinate access
+		struct
 		{
 			int x;
 			int y;
 			int z;
+		};
+
+		// Color channel access
+		struct
+		{
+			int r;
+			int g;
+			int b;
+		};
+
+		// Swizzles!
+		// Must be unioned to not pad out the length of Vector2
+		// Swizzles have no data, so no fear of overwrite
+		union
+		{
+			Swizzle<IntVector3, int, 0, 0, 0> xxx, rrr;
+			Swizzle<IntVector3, int, 1, 1, 1> yyy, ggg;
+			Swizzle<IntVector3, int, 2, 2, 2> zzz, bbb;
+
+			Swizzle<IntVector2, int, 0, 0> xx;
+			Swizzle<IntVector2, int, 0, 1> xy;
+			Swizzle<IntVector2, int, 0, 2> xz;
+			Swizzle<IntVector2, int, 1, 0> yx;
+			Swizzle<IntVector2, int, 1, 1> yy;
+			Swizzle<IntVector2, int, 1, 2> yz;
+			Swizzle<IntVector2, int, 2, 0> zx;
+			Swizzle<IntVector2, int, 2, 1> zy;
+			Swizzle<IntVector2, int, 2, 2> zz;
 		};
 	};
 };

@@ -9,6 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
+#include "Engine/Utility/Swizzle.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -26,6 +27,9 @@ class Vector2;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#pragma warning(disable : 4201) // Keep the structs anonymous so we can still do myVector.x even when x is part of a struct
+
+//-------------------------------------------------------------------------------------------------
 class IntVector2
 {
 
@@ -64,10 +68,39 @@ public:
 public:
 	//-----Public Data-----
 
-	int x;
-	int y;
+	union
+	{
+		// Array access
+		int data[2];
 
+		// Coordinate access
+		struct
+		{
+			int x;
+			int y;
+		};
+
+		// Texture coordinate access
+		struct
+		{
+			int u;
+			int v;
+		};
+
+		// Swizzles!
+		// Must be unioned to not pad out the length of Vector2
+		// Swizzles have no data, so no fear of overwrite
+		union
+		{
+			Swizzle<IntVector2, int, 0, 0> xx, uu;
+			Swizzle<IntVector2, int, 0, 1> xy, uv;
+			Swizzle<IntVector2, int, 1, 0> yx, vu;
+			Swizzle<IntVector2, int, 1, 1> yy, vv;
+		};
+	};
 };
+
+#pragma warning(default : 4201)
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS

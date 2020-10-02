@@ -43,6 +43,7 @@ const std::string	Stringf(const char* format, ...);
 const std::string	Stringf(const int maxLength, const char* format, ...);
 int					GetStringLength(const char* str);
 void				Tokenize(const std::string& stringToTokenize, const char delimiter, std::vector<std::string>& out_tokens);
+void				TrimWhitespace(std::string& stringToTrim);
 
 std::string			ToString(float inValue);
 std::string			ToString(int inValue);
@@ -59,4 +60,8 @@ std::string			ToString(void* inValue); // For allowing pointers to be stored in 
 int					StringToInt(const std::string& inValue);
 float				StringToFloat(const std::string& inValue);
 Rgba				StringToRgba(const std::string& inValue);
+Vector2				StringToVector2(const std::string& inValue);
+Vector3				StringToVector3(const std::string& inValue);
+Vector4				StringToVector4(const std::string& inValue);
+IntVector2			StringToIntVector2(const std::string& inValue);
 IntVector3			StringToIntVector3(const std::string& inValue);

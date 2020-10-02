@@ -40,6 +40,27 @@ const int STRINGF_STACK_LOCAL_TEMP_LENGTH = 2048;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
+static void TokenizeByCommasOrSpaces(const std::string& text, std::vector<std::string>& out_tokens)
+{
+	// Prioritize commas
+	if (text.find(',') != std::string::npos)
+	{
+		Tokenize(text, ',', out_tokens);
+
+		// In case we have spaces with commas
+		for (size_t tokenIndex = 0; tokenIndex < out_tokens.size(); ++tokenIndex)
+		{
+			TrimWhitespace(out_tokens[tokenIndex]);
+		}
+	}
+	else
+	{
+		Tokenize(text, ' ', out_tokens);
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
 const std::string Stringf(const char* format, ...)
 {
 	char textLiteral[STRINGF_STACK_LOCAL_TEMP_LENGTH];
@@ -104,6 +125,19 @@ void Tokenize(const std::string& stringToTokenize, const char delimiter, std::ve
 
 	// Add the rest of the string
 	out_tokens.push_back(std::string(stringToTokenize, subStringStartIndex));
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void TrimWhitespace(std::string& stringToTrim)
+{
+	size_t firstNonSpace = stringToTrim.find_first_not_of(' ');
+
+	if (firstNonSpace != std::string::npos)
+	{
+		size_t lastNonSpace = stringToTrim.find_last_not_of(' ');
+		stringToTrim = stringToTrim.substr(firstNonSpace, lastNonSpace - firstNonSpace + 1);
+	}
 }
 
 
@@ -201,27 +235,27 @@ float StringToFloat(const std::string& inValue)
 //-------------------------------------------------------------------------------------------------
 Rgba StringToRgba(const std::string& inValue)
 {
-	// TODO: Check for ',' as a delimiter first
 	ASSERT_RETURN(inValue.size() > 0, Rgba::BLACK, "Emtpy string!");
 
-	std::vector<std::string> colorTokens;
-	Tokenize(inValue, ' ', colorTokens);
+	std::vector<std::string> tokens;
+	TokenizeByCommasOrSpaces(inValue, tokens);
 
-	ASSERT_RECOVERABLE(colorTokens.size() < 5, "Too many components for an RGBA, only using the first 4!");
+	ASSERT_RETURN(tokens.size() > 0, Rgba::WHITE, "No components!");
+	ASSERT_RECOVERABLE(tokens.size() < 5, "Too many components for an RGBA, only using the first 4!");
 
 	// Check if the string is in floats or ints
 	bool isFloats = inValue.find('.') != std::string::npos;
 
 	Rgba color;
-	for (uint32 colorIndex = 0; colorIndex < colorTokens.size(); ++colorIndex)
+	for (size_t colorIndex = 0; colorIndex < tokens.size(); ++colorIndex)
 	{
 		if (isFloats)
 		{
-			color.data[colorIndex] = NormalizedFloatToByte(StringToFloat(colorTokens[colorIndex]));
+			color.data[colorIndex] = NormalizedFloatToByte(StringToFloat(tokens[colorIndex]));
 		}
 		else
 		{
-			int colorUnclamped = StringToInt(colorTokens[colorIndex].c_str());
+			int colorUnclamped = StringToInt(tokens[colorIndex].c_str());
 			color.data[colorIndex] = static_cast<uint8>(Clamp(colorUnclamped, 0, 255));
 		}
 	}
@@ -231,23 +265,82 @@ Rgba StringToRgba(const std::string& inValue)
 
 
 //-------------------------------------------------------------------------------------------------
-IntVector3 StringToIntVector3(const std::string& inValue)
+static Vector4 StringToVectorInternal(const std::string& inValue, uint32 numComponents)
 {
-	// TODO: Check for ',' as a delimiter first
+	ASSERT_RETURN(inValue.size() > 0, Vector4::ZERO, "Emtpy string!");
+
+	std::vector<std::string> tokens;
+	TokenizeByCommasOrSpaces(inValue, tokens);
+
+	ASSERT_RETURN(tokens.size() > 0, Vector4::ZERO, "No components!");
+	ASSERT_RECOVERABLE(tokens.size() < numComponents, "Too many components, only using the first %u!", numComponents);
+
+	Vector4 returnValue(0.f);
+	for (size_t i = 0; i < tokens.size(); ++i)
+	{
+		returnValue.data[i] = StringToFloat(tokens[i].c_str());
+	}
+
+	return returnValue;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+static IntVector3 StringToIntVectorInternal(const std::string& inValue, uint32 numComponents)
+{
 	ASSERT_RETURN(inValue.size() > 0, IntVector3::ZERO, "Emtpy string!");
 
 	std::vector<std::string> tokens;
-	Tokenize(inValue, ' ', tokens);
+	TokenizeByCommasOrSpaces(inValue, tokens);
 
-	ASSERT_RECOVERABLE(tokens.size() < 4, "Too many components for an IntVector3, only using the first 3!");
+	ASSERT_RETURN(tokens.size() > 0, IntVector3::ZERO, "No components!");
+	ASSERT_RECOVERABLE(tokens.size() < numComponents, "Too many components, only using the first %u!", numComponents);
 
 	IntVector3 returnValue(0);
-	for (uint32 i = 0; i < tokens.size(); ++i)
+	for (size_t i = 0; i < tokens.size(); ++i)
 	{
 		returnValue.data[i] = StringToInt(tokens[i].c_str());
 	}
 
 	return returnValue;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector2 StringToVector2(const std::string& inValue)
+{
+	Vector4 result = StringToVectorInternal(inValue, 2U);
+	return result.xy();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector3 StringToVector3(const std::string& inValue)
+{
+	Vector4 result = StringToVectorInternal(inValue, 3U);
+	return result.xyz();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector4 StringToVector4(const std::string& inValue)
+{
+	return StringToVectorInternal(inValue, 4U);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+IntVector2 StringToIntVector2(const std::string& inValue)
+{
+	IntVector3 result = StringToIntVectorInternal(inValue, 2U);
+	return result.xy;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+IntVector3 StringToIntVector3(const std::string& inValue)
+{
+	return StringToIntVectorInternal(inValue, 3U);
 }
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

@@ -162,6 +162,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\ThirdParty\tinyxml2\tinyxml2.cpp" />
     <ClCompile Include="Event\EventSubscription.cpp" />
     <ClCompile Include="Event\EventSystem.cpp" />
     <ClCompile Include="Framework\GameObject.cpp" />
@@ -230,9 +231,13 @@
     <ClCompile Include="Utility\SpritePacker.cpp" />
     <ClCompile Include="Utility\StringID.cpp" />
     <ClCompile Include="Utility\StringUtils.cpp" />
+    <ClCompile Include="Utility\XMLUtils.cpp" />
     <ClCompile Include="Voxel\QEFLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\ThirdParty\stb\stb_image.h" />
+    <ClInclude Include="..\ThirdParty\stb\stb_image_write.h" />
+    <ClInclude Include="..\ThirdParty\tinyxml2\tinyxml2.h" />
     <ClInclude Include="Event\EventSubscription.h" />
     <ClInclude Include="Event\EventSystem.h" />
     <ClInclude Include="Framework\CommentSnippets.h" />
@@ -310,6 +315,7 @@
     <ClInclude Include="Utility\SmartPointer.h" />
     <ClInclude Include="Utility\StringID.h" />
     <ClInclude Include="Utility\StringUtils.h" />
+    <ClInclude Include="Utility\XMLUtils.h" />
     <ClInclude Include="Voxel\QEFLoader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

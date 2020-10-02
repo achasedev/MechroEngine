@@ -29,6 +29,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#pragma warning(disable : 4201) // Keep the structs anonymous so we can still do myVector.x even when x is part of a struct
 
 //-----------------------------------------------------------------------------------------------
 class Vector4
@@ -41,6 +42,7 @@ public:
 	Vector4(const Vector4& copyFrom);
 	explicit Vector4(float initialX, float initialY, float initialZ, float initialW);
 	explicit Vector4(const Vector3& xyzVector, float wValue);
+	explicit Vector4(float initialValue);
 	~Vector4() {}
 
 	const	Vector4 operator+(const Vector4& addVector) const;
@@ -82,9 +84,20 @@ public:
 public:
 	//-----Private Data-----
 
-	float x;
-	float y;
-	float z;
-	float w;
+	union
+	{
+		// Array access
+		float data[4];
 
+		// Coordinate access
+		struct
+		{
+			float x;
+			float y;
+			float z;
+			float w;
+		};
+	};
 };
+
+#pragma warning(default : 4201)
