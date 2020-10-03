@@ -41,7 +41,7 @@ Image::Image(const IntVector2& dimensions, const Rgba& color /*= Rgba::WHITE*/)
 //-------------------------------------------------------------------------------------------------
 Image::~Image()
 {
-	SAFE_FREE_POINTER(m_data);
+	SAFE_FREE(m_data);
 }
 
 

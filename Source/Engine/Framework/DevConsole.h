@@ -1,16 +1,13 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: April 20th, 2020
+/// Date Created: October 2nd, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Framework/EngineCommon.h"
-#include "Engine/Job/EngineJobs.h"
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "ThirdParty/stb/stb_image_write.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -25,40 +22,61 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// CLASS DECLARATIONS
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------
+class DevConsole
+{
+public:
+	//-----Public Methods-----
+
+	static void	Initialize();
+	static void	Shutdown();
+
+	void		ProcessKeydown(unsigned char keyCode);
+
+	void		BeginFrame();
+	void		EndFrame();
+	void		Render() const;
+
+	// Accessors
+	bool		IsActive() const { return m_isActive; }
+
+
+private:
+	//-----Private Methods-----
+
+	DevConsole() {}
+	~DevConsole() {}
+
+	void HandleTilde();
+	void HandleEnter();
+	void HandleBackSpace();
+	void HandleDelete();
+	void HandleEscape();
+	void HandleUpArrow();
+	void HandleDownArrow();
+	void HandleLeftArrow();
+	void HandleRightArrow();
+	void AddCharacterToInputBuffer(unsigned char character);
+
+
+private:
+	//-----Private Data-----
+
+	bool m_isActive = false;
+	std::string m_inputBuffer;
+
+};
+
+
+///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// CLASS IMPLEMENTATIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-
 //-------------------------------------------------------------------------------------------------
-SaveTextureJob::SaveTextureJob(int texelWidth, int texelHeight, int numComponentsPerTexel, const char* filepath, void* data)
-	: Job(true) // Auto finalizes
-	, m_texelWidth(texelWidth)
-	, m_texelHeight(texelHeight)
-	, m_numComponentsPerTexel(numComponentsPerTexel)
-	, m_destFilepath(filepath)
-	, m_data(data)
-{
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void SaveTextureJob::Execute()
-{
-	ASSERT_RETURN(m_data != nullptr, NO_RETURN_VAL, "Save texture job received null data!");
-	stbi_write_png(m_destFilepath.c_str(), m_texelWidth, m_texelHeight, m_numComponentsPerTexel, m_data, 0);
-
-	// Free the buffer
-	SAFE_FREE(m_data);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void SaveTextureJob::Finalize()
-{
-	// Nothing 
-	int x = 0;
-	x = 5;
-}
+void ConsolePrintf(const Rgba &color, char const *format, ...);
+void ConsolePrintf(char const *format, ...);
+void ConsoleWarningf(char const *format, ...); // Orange Font
+void ConsoleErrorf(char const *format, ...); // Red Font

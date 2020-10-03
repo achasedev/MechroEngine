@@ -115,7 +115,7 @@ public:
 	
 		out_mesh.SetDrawInstruction(m_instruction);
 	
-		SAFE_FREE_POINTER(temp);
+		SAFE_FREE(temp);
 	}
 
 

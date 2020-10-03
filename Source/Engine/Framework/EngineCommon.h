@@ -18,8 +18,8 @@
 #define UNUSED(x) (void)(x);
 #define INLINE
 #define STATIC
-#define SAFE_DELETE_POINTER(p)  if (p != nullptr) { delete p; p = nullptr; }
-#define SAFE_FREE_POINTER(p)  if (p != nullptr) { free(p); p = nullptr; }
+#define SAFE_DELETE(p)  if (p != nullptr) { delete p; p = nullptr; }
+#define SAFE_FREE(p)  if (p != nullptr) { free(p); p = nullptr; }
 #define BIT_FLAG(x) (1 << x)
 #define _QUOTE(x) # x
 #define QUOTE(x) _QUOTE(x)
@@ -56,6 +56,7 @@ typedef short int16;
 typedef long long int64;
 
 class DebugSIDSystem;
+class DevConsole;
 class EventSystem;
 class FontLoader;
 class InputSystem;
@@ -67,8 +68,9 @@ class Window;
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 extern DebugSIDSystem*	g_debugSIDSystem;
+extern DevConsole*		g_devConsole;
 extern EventSystem*		g_eventSystem;
-extern FontLoader*	g_FontLoader;
+extern FontLoader*		g_FontLoader;
 extern InputSystem*		g_inputSystem;
 extern JobSystem*		g_jobSystem;
 extern RenderContext*	g_renderContext;

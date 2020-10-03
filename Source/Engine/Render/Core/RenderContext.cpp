@@ -86,7 +86,7 @@ void RenderContext::Shutdown()
 {
 	g_eventSystem->UnsubscribeEventCallbackObjectMethod("window-resize", &RenderContext::Event_WindowResize, *g_renderContext);
 
-	SAFE_DELETE_POINTER(g_renderContext);
+	SAFE_DELETE(g_renderContext);
 }
 
 
@@ -619,11 +619,11 @@ void RenderContext::UpdateInputLayout(const VertexLayout* vertexLayout)
 //-------------------------------------------------------------------------------------------------
 RenderContext::~RenderContext()
 {
-	SAFE_DELETE_POINTER(m_samplers[SAMPLER_MODE_POINT]);
-	SAFE_DELETE_POINTER(m_samplers[SAMPLER_MODE_LINEAR]);
+	SAFE_DELETE(m_samplers[SAMPLER_MODE_POINT]);
+	SAFE_DELETE(m_samplers[SAMPLER_MODE_LINEAR]);
 
-	SAFE_DELETE_POINTER(m_defaultColorTarget);
-	SAFE_DELETE_POINTER(m_defaultDepthStencilTarget);
+	SAFE_DELETE(m_defaultColorTarget);
+	SAFE_DELETE(m_defaultDepthStencilTarget);
 
 	// Shutdown DirectX
 	// DX11 cannot shutdown in full screen

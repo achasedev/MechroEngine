@@ -62,7 +62,7 @@ void JobSystem::Initialize()
 //-------------------------------------------------------------------------------------------------
 void JobSystem::Shutdown()
 {
-	SAFE_DELETE_POINTER(g_jobSystem);
+	SAFE_DELETE(g_jobSystem);
 }
 
 

@@ -112,7 +112,7 @@ void NamedProperties::Set(const StringID& name, const T& value)
 		ASSERT_RECOVERABLE(existingProperty->GetTypeID() == TypedProperty<T>::GetTypeIDStatic(), "Named property is being reset with a different type!");
 
 		// Free the old value
-		SAFE_DELETE_POINTER(existingProperty);
+		SAFE_DELETE(existingProperty);
 	}
 
 	TypedProperty<T>* tp = new TypedProperty<T>();

@@ -56,7 +56,7 @@ void DebugSIDSystem::Initialize()
 //-------------------------------------------------------------------------------------------------
 void DebugSIDSystem::Shutdown()
 {
-	SAFE_DELETE_POINTER(g_debugSIDSystem);
+	SAFE_DELETE(g_debugSIDSystem);
 }
 
 

@@ -276,7 +276,7 @@ bool Shader::CreateInputLayoutForVertexLayout(const VertexLayout* vertexLayout)
 			m_shaderInputLayout.m_vertexLayoutUsed = nullptr;
 		}
 
-		SAFE_FREE_POINTER(desc);
+		SAFE_FREE(desc);
 	}
 
 	return createdNewLayout;

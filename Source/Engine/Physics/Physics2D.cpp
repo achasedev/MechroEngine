@@ -72,7 +72,7 @@ void PhysicsScene2D::RemoveGameObject(GameObject* gameObject)
 		{
 			m_bodies.erase(m_bodies.begin() + i);
 
-			SAFE_DELETE_POINTER(currBody);
+			SAFE_DELETE(currBody);
 			gameObject->SetRigidBody2D(nullptr);
 			return;
 		}

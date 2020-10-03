@@ -139,7 +139,7 @@ uint8* Create2DCoverMap(const IntVector3& startVoxelCoords, LayerDirection direc
 	// Optimization - if there's literally nothing visible here, then just move on
 	if (!visibleFound)
 	{
-		SAFE_FREE_POINTER(coverMap);
+		SAFE_FREE(coverMap);
 		return nullptr;
 	}
 
@@ -321,7 +321,7 @@ void PushQuadsForLayer(const IntVector3& startVoxelCoords, LayerDirection direct
 		}
 	}
 
-	SAFE_FREE_POINTER(coverMap);
+	SAFE_FREE(coverMap);
 }
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -500,9 +500,9 @@ Mesh* QEFLoader::CreateMesh()
 		PushQuadsForLayer(IntVector3(0, 0, i), LAYER_BACK, visibilityMasks, colors, colorIndices, dimensions, mb);
 	}
 
-	SAFE_FREE_POINTER(colors);
-	SAFE_FREE_POINTER(colorIndices);
-	SAFE_FREE_POINTER(visibilityMasks);
+	SAFE_FREE(colors);
+	SAFE_FREE(colorIndices);
+	SAFE_FREE(visibilityMasks);
 
 	mb.FinishBuilding();
 	Mesh* mesh = mb.CreateMesh<Vertex3D_PCU>();
@@ -515,5 +515,5 @@ Mesh* QEFLoader::CreateMesh()
 //-------------------------------------------------------------------------------------------------
 void QEFLoader::Clear()
 {
-	SAFE_DELETE_POINTER(m_file);
+	SAFE_DELETE(m_file);
 }

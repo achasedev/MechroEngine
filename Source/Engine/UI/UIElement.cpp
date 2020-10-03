@@ -45,7 +45,7 @@ UIElement::~UIElement()
 	uint32 numChildren = (uint32)m_children.size();
 	for (uint32 childIndex = 0; childIndex < numChildren; ++childIndex)
 	{
-		SAFE_DELETE_POINTER(m_children[childIndex]);
+		SAFE_DELETE(m_children[childIndex]);
 	}
 
 	m_children.clear();

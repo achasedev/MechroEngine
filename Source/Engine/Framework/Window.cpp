@@ -38,7 +38,7 @@ Window* g_window = nullptr;
 LRESULT CALLBACK WindowsMessageHandlingProcedure(HWND windowHandle, UINT wmMessageCode, WPARAM wParam, LPARAM lParam)
 {
 	//  Give the custom handlers a chance to run first; 
-	if (!g_window)
+	if (g_window == nullptr)
 		return DefWindowProc(windowHandle, wmMessageCode, wParam, lParam);
 
 	const std::vector<WindowsMessageHandler>& handlers = g_window->GetHandlers();
@@ -207,7 +207,7 @@ void Window::Initialize(float aspect, const char* windowTitle)
 //-------------------------------------------------------------------------------------------------
 void Window::Shutdown()
 {
-	SAFE_DELETE_POINTER(g_window);
+	SAFE_DELETE(g_window);
 }
 
 

@@ -1,32 +1,15 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: April 14th, 2020
+/// Date Created: October 2nd, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Framework/EngineCommon.h"
-#include "Engine/Render/Font/Font.h" 
-#include "Engine/Render/Font/FontLoader.h"
-#include "ThirdParty/freetype/include/ft2build.h"   
-#include FT_FREETYPE_H
-
-#if defined(_WIN64)
-#if defined(_DEBUG)
-#pragma comment(lib, "ThirdParty/freetype/freetype_x64_Debug.lib")  
-#else
-#pragma comment(lib, "ThirdParty/freetype/freetype_x64_Release.lib") 
-#endif
-#else
-#if defined (_DEBUG)
-#pragma comment(lib, "ThirdParty/freetype/freetype_win32_Debug.lib")
-#else
-#pragma comment(lib, "ThirdParty/freetype/freetype_win32_Release.lib")
-#endif
-#endif
-
+#include "Engine/Utility/LockJanitor.h"
+#include ""
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -38,70 +21,69 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-static FT_Library s_library;
-FontLoader* g_FontLoader = nullptr;
+
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// CLASS DECLARATIONS
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------
+template <typename T>
+class ThreadSafeQueue
+{
+public:
+	//-----Public Methods-----
+
+	void Enqueue(const T& value);
+	bool Dequeue(T& out_value);
+	bool IsEmpty();
+
+
+private:
+	//-----Private Data-----
+
+	std::mutex m_lock;
+	std::queue<T> m_queue;
+
+};
+
+
+//-------------------------------------------------------------------------------------------------
+template <typename T>
+void ThreadSafeQueue<T>::Enqueue(const T& value)
+{
+	LOCK_JANITOR(m_lock);
+	m_queue.push(value);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+template <typename T>
+bool ThreadSafeQueue<T>::Dequeue(T& out_value)
+{
+	LOCK_JANITOR(m_lock);
+	bool hasItem = (m_queue.size() != 0);
+
+	if (hasItem)
+	{
+		out_value = m_queue.front();
+		m_queue.pop();
+	}
+
+	return hasItem;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+template <typename T>
+bool ThreadSafeQueue<T>::IsEmpty()
+{
+	LOCK_JANITOR(m_lock);
+	bool isEmpty = m_queue.empty();
+
+	return isEmpty;
+}
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// CLASS IMPLEMENTATIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------------------------------
-void FontLoader::Initialize()
-{
-	g_FontLoader = new FontLoader();
-
-	// Initialize the FT library
-	FT_Error error = FT_Init_FreeType(&s_library);
-	ASSERT_RECOVERABLE(!error, "Couldn't initialize FreeType library!");
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void FontLoader::Shutdown()
-{
-	FT_Done_FreeType(s_library);
-	SAFE_DELETE(g_FontLoader);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-Font* FontLoader::LoadFont(const char* sourceFilepath, uint32 faceIndex)
-{
-	FT_Face face;
-	FT_Error error = FT_New_Face(s_library, sourceFilepath, faceIndex, &face);
-
-	if (error == FT_Err_Unknown_File_Format)
-	{
-		ERROR_AND_DIE("Unsupported font format for file %s", sourceFilepath);
-	}
-	else if (error)
-	{
-		ERROR_AND_DIE("Couldn't load font file %s", sourceFilepath);
-	}
-
-	Font* fontFace = new Font();
-	fontFace->m_ftFace = (void*)face;
-	fontFace->m_sourceFilepath = sourceFilepath;
-
-	m_fontFaces[SID(sourceFilepath)] = fontFace;
-
-	return fontFace;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-FontLoader::~FontLoader()
-{
-	std::map<StringID, Font*>::iterator itr = m_fontFaces.begin();
-
-	for (itr; itr != m_fontFaces.end(); itr++)
-	{
-		SAFE_DELETE(itr->second);
-	}
-
-	m_fontFaces.clear();
-}

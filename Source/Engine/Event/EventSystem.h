@@ -94,7 +94,7 @@ void EventSystem::UnsubscribeEventCallbackObjectMethod(const char* eventName, T_
 			if (currSub->m_methodCallback == callback && &currSub->m_object == &object) // currSub is the one for the given object and callback
 			{
 				subsToEvent.erase(subsToEvent.begin() + subIndex);
-				SAFE_DELETE_POINTER(currSub);
+				SAFE_DELETE(currSub);
 
 				break;
 			}

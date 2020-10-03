@@ -51,8 +51,8 @@ UIText::UIText(Canvas* canvas)
 //-------------------------------------------------------------------------------------------------
 UIText::~UIText()
 {
-	SAFE_DELETE_POINTER(m_material);
-	SAFE_DELETE_POINTER(m_mesh);
+	SAFE_DELETE(m_material);
+	SAFE_DELETE(m_mesh);
 }
 
 

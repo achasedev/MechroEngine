@@ -82,16 +82,16 @@ Camera::~Camera()
 {
 	g_eventSystem->SubscribeEventCallbackObjectMethod("window-resize", &Camera::Event_WindowResize, *this);
 
-	SAFE_DELETE_POINTER(m_cameraUBO);
+	SAFE_DELETE(m_cameraUBO);
 
 	if (m_ownsRenderTarget)
 	{
-		SAFE_DELETE_POINTER(m_renderTarget);
+		SAFE_DELETE(m_renderTarget);
 	}
 
 	if (m_ownsDepthTarget)
 	{
-		SAFE_DELETE_POINTER(m_depthTarget);
+		SAFE_DELETE(m_depthTarget);
 	}
 }
 
@@ -101,7 +101,7 @@ void Camera::SetRenderTarget(Texture2D* renderTarget, bool ownsTarget)
 {
 	if (m_ownsRenderTarget)
 	{
-		SAFE_DELETE_POINTER(m_renderTarget);
+		SAFE_DELETE(m_renderTarget);
 	}
 
 	m_renderTarget = renderTarget;
@@ -114,7 +114,7 @@ void Camera::SetDepthTarget(Texture2D* depthTarget, bool ownsTarget)
 {
 	if (m_ownsDepthTarget)
 	{
-		SAFE_DELETE_POINTER(m_depthTarget);
+		SAFE_DELETE(m_depthTarget);
 	}
 
 	m_depthTarget = depthTarget;

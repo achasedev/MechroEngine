@@ -133,15 +133,15 @@ void InputSystem::Initialize()
 //-------------------------------------------------------------------------------------------------
 void InputSystem::Shutdown()
 {
-	SAFE_DELETE_POINTER(g_inputSystem);
+	SAFE_DELETE(g_inputSystem);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void InputSystem::BeginFrame()
 {
+	// Can be run independent of RunMessagePump() (before or after)
 	m_mouse.BeginFrame();
-	ResetJustKeyStates();
 	UpdateJoypads();
 }
 
@@ -149,6 +149,8 @@ void InputSystem::BeginFrame()
 //-------------------------------------------------------------------------------------------------
 void InputSystem::EndFrame()
 {
+	// Reset here we're ready for RunMessagePump() at the top of next frame
+	ResetJustKeyStates();
 }
 
 

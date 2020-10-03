@@ -80,7 +80,7 @@ EventSystem::~EventSystem()
 
 		for (uint32 subIndex = 0; subIndex < numSubs; ++subIndex)
 		{
-			SAFE_DELETE_POINTER(subsToEvent[subIndex]);
+			SAFE_DELETE(subsToEvent[subIndex]);
 		}
 
 		subsToEvent.clear();
@@ -100,7 +100,7 @@ void EventSystem::Initialize()
 //-------------------------------------------------------------------------------------------------
 void EventSystem::Shutdown()
 {
-	SAFE_DELETE_POINTER(g_eventSystem);
+	SAFE_DELETE(g_eventSystem);
 }
 
 
@@ -130,7 +130,7 @@ void EventSystem::UnsubscribeEventCallbackFunction(const char* eventName, EventF
 			if (currSub->m_functionCallback == callback) // currSub is the one for the given callback
 			{
 				subsToEvent.erase(subsToEvent.begin() + subIndex);
-				SAFE_DELETE_POINTER(currSub);
+				SAFE_DELETE(currSub);
 
 				break;
 			}

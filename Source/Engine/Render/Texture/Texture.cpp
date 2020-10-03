@@ -219,7 +219,7 @@ void Texture::Clear()
 	uint32 numViews = (uint32) m_views.size();
 	for (uint32 viewIndex = 0; viewIndex < numViews; ++viewIndex)
 	{
-		SAFE_DELETE_POINTER(m_views[viewIndex]);
+		SAFE_DELETE(m_views[viewIndex]);
 	}
 
 	m_views.clear();

@@ -217,8 +217,8 @@ void SmartPointer<T>::Release()
 	int count = m_refCount->Release();
 	if (count == 0)
 	{
-		SAFE_DELETE_POINTER(m_pointer);
-		SAFE_DELETE_POINTER(m_refCount);
+		SAFE_DELETE(m_pointer);
+		SAFE_DELETE(m_refCount);
 	}
 }
 
