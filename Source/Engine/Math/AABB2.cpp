@@ -24,6 +24,7 @@
 const AABB2 AABB2::NEGATIVE_ONE_TO_ONE = AABB2(Vector2(-1.f, -1.f), Vector2(1.f, 1.f));
 const AABB2 AABB2::NEGATIVE_HALF_TO_HALF = AABB2(Vector2(-0.5f, -0.5f), Vector2(0.5f, 0.5f));
 const AABB2 AABB2::ZERO_TO_ONE = AABB2(Vector2(0.f, 0.f), Vector2(1.f, 1.f));
+const AABB2 AABB2::ZEROS = AABB2(Vector2::ZERO, Vector2::ZERO);
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS

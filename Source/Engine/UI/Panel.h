@@ -17,7 +17,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Renderable;
+class Material;
+class Mesh;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -33,17 +34,15 @@ class Panel : public UIElement
 public:
 	//-----Public Methods-----
 
-	Panel(Canvas* canvas);
-
-	virtual void	Render() override;
-
-	void			SetRenderable(Renderable* renderable) { m_renderable = renderable; }
+	Panel(Canvas* canvas, Material* material);
+	virtual void Render() override;
 
 
 private:
 	//-----Private Data-----
 
-	Renderable* m_renderable = nullptr;
+	Mesh*		m_mesh = nullptr;
+	Material*	m_material = nullptr;
 
 };
 

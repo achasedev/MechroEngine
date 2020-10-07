@@ -16,6 +16,7 @@
 #include "Engine/Render/Texture/Texture2D.h"
 #include "Engine/UI/Canvas.h"
 #include "Engine/UI/UIText.h"
+#include "Engine/Utility/XMLUtils.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -77,7 +78,7 @@ void UIText::Render()
 		static bool save = false;
 		if (!save)
 		{
-			g_renderContext->SaveTextureToImage(m_font->GetFontAtlasForPixelHeight(m_glyphPixelHeight)->GetTexture(), "Data/Fonts/test.png");
+			g_renderContext->SaveTextureToImage(m_font->GetFontAtlasForPixelHeight(m_glyphPixelHeight)->GetTexture(), "Data/Font/testwhattheheck.png");
 			save = true;
 		}
 	}
@@ -100,6 +101,17 @@ void UIText::SetFont(Font* font, Shader* shader)
 {
 	m_font = font;
 	m_material->SetShader(shader);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void UIText::InitializeFromXML(const XMLElement& element)
+{
+	UIElement::InitializeFromXML(element);
+	
+	// Font size
+
+	// Font name
 }
 
 

@@ -21,6 +21,7 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Canvas;
+class XMLElement;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -39,14 +40,15 @@ public:
 	UIElement(Canvas* canvas);
 	virtual ~UIElement();
 
-	virtual void Render();
+	virtual void	Render();
 
-	void AddChild(UIElement* child);
-	void SetCanvas(Canvas* canvas);
+	void			AddChild(UIElement* child);
+	void			SetCanvas(Canvas* canvas);
+	virtual void	InitializeFromXML(const XMLElement& element);
 
-	OBB2		CalculateFinalBounds() const;
-	Matrix44	CalculateModelMatrix() const;
-	Matrix44	CalculateModelMatrix(const OBB2& finalBounds) const;
+	OBB2			CalculateFinalBounds() const;
+	Matrix44		CalculateModelMatrix() const;
+	Matrix44		CalculateModelMatrix(const OBB2& finalBounds) const;
 
 
 public:

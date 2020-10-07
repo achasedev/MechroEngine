@@ -34,6 +34,10 @@
 Material::Material(const char* name)
 	: m_name(name)
 {
+	for (int viewIndex = 0; viewIndex < MAX_SRV_SLOTS; ++viewIndex)
+	{
+		m_shaderResourceViews[viewIndex] = nullptr;
+	}
 }
 
 
@@ -42,6 +46,11 @@ Material::Material(const char* name, Shader* shader, ShaderResourceView* albedo)
 	: m_name(name)
 	, m_shader(shader)
 {
+	for (int viewIndex = 0; viewIndex < MAX_SRV_SLOTS; ++viewIndex)
+	{
+		m_shaderResourceViews[viewIndex] = nullptr;
+	}
+
 	m_shaderResourceViews[SRV_SLOT_ALBEDO] = albedo;
 }
 

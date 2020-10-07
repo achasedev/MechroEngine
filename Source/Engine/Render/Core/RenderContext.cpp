@@ -85,7 +85,6 @@ void RenderContext::Initialize()
 void RenderContext::Shutdown()
 {
 	g_eventSystem->UnsubscribeEventCallbackObjectMethod("window-resize", &RenderContext::Event_WindowResize, *g_renderContext);
-
 	SAFE_DELETE(g_renderContext);
 }
 

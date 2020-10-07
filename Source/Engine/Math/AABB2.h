@@ -72,6 +72,7 @@ public:
 	static const AABB2 NEGATIVE_ONE_TO_ONE;
 	static const AABB2 NEGATIVE_HALF_TO_HALF;
 	static const AABB2 ZERO_TO_ONE;
+	static const AABB2 ZEROS;
 
 
 public:

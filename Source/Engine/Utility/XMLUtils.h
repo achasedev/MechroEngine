@@ -55,4 +55,5 @@ namespace XML
 	AABB2			ParseAttribute(const XMLElement& element, const char* attributeName, const AABB2& defaultValue);
 	std::string		ParseAttribute(const XMLElement& element, const char* attributeName, const std::string& defaultValue);
 	std::string		ParseAttribute(const XMLElement& element, const char* attributeName, const char* defaultValue = nullptr);
+	bool			DoesAttributeExist(const XMLElement& element, const char* attributeName);
 }

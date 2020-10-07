@@ -46,12 +46,14 @@ public:
 	std::string			GetSourceFile() const { return m_sourceFilepath; }
 	FontAtlas*			GetFontAtlasForPixelHeight(uint32 pixelHeight);
 
+	int					GetKerningInPixels(uint32 pixelHeight, const char firstGlyph, const char secondGlyph) const;
+
 
 private:
 	//-----Private Data-----
 
 	void*							m_ftFace = nullptr;
-	uint32							m_pixelHeight = 0;
+	bool							m_hasKerning = false;
 	std::string						m_sourceFilepath;
 	std::map<uint32, FontAtlas*>	m_atlasRegistry;
 

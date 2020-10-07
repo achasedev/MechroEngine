@@ -8,6 +8,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
+#include "Engine/Math/MathUtils.h"
 #include "Engine/Math/OBB2.h"
 #include "Engine/UI/Canvas.h"
 #include "Engine/UI/RectTransform.h"
@@ -190,8 +191,11 @@ void RectTransform::SetHeight(float height)
 //-------------------------------------------------------------------------------------------------
 void RectTransform::SetDimensions(const Vector2& dimensions)
 {
-	SetWidth(dimensions.x);
-	SetHeight(dimensions.y);
+	ASSERT_RECOVERABLE(dimensions.x >= 0.f, "Negative dimension!");
+	ASSERT_RECOVERABLE(dimensions.y >= 0.f, "Negative dimension!");
+
+	SetWidth(Max(dimensions.x, 0.f));
+	SetHeight(Max(dimensions.y, 0.f));
 }
 
 
@@ -416,4 +420,29 @@ void RectTransform::UpdateAnchorMode()
 			m_anchorMode = AnchorMode::X_PADDING_Y_PADDING;
 		}
 	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+AnchorPreset StringToAnchorPreset(const std::string& text)
+{
+	if (text == "top_left")			{ return AnchorPreset::TOP_LEFT; }
+	if (text == "top_center")		{ return AnchorPreset::TOP_CENTER; }
+	if (text == "top_right")		{ return AnchorPreset::TOP_RIGHT; }
+	if (text == "middle_left")		{ return AnchorPreset::MIDDLE_LEFT; }
+	if (text == "middle_center")	{ return AnchorPreset::MIDDLE_CENTER; }
+	if (text == "middle_right")		{ return AnchorPreset::MIDDLE_RIGHT; }
+	if (text == "bottom_left")		{ return AnchorPreset::BOTTOM_LEFT; }
+	if (text == "bottom_center")	{ return AnchorPreset::BOTTOM_CENTER; }
+	if (text == "bottom_right")		{ return AnchorPreset::BOTTOM_RIGHT; }
+	if (text == "left_stretch")		{ return AnchorPreset::LEFT_STRETCH; }
+	if (text == "center_stretch")	{ return AnchorPreset::CENTER_STRETCH; }
+	if (text == "right_stretch")	{ return AnchorPreset::RIGHT_STRETCH; }
+	if (text == "top_stretch")		{ return AnchorPreset::TOP_STRETCH; }
+	if (text == "middle_stretch")	{ return AnchorPreset::MIDDLE_STRETCH; }
+	if (text == "bottom_stretch")	{ return AnchorPreset::BOTTOM_STRETCH; }
+	if (text == "stretch_all")		{ return AnchorPreset::STRETCH_ALL; }
+	
+	ERROR_RECOVERABLE("Unable to convert text to AnchorPreset! Defaulting to bottom_right...");
+	return AnchorPreset::BOTTOM_RIGHT;
 }

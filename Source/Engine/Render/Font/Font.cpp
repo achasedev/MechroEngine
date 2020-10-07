@@ -105,3 +105,25 @@ FontAtlas* Font::GetFontAtlasForPixelHeight(uint32 pixelHeight)
 
 	return nullptr;
 }
+
+
+//-------------------------------------------------------------------------------------------------
+int Font::GetKerningInPixels(uint32 pixelHeight, const char firstGlyph, const char secondGlyph) const
+{
+	if (!m_hasKerning)
+	{
+		return 0U;
+	}
+
+	FT_Face face = (FT_Face)m_ftFace;
+	FT_Set_Pixel_Sizes(face, 0, pixelHeight);
+
+	int firstGlyphIndex = FT_Get_Char_Index(face, firstGlyph);
+	int secondGlyphIndex = FT_Get_Char_Index(face, secondGlyph);
+
+	FT_Vector  kerning;
+	FT_Get_Kerning(face, firstGlyphIndex, secondGlyphIndex, FT_KERNING_DEFAULT, &kerning);
+
+	// Only doing horizontal kerning
+	return RoundToNearestInt((1.f / 64.f) * static_cast<float>(kerning.x));
+}

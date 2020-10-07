@@ -192,6 +192,7 @@ Window::Window(float aspect, const char* windowTitle)
 //-------------------------------------------------------------------------------------------------
 Window::~Window()
 {
+	ASSERT_RECOVERABLE(m_messageHandlers.size() == 0, "Not all windows message handlers were unsubscribed!");
 	m_messageHandlers.clear();
 }
 
@@ -207,6 +208,7 @@ void Window::Initialize(float aspect, const char* windowTitle)
 //-------------------------------------------------------------------------------------------------
 void Window::Shutdown()
 {
+	g_window->UnregisterMessageHandler(WindowMessageHandler);
 	SAFE_DELETE(g_window);
 }
 

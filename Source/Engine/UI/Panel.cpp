@@ -33,9 +33,17 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-Panel::Panel(Canvas* canvas)
+Panel::Panel(Canvas* canvas, Material* material)
 	: UIElement(canvas)
+	, m_material(material)
 {
+	// Build a simple square mesh
+	MeshBuilder mb;
+	mb.BeginBuilding(true);
+	mb.PushQuad2D(AABB2::ZERO_TO_ONE);
+	mb.FinishBuilding();
+
+	m_mesh = mb.CreateMesh<Vertex3D_PCU>();
 }
 
 
@@ -43,9 +51,11 @@ Panel::Panel(Canvas* canvas)
 void Panel::Render()
 {
 	Matrix44 modelMatrix = CalculateModelMatrix();
-	m_renderable->SetRenderableMatrix(modelMatrix);
 
-	g_renderContext->DrawRenderable(*m_renderable);
+	Renderable rend;
+	rend.SetRenderableMatrix(modelMatrix);
+	rend.AddDraw(m_mesh, m_material);
+	g_renderContext->DrawRenderable(rend);
 
 	UIElement::Render();
 }

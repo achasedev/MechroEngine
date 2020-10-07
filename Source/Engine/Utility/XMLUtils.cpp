@@ -41,6 +41,13 @@ int XML::ParseAttribute(const XMLElement& element, const char* attributeName, in
 
 
 //-------------------------------------------------------------------------------------------------
+bool XML::DoesAttributeExist(const XMLElement& element, const char* attributeName)
+{
+	return (element.Attribute(attributeName) != nullptr);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 char XML::ParseAttribute(const XMLElement& element, const char* attributeName, char defaultValue)
 {
 	const char* attributeText = element.Attribute(attributeName);

@@ -49,6 +49,7 @@ StringID HashString(const char* str)
 //-------------------------------------------------------------------------------------------------
 void DebugSIDSystem::Initialize()
 {
+	ASSERT_OR_DIE(g_debugSIDSystem == nullptr, "DebugSIDSystem being reinitialized!");
 	g_debugSIDSystem = new DebugSIDSystem();
 }
 

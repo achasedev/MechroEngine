@@ -86,7 +86,7 @@ void Polygon2D::Clear()
 //-------------------------------------------------------------------------------------------------
 Vector2 Polygon2D::GetVertexAtIndex(int index) const
 {
-	ASSERT_OR_DIE(index >= 0 && index < m_vertices.size(), "Index out of bounds!");
+	ASSERT_OR_DIE(index >= 0 && index < (int)m_vertices.size(), "Index out of bounds!");
 
 	return m_vertices[index];
 }
@@ -127,7 +127,7 @@ int Polygon2D::GetFarthestVertexInDirection(const Vector2& direction, Vector2& o
 	float maxDot = -1.f;
 	int bestIndex = -1;
 
-	for (int vertexIndex = 0; vertexIndex < m_vertices.size(); ++vertexIndex)
+	for (int vertexIndex = 0; vertexIndex < (int)m_vertices.size(); ++vertexIndex)
 	{
 		// Treat the vertex position as a vector from 0,0
 		const Vector2& currVector = m_vertices[vertexIndex];
@@ -166,8 +166,9 @@ Vector2 Polygon2D::GetCenter() const
 //-------------------------------------------------------------------------------------------------
 int Polygon2D::GetPreviousValidIndex(int index) const
 {
-	ASSERT_OR_DIE(index >= 0 && index < m_vertices.size(), "Bad index!");
-	int prevIndex = (index == 0 ? (int)m_vertices.size() - 1 : index - 1);
+	int numVertices = (int)m_vertices.size();
+	ASSERT_OR_DIE(index >= 0 && index < numVertices, "Bad index!");
+	int prevIndex = (index == 0 ? numVertices - 1 : index - 1);
 
 	return prevIndex;
 }
@@ -176,8 +177,9 @@ int Polygon2D::GetPreviousValidIndex(int index) const
 //-------------------------------------------------------------------------------------------------
 int Polygon2D::GetNextValidIndex(int index) const
 {
-	ASSERT_OR_DIE(index >= 0 && index < m_vertices.size(), "Bad index!");
-	int nextIndex = (index == m_vertices.size() - 1 ? 0 : index + 1);
+	int numVertices = (int)m_vertices.size();
+	ASSERT_OR_DIE(index >= 0 && index < numVertices, "Bad index!");
+	int nextIndex = (index == numVertices - 1 ? 0 : index + 1);
 
 	return nextIndex;
 }

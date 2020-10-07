@@ -56,6 +56,7 @@ public:
 	void				SetResolution(float height, float width);
 
 	Texture2D*			GetOutputTexture() const;
+	Vector2				GetResolution() const { return m_resolution; }
 
 	float				GetAspect() const;
 	Vector2				GetPixelsPerUnit() const;

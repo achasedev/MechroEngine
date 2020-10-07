@@ -19,6 +19,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Font;
 class OBB2;
+class XMLElement;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -40,6 +41,7 @@ public:
 	virtual void	Render() override;
 	void			SetText(const std::string& text, const Rgba& color = Rgba::WHITE);
 	void			SetFont(Font* font, Shader* shader);
+	virtual void	InitializeFromXML(const XMLElement& element) override;
 
 
 private:

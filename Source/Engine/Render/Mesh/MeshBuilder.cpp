@@ -192,10 +192,11 @@ void MeshBuilder::PushText(const char* text, uint32 pixelHeight, Font* font, con
 		char currChar = text[charIndex];
 
 		GlyphInfo info = atlas->CreateOrGetGlyphInfo(currChar);
+		int pixelKerning = (charIndex > 0 ? font->GetKerningInPixels(pixelHeight, text[charIndex - 1], currChar) : 0);
 
 		// Calculate the starting position for the glyph
 		Vector2 startOffset;
-		startOffset.x = ConvertPixelOffsetToNormalizedOffset(info.m_pixelLeftSideBearing, canvasUnitsPerPixel.x, textBoundsWidth);
+		startOffset.x = ConvertPixelOffsetToNormalizedOffset(info.m_pixelLeftSideBearing + pixelKerning, canvasUnitsPerPixel.x, textBoundsWidth);
 		startOffset.y = -1.0f * ConvertPixelOffsetToNormalizedOffset(info.m_pixelBottomSideBearing, canvasUnitsPerPixel.y, textBoundsHeight);
 
 		AABB2 glyphBounds;

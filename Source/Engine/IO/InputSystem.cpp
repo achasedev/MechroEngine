@@ -125,7 +125,6 @@ void InputSystem::Initialize()
 {
 	ASSERT_OR_DIE(g_inputSystem == nullptr, "Initializing InputSystem twice!");
 	g_inputSystem = new InputSystem();
-
 	g_window->RegisterMessageHandler(InputMessageHandler);
 }
 
@@ -133,6 +132,7 @@ void InputSystem::Initialize()
 //-------------------------------------------------------------------------------------------------
 void InputSystem::Shutdown()
 {
+	g_window->UnregisterMessageHandler(InputMessageHandler);
 	SAFE_DELETE(g_inputSystem);
 }
 

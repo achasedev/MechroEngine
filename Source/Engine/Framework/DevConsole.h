@@ -16,6 +16,9 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class Canvas;
+class Panel;
+class UIText;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -34,6 +37,9 @@ public:
 	static void	Initialize();
 	static void	Shutdown();
 
+	// These need to be separate functions as some keys share keycodes and are only differentiated 
+	// by the messages WM_CHAR or WM_KEYDOWN codes
+	void		ProcessCharacter(unsigned char keyCode);
 	void		ProcessKeydown(unsigned char keyCode);
 
 	void		BeginFrame();
@@ -47,8 +53,8 @@ public:
 private:
 	//-----Private Methods-----
 
-	DevConsole() {}
-	~DevConsole() {}
+	DevConsole();
+	~DevConsole();
 
 	void HandleTilde();
 	void HandleEnter();
@@ -66,7 +72,15 @@ private:
 	//-----Private Data-----
 
 	bool m_isActive = false;
+
 	std::string m_inputBuffer;
+	int			m_cursorPosition = 0;
+
+	// Rendering
+	Canvas* m_canvas = nullptr;
+	Panel* m_backPanel = nullptr;
+	Panel* m_inputPanel = nullptr;
+	UIText* m_inputFieldText = nullptr;
 
 };
 
