@@ -353,7 +353,7 @@ void Shader::UpdateRasterizerState()
 
 		ASSERT_RETURN(SUCCEEDED(hr), NO_RETURN_VAL, "Couldn't create rasterizer state!");
 
-		m_blendStateDirty = false;
+		m_rasterizerStateDirty = false;
 	}
 }
 

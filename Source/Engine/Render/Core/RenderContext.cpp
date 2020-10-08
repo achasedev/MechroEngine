@@ -199,6 +199,7 @@ void RenderContext::BindUniformBuffer(uint32 slot, UniformBuffer* ubo)
 void RenderContext::BindMaterial(Material* material)
 {
 	ASSERT_OR_DIE(material != nullptr, "No material defaults set up yet!");
+	ASSERT_OR_DIE(material->GetShaderResourceView(SRV_SLOT_ALBEDO) != nullptr, "No Albedo on material!");
 
 	// Bind Texture + Sampler
 	BindShaderResourceView(SRV_SLOT_ALBEDO, material->GetShaderResourceView(SRV_SLOT_ALBEDO));
@@ -211,6 +212,8 @@ void RenderContext::BindMaterial(Material* material)
 //-------------------------------------------------------------------------------------------------
 void RenderContext::BindShader(Shader* shader)
 {
+	ASSERT_OR_DIE(shader != nullptr, "Shader was nullptr when being bound!");
+
 	if (m_currentShader != shader)
 	{
 		m_dxContext->VSSetShader(shader->GetVertexStage(), 0, 0);

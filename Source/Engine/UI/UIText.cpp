@@ -91,6 +91,7 @@ void UIText::SetText(const std::string& text, const Rgba& color /*= Rgba::WHITE*
 void UIText::SetFont(Font* font)
 {
 	m_font = font;
+	m_isDirty = true;
 }
 
 
@@ -137,7 +138,6 @@ void UIText::UpdateMeshAndMaterial(const OBB2& finalBounds)
 	if (m_isDirty)
 	{
 		uint32 fontPixelHeight = m_canvas->ToPixelHeight(m_fontHeight);
-		m_material->SetAlbedoTextureView(m_font->CreateOrGetAtlasForPixelHeight(fontPixelHeight)->GetTexture()->CreateOrGetShaderResourceView());
 
 		MeshBuilder mb;
 		mb.BeginBuilding(true);
@@ -149,6 +149,13 @@ void UIText::UpdateMeshAndMaterial(const OBB2& finalBounds)
 		mb.FinishBuilding();
 		mb.UpdateMesh<Vertex3D_PCU>(*m_mesh);
 		mb.Clear();
+
+		// The glyph spritesheet is generated during PushText() 
+		// so it's important to update the material with the texture afterwards
+		FontAtlas* atlas = m_font->CreateOrGetAtlasForPixelHeight(fontPixelHeight);
+		Texture2D* texture = atlas->GetTexture();
+		ShaderResourceView* resourceView = texture->CreateOrGetShaderResourceView();
+		m_material->SetAlbedoTextureView(resourceView);
 
 		m_isDirty = false;
 	}

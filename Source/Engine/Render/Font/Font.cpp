@@ -62,6 +62,8 @@ FontAtlas* Font::CreateOrGetAtlasForPixelHeight(uint32 pixelHeight)
 //-------------------------------------------------------------------------------------------------
 const uint8* Font::RenderGlyphForPixelHeight(const char glyph, uint32 pixelHeight, GlyphInfo& out_info) const
 {
+	// See https://www.freetype.org/freetype2/docs/tutorial/step2.html#section-1 for reference
+
 	FT_Face face = (FT_Face)m_ftFace;
 	FT_Set_Pixel_Sizes(face, 0, pixelHeight);
 
