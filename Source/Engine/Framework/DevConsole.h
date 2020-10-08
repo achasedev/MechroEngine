@@ -17,7 +17,7 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Canvas;
-class Panel;
+class UIPanel;
 class UIText;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -78,8 +78,8 @@ private:
 
 	// Rendering
 	Canvas* m_canvas = nullptr;
-	Panel* m_backPanel = nullptr;
-	Panel* m_inputPanel = nullptr;
+	UIPanel* m_backPanel = nullptr;
+	UIPanel* m_inputPanel = nullptr;
 	UIText* m_inputFieldText = nullptr;
 
 };

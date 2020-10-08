@@ -21,7 +21,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Camera;
 class Texture2D;
-class UIElement;
 
 enum ScreenMatchMode
 {
@@ -48,6 +47,8 @@ public:
 	~Canvas();
 
 	void				Initialize(Texture2D* outputTexture, const Vector2& resolution, ScreenMatchMode mode, float widthHeightBlend = 1.0f);
+	void				InitializeFromXML(const char* xmlFilePath);
+	virtual void		InitializeFromXML(const XMLElem& element) override;
 	AABB2				GenerateOrthoBounds() const;
 	Matrix44			GenerateOrthoMatrix() const;
 	virtual void		Render() override;

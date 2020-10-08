@@ -18,7 +18,7 @@
 #include "Engine/Render/Shader.h"
 #include "Engine/Render/Texture/Texture2D.h"
 #include "Engine/UI/Canvas.h"
-#include "Engine/UI/Panel.h"
+#include "Engine/UI/UIPanel.h"
 #include "Engine/UI/UIText.h"
 #include "Engine/Utility/NamedProperties.h"
 #include "Engine/Render/Font/FontLoader.h"
@@ -192,38 +192,50 @@ DevConsole::DevConsole()
 	material->SetShader(shader);
 	material->SetAlbedoTextureView(textureView);
 
-	Font* font = g_fontLoader->LoadFont("Data/Font/bitwise.regular.ttf", 0);
+	m_canvas = new Canvas();
+	m_canvas->InitializeFromXML("Data/Engine/Console_Layout.xml");
 
-	const float kFontHeight = 25.f; // Canvas units
-	m_backPanel = new Panel(m_canvas, material);
-	m_backPanel->m_transform.SetAnchors(AnchorPreset::TOP_LEFT);
-	m_backPanel->m_transform.SetPivot(Vector2(0.f, 1.0f));
-	m_backPanel->m_transform.SetPosition(Vector2::ZERO);
-	m_backPanel->m_transform.SetDimensions(m_canvas->GetResolution() - Vector2(0.f, kFontHeight));
+	m_backPanel = dynamic_cast<UIPanel*>(m_canvas->FindChildByID(SID("background_panel")));
+	m_inputPanel = dynamic_cast<UIPanel*>(m_canvas->FindChildByID(SID("input_panel")));
+	m_inputFieldText = dynamic_cast<UIText*>(m_canvas->FindChildByID(SID("input_text")));
+	m_inputFieldText->SetShader(shader);
 
-	m_inputPanel = new Panel(m_canvas, material);
-	m_inputPanel->m_transform.SetAnchors(AnchorPreset::BOTTOM_LEFT);
-	m_inputPanel->m_transform.SetPivot(Vector2::ZERO);
-	m_inputPanel->m_transform.SetPosition(Vector2::ZERO);
-	m_inputPanel->m_transform.SetDimensions(Vector2(m_canvas->GetResolution().x, kFontHeight));
+	//Font* font = g_fontLoader->LoadFont("Data/Font/bitwise.regular.ttf", 0);
 
-	m_inputFieldText = new UIText(m_canvas);
-	m_inputFieldText->SetFont(font, shader);
-	m_inputFieldText->SetText("The quick brown fox jump over the lazy dog!", Rgba::RED);
-	m_inputFieldText->m_transform.SetAnchors(AnchorPreset::BOTTOM_LEFT);
-	m_inputFieldText->m_transform.SetPivot(Vector2::ZERO);
-	m_inputFieldText->m_transform.SetPosition(Vector2::ZERO);
-	m_inputFieldText->m_transform.SetDimensions(Vector2(m_canvas->GetResolution().x, kFontHeight));
+	//const float kFontHeight = 25.f; // Canvas units
+	//m_backPanel = new UIPanel(m_canvas, material);
+	//m_backPanel->m_transform.SetAnchors(AnchorPreset::TOP_LEFT);
+	//m_backPanel->m_transform.SetPivot(Vector2(0.f, 1.0f));
+	//m_backPanel->m_transform.SetPosition(Vector2::ZERO);
+	//m_backPanel->m_transform.SetDimensions(m_canvas->GetResolution() - Vector2(0.f, kFontHeight));
 
-	m_canvas->AddChild(m_backPanel);	
-	m_canvas->AddChild(m_inputPanel);
-	m_inputPanel->AddChild(m_inputFieldText);
+	//m_inputPanel = new UIPanel(m_canvas, material);
+	//m_inputPanel->m_transform.SetAnchors(AnchorPreset::BOTTOM_LEFT);
+	//m_inputPanel->m_transform.SetPivot(Vector2::ZERO);
+	//m_inputPanel->m_transform.SetPosition(Vector2::ZERO);
+	//m_inputPanel->m_transform.SetDimensions(Vector2(m_canvas->GetResolution().x, kFontHeight));
+
+	//m_inputFieldText = new UIText(m_canvas);
+	//m_inputFieldText->SetFont(font, shader);
+	//m_inputFieldText->SetText("The quick brown fox jump over the lazy dog!", Rgba::RED);
+	//m_inputFieldText->m_transform.SetAnchors(AnchorPreset::BOTTOM_LEFT);
+	//m_inputFieldText->m_transform.SetPivot(Vector2::ZERO);
+	//m_inputFieldText->m_transform.SetPosition(Vector2::ZERO);
+	//m_inputFieldText->m_transform.SetDimensions(Vector2(m_canvas->GetResolution().x, kFontHeight));
+
+	//m_canvas->AddChild(m_backPanel);	
+	//m_canvas->AddChild(m_inputPanel);
+	//m_inputPanel->AddChild(m_inputFieldText);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 DevConsole::~DevConsole()
 {
+	m_backPanel = nullptr;
+	m_inputPanel = nullptr;
+	m_inputFieldText = nullptr;
+
 	SAFE_DELETE(m_canvas);
 }
 
@@ -331,5 +343,5 @@ void DevConsole::HandleRightArrow()
 //-------------------------------------------------------------------------------------------------
 void DevConsole::AddCharacterToInputBuffer(unsigned char character)
 {
-
+	UNUSED(character);
 }

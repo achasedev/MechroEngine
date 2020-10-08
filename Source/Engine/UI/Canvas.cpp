@@ -14,8 +14,12 @@
 #include "Engine/Render/Core/RenderContext.h"
 #include "Engine/Render/Texture/Texture2D.h"
 #include "Engine/UI/Canvas.h"
+#include "Engine/UI/UIPanel.h"
 #include "Engine/UI/UIElement.h"
+#include "Engine/UI/UIText.h"
 #include "Engine/Utility/NamedProperties.h"
+#include "Engine/Utility/StringID.h"
+#include "Engine/Utility/XMLUtils.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -33,6 +37,18 @@
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
+//-------------------------------------------------------------------------------------------------
+static ScreenMatchMode StringToScreenMatchMode(const std::string& text)
+{
+	if (text == "blend") { return SCREEN_MATCH_WIDTH_OR_HEIGHT; }
+	if (text == "shrink") { return SCREEN_MATCH_SHRINK_TO_FIT; }
+	if (text == "expand") { return SCREEN_MATCH_EXPAND_TO_FILL; }
+
+	ERROR_RECOVERABLE("Invalid match mode %s", text.c_str());
+	return SCREEN_MATCH_WIDTH_OR_HEIGHT;
+}
+
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -41,6 +57,8 @@
 Canvas::Canvas()
 	: UIElement(nullptr)
 {
+	m_id = SID("canvas");
+	m_outputTexture = g_renderContext->GetDefaultRenderTarget();
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -57,6 +75,52 @@ void Canvas::Initialize(Texture2D* outputTexture, const Vector2& resolution, Scr
 	m_widthOrHeightBlend = widthHeightBlend;
 	m_resolution = Vector2(resolution.x, resolution.y);
 	m_transform.SetDimensions(resolution.x, resolution.y);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Doesn't call UIElement::InitializeFromXML() to avoid setting anchors, pivot, etc.
+void Canvas::InitializeFromXML(const XMLElem& element)
+{
+	ASSERT_OR_DIE(strcmp(element.Name(), "canvas") == 0, "XMLElement isn't for a canvas!");
+
+	// Resolution
+	m_resolution = XML::ParseAttribute(element, "resolution", Vector2(1000.f));
+
+	// Match mode
+	std::string matchModeText = XML::ParseAttribute(element, "match_mode", "blend");
+	m_matchMode = StringToScreenMatchMode(matchModeText);
+
+	// If blending, get blend
+	if (m_matchMode == SCREEN_MATCH_WIDTH_OR_HEIGHT)
+	{
+		m_widthOrHeightBlend = XML::ParseAttribute(element, "blend", 1.0f);
+	}
+
+	// Create the child elements
+	const XMLElem* child = element.FirstChildElement();
+	while (child != nullptr)
+	{
+		UIElement* uiElement = CreateUIElementFromXML(*child, this);
+
+		if (uiElement != nullptr)
+		{
+			m_children.push_back(uiElement);
+		}
+
+		child = child->NextSiblingElement();
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Canvas::InitializeFromXML(const char* xmlFilePath)
+{
+	XMLDoc document;
+	XMLErr error = document.LoadFile(xmlFilePath);
+	GUARANTEE_OR_DIE(error == tinyxml2::XML_SUCCESS, "Couldn't load %s!", xmlFilePath);
+	
+	InitializeFromXML(*document.RootElement());
 }
 
 

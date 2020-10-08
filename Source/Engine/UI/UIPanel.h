@@ -29,12 +29,12 @@ class Mesh;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Panel : public UIElement
+class UIPanel : public UIElement
 {
 public:
 	//-----Public Methods-----
 
-	Panel(Canvas* canvas, Material* material);
+	UIPanel(Canvas* canvas);
 	virtual void Render() override;
 
 
@@ -42,7 +42,6 @@ private:
 	//-----Private Data-----
 
 	Mesh*		m_mesh = nullptr;
-	Material*	m_material = nullptr;
 
 };
 

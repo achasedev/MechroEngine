@@ -235,7 +235,7 @@ float StringToFloat(const std::string& inValue)
 //-------------------------------------------------------------------------------------------------
 Rgba StringToRgba(const std::string& inValue)
 {
-	ASSERT_RETURN(inValue.size() > 0, Rgba::BLACK, "Emtpy string!");
+	ASSERT_RETURN(inValue.size() > 0, Rgba::BLACK, "Empty string!");
 
 	std::vector<std::string> tokens;
 	TokenizeByCommasOrSpaces(inValue, tokens);
@@ -267,13 +267,13 @@ Rgba StringToRgba(const std::string& inValue)
 //-------------------------------------------------------------------------------------------------
 static Vector4 StringToVectorInternal(const std::string& inValue, uint32 numComponents)
 {
-	ASSERT_RETURN(inValue.size() > 0, Vector4::ZERO, "Emtpy string!");
+	ASSERT_RETURN(inValue.size() > 0, Vector4::ZERO, "Empty string!");
 
 	std::vector<std::string> tokens;
 	TokenizeByCommasOrSpaces(inValue, tokens);
 
 	ASSERT_RETURN(tokens.size() > 0, Vector4::ZERO, "No components!");
-	ASSERT_RECOVERABLE(tokens.size() < numComponents, "Too many components, only using the first %u!", numComponents);
+	ASSERT_RECOVERABLE(tokens.size() == numComponents, "Wrong number of components, only using the first %u!", Max(numComponents, (uint32)tokens.size()));
 
 	Vector4 returnValue(0.f);
 	for (size_t i = 0; i < tokens.size(); ++i)
@@ -288,13 +288,13 @@ static Vector4 StringToVectorInternal(const std::string& inValue, uint32 numComp
 //-------------------------------------------------------------------------------------------------
 static IntVector3 StringToIntVectorInternal(const std::string& inValue, uint32 numComponents)
 {
-	ASSERT_RETURN(inValue.size() > 0, IntVector3::ZERO, "Emtpy string!");
+	ASSERT_RETURN(inValue.size() > 0, IntVector3::ZERO, "Empty string!");
 
 	std::vector<std::string> tokens;
 	TokenizeByCommasOrSpaces(inValue, tokens);
 
 	ASSERT_RETURN(tokens.size() > 0, IntVector3::ZERO, "No components!");
-	ASSERT_RECOVERABLE(tokens.size() < numComponents, "Too many components, only using the first %u!", numComponents);
+	ASSERT_RECOVERABLE(tokens.size() == numComponents, "Wrong number of components, only using the first %u!", Max(numComponents, (uint32)tokens.size()));
 
 	IntVector3 returnValue(0);
 	for (size_t i = 0; i < tokens.size(); ++i)

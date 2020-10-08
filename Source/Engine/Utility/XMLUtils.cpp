@@ -34,21 +34,21 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-int XML::ParseAttribute(const XMLElement& element, const char* attributeName, int defaultValue)
+int XML::ParseAttribute(const XMLElem& element, const char* attributeName, int defaultValue)
 {
 	return element.IntAttribute(attributeName, defaultValue);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-bool XML::DoesAttributeExist(const XMLElement& element, const char* attributeName)
+bool XML::DoesAttributeExist(const XMLElem& element, const char* attributeName)
 {
 	return (element.Attribute(attributeName) != nullptr);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-char XML::ParseAttribute(const XMLElement& element, const char* attributeName, char defaultValue)
+char XML::ParseAttribute(const XMLElem& element, const char* attributeName, char defaultValue)
 {
 	const char* attributeText = element.Attribute(attributeName);
 
@@ -62,21 +62,21 @@ char XML::ParseAttribute(const XMLElement& element, const char* attributeName, c
 
 
 //-------------------------------------------------------------------------------------------------
-bool XML::ParseAttribute(const XMLElement& element, const char* attributeName, bool defaultValue)
+bool XML::ParseAttribute(const XMLElem& element, const char* attributeName, bool defaultValue)
 {
 	return element.BoolAttribute(attributeName, defaultValue);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-float XML::ParseAttribute(const XMLElement& element, const char* attributeName, float defaultValue)
+float XML::ParseAttribute(const XMLElem& element, const char* attributeName, float defaultValue)
 {
 	return element.FloatAttribute(attributeName, defaultValue);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Rgba XML::ParseAttribute(const XMLElement& element, const char* attributeName, const Rgba& defaultValue)
+Rgba XML::ParseAttribute(const XMLElem& element, const char* attributeName, const Rgba& defaultValue)
 {
 	Rgba result = defaultValue;
 	const char* attributeText = element.Attribute(attributeName);
@@ -91,7 +91,7 @@ Rgba XML::ParseAttribute(const XMLElement& element, const char* attributeName, c
 
 
 //-------------------------------------------------------------------------------------------------
-Vector2 XML::ParseAttribute(const XMLElement& element, const char* attributeName, const Vector2& defaultValue)
+Vector2 XML::ParseAttribute(const XMLElem& element, const char* attributeName, const Vector2& defaultValue)
 {
 	Vector2 result = defaultValue;
 	const char* attributeText = element.Attribute(attributeName);
@@ -106,7 +106,7 @@ Vector2 XML::ParseAttribute(const XMLElement& element, const char* attributeName
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 XML::ParseAttribute(const XMLElement& element, const char* attributeName, const Vector3& defaultValue)
+Vector3 XML::ParseAttribute(const XMLElem& element, const char* attributeName, const Vector3& defaultValue)
 {
 	Vector3 result = defaultValue;
 	const char* attributeText = element.Attribute(attributeName);
@@ -121,7 +121,7 @@ Vector3 XML::ParseAttribute(const XMLElement& element, const char* attributeName
 
 
 //-------------------------------------------------------------------------------------------------
-Vector4 XML::ParseAttribute(const XMLElement& element, const char* attributeName, const Vector4& defaultValue)
+Vector4 XML::ParseAttribute(const XMLElem& element, const char* attributeName, const Vector4& defaultValue)
 {
 	Vector4 result = defaultValue;
 	const char* attributeText = element.Attribute(attributeName);
@@ -136,7 +136,7 @@ Vector4 XML::ParseAttribute(const XMLElement& element, const char* attributeName
 
 
 //-------------------------------------------------------------------------------------------------
-IntVector2 XML::ParseAttribute(const XMLElement& element, const char* attributeName, const IntVector2& defaultValue)
+IntVector2 XML::ParseAttribute(const XMLElem& element, const char* attributeName, const IntVector2& defaultValue)
 {
 	IntVector2 result = defaultValue;
 	const char* attributeText = element.Attribute(attributeName);
@@ -151,7 +151,7 @@ IntVector2 XML::ParseAttribute(const XMLElement& element, const char* attributeN
 
 
 //-------------------------------------------------------------------------------------------------
-IntVector3 XML::ParseAttribute(const XMLElement& element, const char* attributeName, const IntVector3& defaultValue)
+IntVector3 XML::ParseAttribute(const XMLElem& element, const char* attributeName, const IntVector3& defaultValue)
 {
 	IntVector3 result = defaultValue;
 	const char* attributeText = element.Attribute(attributeName);
@@ -166,7 +166,7 @@ IntVector3 XML::ParseAttribute(const XMLElement& element, const char* attributeN
 
 
 //-------------------------------------------------------------------------------------------------
-AABB2 XML::ParseAttribute(const XMLElement& element, const char* attributeName, const AABB2& defaultValue)
+AABB2 XML::ParseAttribute(const XMLElem& element, const char* attributeName, const AABB2& defaultValue)
 {
 	AABB2 result;
 	result.vectorData = ParseAttribute(element, attributeName, defaultValue.vectorData);
@@ -176,7 +176,7 @@ AABB2 XML::ParseAttribute(const XMLElement& element, const char* attributeName, 
 
 
 //-------------------------------------------------------------------------------------------------
-std::string XML::ParseAttribute(const XMLElement& element, const char* attributeName, const std::string& defaultValue)
+std::string XML::ParseAttribute(const XMLElem& element, const char* attributeName, const std::string& defaultValue)
 {
 	const char* attributeText = element.Attribute(attributeName);
 
@@ -192,7 +192,7 @@ std::string XML::ParseAttribute(const XMLElement& element, const char* attribute
 
 
 //-------------------------------------------------------------------------------------------------
-std::string XML::ParseAttribute(const XMLElement& element, const char* attributeName, const char* defaultValue/*=nullptr */)
+std::string XML::ParseAttribute(const XMLElem& element, const char* attributeName, const char* defaultValue/*=nullptr */)
 {
 	const char* attributeText = element.Attribute(attributeName);
 

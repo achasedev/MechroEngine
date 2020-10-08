@@ -220,7 +220,7 @@
     <ClCompile Include="Time\Time.cpp" />
     <ClCompile Include="Time\Timer.cpp" />
     <ClCompile Include="UI\Canvas.cpp" />
-    <ClCompile Include="UI\Panel.cpp" />
+    <ClCompile Include="UI\UIPanel.cpp" />
     <ClCompile Include="UI\RectTransform.cpp" />
     <ClCompile Include="UI\UIElement.cpp" />
     <ClCompile Include="UI\UIText.cpp" />
@@ -308,7 +308,7 @@
     <ClInclude Include="Time\Time.h" />
     <ClInclude Include="Time\Timer.h" />
     <ClInclude Include="UI\Canvas.h" />
-    <ClInclude Include="UI\Panel.h" />
+    <ClInclude Include="UI\UIPanel.h" />
     <ClInclude Include="UI\RectTransform.h" />
     <ClInclude Include="UI\UIElement.h" />
     <ClInclude Include="Utility\Assert.h" />

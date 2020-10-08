@@ -11,6 +11,8 @@
 #include "Engine/Math/OBB2.h"
 #include "Engine/Render/Core/Renderable.h"
 #include "Engine/UI/RectTransform.h"
+#include "Engine/Utility/StringID.h"
+#include "Engine/Utility/XMLUtils.h"
 #include <vector>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -21,7 +23,6 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Canvas;
-class XMLElement;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -40,15 +41,18 @@ public:
 	UIElement(Canvas* canvas);
 	virtual ~UIElement();
 
-	virtual void	Render();
+	virtual void		Render();
 
-	void			AddChild(UIElement* child);
-	void			SetCanvas(Canvas* canvas);
-	virtual void	InitializeFromXML(const XMLElement& element);
+	void				AddChild(UIElement* child);
+	void				SetCanvas(Canvas* canvas);
+	virtual void		InitializeFromXML(const XMLElem& element);
 
-	OBB2			CalculateFinalBounds() const;
-	Matrix44		CalculateModelMatrix() const;
-	Matrix44		CalculateModelMatrix(const OBB2& finalBounds) const;
+	OBB2				CalculateFinalBounds() const;
+	Matrix44			CalculateModelMatrix() const;
+	Matrix44			CalculateModelMatrix(const OBB2& finalBounds) const;
+	UIElement*			FindChildByID(StringID id);
+
+	static UIElement*	CreateUIElementFromXML(const XMLElem& element, Canvas* canvas);
 
 
 public:
@@ -60,6 +64,7 @@ public:
 protected:
 	//-----Protected Data------
 
+	StringID				m_id = INVALID_STRING_ID;
 	UIElement*				m_parent = nullptr;
 	Canvas*					m_canvas = nullptr;
 	std::vector<UIElement*> m_children;

@@ -10,7 +10,7 @@
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Render/Core/RenderContext.h"
 #include "Engine/Render/Mesh/MeshBuilder.h"
-#include "Engine/UI/Panel.h"
+#include "Engine/UI/UIPanel.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -33,9 +33,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-Panel::Panel(Canvas* canvas, Material* material)
+UIPanel::UIPanel(Canvas* canvas)
 	: UIElement(canvas)
-	, m_material(material)
 {
 	// Build a simple square mesh
 	MeshBuilder mb;
@@ -48,14 +47,8 @@ Panel::Panel(Canvas* canvas, Material* material)
 
 
 //-------------------------------------------------------------------------------------------------
-void Panel::Render()
+void UIPanel::Render()
 {
-	Matrix44 modelMatrix = CalculateModelMatrix();
-
-	Renderable rend;
-	rend.SetRenderableMatrix(modelMatrix);
-	rend.AddDraw(m_mesh, m_material);
-	g_renderContext->DrawRenderable(rend);
-
+	// TODO: Render a texture
 	UIElement::Render();
 }

@@ -8,6 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Framework/Rgba.h"
 #include "Engine/UI/UIElement.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -19,7 +20,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Font;
 class OBB2;
-class XMLElement;
+class Shader;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -40,15 +41,16 @@ public:
 
 	virtual void	Render() override;
 	void			SetText(const std::string& text, const Rgba& color = Rgba::WHITE);
-	void			SetFont(Font* font, Shader* shader);
-	virtual void	InitializeFromXML(const XMLElement& element) override;
+	void			SetFont(Font* font);
+	void			SetShader(Shader* shader);
+	virtual void	InitializeFromXML(const XMLElem& element) override;
 
 
 private:
 	//-----Private Data-----
 
 	uint32			CalculatePixelHeightForBounds(const OBB2& finalBounds);
-	void			UpdateMesh(uint32 glyphPixelHeight, const OBB2& finalBounds);
+	void			UpdateMeshAndMaterial(const OBB2& finalBounds);
 
 
 private:
@@ -59,8 +61,8 @@ private:
 	Mesh*		m_mesh = nullptr;
 	Material*	m_material = nullptr;
 	Font*		m_font = nullptr;
-	uint32		m_glyphPixelHeight = 0;
-	bool		m_textIsDirty = true;
+	float		m_fontHeight = 0.f;
+	bool		m_isDirty = true;
 
 };
 
