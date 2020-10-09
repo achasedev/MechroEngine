@@ -205,8 +205,9 @@ void UIElement::Render()
 //-------------------------------------------------------------------------------------------------
 void UIElement::AddChild(UIElement* child)
 {
-	GUARANTEE_OR_DIE(m_children.find(child->m_id) == m_children.end(), "Duplicate UIElement added!");
+	ASSERT_OR_DIE(!child->IsCanvas(), "Canvas cannot be anyone's child!");
 	GUARANTEE_OR_DIE(child->m_parent == nullptr, "UIElement already has a parent!");
+	GUARANTEE_OR_DIE(m_children.find(child->m_id) == m_children.end(), "Duplicate UIElement added!");
 
 	m_children[child->m_id] = child;
 	child->m_parent = this;
@@ -216,13 +217,6 @@ void UIElement::AddChild(UIElement* child)
 	{
 		m_canvas->AddElementToGlobalList(child);
 	}
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void UIElement::SetCanvas(Canvas* canvas)
-{
-	m_canvas = canvas;
 }
 
 

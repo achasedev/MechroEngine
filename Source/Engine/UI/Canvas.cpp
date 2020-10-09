@@ -152,15 +152,11 @@ void Canvas::SetResolution(float width, float height)
 //-------------------------------------------------------------------------------------------------
 void Canvas::AddChild(UIElement* child)
 {
-	ASSERT_OR_DIE(m_canvas == nullptr, "Canvas didn't have m_canvas == nullptr!");
-	ASSERT_OR_DIE(!child->IsCanvas(), "Canvas cannot be anyone's child!");
-	GUARANTEE_OR_DIE(m_children.find(child->GetID()) == m_children.end(), "Duplicate UIElement added!");
-	GUARANTEE_OR_DIE(child->GetParent() == nullptr, "UIElement already has a parent!");
 	GUARANTEE_OR_DIE(child->GetCanvas() == this, "Child already belongs to a different canvas!");
 
 	UIElement::AddChild(child);
 	
-	// Since my m_canvas is nullptr, add to the global list here instead
+	// Need to add to the global list here, as m_canvas is nullptr
 	AddElementToGlobalList(child);
 }
 

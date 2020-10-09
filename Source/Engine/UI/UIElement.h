@@ -44,7 +44,6 @@ public:
 	virtual void		Render();
 
 	virtual void		AddChild(UIElement* child);
-	void				SetCanvas(Canvas* canvas);
 	virtual void		InitializeFromXML(const XMLElem& element);
 
 	UIElement*			GetParent() const { return m_parent; }
