@@ -57,6 +57,8 @@ public:
 	Texture2D*		GetTexture();
 	GlyphInfo		CreateOrGetGlyphInfo(const char glyph);
 
+	IntVector2		GetTextDimensionsPixels(const std::string& text);
+
 
 private:
 	//-----Private Data-----

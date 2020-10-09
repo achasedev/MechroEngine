@@ -38,6 +38,54 @@ float ConvertPixelOffsetToNormalizedOffset(int pixelOffset, float pixelsPerUnit,
 }
 
 
+//-------------------------------------------------------------------------------------------------
+// All units in canvas space
+Vector2 GetTextStartingPosition(const AABB2& textBounds, const Vector2& textDimensions, HorizontalAlignment xAlign, VerticalAlignment yAlign)
+{
+	float textBoundsWidth = textBounds.GetWidth();
+	float textBoundsHeight = textBounds.GetHeight();
+
+	Vector2 startingPos;
+
+	switch (xAlign)
+	{
+	case ALIGNMENT_LEFT: 
+		startingPos.x = textBounds.left; 
+		break;
+	case ALIGNMENT_CENTER: 
+		startingPos.x = 0.5f * (textBoundsWidth - textDimensions.x);
+		break;
+	case ALIGNMENT_RIGHT: 
+		startingPos.x = textBounds.right - textDimensions.x; 
+		break;
+	default:
+		ERROR_AND_DIE("Bad horizontal alignment!");
+		break;
+	}
+
+	switch (yAlign)
+	{
+	case ALIGNMENT_TOP:
+		startingPos.y = textBounds.top - textDimensions.y;
+		break;
+	case ALIGNMENT_MIDDLE:
+		startingPos.y = 0.5f * (textBoundsHeight - textDimensions.y);
+		break;
+	case ALIGNMENT_BOTTOM:
+		startingPos.y = textBounds.bottom;
+		break;
+	default:
+		ERROR_AND_DIE("Bad vertical alignment!");
+		break;
+	}
+
+	startingPos.x = (startingPos.x - textBounds.left) / textBoundsWidth;
+	startingPos.y = (startingPos.y - textBounds.bottom) / textBoundsHeight;
+
+	return startingPos;
+}
+
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -176,18 +224,28 @@ void MeshBuilder::PushQuad2D(const AABB2& quad, const AABB2& uvs /*= AABB2::ZERO
 //-------------------------------------------------------------------------------------------------
 // Assumes position is in canvas space!
 // It's the responsibility of the caller to determine what the final pixel height will be and provide it
-void MeshBuilder::PushText(const char* text, uint32 pixelHeight, Font* font, const AABB2& textBounds, const Vector2& canvasUnitsPerPixel, const Rgba& color /*= Rgba::WHITE*/)
+void MeshBuilder::PushText(
+	const char* text, 
+	uint32 pixelHeight, 
+	Font* font, 
+	const AABB2& textBounds, 
+	const Vector2& canvasUnitsPerPixel, 
+	const Rgba& color /*= Rgba::WHITE*/, 
+	HorizontalAlignment xAlign /*= ALIGNMENT_LEFT*/, 
+	VerticalAlignment yAlign /*= ALIGNMENT_TOP*/, 
+	TextDrawMode drawMode /*= TEXT_DRAW_OVERRUN*/)
 {
 	ASSERT_RETURN(m_isBuilding, NO_RETURN_VAL, "Meshbuilder not setup!");
 
-	Vector2 runningPos = textBounds.GetBottomLeft();
+	int numChars = GetStringLength(text);
+	FontAtlas* atlas = font->CreateOrGetAtlasForPixelHeight(pixelHeight);
+	IntVector2 strPixelDimensions = atlas->GetTextDimensionsPixels(text);
+	Vector2 textCanvasDimensions = Vector2(canvasUnitsPerPixel.x * (float)strPixelDimensions.x, canvasUnitsPerPixel.y * (float)strPixelDimensions.y);
 	float textBoundsWidth = textBounds.GetWidth();
 	float textBoundsHeight = textBounds.GetHeight();
+	Vector2 runningPos = GetTextStartingPosition(textBounds, textCanvasDimensions, xAlign, yAlign);
 
-	int strLen = GetStringLength(text);
-	FontAtlas* atlas = font->CreateOrGetAtlasForPixelHeight(pixelHeight);
-
-	for (int charIndex = 0; charIndex < strLen; ++charIndex)
+	for (int charIndex = 0; charIndex < numChars; ++charIndex)
 	{
 		char currChar = text[charIndex];
 

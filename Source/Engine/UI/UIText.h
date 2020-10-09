@@ -22,6 +22,28 @@ class Font;
 class OBB2;
 class Shader;
 
+enum HorizontalAlignment
+{
+	ALIGNMENT_LEFT,
+	ALIGNMENT_CENTER,
+	ALIGNMENT_RIGHT
+};
+
+enum VerticalAlignment
+{
+	ALIGNMENT_TOP,
+	ALIGNMENT_MIDDLE,
+	ALIGNMENT_BOTTOM
+};
+
+enum TextDrawMode
+{
+	TEXT_DRAW_OVERRUN,
+	TEXT_DRAW_SHRINK_TO_FIT,
+	TEXT_DRAW_EXPAND_TO_FILL,
+	TEXT_DRAW_WORD_WRAP
+};
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -64,6 +86,9 @@ private:
 	float		m_fontHeight = 0.f;
 	bool		m_isDirty = true;
 
+	HorizontalAlignment m_horizontalAlign	= ALIGNMENT_LEFT;
+	VerticalAlignment m_verticalAlign		= ALIGNMENT_TOP;
+	TextDrawMode m_wrapMode						= TEXT_DRAW_WORD_WRAP;
 };
 
 

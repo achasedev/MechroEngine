@@ -45,8 +45,10 @@ public:
 	
 	std::string			GetSourceFile() const { return m_sourceFilepath; }
 	FontAtlas*			GetFontAtlasForPixelHeight(uint32 pixelHeight);
+	bool				HasKerning() const { return m_hasKerning; }
 
 	int					GetKerningInPixels(uint32 pixelHeight, const char firstGlyph, const char secondGlyph) const;
+	IntVector2			GetTextDimensionsPixels(uint32 pixelHeight, const std::string& text);
 
 
 private:

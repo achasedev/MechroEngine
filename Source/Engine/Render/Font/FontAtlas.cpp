@@ -93,3 +93,20 @@ GlyphInfo FontAtlas::CreateOrGetGlyphInfo(const char glyph)
 
 	return info;
 }
+
+
+//-------------------------------------------------------------------------------------------------
+IntVector2 FontAtlas::GetTextDimensionsPixels(const std::string& text)
+{
+	IntVector2 dimensions = IntVector2::ZERO;
+
+	for (size_t charIndex = 0; charIndex < text.size(); ++charIndex)
+	{
+		GlyphInfo info = CreateOrGetGlyphInfo(text[charIndex]);
+		
+		dimensions.x += info.m_pixelHorizontalAdvance;
+		dimensions.y = Max(dimensions.y, (int)info.m_pixelHeight);
+	}
+
+	return dimensions;
+}

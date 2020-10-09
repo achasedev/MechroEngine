@@ -129,3 +129,11 @@ int Font::GetKerningInPixels(uint32 pixelHeight, const char firstGlyph, const ch
 	// Only doing horizontal kerning
 	return RoundToNearestInt((1.f / 64.f) * static_cast<float>(kerning.x));
 }
+
+
+//-------------------------------------------------------------------------------------------------
+IntVector2 Font::GetTextDimensionsPixels(uint32 pixelHeight, const std::string& text)
+{
+	FontAtlas* atlas = GetFontAtlasForPixelHeight(pixelHeight);
+	return atlas->GetTextDimensionsPixels(text);
+}

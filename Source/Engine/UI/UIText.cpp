@@ -35,6 +35,32 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 
+//-------------------------------------------------------------------------------------------------
+static HorizontalAlignment StringToHorizontalAlignment(const std::string& text)
+{
+	if		(text == "left")	{ return ALIGNMENT_LEFT; }
+	else if (text == "center")	{ return ALIGNMENT_CENTER; }
+	else if (text == "right")	{ return ALIGNMENT_RIGHT; }
+	else
+	{
+		ERROR_RECOVERABLE("Invalid HorizontalAlignment %s!", text.c_str());
+		return ALIGNMENT_LEFT;
+	}
+}
+
+//-------------------------------------------------------------------------------------------------
+static VerticalAlignment StringToVerticalAlignment(const std::string& text)
+{
+	if		(text == "top")		{ return ALIGNMENT_TOP; }
+	else if (text == "middle")	{ return ALIGNMENT_MIDDLE; }
+	else if (text == "bottom")	{ return ALIGNMENT_BOTTOM; }
+	else
+	{
+		ERROR_RECOVERABLE("Invalid VerticalAlignment %s!", text.c_str());
+		return ALIGNMENT_BOTTOM;
+	}
+}
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -120,6 +146,13 @@ void UIText::InitializeFromXML(const XMLElem& element)
 	// Text Color
 	m_textColor = XML::ParseAttribute(element, "text_color", Rgba::WHITE);
 
+	// Alignments
+	std::string xAlignText = XML::ParseAttribute(element, "x_align", "left");
+	std::string yAlignText = XML::ParseAttribute(element, "y_align", "bottom");
+
+	m_horizontalAlign = StringToHorizontalAlignment(xAlignText);
+	m_verticalAlign = StringToVerticalAlignment(yAlignText);
+
 	m_isDirty = true;
 }
 
@@ -144,7 +177,7 @@ void UIText::UpdateMeshAndMaterial(const OBB2& finalBounds)
 
 		// Send the bounds as if they're at 0,0
 		// The model matrix will handle the positioning
-		mb.PushText(m_text.c_str(), fontPixelHeight, m_font, AABB2(Vector2::ZERO, finalBounds.alignedBounds.GetDimensions()), m_canvas->GetCanvasUnitsPerPixel(), m_textColor);
+		mb.PushText(m_text.c_str(), fontPixelHeight, m_font, AABB2(Vector2::ZERO, finalBounds.alignedBounds.GetDimensions()), m_canvas->GetCanvasUnitsPerPixel(), m_textColor, m_horizontalAlign, m_verticalAlign);
 
 		mb.FinishBuilding();
 		mb.UpdateMesh<Vertex3D_PCU>(*m_mesh);
