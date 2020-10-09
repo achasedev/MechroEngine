@@ -45,11 +45,11 @@ static void SetXPositionYPositionFromXML(const XMLElem& element, RectTransform& 
 	bool combinedDimensionsSpecified = XML::DoesAttributeExist(element, "dimensions");
 	bool anyPaddingSpecified = XML::DoesAttributeExist(element, "x_padding") || XML::DoesAttributeExist(element, "y_padding");
 
-	GUARANTEE_OR_DIE(separatePositionsSpecified || combinedPositionSpecified, "Anchors are set up to be positional but no positions specified!");
-	GUARANTEE_OR_DIE((separatePositionsSpecified && !combinedPositionSpecified) || (!xPositionSpecified && !yPositionSpecified && combinedPositionSpecified), "Duplicate positions specified!");
-	GUARANTEE_OR_DIE(separateDimensionsSpecified || combinedDimensionsSpecified, "Anchors are set up to be positional but no dimensions specified!");
-	GUARANTEE_OR_DIE((separateDimensionsSpecified && !combinedDimensionsSpecified) || (!widthSpecified && !heightSpecified && combinedDimensionsSpecified), "Duplicate dimensions specified!");
-	GUARANTEE_RECOVERABLE(!anyPaddingSpecified, "Padding specified for positional anchors, they will not be used!");
+	GUARANTEE_OR_DIE(separatePositionsSpecified || combinedPositionSpecified, "Element %s: Anchors are set up to be positional but no positions specified!", element.Name());
+	GUARANTEE_OR_DIE((separatePositionsSpecified && !combinedPositionSpecified) || (!xPositionSpecified && !yPositionSpecified && combinedPositionSpecified), "Element %s: Duplicate positions specified!", element.Name());
+	GUARANTEE_OR_DIE(separateDimensionsSpecified || combinedDimensionsSpecified, "Element %s: Anchors are set up to be positional but no dimensions specified!", element.Name());
+	GUARANTEE_OR_DIE((separateDimensionsSpecified && !combinedDimensionsSpecified) || (!widthSpecified && !heightSpecified && combinedDimensionsSpecified), "Element %s: Duplicate dimensions specified!", element.Name());
+	GUARANTEE_RECOVERABLE(!anyPaddingSpecified, "Element %s: Padding specified for positional anchors, they will not be used!", element.Name());
 
 	Vector2 position;
 	if (combinedPositionSpecified)
@@ -89,13 +89,13 @@ static void SetXPositionYPaddingFromXML(const XMLElem& element, RectTransform& t
 	bool widthSpecified				= XML::DoesAttributeExist(element, "width");
 	bool heightSpecified			= XML::DoesAttributeExist(element, "height");
 
-	GUARANTEE_OR_DIE(xPositionSpecified, "Horizontal anchors are set up to be positional but no x_position specified!");
-	GUARANTEE_OR_DIE(widthSpecified, "Horizontal anchors are set up to be positional but no width specified!");
-	GUARANTEE_OR_DIE(yPaddingSpecified, "Vertical anchors are set up to use padding but no y_padding specified!");
-	GUARANTEE_RECOVERABLE(!xPaddingSpecified, "X Padding specified for horizontal positional anchors, it won't be used!");
-	GUARANTEE_RECOVERABLE(!heightSpecified, "Height specified for vertically padded anchors, it won't be used!");
-	GUARANTEE_RECOVERABLE(!yPositionSpecified, "Y position specified for vertically padded anchors, it won't be used!");
-	GUARANTEE_RECOVERABLE(!combinedPositionSpecified, "Position specified but vertical anchors require padding, it won't be used!");
+	GUARANTEE_OR_DIE(xPositionSpecified, "Element %s: Horizontal anchors are set up to be positional but no x_position specified!", element.Name());
+	GUARANTEE_OR_DIE(widthSpecified, "Element %s: Horizontal anchors are set up to be positional but no width specified!", element.Name());
+	GUARANTEE_OR_DIE(yPaddingSpecified, "Element %s: Vertical anchors are set up to use padding but no y_padding specified!", element.Name());
+	GUARANTEE_RECOVERABLE(!xPaddingSpecified, "Element %s: X Padding specified for horizontal positional anchors, it won't be used!", element.Name());
+	GUARANTEE_RECOVERABLE(!heightSpecified, "Element %s: Height specified for vertically padded anchors, it won't be used!", element.Name());
+	GUARANTEE_RECOVERABLE(!yPositionSpecified, "Element %s: Y position specified for vertically padded anchors, it won't be used!", element.Name());
+	GUARANTEE_RECOVERABLE(!combinedPositionSpecified, "Element %s: Position specified but vertical anchors require padding, it won't be used!", element.Name());
 
 	float xPosition = XML::ParseAttribute(element, "x_position", 0.f);
 	float width = XML::ParseAttribute(element, "width", 0.f);
@@ -118,13 +118,13 @@ static void SetXPaddingYPositionFromXML(const XMLElem& element, RectTransform& t
 	bool widthSpecified				= XML::DoesAttributeExist(element, "width");
 	bool heightSpecified			= XML::DoesAttributeExist(element, "height");
 
-	GUARANTEE_OR_DIE(xPaddingSpecified, "Horizontal anchors are set up to use padding but no x_padding specified!");
-	GUARANTEE_OR_DIE(yPositionSpecified, "Anchors are set up to  specified!");
-	GUARANTEE_OR_DIE(heightSpecified, "Horizontal anchors are set up to be positional but no width specified!");
-	GUARANTEE_RECOVERABLE(!yPaddingSpecified, "Y Padding specified for vertical positional anchors, it won't be used!");
-	GUARANTEE_RECOVERABLE(!widthSpecified, "Width specified for horizontally padded anchors, it won't be used!");
-	GUARANTEE_RECOVERABLE(!xPositionSpecified, "X position specified for horizontally padded anchors, it won't be used!");
-	GUARANTEE_RECOVERABLE(!combinedPositionSpecified, "Position specified but horizontal anchors require padding, it won't be used!");
+	GUARANTEE_OR_DIE(xPaddingSpecified, "Element %s: Horizontal anchors are set up to use padding but no x_padding specified!", element.Name());
+	GUARANTEE_OR_DIE(yPositionSpecified, "Element %s: Anchors are set up to  specified!", element.Name());
+	GUARANTEE_OR_DIE(heightSpecified, "Element %s: Horizontal anchors are set up to be positional but no width specified!", element.Name());
+	GUARANTEE_RECOVERABLE(!yPaddingSpecified, "Element %s: Y Padding specified for vertical positional anchors, it won't be used!", element.Name());
+	GUARANTEE_RECOVERABLE(!widthSpecified, "Element %s: Width specified for horizontally padded anchors, it won't be used!", element.Name());
+	GUARANTEE_RECOVERABLE(!xPositionSpecified, "Element %s: X position specified for horizontally padded anchors, it won't be used!", element.Name());
+	GUARANTEE_RECOVERABLE(!combinedPositionSpecified, "Element %s: Position specified but horizontal anchors require padding, it won't be used!", element.Name());
 
 	Vector2 xPadding = XML::ParseAttribute(element, "x_padding", Vector2::ZERO);
 	float yPosition = XML::ParseAttribute(element, "y_position", 0.f);
@@ -150,10 +150,10 @@ static void SetXPaddingYPaddingFromXML(const XMLElem& element, RectTransform& tr
 	bool anyPositionSpecified		= xPositionSpecified || yPositionSpecified || combinedPositionSpecified;
 	bool anyDimensionSpecified		= widthSpecified || heightSpecified || dimensionsSpecified;
 
-	GUARANTEE_OR_DIE(xPaddingSpecified, "Anchors are set up to use padding but no x_padding specified!");
-	GUARANTEE_OR_DIE(yPaddingSpecified, "Anchors are set up to use padding but no y_padding specified!");
-	GUARANTEE_RECOVERABLE(!anyPositionSpecified, "Anchors are set up for padding only but position was specified, it won't be used!");
-	GUARANTEE_RECOVERABLE(!anyDimensionSpecified, "Anchors are set up for padding only but dimensions were specified, they won't be used!");
+	GUARANTEE_OR_DIE(xPaddingSpecified, "Element %s: Anchors are set up to use padding but no x_padding specified!", element.Name());
+	GUARANTEE_OR_DIE(yPaddingSpecified, "Element %s: Anchors are set up to use padding but no y_padding specified!", element.Name());
+	GUARANTEE_RECOVERABLE(!anyPositionSpecified, "Element %s: Anchors are set up for padding only but position was specified, it won't be used!", element.Name());
+	GUARANTEE_RECOVERABLE(!anyDimensionSpecified, "Element %s: Anchors are set up for padding only but dimensions were specified, they won't be used!", element.Name());
 
 	Vector2 xPadding = XML::ParseAttribute(element, "x_padding", Vector2::ZERO);
 	Vector2 yPadding = XML::ParseAttribute(element, "y_padding", Vector2::ZERO);

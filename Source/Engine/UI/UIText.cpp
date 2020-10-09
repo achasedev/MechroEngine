@@ -176,7 +176,7 @@ void UIText::InitializeFromXML(const XMLElem& element)
 	bool combinedAlignSpecified		= XML::DoesAttributeExist(element, "align");
 	bool separateAlignsSpecified	= xAlignSpecified && yAlignSpecified;
 
-	GUARANTEE_OR_DIE((separateAlignsSpecified && !combinedAlignSpecified) || (!xAlignSpecified && !yAlignSpecified && combinedAlignSpecified), "Duplicate aligns specified in element %s", element.Name());
+	GUARANTEE_OR_DIE((separateAlignsSpecified && !combinedAlignSpecified) || (!xAlignSpecified && !yAlignSpecified && combinedAlignSpecified), "Element %s: Duplicate aligns specified!", element.Name());
 
 	if (combinedAlignSpecified)
 	{
@@ -194,7 +194,7 @@ void UIText::InitializeFromXML(const XMLElem& element)
 			bool secondIsHorizontal = IsValidHorizontalAlignment(second);
 			bool secondIsVertical	= IsValidVerticalAlignment(second);
 
-			GUARANTEE_OR_DIE((firstIsHorizontal && secondIsVertical) || (secondIsHorizontal && firstIsVertical), "Invalid align \"%s\" specified in element %s", alignText.c_str(), element.Name());
+			GUARANTEE_OR_DIE((firstIsHorizontal && secondIsVertical) || (secondIsHorizontal && firstIsVertical), "Element %s: Invalid align \"%s\" specified!", element.Name(), alignText.c_str());
 
 			if (firstIsHorizontal)
 			{
