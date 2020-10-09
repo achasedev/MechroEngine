@@ -35,13 +35,20 @@ public:
 	//-----Public Methods-----
 
 	UIPanel(Canvas* canvas);
-	virtual void Render() override;
+	
+	virtual void	Render() override;
+
+	virtual void*	GetType() const override { return &s_type; }
+
+	static void*	GetTypeStatic() { return &s_type; }
 
 
 private:
 	//-----Private Data-----
 
 	Mesh*		m_mesh = nullptr;
+
+	static int	s_type;
 
 };
 

@@ -32,6 +32,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+int Canvas::s_type = 0;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
@@ -86,6 +87,7 @@ void Canvas::InitializeFromXML(const XMLElem& element)
 
 	// Resolution
 	m_resolution = XML::ParseAttribute(element, "resolution", Vector2(1000.f));
+	m_transform.SetDimensions(m_resolution.x, m_resolution.y);
 
 	// Match mode
 	std::string matchModeText = XML::ParseAttribute(element, "match_mode", "blend");
@@ -101,11 +103,11 @@ void Canvas::InitializeFromXML(const XMLElem& element)
 	const XMLElem* child = element.FirstChildElement();
 	while (child != nullptr)
 	{
-		UIElement* uiElement = CreateUIElementFromXML(*child, this);
+		UIElement* newElement = CreateUIElementFromXML(*child, this);
 
-		if (uiElement != nullptr)
+		if (newElement != nullptr)
 		{
-			m_children.push_back(uiElement);
+			AddChild(newElement);
 		}
 
 		child = child->NextSiblingElement();
@@ -148,9 +150,45 @@ void Canvas::SetResolution(float width, float height)
 
 
 //-------------------------------------------------------------------------------------------------
+void Canvas::AddChild(UIElement* child)
+{
+	ASSERT_OR_DIE(m_canvas == nullptr, "Canvas didn't have m_canvas == nullptr!");
+	ASSERT_OR_DIE(!child->IsCanvas(), "Canvas cannot be anyone's child!");
+	GUARANTEE_OR_DIE(m_children.find(child->GetID()) == m_children.end(), "Duplicate UIElement added!");
+	GUARANTEE_OR_DIE(child->GetParent() == nullptr, "UIElement already has a parent!");
+	GUARANTEE_OR_DIE(child->GetCanvas() == this, "Child already belongs to a different canvas!");
+
+	UIElement::AddChild(child);
+	
+	// Since my m_canvas is nullptr, add to the global list here instead
+	AddElementToGlobalList(child);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Canvas::AddElementToGlobalList(UIElement* element)
+{
+	GUARANTEE_OR_DIE(m_globalElementList.find(element->GetID()) == m_globalElementList.end(), "Duplicate element being added!");
+	m_globalElementList[element->GetID()] = element;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 Texture2D* Canvas::GetOutputTexture() const
 {
 	return m_outputTexture;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+UIElement* Canvas::FindElementByID(StringID id)
+{
+	if (m_globalElementList.find(id) != m_globalElementList.end())
+	{
+		return m_globalElementList[id];
+	}
+
+	return nullptr;
 }
 
 

@@ -55,10 +55,13 @@ public:
 
 	void				SetScreenMatchMode(ScreenMatchMode mode, float widthHeightBlend = 1.0f);
 	void				SetResolution(float height, float width);
+	virtual void		AddChild(UIElement* child) override;
+	void				AddElementToGlobalList(UIElement* element);
 
-	Texture2D*			GetOutputTexture() const;
+	virtual	void*		GetType() const override { return &s_type; }
 	Vector2				GetResolution() const { return m_resolution; }
-
+	Texture2D*			GetOutputTexture() const;
+	UIElement*			FindElementByID(StringID id);
 	float				GetAspect() const;
 	Vector2				GetPixelsPerUnit() const;
 	Vector2				GetCanvasUnitsPerPixel() const;
@@ -67,14 +70,19 @@ public:
 	float				ToCanvasWidth(uint32 pixelWidth) const;
 	float				ToCanvasHeight(uint32 pixelHeight) const;
 
+	static void*		GetTypeStatic() { return &s_type; }
+
 
 private:
 	//-----Private Data-----
 
-	Vector2				m_resolution = Vector2(100.f);
-	ScreenMatchMode		m_matchMode = SCREEN_MATCH_WIDTH_OR_HEIGHT;
-	Texture2D*			m_outputTexture = nullptr;
-	float				m_widthOrHeightBlend = 1.0f; // 1.0 is match to height
+	Vector2							m_resolution = Vector2(100.f);
+	ScreenMatchMode					m_matchMode = SCREEN_MATCH_WIDTH_OR_HEIGHT;
+	Texture2D*						m_outputTexture = nullptr;
+	float							m_widthOrHeightBlend = 1.0f; // 1.0 is match to height
+	std::map<StringID, UIElement*>	m_globalElementList; // For speed and tracking
+
+	static int s_type;
 
 };
 

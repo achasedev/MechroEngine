@@ -43,14 +43,20 @@ public:
 
 	virtual void		Render();
 
-	void				AddChild(UIElement* child);
+	virtual void		AddChild(UIElement* child);
 	void				SetCanvas(Canvas* canvas);
 	virtual void		InitializeFromXML(const XMLElem& element);
+
+	UIElement*			GetParent() const { return m_parent; }
+	StringID			GetID() const { return m_id; }
+	UIElement*			GetChildByID(StringID id);
+	Canvas*				GetCanvas() const { return m_canvas; }
+	virtual void*		GetType() const { return &s_type; }
+	bool				IsCanvas() const;
 
 	OBB2				CalculateFinalBounds() const;
 	Matrix44			CalculateModelMatrix() const;
 	Matrix44			CalculateModelMatrix(const OBB2& finalBounds) const;
-	UIElement*			FindChildByID(StringID id);
 
 	static UIElement*	CreateUIElementFromXML(const XMLElem& element, Canvas* canvas);
 
@@ -64,10 +70,12 @@ public:
 protected:
 	//-----Protected Data------
 
-	StringID				m_id = INVALID_STRING_ID;
-	UIElement*				m_parent = nullptr;
-	Canvas*					m_canvas = nullptr;
-	std::vector<UIElement*> m_children;
+	StringID						m_id = INVALID_STRING_ID;
+	UIElement*						m_parent = nullptr;
+	Canvas*							m_canvas = nullptr;
+	std::map<StringID, UIElement*>	m_children;
+
+	static int s_type;
 
 };
 

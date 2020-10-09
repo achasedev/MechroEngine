@@ -26,6 +26,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+int UIElement::s_type = 0;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
@@ -178,10 +179,10 @@ UIElement::UIElement(Canvas* canvas)
 //-------------------------------------------------------------------------------------------------
 UIElement::~UIElement()
 {
-	uint32 numChildren = (uint32)m_children.size();
-	for (uint32 childIndex = 0; childIndex < numChildren; ++childIndex)
+	std::map<StringID, UIElement*>::iterator itr = m_children.begin();
+	for (itr; itr != m_children.end(); itr++)
 	{
-		SAFE_DELETE(m_children[childIndex]);
+		SAFE_DELETE(itr->second);
 	}
 
 	m_children.clear();
@@ -193,10 +194,10 @@ void UIElement::Render()
 {
 	// Parent should already have rendered themselves
 	// Now render the children on top
-	uint32 numChildren = (uint32)m_children.size();
-	for (uint32 childIndex = 0; childIndex < numChildren; ++childIndex)
+	std::map<StringID, UIElement*>::iterator itr = m_children.begin();
+	for (itr; itr != m_children.end(); itr++)
 	{
-		m_children[childIndex]->Render();
+		itr->second->Render();
 	}
 }
 
@@ -204,9 +205,17 @@ void UIElement::Render()
 //-------------------------------------------------------------------------------------------------
 void UIElement::AddChild(UIElement* child)
 {
-	m_children.push_back(child);
+	GUARANTEE_OR_DIE(m_children.find(child->m_id) == m_children.end(), "Duplicate UIElement added!");
+	GUARANTEE_OR_DIE(child->m_parent == nullptr, "UIElement already has a parent!");
+
+	m_children[child->m_id] = child;
 	child->m_parent = this;
 	child->m_transform.SetParentTransform(&m_transform);
+
+	if (m_canvas != nullptr)
+	{
+		m_canvas->AddElementToGlobalList(child);
+	}
 }
 
 
@@ -256,18 +265,25 @@ void UIElement::InitializeFromXML(const XMLElem& element)
 	}
 
 	// Recursively create and add children
-	const XMLElem* child = element.FirstChildElement();
-	while (child != nullptr)
+	const XMLElem* xmlChild = element.FirstChildElement();
+	while (xmlChild != nullptr)
 	{
-		UIElement* uiElement = CreateUIElementFromXML(*child, m_canvas);
+		UIElement* newElement = CreateUIElementFromXML(*xmlChild, m_canvas);
 
-		if (uiElement != nullptr)
+		if (newElement != nullptr)
 		{
-			m_children.push_back(uiElement);
+			AddChild(newElement);
 		}
 
-		child = child->NextSiblingElement();
+		xmlChild = xmlChild->NextSiblingElement();
 	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool UIElement::IsCanvas() const
+{
+	return (GetType() == Canvas::GetTypeStatic());
 }
 
 
@@ -305,23 +321,11 @@ Matrix44 UIElement::CalculateModelMatrix(const OBB2& finalBounds) const
 
 
 //-------------------------------------------------------------------------------------------------
-UIElement* UIElement::FindChildByID(StringID id)
+UIElement* UIElement::GetChildByID(StringID id)
 {
-	if (m_id == id)
+	if (m_children.find(id) != m_children.end())
 	{
-		return this;
-	}
-
-	size_t numChildren = m_children.size();
-
-	for (size_t childIndex = 0; childIndex < numChildren; ++childIndex)
-	{
-		UIElement* childWithID = m_children[childIndex]->FindChildByID(id);
-
-		if (childWithID != nullptr)
-		{
-			return childWithID;
-		}
+		return m_children.at(id);
 	}
 
 	return nullptr;
@@ -338,8 +342,8 @@ STATIC UIElement* UIElement::CreateUIElementFromXML(const XMLElem& element, Canv
 	std::string elementType = name.substr(underscoreIndex + 1);
 
 	UIElement* uiElement = nullptr;
-	if (elementType == "panel") { uiElement = new UIPanel(canvas); }
-	else if (elementType == "text") { uiElement = new UIText(canvas); }
+	if		(elementType == "panel")	{ uiElement = new UIPanel(canvas); }
+	else if (elementType == "text")		{ uiElement = new UIText(canvas); }
 	else
 	{
 		ERROR_RECOVERABLE("Cannot create UIElement of type %s!", elementType.c_str());

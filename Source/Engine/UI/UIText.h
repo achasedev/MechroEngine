@@ -61,11 +61,16 @@ public:
 	UIText(Canvas* canvas);
 	virtual ~UIText();
 
+	virtual void	InitializeFromXML(const XMLElem& element) override;
 	virtual void	Render() override;
+	
 	void			SetText(const std::string& text, const Rgba& color = Rgba::WHITE);
 	void			SetFont(Font* font);
 	void			SetShader(Shader* shader);
-	virtual void	InitializeFromXML(const XMLElem& element) override;
+	
+	virtual void*	GetType() const override { return &s_type; }
+
+	static void*	GetTypeStatic() { return &s_type; }
 
 
 private:
@@ -88,7 +93,10 @@ private:
 
 	HorizontalAlignment m_horizontalAlign	= ALIGNMENT_LEFT;
 	VerticalAlignment m_verticalAlign		= ALIGNMENT_TOP;
-	TextDrawMode m_wrapMode						= TEXT_DRAW_WORD_WRAP;
+	TextDrawMode m_wrapMode					= TEXT_DRAW_WORD_WRAP;
+
+	static int s_type;
+
 };
 
 
