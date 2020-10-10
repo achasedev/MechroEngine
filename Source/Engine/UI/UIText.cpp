@@ -64,6 +64,21 @@ static VerticalAlignment StringToVerticalAlignment(const std::string& text)
 
 
 //-------------------------------------------------------------------------------------------------
+static TextDrawMode StringToTextDrawMode(const std::string& text)
+{
+	if		(text == "default") { return TEXT_DRAW_DEFAULT; }
+	else if (text == "shrink") { return TEXT_DRAW_SHRINK_TO_FIT; }
+	else if (text == "expand") { return TEXT_DRAW_EXPAND_TO_FILL; }
+	else if (text == "wrap") { return TEXT_DRAW_WORD_WRAP; }
+	else
+	{
+		ERROR_RECOVERABLE("Invalid TextDrawMode %s!", text.c_str());
+		return TEXT_DRAW_DEFAULT;
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
 static bool IsValidHorizontalAlignment(const std::string& text)
 {
 	if ((text == "left") || (text == "center") || (text == "right")) 
@@ -240,6 +255,10 @@ void UIText::InitializeFromXML(const XMLElem& element)
 		m_verticalAlign = StringToVerticalAlignment(yAlignText);
 	}
 
+	// Draw mode
+	std::string drawModeText = XML::ParseAttribute(element, "draw_mode", "default");
+	m_textDrawMode = StringToTextDrawMode(drawModeText);
+
 	m_isDirty = true;
 }
 
@@ -264,7 +283,8 @@ void UIText::UpdateMeshAndMaterial(const OBB2& finalBounds)
 
 		// Send the bounds as if they're at 0,0
 		// The model matrix will handle the positioning
-		mb.PushText(m_text.c_str(), fontPixelHeight, m_font, AABB2(Vector2::ZERO, finalBounds.alignedBounds.GetDimensions()), m_canvas->GetCanvasUnitsPerPixel(), m_textColor, m_horizontalAlign, m_verticalAlign);
+		// Font pixel height may be updated/adjusted based on draw modes
+		fontPixelHeight = mb.PushText(m_text.c_str(), fontPixelHeight, m_font, AABB2(Vector2::ZERO, finalBounds.alignedBounds.GetDimensions()), m_canvas->GetCanvasUnitsPerPixel(), m_textColor, m_horizontalAlign, m_verticalAlign, m_textDrawMode);
 
 		mb.FinishBuilding();
 		mb.UpdateMesh<Vertex3D_PCU>(*m_mesh);

@@ -27,9 +27,13 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 struct CameraUBOLayout
 {
-	Matrix44 m_cameraMatrix;
-	Matrix44 m_viewMatrix;
-	Matrix44 m_projectionMatrix;
+	Matrix44	m_cameraMatrix;
+	Matrix44	m_viewMatrix;
+	Matrix44	m_projectionMatrix;
+	float		m_viewportTopLeftX;
+	float		m_viewportTopLeftY;
+	float		m_viewportWidth;
+	float		m_viewportHeight;
 };
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -191,6 +195,10 @@ void Camera::UpdateUBO()
 	cameraData.m_cameraMatrix = m_transform.GetLocalToWorldMatrix();
 	cameraData.m_viewMatrix = InvertLookAtMatrix(cameraData.m_cameraMatrix);
 	cameraData.m_projectionMatrix = m_projectionMatrix;
+	cameraData.m_viewportTopLeftX = 0.f;
+	cameraData.m_viewportTopLeftY = 0.f;
+	cameraData.m_viewportWidth = (float)m_renderTarget->GetWidth();
+	cameraData.m_viewportHeight = (float)m_renderTarget->GetHeight();
 
 	m_cameraUBO->CopyToGPU(&cameraData, sizeof(cameraData));
 }

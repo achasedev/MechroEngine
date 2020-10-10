@@ -38,7 +38,7 @@ enum VerticalAlignment
 
 enum TextDrawMode
 {
-	TEXT_DRAW_OVERRUN,
+	TEXT_DRAW_DEFAULT,
 	TEXT_DRAW_SHRINK_TO_FIT,
 	TEXT_DRAW_EXPAND_TO_FILL,
 	TEXT_DRAW_WORD_WRAP
@@ -93,7 +93,7 @@ private:
 
 	HorizontalAlignment m_horizontalAlign	= ALIGNMENT_LEFT;
 	VerticalAlignment m_verticalAlign		= ALIGNMENT_TOP;
-	TextDrawMode m_wrapMode					= TEXT_DRAW_WORD_WRAP;
+	TextDrawMode m_textDrawMode				= TEXT_DRAW_DEFAULT;
 
 	static int s_type;
 

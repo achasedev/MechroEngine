@@ -65,8 +65,8 @@ public:
 	// 2D Helpers
 	void	PushTriangle2D(const Vector2& first, const Vector2& second, const Vector2& third, const Rgba& tint = Rgba::WHITE);
 	void	PushQuad2D(const AABB2& quad, const AABB2& uvs = AABB2::ZERO_TO_ONE, const Rgba& tint = Rgba::WHITE);
-	void	PushText(const char* text, uint32 pixelHeight, Font* font, const AABB2& textBounds, const Vector2& canvasUnitsPerPixel, const Rgba& color = Rgba::WHITE,
-		HorizontalAlignment xAlign = ALIGNMENT_LEFT, VerticalAlignment yAlign = ALIGNMENT_TOP, TextDrawMode drawMode = TEXT_DRAW_OVERRUN);
+	uint32	PushText(const char* text, uint32 pixelHeight, Font* font, const AABB2& textBounds, const Vector2& canvasUnitsPerPixel, const Rgba& color = Rgba::WHITE,
+		HorizontalAlignment xAlign = ALIGNMENT_LEFT, VerticalAlignment yAlign = ALIGNMENT_TOP, TextDrawMode drawMode = TEXT_DRAW_DEFAULT);
 
 	// 3D Helpers
 	void	PushTriangle3D(const Vector3& first, const Vector3& second, const Vector3& third, const Rgba& tint = Rgba::WHITE);

@@ -173,7 +173,7 @@ DevConsole::DevConsole()
 {
 	// TODO: Remove these when ResourceManager is going
 	Shader* shader = new Shader();
-	shader->CreateFromFile("Data/Shader/test.shader");
+	shader->CreateFromFile("Data/Shader/font.shader");
 	shader->SetBlend(BLEND_PRESET_ALPHA);
 
 	// Texture
