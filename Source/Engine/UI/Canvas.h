@@ -10,6 +10,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Math/AABB2.h"
 #include "Engine/UI/UIElement.h"
+#include "Engine/UI/UIPanel.h"
+#include "Engine/UI/UIText.h"
 #include <vector>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -72,6 +74,9 @@ public:
 
 	static void*		GetTypeStatic() { return &s_type; }
 
+	template <typename T>
+	T* FindElementAsType(StringID id);
+
 
 private:
 	//-----Private Data-----
@@ -85,6 +90,20 @@ private:
 	static int s_type;
 
 };
+
+
+//-------------------------------------------------------------------------------------------------
+template <typename T>
+T* Canvas::FindElementAsType(StringID id)
+{
+	UIElement* element = FindElementByID(id);
+	if (element->GetType() == T::GetTypeStatic())
+	{
+		return (T*)element;
+	}
+
+	return nullptr;
+}
 
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

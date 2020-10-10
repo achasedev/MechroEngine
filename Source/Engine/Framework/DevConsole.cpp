@@ -192,9 +192,9 @@ DevConsole::DevConsole()
 	m_canvas = new Canvas();
 	m_canvas->InitializeFromXML("Data/Engine/Console_Layout.canvas");
 
-	m_backPanel = dynamic_cast<UIPanel*>(m_canvas->FindElementByID(SID("background_panel")));
-	m_inputPanel = dynamic_cast<UIPanel*>(m_canvas->FindElementByID(SID("input_panel")));
-	m_inputFieldText = dynamic_cast<UIText*>(m_canvas->FindElementByID(SID("input_text")));
+	m_backPanel = m_canvas->FindElementAsType<UIPanel>(SID("background_panel"));
+	m_inputPanel = m_canvas->FindElementAsType<UIPanel>(SID("input_panel"));
+	m_inputFieldText = m_canvas->FindElementAsType<UIText>(SID("input_text"));
 	m_inputFieldText->SetShader(shader);
 }
 
