@@ -48,9 +48,11 @@ FontAtlas* Font::CreateOrGetAtlasForPixelHeight(uint32 pixelHeight)
 
 		int maxAdvance = RoundToNearestInt((1.f / 64.f) * static_cast<float>(face->size->metrics.max_advance));
 		int lineHeight = RoundToNearestInt((1.f / 64.f) * static_cast<float>(face->size->metrics.height));
+		int maxAscent = RoundToNearestInt((1.f / 64.f) * static_cast<float>(face->size->metrics.ascender));
+		int maxDescent = RoundToNearestInt((1.f / 64.f) * static_cast<float>(face->size->metrics.descender));
 
 		atlas = new FontAtlas();
-		atlas->Initialize(this, pixelHeight, maxAdvance, lineHeight);
+		atlas->Initialize(this, pixelHeight, (uint32)maxAdvance, (uint32)lineHeight, maxAscent, maxDescent);
 
 		m_atlasRegistry[pixelHeight] = atlas;
 	}

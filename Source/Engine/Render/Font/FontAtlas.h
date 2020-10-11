@@ -51,12 +51,14 @@ class FontAtlas
 public:
 	//-----Public Methods-----
 
-	void			Initialize(const Font* font, uint32 pixelHeight, uint32 maxPixelAdvance, uint32 pixelLineSpacing, Texture2D* texture = nullptr);
+	void			Initialize(const Font* font, uint32 pixelHeight, uint32 maxPixelAdvance, uint32 pixelLineSpacing, int maxPixelAscent, int maxPixelDescent, Texture2D* texture = nullptr);
 
-	uint32			GetPixelHeight() const { return m_pixelHeight; }
-	Texture2D*		GetTexture();
 	GlyphInfo		CreateOrGetGlyphInfo(const char glyph);
-
+	uint32			GetPixelHeight() const { return m_pixelHeight; }
+	uint32			GetVerticalLineSpacingPixels() const { return m_verticalPixelLineSpacing; }
+	uint32			GetMaxAscentPixels() const { return m_maxGlyphPixelAscent; }
+	uint32			GetMaxDescentPixels() const { return m_maxGlyphPixelDecent; }
+	Texture2D*		GetTexture();
 	IntVector2		GetTextDimensionsPixels(const std::string& text);
 
 
@@ -68,7 +70,9 @@ private:
 	const Font*							m_ownerFont = nullptr;
 	SpritePacker*						m_glyphPacker = nullptr;
 	uint32								m_maxHorizontalPixelAdvance = 0U;
-	uint32								m_verticalPixelAdvance = 0U;
+	uint32								m_verticalPixelLineSpacing = 0U;
+	int									m_maxGlyphPixelAscent = 0;
+	int									m_maxGlyphPixelDecent = 0;
 
 };
 

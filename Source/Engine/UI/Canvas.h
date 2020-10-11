@@ -77,6 +77,8 @@ public:
 	template <typename T>
 	T* FindElementAsType(StringID id);
 
+	bool				Event_WindowResize(NamedProperties& args);
+
 
 private:
 	//-----Private Data-----
@@ -84,6 +86,8 @@ private:
 	Vector2							m_resolution = Vector2(100.f);
 	ScreenMatchMode					m_matchMode = SCREEN_MATCH_WIDTH_OR_HEIGHT;
 	Texture2D*						m_outputTexture = nullptr;
+	int								m_outputTextureHeight = 0; // For detecting changes that will require fonts to be re-rendered
+
 	float							m_widthOrHeightBlend = 1.0f; // 1.0 is match to height
 	std::map<StringID, UIElement*>	m_globalElementList; // For speed and tracking
 

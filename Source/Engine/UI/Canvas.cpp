@@ -60,11 +60,14 @@ Canvas::Canvas()
 {
 	m_id = SID("canvas");
 	m_outputTexture = g_renderContext->GetDefaultRenderTarget();
+	m_outputTextureHeight = m_outputTexture->GetHeight();
+	g_eventSystem->SubscribeEventCallbackObjectMethod("window-resize", &Canvas::Event_WindowResize, *this);
 }
 
 //-------------------------------------------------------------------------------------------------
 Canvas::~Canvas()
 {
+	g_eventSystem->UnsubscribeEventCallbackObjectMethod("window-resize", &Canvas::Event_WindowResize, *this);
 }
 
 
@@ -72,6 +75,7 @@ Canvas::~Canvas()
 void Canvas::Initialize(Texture2D* outputTexture, const Vector2& resolution, ScreenMatchMode mode, float widthHeightBlend /*= 1.0f*/)
 {
 	m_outputTexture = outputTexture;
+	m_outputTextureHeight = m_outputTexture->GetHeight();
 	m_matchMode = mode;
 	m_widthOrHeightBlend = widthHeightBlend;
 	m_resolution = Vector2(resolution.x, resolution.y);
@@ -248,6 +252,33 @@ float Canvas::ToCanvasHeight(uint32 pixelHeight) const
 {
 	float verticalUnitsPerPixel = GetCanvasUnitsPerPixel().y;
 	return pixelHeight * verticalUnitsPerPixel;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// If our output texture resizes, we need to dirty all UIText objects so they can be rebuilt using
+// the correct font size
+bool Canvas::Event_WindowResize(NamedProperties& args)
+{
+	UNUSED(args);
+
+	if (m_outputTexture->GetHeight() != m_outputTextureHeight)
+	{
+		std::map<StringID, UIElement*>::iterator itr = m_globalElementList.begin();
+
+		for (itr; itr != m_globalElementList.end(); itr++)
+		{
+			if (itr->second->GetType() == UIText::GetTypeStatic())
+			{
+				UIText* text = (UIText*)itr->second;
+				text->MarkDirty();
+			}
+		}
+
+		m_outputTextureHeight = m_outputTexture->GetHeight();
+	}
+
+	return false;
 }
 
 

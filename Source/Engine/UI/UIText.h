@@ -67,7 +67,8 @@ public:
 	void			SetText(const std::string& text, const Rgba& color = Rgba::WHITE);
 	void			SetFont(Font* font);
 	void			SetShader(Shader* shader);
-	
+	void			MarkDirty() { m_isDirty = true; }
+
 	virtual void*	GetType() const override { return &s_type; }
 
 	static void*	GetTypeStatic() { return &s_type; }

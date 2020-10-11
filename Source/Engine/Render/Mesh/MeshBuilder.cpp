@@ -40,7 +40,7 @@ float ConvertPixelOffsetToNormalizedOffset(int pixelOffset, float pixelsPerUnit,
 
 //-------------------------------------------------------------------------------------------------
 // All units in canvas space
-Vector2 GetTextStartingPosition(const AABB2& textBounds, const Vector2& textDimensions, HorizontalAlignment xAlign, VerticalAlignment yAlign)
+Vector2 CalcLineStartFromAlignment(const AABB2& textBounds, const Vector2& textDimensions, HorizontalAlignment xAlign, VerticalAlignment yAlign, const Vector2& alignmentOffset)
 {
 	float textBoundsWidth = textBounds.GetWidth();
 	float textBoundsHeight = textBounds.GetHeight();
@@ -53,7 +53,7 @@ Vector2 GetTextStartingPosition(const AABB2& textBounds, const Vector2& textDime
 		startingPos.x = textBounds.left; 
 		break;
 	case ALIGNMENT_CENTER: 
-		startingPos.x = 0.5f * (textBoundsWidth - textDimensions.x);
+		startingPos.x = textBounds.left + 0.5f * (textBoundsWidth - textDimensions.x);
 		break;
 	case ALIGNMENT_RIGHT: 
 		startingPos.x = textBounds.right - textDimensions.x; 
@@ -69,9 +69,10 @@ Vector2 GetTextStartingPosition(const AABB2& textBounds, const Vector2& textDime
 		startingPos.y = textBounds.top - textDimensions.y;
 		break;
 	case ALIGNMENT_MIDDLE:
-		startingPos.y = 0.5f * (textBoundsHeight - textDimensions.y);
+		startingPos.y = textBounds.bottom + 0.5f * (textBoundsHeight - textDimensions.y);
 		break;
 	case ALIGNMENT_BOTTOM:
+		// Account for descent
 		startingPos.y = textBounds.bottom;
 		break;
 	default:
@@ -79,13 +80,17 @@ Vector2 GetTextStartingPosition(const AABB2& textBounds, const Vector2& textDime
 		break;
 	}
 
+	// Add on the offset before converting to normalized space
+	startingPos += alignmentOffset;
+
+	// Calculate its normalized position
 	startingPos.x = (startingPos.x - textBounds.left) / textBoundsWidth;
 	startingPos.y = (startingPos.y - textBounds.bottom) / textBoundsHeight;
 
 	return startingPos;
 }
 
-#include "Engine/Render/Core/RenderContext.h"
+
 //-------------------------------------------------------------------------------------------------
 static uint32 PushText_Default(
 	MeshBuilder& mb,
@@ -94,9 +99,10 @@ static uint32 PushText_Default(
 	Font* font,
 	const AABB2& textBounds,
 	const Vector2& canvasUnitsPerPixel,
-	const Rgba& color /*= Rgba::WHITE*/,
-	HorizontalAlignment xAlign /*= ALIGNMENT_LEFT*/,
-	VerticalAlignment yAlign /*= ALIGNMENT_TOP*/)
+	const Rgba& color,
+	HorizontalAlignment xAlign,
+	VerticalAlignment yAlign,
+	const Vector2& alignmentOffset = Vector2::ZERO)
 {
 	int numChars = GetStringLength(text);
 	FontAtlas* atlas = font->CreateOrGetAtlasForPixelHeight(pixelHeight);
@@ -104,7 +110,20 @@ static uint32 PushText_Default(
 	Vector2 textCanvasDimensions = Vector2(canvasUnitsPerPixel.x * (float)strPixelDimensions.x, canvasUnitsPerPixel.y * (float)strPixelDimensions.y);
 	float textBoundsWidth = textBounds.GetWidth();
 	float textBoundsHeight = textBounds.GetHeight();
-	Vector2 runningPos = GetTextStartingPosition(textBounds, textCanvasDimensions, xAlign, yAlign);
+
+	// Another hack - if the alignment is bottom, ensure the max descent of
+	// the current font stays within the box
+	Vector2 adjustedAlignmentOffset = alignmentOffset;
+	if (yAlign == ALIGNMENT_BOTTOM)
+	{
+		int maxDescentPixels = atlas->GetMaxDescentPixels();
+		if (maxDescentPixels < 0)
+		{
+			adjustedAlignmentOffset.y -= (float)maxDescentPixels * canvasUnitsPerPixel.y;
+		}
+	}
+
+	Vector2 runningPos = CalcLineStartFromAlignment(textBounds, textCanvasDimensions, xAlign, yAlign, adjustedAlignmentOffset);
 
 	for (int charIndex = 0; charIndex < numChars; ++charIndex)
 	{
@@ -114,8 +133,15 @@ static uint32 PushText_Default(
 		int pixelKerning = (charIndex > 0 ? font->GetKerningInPixels(pixelHeight, text[charIndex - 1], currChar) : 0);
 
 		// Calculate the starting position for the glyph
+		// Small hack - if the glyph has a negative leftSideBearing and it's the start of a line, shift it right to prevent it going out of bounds/off screen
+		uint32 pixelLeftSideAdjustment = 0;
+		if (charIndex == 0 && info.m_pixelLeftSideBearing < 0)
+		{
+			pixelLeftSideAdjustment = -info.m_pixelLeftSideBearing;
+		}
+
 		Vector2 startOffset;
-		startOffset.x = ConvertPixelOffsetToNormalizedOffset(info.m_pixelLeftSideBearing + pixelKerning, canvasUnitsPerPixel.x, textBoundsWidth);
+		startOffset.x = ConvertPixelOffsetToNormalizedOffset(info.m_pixelLeftSideBearing + pixelLeftSideAdjustment + pixelKerning, canvasUnitsPerPixel.x, textBoundsWidth);
 		startOffset.y = -1.0f * ConvertPixelOffsetToNormalizedOffset(info.m_pixelBottomSideBearing, canvasUnitsPerPixel.y, textBoundsHeight);
 
 		AABB2 glyphBounds;
@@ -128,7 +154,7 @@ static uint32 PushText_Default(
 		mb.PushQuad2D(glyphBounds, info.m_glyphUVs, color);
 
 		// Update running position
-		runningPos.x += ConvertPixelOffsetToNormalizedOffset(info.m_pixelHorizontalAdvance, canvasUnitsPerPixel.x, textBoundsWidth);
+		runningPos.x += ConvertPixelOffsetToNormalizedOffset(info.m_pixelHorizontalAdvance + pixelLeftSideAdjustment, canvasUnitsPerPixel.x, textBoundsWidth);
 		runningPos.y += ConvertPixelOffsetToNormalizedOffset(info.m_pixelVerticalAdvance, canvasUnitsPerPixel.y, textBoundsHeight);
 	}
 
@@ -144,9 +170,9 @@ static uint32 PushText_ShrinkToFit(
 	Font* font,
 	const AABB2& textBounds,
 	const Vector2& canvasUnitsPerPixel,
-	const Rgba& color /*= Rgba::WHITE*/,
-	HorizontalAlignment xAlign /*= ALIGNMENT_LEFT*/,
-	VerticalAlignment yAlign /*= ALIGNMENT_TOP*/)
+	const Rgba& color,
+	HorizontalAlignment xAlign,
+	VerticalAlignment yAlign)
 {
 	FontAtlas* atlas = font->CreateOrGetAtlasForPixelHeight(pixelHeight);
 	IntVector2 strPixelDimensions = atlas->GetTextDimensionsPixels(text);
@@ -186,9 +212,9 @@ static uint32 PushText_ExpandToFill(
 	Font* font,
 	const AABB2& textBounds,
 	const Vector2& canvasUnitsPerPixel,
-	const Rgba& color /*= Rgba::WHITE*/,
-	HorizontalAlignment xAlign /*= ALIGNMENT_LEFT*/,
-	VerticalAlignment yAlign /*= ALIGNMENT_TOP*/)
+	const Rgba& color,
+	HorizontalAlignment xAlign,
+	VerticalAlignment yAlign)
 {
 	FontAtlas* atlas = font->CreateOrGetAtlasForPixelHeight(pixelHeight);
 	IntVector2 strPixelDimensions = atlas->GetTextDimensionsPixels(text);
@@ -217,6 +243,88 @@ static uint32 PushText_ExpandToFill(
 	uint32 finalHeight = Max(xDesiredHeight, yDesiredHeight);
 
 	return PushText_Default(mb, text, finalHeight, font, textBounds, canvasUnitsPerPixel, color, xAlign, yAlign);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+static uint32 PushText_WordWrap(
+	MeshBuilder& mb,
+	const char* text,
+	uint32 pixelHeight,
+	Font* font,
+	const AABB2& textBounds,
+	const Vector2& canvasUnitsPerPixel,
+	const Rgba& color /*= Rgba::WHITE*/,
+	HorizontalAlignment xAlign /*= ALIGNMENT_LEFT*/,
+	VerticalAlignment yAlign /*= ALIGNMENT_TOP*/)
+{
+	FontAtlas* atlas = font->CreateOrGetAtlasForPixelHeight(pixelHeight);
+	float textBoundsWidth = textBounds.GetWidth();
+
+	std::vector<std::string> words;
+	Tokenize(text, ' ', words);
+	size_t numWords = words.size();
+	std::string currLine;
+
+	std::vector<std::string> finalLines;
+
+	for (size_t wordIndex = 0; wordIndex < numWords; ++wordIndex)
+	{
+		IntVector2 currLinePixelDimensions = atlas->GetTextDimensionsPixels(currLine);
+		Vector2 currLineCanvasDimensions = Vector2(canvasUnitsPerPixel.x * (float)currLinePixelDimensions.x, canvasUnitsPerPixel.y * (float)currLinePixelDimensions.y);
+
+		std::string testLine = (currLine.size() > 0 ? currLine + ' ' + words[wordIndex] : words[wordIndex]);
+		IntVector2 testLinePixelDimensions = atlas->GetTextDimensionsPixels(testLine);
+		Vector2 testLineCanvasDimensions = Vector2(canvasUnitsPerPixel.x * (float)testLinePixelDimensions.x, canvasUnitsPerPixel.y * (float)testLinePixelDimensions.y);
+
+		if (testLineCanvasDimensions.x <= textBoundsWidth)
+		{
+			currLine = testLine;
+		}
+		else
+		{
+			// Save off the line
+			finalLines.push_back(currLine);
+
+			// Update for where the next line will be
+			currLine = words[wordIndex];
+		}
+	}
+
+	// Be sure to draw any leftovers
+	if (currLine.size() > 0)
+	{
+		finalLines.push_back(currLine);
+	}
+
+	// Now push all the lines with offsets based on the vertical alignment
+	uint32 pixelLineSpacing = atlas->GetVerticalLineSpacingPixels();
+	float canvasLineSpacing = canvasUnitsPerPixel.y * (float)pixelLineSpacing;
+
+	for (size_t lineIndex = 0; lineIndex < finalLines.size(); ++lineIndex)
+	{
+		Vector2 alignmentOffset = Vector2::ZERO;
+
+		switch (yAlign)
+		{
+		case ALIGNMENT_TOP:
+			alignmentOffset.y = -1.0f * (float)lineIndex * canvasLineSpacing;
+			break;
+		case ALIGNMENT_MIDDLE:
+			// This one sucks, but this formula seems to work
+			alignmentOffset.y = ((float)Ceiling(0.5f * (float)finalLines.size()) - (float)lineIndex - 1.0f) * canvasLineSpacing;
+			break;
+		case ALIGNMENT_BOTTOM:
+			alignmentOffset.y = (float)(finalLines.size() - lineIndex - 1) * canvasLineSpacing;
+			break;
+		default:
+			break;
+		}
+
+		PushText_Default(mb, finalLines[lineIndex].c_str(), pixelHeight, font, textBounds, canvasUnitsPerPixel, color, xAlign, yAlign, alignmentOffset);
+	}
+
+	return pixelHeight;
 }
 
 
@@ -383,7 +491,7 @@ uint32 MeshBuilder::PushText(
 		return PushText_ExpandToFill(*this, text, pixelHeight, font, textBounds, canvasUnitsPerPixel, color, xAlign, yAlign);
 		break;
 	case TEXT_DRAW_WORD_WRAP:
-		return pixelHeight;
+		return PushText_WordWrap(*this, text, pixelHeight, font, textBounds, canvasUnitsPerPixel, color, xAlign, yAlign);
 		break;
 	default:
 		ERROR_AND_DIE("Invalid TextDrawMode!");

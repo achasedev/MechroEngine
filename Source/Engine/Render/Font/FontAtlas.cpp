@@ -36,7 +36,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-void FontAtlas::Initialize(const Font* font, uint32 pixelHeight, uint32 maxHorizontalPixelAdvance, uint32 verticalPixelAdvance, Texture2D* texture /*= nullptr*/)
+void FontAtlas::Initialize(const Font* font, uint32 pixelHeight, uint32 maxHorizontalPixelAdvance, uint32 pixelLineSpacing, int maxPixelAscent, int maxPixelDescent, Texture2D* texture /*= nullptr*/)
 {
 	if (texture == nullptr)
 	{
@@ -59,7 +59,9 @@ void FontAtlas::Initialize(const Font* font, uint32 pixelHeight, uint32 maxHoriz
 	m_ownerFont = font;
 	m_pixelHeight = pixelHeight;
 	m_maxHorizontalPixelAdvance = maxHorizontalPixelAdvance;
-	m_verticalPixelAdvance = verticalPixelAdvance;
+	m_verticalPixelLineSpacing = pixelLineSpacing;
+	m_maxGlyphPixelAscent = maxPixelAscent;
+	m_maxGlyphPixelDecent = maxPixelDescent;
 }
 
 
