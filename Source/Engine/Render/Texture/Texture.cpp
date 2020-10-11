@@ -83,6 +83,7 @@ ShaderResourceView* Texture::CreateOrGetShaderResourceView(const TextureViewCrea
 			shaderResourceView->m_createInfo = *viewInfo;
 			uint32 infoHash = HashData((void*)viewInfo, sizeof(viewInfo));
 			shaderResourceView->m_createInfoHash = infoHash;
+			DX_SET_DEBUG_NAME(dxSRV, Stringf("ShaderResourceView | Source Texture Filepath: %s | Texture Dimensions: (%i, %i)", m_srcFilepath.c_str(), m_dimensions.x, m_dimensions.y));
 
 			// Add it to the map
 			m_views.push_back(shaderResourceView);

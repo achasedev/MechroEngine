@@ -261,6 +261,7 @@
     <ClInclude Include="Physics\Collsion2D.h" />
     <ClInclude Include="Physics\Physics2D.h" />
     <ClInclude Include="Physics\RigidBody2D.h" />
+    <ClInclude Include="UI\UIScrollView.h" />
     <ClInclude Include="UI\UIText.h" />
     <ClInclude Include="Utility\Swizzle.h" />
     <ClInclude Include="Render\Camera\Camera.h" />

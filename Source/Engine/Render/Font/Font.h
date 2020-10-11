@@ -39,6 +39,8 @@ class Font
 public:
 	//-----Public Methods-----
 
+	~Font();
+
 	FontAtlas*			CreateOrGetAtlasForPixelHeight(uint32 pixelHeight);
 
 	const uint8*		RenderGlyphForPixelHeight(const char glyph, uint32 pixelHeight, GlyphInfo& out_info) const;

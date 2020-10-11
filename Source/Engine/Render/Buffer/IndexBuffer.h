@@ -33,7 +33,7 @@ public:
 	//-----Public Methods-----
 
 	IndexBuffer() {}
-	~IndexBuffer() {}
+	virtual ~IndexBuffer() override {}
 
 	bool CopyToGPU(const uint32* indices, const uint32 indexCount);
 

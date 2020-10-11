@@ -172,22 +172,22 @@ void DevConsole::Render() const
 DevConsole::DevConsole()
 {
 	// TODO: Remove these when ResourceManager is going
-	Shader* shader = new Shader();
-	shader->CreateFromFile("Data/Shader/font.shader");
-	shader->SetBlend(BLEND_PRESET_ALPHA);
+	m_shader = new Shader();
+	m_shader->CreateFromFile("Data/Shader/font.shader");
+	m_shader->SetBlend(BLEND_PRESET_ALPHA);
 
 	// Texture
 	Image image(IntVector2(2));
 	//image.LoadFromFile("Data/Image/test.png");
 
-	Texture2D* texture = new Texture2D();
-	texture->CreateFromImage(image);
-	ShaderResourceView* textureView = texture->CreateOrGetShaderResourceView();
+	m_texture = new Texture2D();
+	m_texture->CreateFromImage(image);
+	ShaderResourceView* textureView = m_texture->CreateOrGetShaderResourceView();
 
 	// Combine into default material
-	Material* material = new Material();
-	material->SetShader(shader);
-	material->SetAlbedoTextureView(textureView);
+	m_material = new Material();
+	m_material->SetShader(m_shader);
+	m_material->SetAlbedoTextureView(textureView);
 
 	m_canvas = new Canvas();
 	m_canvas->InitializeFromXML("Data/Engine/Console_Layout.canvas");
@@ -195,7 +195,7 @@ DevConsole::DevConsole()
 	m_backPanel = m_canvas->FindElementAsType<UIPanel>(SID("background_panel"));
 	m_inputPanel = m_canvas->FindElementAsType<UIPanel>(SID("input_panel"));
 	m_inputFieldText = m_canvas->FindElementAsType<UIText>(SID("input_text"));
-	m_inputFieldText->SetShader(shader);
+	m_inputFieldText->SetShader(m_shader);
 }
 
 
@@ -206,6 +206,9 @@ DevConsole::~DevConsole()
 	m_inputPanel = nullptr;
 	m_inputFieldText = nullptr;
 
+	SAFE_DELETE(m_material);
+	SAFE_DELETE(m_shader);
+	SAFE_DELETE(m_texture);
 	SAFE_DELETE(m_canvas);
 }
 

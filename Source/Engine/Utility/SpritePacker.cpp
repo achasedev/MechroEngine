@@ -33,6 +33,17 @@
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
+//-------------------------------------------------------------------------------------------------
+SpritePacker::~SpritePacker()
+{
+	m_writePosition = IntVector2::ZERO;
+	m_maxHeightThisLine = 0;
+	m_imageDirty = true;
+
+	SAFE_DELETE(m_image);
+	SAFE_DELETE(m_texture);
+}
+
 
 //-------------------------------------------------------------------------------------------------
 void SpritePacker::Initialize(uint32 texelWidth, uint32 texelHeigth)

@@ -51,6 +51,8 @@ class FontAtlas
 public:
 	//-----Public Methods-----
 
+	~FontAtlas();
+
 	void			Initialize(const Font* font, uint32 pixelHeight, uint32 maxPixelAdvance, uint32 pixelLineSpacing, int maxPixelAscent, int maxPixelDescent, Texture2D* texture = nullptr);
 
 	GlyphInfo		CreateOrGetGlyphInfo(const char glyph);

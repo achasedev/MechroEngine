@@ -210,6 +210,8 @@ Shader::Shader()
 //-------------------------------------------------------------------------------------------------
 Shader::~Shader()
 {
+	DX_SAFE_RELEASE(m_dxBlendState);
+	DX_SAFE_RELEASE(m_dxRasterizerState);
 	DX_SAFE_RELEASE(m_shaderInputLayout.m_dxInputLayout);
 }
 

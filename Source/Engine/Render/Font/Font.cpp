@@ -36,6 +36,24 @@
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
+
+//-------------------------------------------------------------------------------------------------
+Font::~Font()
+{
+	FT_Done_Face((FT_Face)m_ftFace);
+	m_hasKerning = false;
+	m_sourceFilepath.clear();
+
+	std::map<uint32, FontAtlas*>::iterator itr = m_atlasRegistry.begin();
+	for (itr; itr != m_atlasRegistry.end(); itr++)
+	{
+		SAFE_DELETE(itr->second);
+	}
+
+	m_atlasRegistry.clear();
+}
+
+
 //-------------------------------------------------------------------------------------------------
 FontAtlas* Font::CreateOrGetAtlasForPixelHeight(uint32 pixelHeight)
 {

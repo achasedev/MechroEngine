@@ -491,7 +491,7 @@ void RenderContext::DxInit()
 	DXGI_SWAP_CHAIN_DESC swap_desc;
 	memset(&swap_desc, 0, sizeof(swap_desc));
 
-	swap_desc.BufferCount = 1;										// number of back buffers
+	swap_desc.BufferCount = 2;										// number of back buffers
 	swap_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;		// how swap chain is to be used
 	swap_desc.OutputWindow = hwnd;									// the window to be copied to on present
 	swap_desc.SampleDesc.Count = 1;									// how many multisamples (1 means no multi sampling)
@@ -500,6 +500,7 @@ void RenderContext::DxInit()
 	swap_desc.Windowed = TRUE;										// windowed/full-screen mode
 	swap_desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;		// use 32-bit color
 	swap_desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+	swap_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 
 	// Actually Create
 	HRESULT hr = ::D3D11CreateDeviceAndSwapChain(nullptr, // Adapter, if nullptr, will use adapter window is primarily on.
@@ -516,6 +517,12 @@ void RenderContext::DxInit()
 		&m_dxContext);				// Context that can issue commands on this pipe.
 
 	ASSERT_OR_DIE(SUCCEEDED(hr), "D3D11CreateDeviceAndSwapChain failed!");
+
+	// Grab the debug object
+#ifdef DEBUG_DX_DEVICE
+	hr = m_dxDevice->QueryInterface(__uuidof(ID3D11Debug), (void**)(&m_dxDebug));
+	ASSERT_OR_DIE(SUCCEEDED(hr), "Couldn't acquire the debug interface!");
+#endif
 }
 
 
@@ -634,6 +641,13 @@ RenderContext::~RenderContext()
 	DX_SAFE_RELEASE(m_dxSwapChain);
 	DX_SAFE_RELEASE(m_dxContext);
 	DX_SAFE_RELEASE(m_dxDevice);
+
+	if (m_dxDebug != nullptr)
+	{
+		// Uncomment to get descriptions on DX leaks
+		//m_dxDebug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+		DX_SAFE_RELEASE(m_dxDebug);
+	}
 }
 
 

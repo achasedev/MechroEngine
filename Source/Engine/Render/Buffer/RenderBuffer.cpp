@@ -158,6 +158,7 @@ bool RenderBuffer::CreateOnGPU(const void* data, size_t bufferSizeBytes, size_t 
 		m_elementSize = elementSize;
 		m_memoryUsage = memoryUsage;
 		m_usageFlags = bufferUsageFlags;
+		DX_SET_DEBUG_NAME(m_dxHandle, Stringf("RenderBuffer | Size: %i bytes | Usage flags: %i | GPU Memory Usage: %i", bufferSizeBytes, bufferUsageFlags, memoryUsage));
 
 		return true;
 	}

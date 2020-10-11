@@ -37,6 +37,7 @@ class Texture2D;
 class UniformBuffer;
 class VertexBuffer;
 class VertexLayout;
+struct ID3D11Debug;
 struct ID3D11Device;
 struct ID3D11DeviceContext;
 struct IDXGISwapChain;
@@ -127,6 +128,7 @@ private:
 
 	ID3D11Device*			m_dxDevice = nullptr;
 	ID3D11DeviceContext*	m_dxContext = nullptr;
+	ID3D11Debug*			m_dxDebug = nullptr;
 	IDXGISwapChain*			m_dxSwapChain = nullptr;
 
 	// Frame State

@@ -63,8 +63,8 @@ void FontLoader::Initialize()
 //-------------------------------------------------------------------------------------------------
 void FontLoader::Shutdown()
 {
-	FT_Done_FreeType(s_library);
 	SAFE_DELETE(g_fontLoader);
+	FT_Done_FreeType(s_library);
 }
 
 

@@ -34,7 +34,7 @@ public:
 	//-----Public Methods-----
 
 	VertexBuffer() {}
-	~VertexBuffer() {}
+	virtual ~VertexBuffer() override {}
 
 	template <typename VERT_TYPE>
 	bool CopyToGPU(const VERT_TYPE* vertices, const uint32 vertexCount)

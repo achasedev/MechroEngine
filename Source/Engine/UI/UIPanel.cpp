@@ -37,13 +37,6 @@ int UIPanel::s_type = 0;
 UIPanel::UIPanel(Canvas* canvas)
 	: UIElement(canvas)
 {
-	// Build a simple square mesh
-	MeshBuilder mb;
-	mb.BeginBuilding(true);
-	mb.PushQuad2D(AABB2::ZERO_TO_ONE);
-	mb.FinishBuilding();
-
-	m_mesh = mb.CreateMesh<Vertex3D_PCU>();
 }
 
 

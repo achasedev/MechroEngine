@@ -20,6 +20,11 @@ class Canvas;
 class UIPanel;
 class UIText;
 
+class Material;
+class Shader;
+class Texture2D;
+
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -77,11 +82,15 @@ private:
 	int			m_cursorPosition = 0;
 
 	// Rendering
-	Canvas* m_canvas = nullptr;
-	UIPanel* m_backPanel = nullptr;
-	UIPanel* m_inputPanel = nullptr;
-	UIText* m_inputFieldText = nullptr;
+	Canvas*		m_canvas = nullptr;
+	UIPanel*	m_backPanel = nullptr;
+	UIPanel*	m_inputPanel = nullptr;
+	UIText*		m_inputFieldText = nullptr;
 
+	// TODO: Resource System
+	Texture2D*	m_texture = nullptr;
+	Shader*		m_shader = nullptr;
+	Material*	m_material = nullptr;
 };
 
 

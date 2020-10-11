@@ -189,6 +189,8 @@ bool Texture2D::CreateFromBuffer(const uint8* buffer, uint32 bufferSize, int wid
 		m_dxHandle = tex2D;
 		m_dimensions = IntVector3(width, height, 0);
 		m_byteSize = bufferSize;
+		m_srcFilepath = filepath;
+		DX_SET_DEBUG_NAME(m_dxHandle, Stringf("Source File: %s | Size: (%i, %i)", filepath, width, height));
 	}
 
 	return succeeded;

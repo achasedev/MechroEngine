@@ -35,6 +35,8 @@ class SpritePacker
 public:
 	//-----Public Methods-----
 
+	~SpritePacker();
+
 	void		Initialize(Texture2D* texture);
 	void		Initialize(uint32 texelWidth, uint32 texelHeigth);
 

@@ -35,6 +35,22 @@
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
+
+//-------------------------------------------------------------------------------------------------
+FontAtlas::~FontAtlas()
+{
+	m_pixelHeight = 1U;
+	m_glyphUVs.clear();
+	m_ownerFont = nullptr;
+	m_maxHorizontalPixelAdvance = 0U;
+	m_verticalPixelLineSpacing = 0U;
+	m_maxGlyphPixelAscent = 0;
+	m_maxGlyphPixelDecent = 0;
+
+	SAFE_DELETE(m_glyphPacker);
+}
+
+
 //-------------------------------------------------------------------------------------------------
 void FontAtlas::Initialize(const Font* font, uint32 pixelHeight, uint32 maxHorizontalPixelAdvance, uint32 pixelLineSpacing, int maxPixelAscent, int maxPixelDescent, Texture2D* texture /*= nullptr*/)
 {
