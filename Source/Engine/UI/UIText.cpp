@@ -181,7 +181,8 @@ void UIText::InitializeFromXML(const XMLElem& element)
 	m_font = g_fontLoader->LoadFont(fontPath.c_str(), 0);
 
 	// Text
-	m_lines.push_back(XML::ParseAttribute(element, "text", "SAMPLE TEXT"));
+	std::string rawText = XML::ParseAttribute(element, "text", "SAMPLE TEXT");
+	BreakStringIntoLines(rawText, m_lines);
 
 	// Text Color
 	m_textColor = XML::ParseAttribute(element, "text_color", Rgba::WHITE);
