@@ -126,7 +126,7 @@ UIText::~UIText()
 //-------------------------------------------------------------------------------------------------
 void UIText::Render()
 {
-	if (m_text.size() > 0)
+	if (m_lines.size() > 0)
 	{
 		// Check if the text or the scale changed which would require a rebuild
 		OBB2 finalBounds = CalculateFinalBounds();
@@ -145,9 +145,9 @@ void UIText::Render()
 
 
 //-------------------------------------------------------------------------------------------------
-void UIText::SetText(const std::string& text, const Rgba& color /*= Rgba::WHITE*/)
+void UIText::AddText(const std::string& text, const Rgba& color /*= Rgba::WHITE*/)
 {
-	m_text = text;
+	m_lines.push_back(text);
 	m_textColor = color;
 	m_isDirty = true;
 }
@@ -181,7 +181,7 @@ void UIText::InitializeFromXML(const XMLElem& element)
 	m_font = g_fontLoader->LoadFont(fontPath.c_str(), 0);
 
 	// Text
-	m_text = XML::ParseAttribute(element, "text", "SAMPLE TEXT");
+	m_lines.push_back(XML::ParseAttribute(element, "text", "SAMPLE TEXT"));
 
 	// Text Color
 	m_textColor = XML::ParseAttribute(element, "text_color", Rgba::WHITE);
@@ -284,7 +284,7 @@ void UIText::UpdateMeshAndMaterial(const OBB2& finalBounds)
 		// Send the bounds as if they're at 0,0
 		// The model matrix will handle the positioning
 		// Font pixel height may be updated/adjusted based on draw modes
-		fontPixelHeight = mb.PushText(m_text.c_str(), fontPixelHeight, m_font, AABB2(Vector2::ZERO, finalBounds.alignedBounds.GetDimensions()), m_canvas->GetCanvasUnitsPerPixel(), m_textColor, m_horizontalAlign, m_verticalAlign, m_textDrawMode);
+		fontPixelHeight = mb.PushText(m_lines, fontPixelHeight, m_font, AABB2(Vector2::ZERO, finalBounds.alignedBounds.GetDimensions()), m_canvas->GetCanvasUnitsPerPixel(), m_textColor, m_horizontalAlign, m_verticalAlign, m_textDrawMode);
 
 		mb.FinishBuilding();
 		mb.UpdateMesh<Vertex3D_PCU>(*m_mesh);

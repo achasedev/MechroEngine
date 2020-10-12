@@ -64,7 +64,7 @@ public:
 	virtual void	InitializeFromXML(const XMLElem& element) override;
 	virtual void	Render() override;
 	
-	void			SetText(const std::string& text, const Rgba& color = Rgba::WHITE);
+	void			AddText(const std::string& text, const Rgba& color = Rgba::WHITE);
 	void			SetFont(Font* font);
 	void			SetShader(Shader* shader);
 	void			MarkDirty() { m_isDirty = true; }
@@ -84,7 +84,7 @@ private:
 private:
 	//-----Private Data-----
 
-	std::string m_text;
+	std::vector<std::string> m_lines;
 	Rgba		m_textColor;
 	Mesh*		m_mesh = nullptr;
 	Material*	m_material = nullptr;

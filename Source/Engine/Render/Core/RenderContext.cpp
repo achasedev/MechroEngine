@@ -644,8 +644,7 @@ RenderContext::~RenderContext()
 
 	if (m_dxDebug != nullptr)
 	{
-		// Uncomment to get descriptions on DX leaks
-		//m_dxDebug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+		m_dxDebug->ReportLiveDeviceObjects(D3D11_RLDO_IGNORE_INTERNAL);
 		DX_SAFE_RELEASE(m_dxDebug);
 	}
 }

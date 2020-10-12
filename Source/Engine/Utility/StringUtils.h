@@ -44,6 +44,7 @@ const std::string	Stringf(const int maxLength, const char* format, ...);
 int					GetStringLength(const char* str);
 void				Tokenize(const std::string& stringToTokenize, const char delimiter, std::vector<std::string>& out_tokens);
 void				TrimWhitespace(std::string& stringToTrim);
+void				BreakStringIntoLines(const std::string& stringToBreak, std::vector<std::string>& out_lines);
 
 std::string			ToString(float inValue);
 std::string			ToString(int inValue);

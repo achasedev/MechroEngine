@@ -142,6 +142,28 @@ void TrimWhitespace(std::string& stringToTrim)
 
 
 //-------------------------------------------------------------------------------------------------
+void BreakStringIntoLines(const std::string& stringToBreak, std::vector<std::string>& out_lines)
+{
+	std::string runningString = stringToBreak;
+
+	while (runningString.size() > 0)
+	{
+		size_t newLineIndex = runningString.find_first_of('\n');
+		if (newLineIndex != std::string::npos)
+		{
+			out_lines.push_back(runningString.substr(0, newLineIndex));
+			runningString = runningString.substr(newLineIndex + 1);
+		}
+		else
+		{
+			out_lines.push_back(runningString);
+			break;
+		}
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
 std::string ToString(float inValue)
 {
 	return Stringf("%f", inValue);
