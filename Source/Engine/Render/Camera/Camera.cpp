@@ -84,7 +84,7 @@ Camera::Camera()
 //-------------------------------------------------------------------------------------------------
 Camera::~Camera()
 {
-	g_eventSystem->SubscribeEventCallbackObjectMethod("window-resize", &Camera::Event_WindowResize, *this);
+	g_eventSystem->UnsubscribeEventCallbackObjectMethod("window-resize", &Camera::Event_WindowResize, *this);
 
 	SAFE_DELETE(m_cameraUBO);
 
