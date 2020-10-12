@@ -179,10 +179,9 @@ UIElement::UIElement(Canvas* canvas)
 //-------------------------------------------------------------------------------------------------
 UIElement::~UIElement()
 {
-	std::map<StringID, UIElement*>::iterator itr = m_children.begin();
-	for (itr; itr != m_children.end(); itr++)
+	for (size_t childIndex = 0; childIndex < m_children.size(); ++childIndex)
 	{
-		SAFE_DELETE(itr->second);
+		SAFE_DELETE(m_children[childIndex]);
 	}
 
 	m_children.clear();
@@ -194,10 +193,9 @@ void UIElement::Render()
 {
 	// Parent should already have rendered themselves
 	// Now render the children on top
-	std::map<StringID, UIElement*>::iterator itr = m_children.begin();
-	for (itr; itr != m_children.end(); itr++)
+	for (size_t childIndex = 0; childIndex < m_children.size(); ++childIndex)
 	{
-		itr->second->Render();
+		m_children[childIndex]->Render();
 	}
 }
 
@@ -207,15 +205,15 @@ void UIElement::AddChild(UIElement* child)
 {
 	ASSERT_OR_DIE(!child->IsCanvas(), "Canvas cannot be anyone's child!");
 	GUARANTEE_OR_DIE(child->m_parent == nullptr, "UIElement already has a parent!");
-	GUARANTEE_OR_DIE(m_children.find(child->m_id) == m_children.end(), "Duplicate UIElement added!");
+	GUARANTEE_OR_DIE(GetChildByID(child->m_id) == nullptr, "Duplicate UIElement added!");
 
-	m_children[child->m_id] = child;
+	m_children.push_back(child);
 	child->m_parent = this;
 	child->m_transform.SetParentTransform(&m_transform);
 
 	if (m_canvas != nullptr)
 	{
-		m_canvas->AddElementToGlobalList(child);
+		m_canvas->AddElementToGlobalMap(child);
 	}
 }
 
@@ -317,9 +315,12 @@ Matrix44 UIElement::CalculateModelMatrix(const OBB2& finalBounds) const
 //-------------------------------------------------------------------------------------------------
 UIElement* UIElement::GetChildByID(StringID id)
 {
-	if (m_children.find(id) != m_children.end())
+	for (size_t childIndex = 0; childIndex < m_children.size(); ++childIndex)
 	{
-		return m_children.at(id);
+		if (m_children[childIndex]->m_id == id)
+		{
+			return m_children[childIndex];
+		}
 	}
 
 	return nullptr;

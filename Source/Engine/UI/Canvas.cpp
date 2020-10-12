@@ -161,15 +161,15 @@ void Canvas::AddChild(UIElement* child)
 	UIElement::AddChild(child);
 	
 	// Need to add to the global list here, as m_canvas is nullptr
-	AddElementToGlobalList(child);
+	AddElementToGlobalMap(child);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void Canvas::AddElementToGlobalList(UIElement* element)
+void Canvas::AddElementToGlobalMap(UIElement* element)
 {
-	GUARANTEE_OR_DIE(m_globalElementList.find(element->GetID()) == m_globalElementList.end(), "Duplicate element being added!");
-	m_globalElementList[element->GetID()] = element;
+	GUARANTEE_OR_DIE(m_globalElementMap.find(element->GetID()) == m_globalElementMap.end(), "Duplicate element being added!");
+	m_globalElementMap[element->GetID()] = element;
 }
 
 
@@ -183,9 +183,9 @@ Texture2D* Canvas::GetOutputTexture() const
 //-------------------------------------------------------------------------------------------------
 UIElement* Canvas::FindElementByID(StringID id)
 {
-	if (m_globalElementList.find(id) != m_globalElementList.end())
+	if (m_globalElementMap.find(id) != m_globalElementMap.end())
 	{
-		return m_globalElementList[id];
+		return m_globalElementMap[id];
 	}
 
 	return nullptr;
@@ -264,9 +264,9 @@ bool Canvas::Event_WindowResize(NamedProperties& args)
 
 	if (m_outputTexture->GetHeight() != m_outputTextureHeight)
 	{
-		std::map<StringID, UIElement*>::iterator itr = m_globalElementList.begin();
+		std::map<StringID, UIElement*>::iterator itr = m_globalElementMap.begin();
 
-		for (itr; itr != m_globalElementList.end(); itr++)
+		for (itr; itr != m_globalElementMap.end(); itr++)
 		{
 			if (itr->second->GetType() == UIText::GetTypeStatic())
 			{

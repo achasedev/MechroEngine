@@ -72,7 +72,7 @@ protected:
 	StringID						m_id = INVALID_STRING_ID;
 	UIElement*						m_parent = nullptr;
 	Canvas*							m_canvas = nullptr;
-	std::map<StringID, UIElement*>	m_children;
+	std::vector<UIElement*>			m_children;
 
 	static int s_type;
 

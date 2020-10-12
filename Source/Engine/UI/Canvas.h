@@ -58,7 +58,7 @@ public:
 	void				SetScreenMatchMode(ScreenMatchMode mode, float widthHeightBlend = 1.0f);
 	void				SetResolution(float height, float width);
 	virtual void		AddChild(UIElement* child) override;
-	void				AddElementToGlobalList(UIElement* element);
+	void				AddElementToGlobalMap(UIElement* element);
 
 	virtual	void*		GetType() const override { return &s_type; }
 	Vector2				GetResolution() const { return m_resolution; }
@@ -89,7 +89,7 @@ private:
 	int								m_outputTextureHeight = 0; // For detecting changes that will require fonts to be re-rendered
 
 	float							m_widthOrHeightBlend = 1.0f; // 1.0 is match to height
-	std::map<StringID, UIElement*>	m_globalElementList; // For speed and tracking
+	std::map<StringID, UIElement*>	m_globalElementMap; // For speed and tracking
 
 	static int s_type;
 
