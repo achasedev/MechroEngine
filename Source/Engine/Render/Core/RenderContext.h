@@ -41,6 +41,7 @@ struct ID3D11Debug;
 struct ID3D11Device;
 struct ID3D11DeviceContext;
 struct IDXGISwapChain;
+struct ID3D11Texture2D;
 
 enum SamplerMode
 {
@@ -110,17 +111,17 @@ public:
 private:
 	//-----Private Methods-----
 
-	RenderContext() {}
+	RenderContext();
 	~RenderContext();
 	RenderContext(const RenderContext& copy) = delete;
 
-	void DxInit();
-	void PostDxInit();
+	void		DxInit();
+	void		PostDxInit();
 
-	void InitDefaultColorAndDepthViews();
-	void BindVertexStream(const VertexBuffer* vbo);
-	void BindIndexStream(const IndexBuffer* ibo);
-	void UpdateInputLayout(const VertexLayout* vertexLayout);
+	void		InitDefaultColorAndDepthViews();
+	void		BindVertexStream(const VertexBuffer* vbo);
+	void		BindIndexStream(const IndexBuffer* ibo);
+	void		UpdateInputLayout(const VertexLayout* vertexLayout);
 
 
 private:

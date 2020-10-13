@@ -1,14 +1,14 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: April 17th, 2020
+/// Date Created: October 11th, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
+#include "Engine/UI/UIScrollView.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -17,56 +17,66 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class AABB2;
-class Image;
-class Texture2D;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// CLASS DECLARATIONS
+/// C FUNCTIONS
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class SpritePacker
+UIScrollView::UIScrollView(Canvas* canvas)
+	: UIElement(canvas)
+	, m_scrollTransform(canvas)
 {
-public:
-	//-----Public Methods-----
-
-	~SpritePacker();
-
-	void		Initialize(Texture2D* texture);
-	void		Initialize(uint32 texelWidth, uint32 texelHeigth);
-
-	bool		PackSprite(const uint8* src, int spriteWidth, int spriteHeight, int srcComponentCount, AABB2& out_uvs);
-	void		UpdateTexture();
-
-	Texture2D*	GetTexture();
+	m_scrollTransform.SetParentTransform(&m_transform);
+	m_scrollTransform.SetAnchors(AnchorPreset::TOP_LEFT);
+	m_scrollTransform.SetPivot(Vector2(0.f, 1.0f));
+	m_scrollTransform.SetPosition(Vector2(0.f, 0.f));
+}
 
 
-private:
-	//-----Private Methods-----
-
-	void		MoveHeadToNextLine();
-	void		BlitSpriteToImage(const uint8* src, int spriteWidth, int spriteHeight, int srcComponentCount);
-	AABB2		CalculateUVsForSprite(int spriteWidth, int spriteHeight);
-
-
-private:
-	//-----Private Data-----
-
-	IntVector2						m_writePosition = IntVector2::ZERO;
-	int								m_maxHeightThisLine = 0;
-	bool							m_imageDirty = true;
-
-	Image*							m_image = nullptr;
-	Texture2D*						m_texture = nullptr;
-
-};
+//-------------------------------------------------------------------------------------------------
+void UIScrollView::Render()
+{
+	UIElement::Render();
+}
 
 
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// C FUNCTIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+void UIScrollView::AddChildToScroll(UIElement* element)
+{
+	AddChild(element);
+	
+	// Set up the transform to work correctly with the other elements
+	element->m_transform.SetParentTransform(&m_scrollTransform);
+	element->m_transform.SetAnchors(AnchorPreset::TOP_LEFT);
+	element->m_transform.SetPivot(Vector2(0.f, 1.0f));
+	element->m_transform.SetXPosition(0.f);
+	element->m_transform.SetYPosition(GetBottomOfListY());
+	
+	m_scrollableElements.push_back(element);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float UIScrollView::GetBottomOfListY() const
+{
+	if (m_scrollableElements.size() == 0)
+	{
+		return 0.f;
+	}
+
+	size_t lastIndex = m_scrollableElements.size() - 1;
+	UIElement* lastElement = m_scrollableElements[lastIndex];
+
+	// Y position should be <= 0.f
+	return lastElement->m_transform.GetYPosition() - lastElement->m_transform.GetHeight();
+}
+

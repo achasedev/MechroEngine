@@ -71,11 +71,12 @@ public:
 	uint32				ToPixelHeight(float canvasHeight) const;
 	float				ToCanvasWidth(uint32 pixelWidth) const;
 	float				ToCanvasHeight(uint32 pixelHeight) const;
+	StringID			GetNextUnspecifiedID();
 
 	static void*		GetTypeStatic() { return &s_type; }
 
 	template <typename T>
-	T* FindElementAsType(StringID id);
+	T*					FindElementAsType(StringID id);
 
 	bool				Event_WindowResize(NamedProperties& args);
 
@@ -87,6 +88,7 @@ private:
 	ScreenMatchMode					m_matchMode = SCREEN_MATCH_WIDTH_OR_HEIGHT;
 	Texture2D*						m_outputTexture = nullptr;
 	int								m_outputTextureHeight = 0; // For detecting changes that will require fonts to be re-rendered
+	int								m_nextUnspecifiedIDSuffix = 0;
 
 	float							m_widthOrHeightBlend = 1.0f; // 1.0 is match to height
 	std::map<StringID, UIElement*>	m_globalElementMap; // For speed and tracking

@@ -67,10 +67,12 @@ public:
 	void			AddText(const std::string& text, const Rgba& color = Rgba::WHITE);
 	void			SetFont(Font* font);
 	void			SetShader(Shader* shader);
+	void			SetFontHeight(float fontHeight);
 	void			MarkDirty() { m_isDirty = true; }
 
 	virtual void*	GetType() const override { return &s_type; }
-
+	Material*		GetMaterial() const { return m_material; }
+	Font*			GetFont() const { return m_font; }
 	static void*	GetTypeStatic() { return &s_type; }
 
 
@@ -84,13 +86,13 @@ private:
 private:
 	//-----Private Data-----
 
-	std::vector<std::string> m_lines;
-	Rgba		m_textColor;
-	Mesh*		m_mesh = nullptr;
-	Material*	m_material = nullptr;
-	Font*		m_font = nullptr;
-	float		m_fontHeight = 0.f;
-	bool		m_isDirty = true;
+	std::vector<std::string>	m_lines;
+	Rgba						m_textColor;
+	Mesh*						m_mesh = nullptr;
+	Material*					m_material = nullptr;
+	Font*						m_font = nullptr;
+	float						m_fontHeight = 0.f;
+	bool						m_isDirty = true;
 
 	HorizontalAlignment m_horizontalAlign	= ALIGNMENT_LEFT;
 	VerticalAlignment m_verticalAlign		= ALIGNMENT_TOP;

@@ -10,6 +10,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
 #include <map>
+#include <string>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -18,6 +19,7 @@ typedef uint32 StringID;
 #define INVALID_STRING_ID 0
 
 StringID HashString(const char* str);
+StringID HashString(const std::string& str);
 #define SID(x) HashString(x)
 
 

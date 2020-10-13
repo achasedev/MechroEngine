@@ -169,6 +169,14 @@ void UIText::SetShader(Shader* shader)
 
 
 //-------------------------------------------------------------------------------------------------
+void UIText::SetFontHeight(float fontHeight)
+{
+	ASSERT_OR_DIE(fontHeight > 0.f, "Negative font height!");
+	m_fontHeight = fontHeight;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void UIText::InitializeFromXML(const XMLElem& element)
 {
 	UIElement::InitializeFromXML(element);
@@ -277,6 +285,11 @@ void UIText::UpdateMeshAndMaterial(const OBB2& finalBounds)
 {
 	if (m_isDirty)
 	{
+		ASSERT_OR_DIE(m_font != nullptr, "Null Font!");
+		ASSERT_OR_DIE(m_mesh != nullptr, "Null Mesh!");
+		ASSERT_OR_DIE(m_material != nullptr, "Null Material!");
+		ASSERT_OR_DIE(m_fontHeight > 0.f, "Font height is zero when trying to render!");
+
 		uint32 fontPixelHeight = m_canvas->ToPixelHeight(m_fontHeight);
 
 		MeshBuilder mb;
@@ -297,6 +310,8 @@ void UIText::UpdateMeshAndMaterial(const OBB2& finalBounds)
 		Texture2D* texture = atlas->GetTexture();
 		ShaderResourceView* resourceView = texture->CreateOrGetShaderResourceView();
 		m_material->SetAlbedoTextureView(resourceView);
+
+		ASSERT_OR_DIE(resourceView->GetSampler() == nullptr, "Whyyyyy!");
 
 		m_isDirty = false;
 	}

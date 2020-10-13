@@ -220,6 +220,7 @@
     <ClCompile Include="Time\Time.cpp" />
     <ClCompile Include="Time\Timer.cpp" />
     <ClCompile Include="UI\Canvas.cpp" />
+    <ClCompile Include="UI\UIScrollView.cpp" />
     <ClCompile Include="UI\UIPanel.cpp" />
     <ClCompile Include="UI\RectTransform.cpp" />
     <ClCompile Include="UI\UIElement.cpp" />

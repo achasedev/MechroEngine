@@ -115,6 +115,8 @@ static uint32 PushText_Default(
 	HorizontalAlignment xAlign,
 	VerticalAlignment yAlign)
 {
+	ASSERT_OR_DIE(font != nullptr, "Null font!");
+
 	FontAtlas* atlas = font->CreateOrGetAtlasForPixelHeight(pixelHeight);
 
 	for (size_t lineIndex = 0; lineIndex < textLines.size(); ++lineIndex)

@@ -10,6 +10,7 @@
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/IO/Image.h"
+#include "Engine/Render/Core/DX11Common.h"
 #include "Engine/Render/Texture/Texture2D.h"
 #include "Engine/Utility/SpritePacker.h"
 
@@ -52,7 +53,7 @@ void SpritePacker::Initialize(uint32 texelWidth, uint32 texelHeigth)
 	m_image->Initialize(IntVector2(texelWidth, texelHeigth), Rgba(0, 0, 0, 0));
 
 	m_texture = new Texture2D();
-	m_texture->CreateFromImage(*m_image);
+	m_texture->CreateFromImage(*m_image, TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_GPU);
 }
 
 
@@ -109,7 +110,7 @@ void SpritePacker::UpdateTexture()
 {
 	if (m_imageDirty)
 	{
-		m_texture->CreateFromImage(*m_image);
+		m_texture->UpdateFromImage(*m_image);
 		m_imageDirty = false;
 	}
 }

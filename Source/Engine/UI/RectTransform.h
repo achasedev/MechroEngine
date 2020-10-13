@@ -98,11 +98,17 @@ public:
 	bool		IsPaddingHorizontal() const;
 	bool		IsPaddingVertical() const;
 	OBB2		GetBounds() const;
+	float		GetXPosition() const;
+	float		GetYPosition() const;
+	float		GetWidth() const;
+	float		GetHeight() const;
+	float		GetLeftPadding() const;
+	float		GetRightPadding() const;
+	float		GetBottomPadding() const;
+	float		GetTopPadding() const;
 	Vector2		GetScale() const;
 	AnchorMode	GetAnchorMode() const { return m_anchorMode; }
 	Vector2		GetPivot() const { return m_pivot; }
-	float		GetWidth() const { return m_width; }
-	float		GetHeight() const { return m_height; }
 
 
 private:

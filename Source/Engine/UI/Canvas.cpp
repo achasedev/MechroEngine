@@ -256,6 +256,14 @@ float Canvas::ToCanvasHeight(uint32 pixelHeight) const
 
 
 //-------------------------------------------------------------------------------------------------
+StringID Canvas::GetNextUnspecifiedID()
+{
+	std::string name = Stringf("UNSPECIFIED_%i", m_nextUnspecifiedIDSuffix++);
+	return SID(name);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 // If our output texture resizes, we need to dirty all UIText objects so they can be rebuilt using
 // the correct font size
 bool Canvas::Event_WindowResize(NamedProperties& args)

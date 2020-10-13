@@ -119,12 +119,13 @@ static int GetComponentCountFromDxTextureFormat(DXGI_FORMAT dxFormat)
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-bool Texture2D::CreateFromFile(const char* filepath)
+bool Texture2D::CreateFromFile(const char* filepath, TextureUsageBits textureUsage, GPUMemoryUsage memoryUsage)
 {
 	Image image;
 	if (image.LoadFromFile(filepath))
 	{
-		return CreateFromImage(image);
+		m_srcFilepath = filepath;
+		return CreateFromImage(image, textureUsage, memoryUsage);
 	}
 
 	return false;
@@ -132,21 +133,21 @@ bool Texture2D::CreateFromFile(const char* filepath)
 
 
 //-------------------------------------------------------------------------------------------------
-bool Texture2D::CreateFromImage(const Image& image)
+bool Texture2D::CreateFromImage(const Image& image, TextureUsageBits textureUsage, GPUMemoryUsage memoryUsage)
 {
-	return CreateFromBuffer(image.GetData(), image.GetSize(), image.GetTexelWidth(), image.GetTexelHeight(), image.GetNumComponentsPerTexel(), image.GetFilePath());
+	return CreateFromBuffer(image.GetData(), image.GetSize(), image.GetTexelWidth(), image.GetTexelHeight(), image.GetNumComponentsPerTexel(), textureUsage, memoryUsage);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-bool Texture2D::CreateFromBuffer(const uint8* buffer, uint32 bufferSize, int width, int height, uint32 numComponents, const char* filepath /*= "PATH NOT SPECIFIED"*/)
+bool Texture2D::CreateFromBuffer(const uint8* buffer, uint32 bufferSize, int width, int height, uint32 numComponents, TextureUsageBits textureUsage, GPUMemoryUsage memoryUsage)
 {
 	Clear();
 
 	ID3D11Device* dxDevice = g_renderContext->GetDxDevice();
 
-	m_textureUsage = TEXTURE_USAGE_SHADER_RESOURCE_BIT; // Read only texture
-	m_memoryUsage = GPU_MEMORY_USAGE_GPU;				// Non-static for mip-maps
+	m_textureUsage = textureUsage;
+	m_memoryUsage = memoryUsage;
 
 	D3D11_TEXTURE2D_DESC texDesc;
 	memset(&texDesc, 0, sizeof(D3D11_TEXTURE2D_DESC));
@@ -158,11 +159,10 @@ bool Texture2D::CreateFromBuffer(const uint8* buffer, uint32 bufferSize, int wid
 	texDesc.Usage = (D3D11_USAGE)ToDXMemoryUsage(m_memoryUsage);
 	texDesc.Format = GetDxTextureFormatFromComponentCount(numComponents);
 	texDesc.BindFlags = GetDxBindFromTextureUsageFlags(m_textureUsage);
-	texDesc.CPUAccessFlags = 0U;
+	texDesc.CPUAccessFlags = (m_memoryUsage == GPU_MEMORY_USAGE_DYNAMIC ? D3D11_CPU_ACCESS_WRITE : 0U);
 	texDesc.MiscFlags = 0U;
 	texDesc.SampleDesc.Count = 1;
 	texDesc.SampleDesc.Quality = 0;
-
 
 	D3D11_SUBRESOURCE_DATA* initialData = nullptr;
 	D3D11_SUBRESOURCE_DATA data;
@@ -182,15 +182,14 @@ bool Texture2D::CreateFromBuffer(const uint8* buffer, uint32 bufferSize, int wid
 	HRESULT hr = dxDevice->CreateTexture2D(&texDesc, initialData, &tex2D);
 
 	bool succeeded = SUCCEEDED(hr);
-	ASSERT_RECOVERABLE(succeeded, "Couldn't create Texture2D for image %s, error code: %u", filepath, hr);
+	ASSERT_RECOVERABLE(succeeded, "Couldn't create Texture2D!");
 
 	if (succeeded)
 	{
 		m_dxHandle = tex2D;
 		m_dimensions = IntVector3(width, height, 0);
 		m_byteSize = bufferSize;
-		m_srcFilepath = filepath;
-		DX_SET_DEBUG_NAME(m_dxHandle, Stringf("Source File: %s | Size: (%i, %i)", filepath, width, height));
+		DX_SET_DEBUG_NAME(m_dxHandle, Stringf("Source File: %s | Size: (%i, %i)", m_srcFilepath.c_str(), width, height));
 	}
 
 	return succeeded;
@@ -214,6 +213,20 @@ bool Texture2D::CreateFromDxTexture2D(ID3D11Texture2D* dxTexture2D)
 	m_textureUsage = GetTextureUsageFlagsFromDxBinds(desc.BindFlags);
 
 	return true;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool Texture2D::UpdateFromImage(const Image& image)
+{
+	ASSERT_OR_DIE(m_memoryUsage == GPU_MEMORY_USAGE_GPU, "Texture must only have GPU read/write access!");
+
+	IntVector2 textureDimensions = m_dimensions.xy;
+	ASSERT_OR_DIE(textureDimensions == image.GetDimensions(), "Cannot update texture with image of different size!");
+
+	g_renderContext->GetDxContext()->UpdateSubresource(m_dxHandle, 0, NULL, image.GetData(), (UINT)(image.GetNumComponentsPerTexel() * image.GetTexelWidth()), (UINT)(image.GetNumComponentsPerTexel() * image.GetTexelWidth() * image.GetTexelHeight()));
+
+	return false;
 }
 
 

@@ -53,6 +53,10 @@ public:
 	virtual void*		GetType() const { return &s_type; }
 	bool				IsCanvas() const;
 
+	void				SetID(StringID id);
+	void				SetID(const std::string& name);
+	void				SetID(const char* name);
+
 	OBB2				CalculateFinalBounds() const;
 	Matrix44			CalculateModelMatrix() const;
 	Matrix44			CalculateModelMatrix(const OBB2& finalBounds) const;

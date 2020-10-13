@@ -18,12 +18,11 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Canvas;
 class UIPanel;
+class UIScrollView;
 class UIText;
 
-class Material;
 class Shader;
 class Texture2D;
-
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -76,21 +75,21 @@ private:
 private:
 	//-----Private Data-----
 
-	bool m_isActive = false;
+	bool			m_isActive = false;
 
-	std::string m_inputBuffer;
-	int			m_cursorPosition = 0;
+	std::string		m_inputBuffer;
+	int				m_cursorPosition = 0;
 
 	// Rendering
-	Canvas*		m_canvas = nullptr;
-	UIPanel*	m_backPanel = nullptr;
-	UIPanel*	m_inputPanel = nullptr;
-	UIText*		m_inputFieldText = nullptr;
+	Canvas*			m_canvas = nullptr;
+	UIPanel*		m_backPanel = nullptr;
+	UIPanel*		m_inputPanel = nullptr;
+	UIText*			m_inputFieldText = nullptr;
+	UIScrollView*	m_logScrollView = nullptr;
 
 	// TODO: Resource System
-	Texture2D*	m_texture = nullptr;
-	Shader*		m_shader = nullptr;
-	Material*	m_material = nullptr;
+	Shader*			m_shader = nullptr;
+
 };
 
 

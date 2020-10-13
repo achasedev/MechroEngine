@@ -387,6 +387,70 @@ OBB2 RectTransform::GetBounds() const
 
 
 //-------------------------------------------------------------------------------------------------
+float RectTransform::GetXPosition() const
+{
+	ASSERT_OR_DIE(!IsPaddingHorizontal(), "Trying to read position when anchors are using padding!");
+	return m_xPosition;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float RectTransform::GetYPosition() const
+{
+	ASSERT_OR_DIE(!IsPaddingVertical(), "Trying to read position when anchors are using padding!");
+	return m_yPosition;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float RectTransform::GetWidth() const
+{
+	ASSERT_OR_DIE(!IsPaddingHorizontal(), "Trying to read position when anchors are using padding!");
+	return m_width;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float RectTransform::GetHeight() const
+{
+	ASSERT_OR_DIE(!IsPaddingVertical(), "Trying to read position when anchors are using padding!");
+	return m_height;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float RectTransform::GetLeftPadding() const
+{
+	ASSERT_OR_DIE(IsPaddingHorizontal(), "Trying to read padding when anchors are using positions!");
+	return m_leftPadding;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float RectTransform::GetRightPadding() const
+{
+	ASSERT_OR_DIE(IsPaddingHorizontal(), "Trying to read padding when anchors are using positions!");
+	return m_rightPadding;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float RectTransform::GetBottomPadding() const
+{
+	ASSERT_OR_DIE(IsPaddingVertical(), "Trying to read padding when anchors are using positions!");
+	return m_bottomPadding;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float RectTransform::GetTopPadding() const
+{
+	ASSERT_OR_DIE(IsPaddingVertical(), "Trying to read padding when anchors are using positions!");
+	return m_topPadding;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 Vector2 RectTransform::GetScale() const
 {
 	Vector2 parentScale = (m_parent != nullptr ? m_parent->GetScale() : Vector2::ONES);

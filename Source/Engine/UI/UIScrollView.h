@@ -34,12 +34,23 @@ public:
 
 	UIScrollView(Canvas* canvas);
 
+	virtual void Render() override;
+
+	void AddChildToScroll(UIElement* element);
+
+
+private:
+	//-----Private Methods-----
+
+	float GetBottomOfListY() const;
+
 
 private:
 	//-----Private Data-----
 
-	RectTransform m_scrollTransform;
-
+	RectTransform m_scrollTransform;	
+	std::vector<UIElement*> m_scrollableElements;
+	
 };
 
 

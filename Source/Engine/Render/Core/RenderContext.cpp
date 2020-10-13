@@ -92,14 +92,8 @@ void RenderContext::Shutdown()
 //-------------------------------------------------------------------------------------------------
 void RenderContext::BeginFrame()
 {
-	// Get the new backbuffer
-	ID3D11Texture2D* backbuffer = nullptr;
-	m_dxSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backbuffer);
-
-	// Store it off
-	m_defaultColorTarget->CreateFromDxTexture2D(backbuffer);
-
-	DX_SAFE_RELEASE(backbuffer);
+	// No need to get the new backbuffer, since DX11 maintains the handle we have to
+	// whatever is the current backbuffer
 }
 
 
@@ -250,6 +244,11 @@ void RenderContext::BindSampler(uint32 slot, Sampler* sampler)
 	if (sampler == nullptr)
 	{
 		sampler = m_samplers[m_samplerMode];
+	}
+	else
+	{
+		int x = 4;
+		x = 5;
 	}
 
 	sampler->CreateOrUpdate();
@@ -622,6 +621,12 @@ void RenderContext::UpdateInputLayout(const VertexLayout* vertexLayout)
 		m_dxContext->IASetInputLayout(m_currentShader->GetInputLayout());
 		m_currVertexLayout = vertexLayout;
 	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+RenderContext::RenderContext()
+{
 }
 
 

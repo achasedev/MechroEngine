@@ -173,6 +173,11 @@ UIElement::UIElement(Canvas* canvas)
 	: m_transform(RectTransform(canvas))
 	, m_canvas(canvas)
 {
+	if (canvas != nullptr)
+	{
+		// Ensure all UIElements have an ID of some sort
+		m_id = m_canvas->GetNextUnspecifiedID();
+	}
 }
 
 
@@ -276,6 +281,27 @@ void UIElement::InitializeFromXML(const XMLElem& element)
 bool UIElement::IsCanvas() const
 {
 	return (GetType() == Canvas::GetTypeStatic());
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void UIElement::SetID(StringID id)
+{
+	m_id = id;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void UIElement::SetID(const std::string& name)
+{
+	SetID(name.c_str());
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void UIElement::SetID(const char* name)
+{
+	SetID(SID(name));
 }
 
 

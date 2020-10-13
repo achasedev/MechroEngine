@@ -70,7 +70,8 @@ ShaderResourceView* Texture::CreateOrGetShaderResourceView(const TextureViewCrea
 		// Create a ShaderResourceView for this texture
 		ID3D11Device* dxDevice = g_renderContext->GetDxDevice();
 		ID3D11ShaderResourceView* dxSRV = nullptr;
-		dxDevice->CreateShaderResourceView(m_dxHandle, nullptr, &dxSRV);
+		HRESULT hr = dxDevice->CreateShaderResourceView(m_dxHandle, nullptr, &dxSRV);
+		ASSERT_OR_DIE(SUCCEEDED(hr), "Couldn't create ShaderResourceView!");
 
 		if (dxSRV != nullptr)
 		{

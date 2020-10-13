@@ -19,6 +19,7 @@
 #include "Engine/Render/Texture/Texture2D.h"
 #include "Engine/UI/Canvas.h"
 #include "Engine/UI/UIPanel.h"
+#include "Engine/UI/UIScrollView.h"
 #include "Engine/UI/UIText.h"
 #include "Engine/Utility/NamedProperties.h"
 #include "Engine/Render/Font/FontLoader.h"
@@ -176,19 +177,6 @@ DevConsole::DevConsole()
 	m_shader->CreateFromFile("Data/Shader/font.shader");
 	m_shader->SetBlend(BLEND_PRESET_ALPHA);
 
-	// Texture
-	Image image(IntVector2(2));
-	//image.LoadFromFile("Data/Image/test.png");
-
-	m_texture = new Texture2D();
-	m_texture->CreateFromImage(image);
-	ShaderResourceView* textureView = m_texture->CreateOrGetShaderResourceView();
-
-	// Combine into default material
-	m_material = new Material();
-	m_material->SetShader(m_shader);
-	m_material->SetAlbedoTextureView(textureView);
-
 	m_canvas = new Canvas();
 	m_canvas->InitializeFromXML("Data/Engine/Console_Layout.canvas");
 
@@ -196,19 +184,50 @@ DevConsole::DevConsole()
 	m_inputPanel = m_canvas->FindElementAsType<UIPanel>(SID("input_panel"));
 	m_inputFieldText = m_canvas->FindElementAsType<UIText>(SID("input_text"));
 	m_inputFieldText->SetShader(m_shader);
+
+	m_logScrollView = new UIScrollView(m_canvas);
+	m_logScrollView->m_transform.SetAnchors(AnchorPreset::TOP_LEFT);
+	m_logScrollView->m_transform.SetPivot(Vector2(0.f, 1.0f));
+	m_logScrollView->m_transform.SetPosition(Vector2::ZERO);
+	m_logScrollView->m_transform.SetDimensions(Vector2(2333.3f, 1000.f));
+
+	m_canvas->AddChild(m_logScrollView);
+
+	UIText* firstLine = new UIText(m_canvas);
+	UIText* secondLine = new UIText(m_canvas);
+
+	firstLine->SetID("first_line");
+	secondLine->SetID("second_line");
+
+	firstLine->m_transform.SetDimensions(2333.3f, 25.f);
+	secondLine->m_transform.SetDimensions(2333.3f, 25.f);
+
+	firstLine->SetFont(m_inputFieldText->GetFont());
+	secondLine->SetFont(m_inputFieldText->GetFont());
+
+	firstLine->SetFontHeight(25.f);
+	secondLine->SetFontHeight(25.f);
+
+	firstLine->SetShader(m_shader);
+	secondLine->SetShader(m_shader);
+
+	firstLine->AddText("First Line First Line First Line First Line First Line First Line", Rgba::WHITE);
+	secondLine->AddText("Second Line Second Line Second Line Second Line Second Line Second Line", Rgba::YELLOW);
+
+	m_logScrollView->AddChildToScroll(firstLine);
+	m_logScrollView->AddChildToScroll(secondLine);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 DevConsole::~DevConsole()
 {
+	m_logScrollView = nullptr;
 	m_backPanel = nullptr;
 	m_inputPanel = nullptr;
 	m_inputFieldText = nullptr;
 
-	SAFE_DELETE(m_material);
 	SAFE_DELETE(m_shader);
-	SAFE_DELETE(m_texture);
 	SAFE_DELETE(m_canvas);
 }
 
