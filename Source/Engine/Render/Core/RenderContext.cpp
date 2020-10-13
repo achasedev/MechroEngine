@@ -406,6 +406,8 @@ void RenderContext::SaveTextureToImage(Texture2D* texture, const char* filepath)
 
 	HRESULT hr = m_dxContext->Map(dxSrcTexture, 0, D3D11_MAP_READ, 0, &mappedSubResource);
 	ID3D11Texture2D* dxTextureMapped = dxSrcTexture;
+
+	Texture2D* mappedTexture = texture;
 	bool createdStagingTexture = false;
 
 	if (FAILED(hr))
@@ -414,34 +416,15 @@ void RenderContext::SaveTextureToImage(Texture2D* texture, const char* filepath)
 		// Create a staging texture and copy it to that, then access
 		if (hr == E_INVALIDARG)
 		{
-			D3D11_TEXTURE2D_DESC srcTexDesc;
-			dxSrcTexture->GetDesc(&srcTexDesc);
+			mappedTexture = new Texture2D();
+			mappedTexture->CreateWithNoData(texture->GetWidth(), texture->GetHeight(), 4U, TEXTURE_USAGE_NO_BIND, GPU_MEMORY_USAGE_STAGING);
 
-			D3D11_TEXTURE2D_DESC stageTexDesc;
-			memset(&stageTexDesc, 0, sizeof(stageTexDesc));
-
-			stageTexDesc.Width = srcTexDesc.Width;
-			stageTexDesc.Height = srcTexDesc.Height;
-			stageTexDesc.MipLevels = srcTexDesc.MipLevels;
-			stageTexDesc.ArraySize = srcTexDesc.ArraySize;
-			stageTexDesc.Format = srcTexDesc.Format;
-			stageTexDesc.SampleDesc = srcTexDesc.SampleDesc;
-			stageTexDesc.Usage = D3D11_USAGE_STAGING;
-			stageTexDesc.BindFlags = 0;
-			stageTexDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
-			stageTexDesc.MiscFlags = 0;
-
-			// Create staging texture
-			ID3D11Texture2D* dxStageTexture;
-			hr = m_dxDevice->CreateTexture2D(&stageTexDesc, nullptr, &dxStageTexture);
-			ASSERT_RETURN(SUCCEEDED(hr), NO_RETURN_VAL, "Couldn't create a staging texture for saving!");
-
-			// Copy source to staging
-			m_dxContext->CopyResource(dxStageTexture, dxSrcTexture);
+			ID3D11Texture2D* dxStagingTexture = (ID3D11Texture2D*)mappedTexture->GetDxHandle();
+			m_dxContext->CopyResource(dxStagingTexture, dxSrcTexture);
 
 			// Now map the staging texture
-			hr = m_dxContext->Map(dxStageTexture, 0, D3D11_MAP_READ, 0, &mappedSubResource);
-			dxTextureMapped = dxStageTexture;
+			hr = m_dxContext->Map(dxStagingTexture, 0, D3D11_MAP_READ, 0, &mappedSubResource);
+			dxTextureMapped = dxStagingTexture;
 			createdStagingTexture = true;
 			ASSERT_RETURN(SUCCEEDED(hr), NO_RETURN_VAL, "Couldn't map a staging texture for saving!");
 		}
@@ -465,7 +448,7 @@ void RenderContext::SaveTextureToImage(Texture2D* texture, const char* filepath)
 
 	if (createdStagingTexture)
 	{
-		DX_SAFE_RELEASE(dxTextureMapped)
+		SAFE_DELETE(mappedTexture);
 	}
 
 	// Kick the job
@@ -574,7 +557,7 @@ void RenderContext::InitDefaultColorAndDepthViews()
 		m_defaultDepthStencilTarget = new Texture2D();
 	}
 
-	m_defaultDepthStencilTarget->CreateAsDepthStencilTarget(desc.Width, desc.Height);
+	m_defaultDepthStencilTarget->CreateWithNoData(desc.Width, desc.Height, 0, TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT, GPU_MEMORY_USAGE_GPU); // 0 here is ignored for depth stencils, it's always R24G8_TYPELESS
 
 	// Create default views for both
 	m_defaultColorTarget->CreateOrGetColorTargetView();

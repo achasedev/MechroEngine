@@ -50,7 +50,8 @@ void Image::Initialize(const IntVector2& dimensions, const Rgba& color /*= Rgba:
 {
 	m_dimensions = dimensions;
 	m_numComponentsPerTexel = 4;
-	m_data = (uint8*)malloc(sizeof(uint8) * m_numComponentsPerTexel * GetTexelCount());
+	m_size = sizeof(uint8) * m_numComponentsPerTexel * GetTexelCount();
+	m_data = (uint8*)malloc(m_size);
 
 	for (uint32 texelIndex = 0; texelIndex < GetTexelCount(); ++texelIndex)
 	{
@@ -61,6 +62,7 @@ void Image::Initialize(const IntVector2& dimensions, const Rgba& color /*= Rgba:
 		m_data[offset + 2] = color.b;
 		m_data[offset + 3] = color.a;
 	}
+
 }
 
 
@@ -72,7 +74,7 @@ bool Image::LoadFromFile(const char* filepath, bool flipVertically)
 	int numComponentsRequested = 0;
 	if (flipVertically) { stbi_set_flip_vertically_on_load(1); }
 	m_data = (uint8*)stbi_load(filepath, &m_dimensions.x, &m_dimensions.y, &m_numComponentsPerTexel, numComponentsRequested);
-	stbi_set_flip_vertically_on_load(1);
+	stbi_set_flip_vertically_on_load(0);
 	
 	if (m_data != nullptr)
 	{

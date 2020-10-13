@@ -20,9 +20,10 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 enum TextureUsageBit : uint32
 {
-	TEXTURE_USAGE_SHADER_RESOURCE_BIT		= BIT_FLAG(0),	// Can be used to create a ShaderResourceView
-	TEXTURE_USAGE_RENDER_TARGET_BIT			= BIT_FLAG(1),	// Can be used to create a ColorTargetView
-	TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT	= BIT_FLAG(2),	// Can be used to create a DepthStencilTargetView
+	TEXTURE_USAGE_NO_BIND					= BIT_FLAG(1),	// Can be used to create a staging texture (no binds)
+	TEXTURE_USAGE_SHADER_RESOURCE_BIT		= BIT_FLAG(2),	// Can be used to create a ShaderResourceView
+	TEXTURE_USAGE_RENDER_TARGET_BIT			= BIT_FLAG(3),	// Can be used to create a ColorTargetView
+	TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT	= BIT_FLAG(4),	// Can be used to create a DepthStencilTargetView
 };
 
 typedef uint32 TextureUsageBits;

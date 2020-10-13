@@ -33,6 +33,11 @@
 //-------------------------------------------------------------------------------------------------
 static uint32 GetDxBindFromTextureUsageFlags(TextureUsageBits usage)
 {
+	if (usage & TEXTURE_USAGE_NO_BIND)
+	{
+		return 0U;
+	}
+
 	uint32 binds = 0U;
 
 	// Can I sample from it?
@@ -140,8 +145,46 @@ bool Texture2D::CreateFromImage(const Image& image, TextureUsageBits textureUsag
 
 
 //-------------------------------------------------------------------------------------------------
+bool Texture2D::CreateWithNoData(int width, int height, uint32 numComponents, TextureUsageBits textureUsage, GPUMemoryUsage memoryUsage)
+{
+	return CreateFromBuffer(nullptr, 0U, width, height, numComponents, textureUsage, memoryUsage);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 bool Texture2D::CreateFromBuffer(const uint8* buffer, uint32 bufferSize, int width, int height, uint32 numComponents, TextureUsageBits textureUsage, GPUMemoryUsage memoryUsage)
 {
+	// Safety checks
+	bool isDepthStencil = (textureUsage & TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT);
+	bool isRenderTarget = (textureUsage & TEXTURE_USAGE_RENDER_TARGET_BIT);
+	
+	if (isDepthStencil || isRenderTarget)
+	{
+		ASSERT_OR_DIE(memoryUsage == GPU_MEMORY_USAGE_GPU, "Color targets and depth stencils need to be GPU_MEMORY_USAGE_GPU!");
+	}
+
+	if (isDepthStencil)
+	{
+		ASSERT_OR_DIE(buffer == nullptr, "No buffering data to depth stencils!");
+	}
+	else
+	{
+		ASSERT_OR_DIE(numComponents > 1 && numComponents < 5, "Unsupported number of components!");
+	}
+
+	if (memoryUsage == GPU_MEMORY_USAGE_STAGING)
+	{
+		ASSERT_OR_DIE(textureUsage == TEXTURE_USAGE_NO_BIND, "Staging textures must have no bind usage only!");
+	}
+	else
+	{
+		ASSERT_OR_DIE((textureUsage & TEXTURE_USAGE_NO_BIND) == 0, "Texture needs to have a valid usage/bind!");
+	}
+
+	ASSERT_OR_DIE(width > 0 && height > 0, "Bad texture dimensions!");
+	ASSERT_OR_DIE(!(buffer != nullptr && bufferSize == 0U), "Specified a buffer but no size to copy!");
+	ASSERT_OR_DIE(!(buffer == nullptr && bufferSize > 0U), "Specified a size but buffer was null!");
+
 	Clear();
 
 	ID3D11Device* dxDevice = g_renderContext->GetDxDevice();
@@ -157,12 +200,24 @@ bool Texture2D::CreateFromBuffer(const uint8* buffer, uint32 bufferSize, int wid
 	texDesc.MipLevels = 1; // Set to 0 for full chain
 	texDesc.ArraySize = 1;
 	texDesc.Usage = (D3D11_USAGE)ToDXMemoryUsage(m_memoryUsage);
-	texDesc.Format = GetDxTextureFormatFromComponentCount(numComponents);
+	texDesc.Format = (isDepthStencil ? DXGI_FORMAT_R24G8_TYPELESS : GetDxTextureFormatFromComponentCount(numComponents));
 	texDesc.BindFlags = GetDxBindFromTextureUsageFlags(m_textureUsage);
-	texDesc.CPUAccessFlags = (m_memoryUsage == GPU_MEMORY_USAGE_DYNAMIC ? D3D11_CPU_ACCESS_WRITE : 0U);
 	texDesc.MiscFlags = 0U;
 	texDesc.SampleDesc.Count = 1;
 	texDesc.SampleDesc.Quality = 0;
+
+	if (m_memoryUsage == GPU_MEMORY_USAGE_DYNAMIC)
+	{
+		texDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	}
+	else if (m_memoryUsage == GPU_MEMORY_USAGE_STAGING)
+	{
+		texDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+	}
+	else
+	{
+		texDesc.CPUAccessFlags = 0U;
+	}
 
 	D3D11_SUBRESOURCE_DATA* initialData = nullptr;
 	D3D11_SUBRESOURCE_DATA data;
@@ -227,96 +282,6 @@ bool Texture2D::UpdateFromImage(const Image& image)
 	g_renderContext->GetDxContext()->UpdateSubresource(m_dxHandle, 0, NULL, image.GetData(), (UINT)(image.GetNumComponentsPerTexel() * image.GetTexelWidth()), (UINT)(image.GetNumComponentsPerTexel() * image.GetTexelWidth() * image.GetTexelHeight()));
 
 	return false;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-bool Texture2D::CreateAsColorRenderTarget(uint32 width, uint32 height, bool createAsShaderResource /*= false*/)
-{
-	Clear();
-
-	ID3D11Device* dxDevice = g_renderContext->GetDxDevice();
-
-	m_textureUsage = TEXTURE_USAGE_RENDER_TARGET_BIT;
-
-	if (createAsShaderResource)
-	{
-		m_textureUsage |= TEXTURE_USAGE_SHADER_RESOURCE_BIT;
-	}
-
-	m_memoryUsage = GPU_MEMORY_USAGE_GPU;
-
-	D3D11_TEXTURE2D_DESC texDesc;
-	memset(&texDesc, 0, sizeof(D3D11_TEXTURE2D_DESC));
-
-	texDesc.Width = width;
-	texDesc.Height = height;
-	texDesc.MipLevels = 1;
-	texDesc.ArraySize = 1;
-	texDesc.Usage = (D3D11_USAGE)ToDXMemoryUsage(m_memoryUsage);
-	texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	texDesc.BindFlags = GetDxBindFromTextureUsageFlags(m_textureUsage);
-	texDesc.CPUAccessFlags = 0U;
-	texDesc.MiscFlags = 0U;
-	texDesc.SampleDesc.Count = 1;
-	texDesc.SampleDesc.Quality = 0;
-
-	ID3D11Texture2D* tex2D = nullptr;
-	HRESULT hr = dxDevice->CreateTexture2D(&texDesc, nullptr, &tex2D);
-
-	bool succeeded = SUCCEEDED(hr);
-	ASSERT_RECOVERABLE(succeeded, "Couldn't create depth stencil Texture2D, error code: %u", hr);
-
-	if (succeeded)
-	{
-		m_dxHandle = tex2D;
-		m_dimensions = IntVector3((int)width, (int)height, 0);
-		m_byteSize = width * height * 4U;
-	}
-
-	return succeeded;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-bool Texture2D::CreateAsDepthStencilTarget(uint32 width, uint32 height)
-{
-	Clear();
-
-	ID3D11Device* dxDevice = g_renderContext->GetDxDevice();
-
-	m_textureUsage = TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT;
-	m_memoryUsage = GPU_MEMORY_USAGE_GPU;
-
-	D3D11_TEXTURE2D_DESC texDesc;
-	memset(&texDesc, 0, sizeof(D3D11_TEXTURE2D_DESC));
-
-	texDesc.Width = width;
-	texDesc.Height = height;
-	texDesc.MipLevels = 1;
-	texDesc.ArraySize = 1;
-	texDesc.Usage = (D3D11_USAGE)ToDXMemoryUsage(m_memoryUsage);
-	texDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
-	texDesc.BindFlags = GetDxBindFromTextureUsageFlags(m_textureUsage);
-	texDesc.CPUAccessFlags = 0U;
-	texDesc.MiscFlags = 0U;
-	texDesc.SampleDesc.Count = 1;
-	texDesc.SampleDesc.Quality = 0;
-
-	ID3D11Texture2D* tex2D = nullptr;
-	HRESULT hr = dxDevice->CreateTexture2D(&texDesc, nullptr, &tex2D);
-
-	bool succeeded = SUCCEEDED(hr);
-	ASSERT_RECOVERABLE(succeeded, "Couldn't create depth stencil Texture2D, error code: %u", hr);
-
-	if (succeeded)
-	{
-		m_dxHandle = tex2D;
-		m_dimensions = IntVector3((int)width, (int)height, 0);
-		m_byteSize = width * height * 4U;
-	}
-
-	return succeeded;
 }
 
 

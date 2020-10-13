@@ -50,6 +50,7 @@ public:
 
 	int									GetWidth() const { return m_dimensions.x; }
 	int									GetHeight() const { return m_dimensions.y; }
+	uint32								GetSize() const { return m_byteSize; }
 	ID3D11Resource*						GetDxHandle() const { return m_dxHandle; }
 
 

@@ -43,13 +43,12 @@ public:
 
 	bool	CreateFromFile(const char* filepath, TextureUsageBits textureUsage, GPUMemoryUsage memoryUsage);
 	bool	CreateFromImage(const Image& image, TextureUsageBits textureUsage, GPUMemoryUsage memoryUsage);
+	bool	CreateWithNoData(int width, int height, uint32 numComponents, TextureUsageBits textureUsage, GPUMemoryUsage memoryUsage);
 	bool	CreateFromBuffer(const uint8* buffer, uint32 bufferSize, int width, int height, uint32 numComponents, TextureUsageBits textureUsage, GPUMemoryUsage memoryUsage);
+
 	bool	CreateFromDxTexture2D(ID3D11Texture2D* dxTexture2D);
 
 	bool	UpdateFromImage(const Image& image);
-
-	bool	CreateAsColorRenderTarget(uint32 width, uint32 height, bool createAsShaderResource = false);
-	bool	CreateAsDepthStencilTarget(uint32 width, uint32 height);
 
 	float	GetAspect() const;
 
