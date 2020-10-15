@@ -212,7 +212,7 @@ bool Texture2D::CreateFromBuffer(const uint8* buffer, uint32 bufferSize, int wid
 	}
 	else if (m_memoryUsage == GPU_MEMORY_USAGE_STAGING)
 	{
-		texDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+		texDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
 	}
 	else
 	{

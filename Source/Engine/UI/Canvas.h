@@ -51,9 +51,13 @@ public:
 	void				Initialize(Texture2D* outputTexture, const Vector2& resolution, ScreenMatchMode mode, float widthHeightBlend = 1.0f);
 	void				InitializeFromXML(const char* xmlFilePath);
 	virtual void		InitializeFromXML(const XMLElem& element) override;
+
+	void				ProcessInput();
+	virtual void		Update() override;
+	virtual void		Render() override;
+
 	AABB2				GenerateOrthoBounds() const;
 	Matrix44			GenerateOrthoMatrix() const;
-	virtual void		Render() override;
 
 	void				SetScreenMatchMode(ScreenMatchMode mode, float widthHeightBlend = 1.0f);
 	void				SetResolution(float height, float width);
@@ -72,6 +76,9 @@ public:
 	float				ToCanvasWidth(uint32 pixelWidth) const;
 	float				ToCanvasHeight(uint32 pixelHeight) const;
 	StringID			GetNextUnspecifiedID();
+	uint32				GetTopLayerIndex() const;
+	Vector2				GetMousePosition() const;
+	bool				WasHoveredLastFrame(UIElement* element) const;
 
 	static void*		GetTypeStatic() { return &s_type; }
 
@@ -79,6 +86,15 @@ public:
 	T*					FindElementAsType(StringID id);
 
 	bool				Event_WindowResize(NamedProperties& args);
+
+
+private:
+	//-----Private Methods-----
+
+	void HandleMouseJustHovers(const std::vector<UIElement*>& hoverStack, const UIMouseInput& mouseInput);
+	void HandleMouseHovers(const std::vector<UIElement*>& hoverStack, const UIMouseInput& mouseInput);
+	void HandleMouseClicks(const std::vector<UIElement*>& hoverStack, MouseButton button, const UIMouseInput& mouseInput);
+	void HandleMouseUnhovers(const std::vector<UIElement*>& hoverStack, const UIMouseInput& mouseInput);
 
 
 private:
@@ -92,6 +108,9 @@ private:
 
 	float							m_widthOrHeightBlend = 1.0f; // 1.0 is match to height
 	std::map<StringID, UIElement*>	m_globalElementMap; // For speed and tracking
+
+	std::vector<UIElement*>			m_lastFrameMouseHoveredElements;
+	UIElement*						m_clickedElement = nullptr;
 
 	static int s_type;
 

@@ -40,6 +40,8 @@ public:
 
 	Vector2 GetDimensions() const { return alignedBounds.GetDimensions(); }
 
+	bool	IsPointInside(const Vector2& point) const;
+
 
 public:
 	//------Public Data-----

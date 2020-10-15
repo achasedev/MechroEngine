@@ -34,9 +34,9 @@ public:
 
 	UIScrollView(Canvas* canvas);
 
-	virtual void Render() override;
+	virtual void	Render() override;
 
-	void AddChildToScroll(UIElement* element);
+	void			AddChildToScroll(UIElement* element);
 
 
 private:
@@ -48,9 +48,9 @@ private:
 private:
 	//-----Private Data-----
 
-	RectTransform m_scrollTransform;	
+	RectTransform			m_scrollTransform;	
 	std::vector<UIElement*> m_scrollableElements;
-	
+
 };
 
 

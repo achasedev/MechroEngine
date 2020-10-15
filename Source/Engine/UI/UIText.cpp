@@ -129,11 +129,11 @@ void UIText::Render()
 	if (m_lines.size() > 0)
 	{
 		// Check if the text or the scale changed which would require a rebuild
-		OBB2 finalBounds = CalculateFinalBounds();
+		OBB2 finalBounds = GetCanvasBounds();
 		UpdateMeshAndMaterial(finalBounds);
 
 		Renderable rend;
-		rend.SetRenderableMatrix(CalculateModelMatrix(finalBounds));
+		rend.SetRenderableMatrix(CreateModelMatrix(finalBounds));
 		rend.SetDrawMaterial(0, m_material);
 		rend.SetDrawMesh(0, m_mesh);
 

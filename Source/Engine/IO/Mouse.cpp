@@ -135,7 +135,7 @@ void Mouse::SetCursorMode(CursorMode mode)
 
 
 //-------------------------------------------------------------------------------------------------
-IntVector2 Mouse::GetCursorClientPosition()
+IntVector2 Mouse::GetCursorClientPosition() const
 {
 	POINT position;
 	position.x = m_currFrameDesktopPos.x;
@@ -149,7 +149,21 @@ IntVector2 Mouse::GetCursorClientPosition()
 
 
 //-------------------------------------------------------------------------------------------------
-IntVector2 Mouse::GetCursorDesktopPosition()
+IntVector2 Mouse::GetCursorClientLastFramePosition() const
+{
+	POINT position;
+	position.x = m_lastFrameDesktopPos.x;
+	position.y = m_lastFrameDesktopPos.y;
+
+	HWND hwnd = (HWND)g_window->GetWindowContext();
+	ScreenToClient(hwnd, &position);
+
+	return IntVector2(position.x, position.y);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+IntVector2 Mouse::GetCursorDesktopPosition() const
 {
 	return m_currFrameDesktopPos;
 }
@@ -170,21 +184,21 @@ float Mouse::GetMouseWheelDelta() const
 
 
 //-------------------------------------------------------------------------------------------------
-bool Mouse::WasButtonJustPressed(MouseButton button)
+bool Mouse::WasButtonJustPressed(MouseButton button) const
 {
 	return m_buttons[button].m_wasJustPressed;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-bool Mouse::WasButtonJustReleased(MouseButton button)
+bool Mouse::WasButtonJustReleased(MouseButton button) const
 {
 	return m_buttons[button].m_wasJustReleased;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-bool Mouse::IsButtonPressed(MouseButton button)
+bool Mouse::IsButtonPressed(MouseButton button) const
 {
 	return m_buttons[button].m_isPressed;
 }

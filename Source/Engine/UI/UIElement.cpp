@@ -224,6 +224,19 @@ void UIElement::AddChild(UIElement* child)
 
 
 //-------------------------------------------------------------------------------------------------
+void UIElement::SetLayer(uint32 layer)
+{
+	m_layer = layer;
+
+	// Propagate it to all children
+	for (size_t childIndex = 0; childIndex < m_children.size(); ++childIndex)
+	{
+		m_children[childIndex]->SetLayer(layer + 1);
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void UIElement::InitializeFromXML(const XMLElem& element)
 {
 	// name
@@ -306,22 +319,22 @@ void UIElement::SetID(const char* name)
 
 
 //-------------------------------------------------------------------------------------------------
-OBB2 UIElement::CalculateFinalBounds() const
+OBB2 UIElement::GetCanvasBounds() const
 {
 	return m_transform.GetBounds();
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44 UIElement::CalculateModelMatrix() const
+Matrix44 UIElement::CreateModelMatrix() const
 {
-	OBB2 finalBounds = CalculateFinalBounds();
-	return CalculateModelMatrix(finalBounds);
+	OBB2 finalBounds = GetCanvasBounds();
+	return CreateModelMatrix(finalBounds);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44 UIElement::CalculateModelMatrix(const OBB2& finalBounds) const
+Matrix44 UIElement::CreateModelMatrix(const OBB2& finalBounds) const
 {
 	// Account for pivot:
 	// - Translate in normalized space

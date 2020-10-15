@@ -56,13 +56,14 @@ public:
 	void		ShowMouseCursor(bool show);
 	void		SetCursorMode(CursorMode mode);
 
-	IntVector2	GetCursorClientPosition();
-	IntVector2	GetCursorDesktopPosition();
+	IntVector2	GetCursorClientPosition() const;
+	IntVector2  GetCursorClientLastFramePosition() const;
+	IntVector2	GetCursorDesktopPosition() const;
 	IntVector2	GetMouseDelta() const;
 	float		GetMouseWheelDelta() const;
-	bool		WasButtonJustPressed(MouseButton button);
-	bool		WasButtonJustReleased(MouseButton button);
-	bool		IsButtonPressed(MouseButton button);
+	bool		WasButtonJustPressed(MouseButton button) const;
+	bool		WasButtonJustReleased(MouseButton button) const;
+	bool		IsButtonPressed(MouseButton button) const;
 	bool		IsCursorShown() const;
 	bool		IsCursorLocked() const;
 	CursorMode	GetCursorMode() const;
@@ -85,7 +86,8 @@ private:
 
 private:
 	//-----Private Data-----
-
+	
+	// (0,0) is top left
 	IntVector2 m_lastFrameDesktopPos = IntVector2::ZERO;
 	IntVector2 m_currFrameDesktopPos = IntVector2::ZERO;
 	CursorMode m_cursorMode = CURSORMODE_ABSOLUTE;

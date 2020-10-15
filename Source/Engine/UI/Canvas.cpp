@@ -9,6 +9,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Event/EventSystem.h"
 #include "Engine/Framework/EngineCommon.h"
+#include "Engine/IO/InputSystem.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Render/Camera/Camera.h"
 #include "Engine/Render/Core/RenderContext.h"
@@ -20,6 +21,7 @@
 #include "Engine/Utility/NamedProperties.h"
 #include "Engine/Utility/StringID.h"
 #include "Engine/Utility/XMLUtils.h"
+#include <algorithm>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -50,6 +52,27 @@ static ScreenMatchMode StringToScreenMatchMode(const std::string& text)
 }
 
 
+//-------------------------------------------------------------------------------------------------
+static bool CompareByLayerDescending(UIElement* a, UIElement* b)
+{
+	return (a->GetLayer() > b->GetLayer());
+}
+
+
+//-------------------------------------------------------------------------------------------------
+static bool CheckAndExecuteHandler(UIMouseInputHandler handler, UIMouseInput input)
+{
+	// Default to blocking input
+	bool consumeInput = true;
+	if (handler != nullptr)
+	{
+		consumeInput = handler(input);
+	}
+
+	return consumeInput;
+}
+
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -63,6 +86,7 @@ Canvas::Canvas()
 	m_outputTextureHeight = m_outputTexture->GetHeight();
 	g_eventSystem->SubscribeEventCallbackObjectMethod("window-resize", &Canvas::Event_WindowResize, *this);
 }
+
 
 //-------------------------------------------------------------------------------------------------
 Canvas::~Canvas()
@@ -127,6 +151,54 @@ void Canvas::InitializeFromXML(const char* xmlFilePath)
 	GUARANTEE_OR_DIE(error == tinyxml2::XML_SUCCESS, "Couldn't load %s!", xmlFilePath);
 	
 	InitializeFromXML(*document.RootElement());
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Canvas::ProcessInput()
+{
+	const Mouse& mouse = g_inputSystem->GetMouse();
+	UIMouseInput mouseInput;
+
+	mouseInput.m_justLeftClicked = mouse.WasButtonJustPressed(MOUSEBUTTON_LEFT);
+	mouseInput.m_justRightClicked = mouse.WasButtonJustPressed(MOUSEBUTTON_RIGHT);
+	mouseInput.m_justLeftReleased = mouse.WasButtonJustReleased(MOUSEBUTTON_LEFT);
+	mouseInput.m_justRightReleased = mouse.WasButtonJustReleased(MOUSEBUTTON_RIGHT);
+	mouseInput.m_isLeftHeld = mouse.IsButtonPressed(MOUSEBUTTON_LEFT);
+	mouseInput.m_isRightHeld = mouse.IsButtonPressed(MOUSEBUTTON_RIGHT);
+
+	Vector2 mousePos = GetMousePosition();
+	mouseInput.m_canvasCursorPosition = mousePos;
+
+	// Get all elements that the mouse is currently inside of
+
+	// We need to check all elements first before we begin calling their input functions
+	// Otherwise they may move or change mid-check
+	std::vector<UIElement*> hoverStack;
+
+	std::map<StringID, UIElement*>::iterator itr = m_globalElementMap.begin();
+	for (itr; itr != m_globalElementMap.end(); itr++)
+	{
+		UIElement* currElement = itr->second;
+		OBB2 elementCanvasBounds = currElement->GetCanvasBounds();
+
+		if (elementCanvasBounds.IsPointInside(mousePos))
+		{
+			hoverStack.push_back(currElement);
+		}
+	}
+
+	// Top layer elements get priority
+	std::sort(hoverStack.begin(), hoverStack.end(), CompareByLayerDescending);
+
+	HandleMouseJustHovers(hoverStack, mouseInput);
+	HandleMouseHovers(hoverStack, mouseInput);	
+	HandleMouseClicks(hoverStack, MOUSEBUTTON_LEFT, mouseInput);
+	HandleMouseClicks(hoverStack, MOUSEBUTTON_RIGHT, mouseInput);
+	HandleMouseUnhovers(hoverStack, mouseInput);
+
+	// Save off current frame hovers
+	m_lastFrameMouseHoveredElements = hoverStack;
 }
 
 
@@ -264,6 +336,25 @@ StringID Canvas::GetNextUnspecifiedID()
 
 
 //-------------------------------------------------------------------------------------------------
+Vector2 Canvas::GetMousePosition() const
+{
+	const Mouse& mouse = g_inputSystem->GetMouse();
+	IntVector2 mouseClientPos = mouse.GetCursorClientPosition();
+
+	// Client (0,0) is top left, but canvas (0,0) is bottom left
+	Vector2 mouseCanvasPos = Vector2(ToCanvasWidth((uint32)mouseClientPos.x), m_resolution.y - ToCanvasHeight((uint32)mouseClientPos.y));
+	return mouseCanvasPos;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool Canvas::WasHoveredLastFrame(UIElement* element) const
+{
+	return (std::find(m_lastFrameMouseHoveredElements.begin(), m_lastFrameMouseHoveredElements.end(), element) != m_lastFrameMouseHoveredElements.end());
+}
+
+
+//-------------------------------------------------------------------------------------------------
 // If our output texture resizes, we need to dirty all UIText objects so they can be rebuilt using
 // the correct font size
 bool Canvas::Event_WindowResize(NamedProperties& args)
@@ -334,4 +425,117 @@ Matrix44 Canvas::GenerateOrthoMatrix() const
 {
 	AABB2 orthoBounds = GenerateOrthoBounds();
 	return Matrix44::MakeOrtho(orthoBounds.GetBottomLeft(), orthoBounds.GetTopRight(), -1.0f, 1.0f);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Canvas::HandleMouseJustHovers(const std::vector<UIElement*>& hoverStack, const UIMouseInput& mouseInput)
+{
+	for (size_t hoverIndex = 0; hoverIndex < hoverStack.size(); ++hoverIndex)
+	{
+		UIElement* currElement = hoverStack[hoverIndex];
+
+		// Don't get input or block if you weren't even just hovered
+		if (WasHoveredLastFrame(currElement))
+		{
+			continue;
+		}
+		
+		if (CheckAndExecuteHandler(currElement->m_onJustHovered, mouseInput))
+		{
+			break;
+		}
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Canvas::HandleMouseHovers(const std::vector<UIElement*>& hoverStack, const UIMouseInput& mouseInput)
+{
+	for (size_t hoverIndex = 0; hoverIndex < hoverStack.size(); ++hoverIndex)
+	{
+		UIElement* currElement = hoverStack[hoverIndex];
+
+		if (CheckAndExecuteHandler(currElement->m_onHovered, mouseInput))
+		{
+			break;
+		}
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Canvas::HandleMouseClicks(const std::vector<UIElement*>& hoverStack, MouseButton button, const UIMouseInput& mouseInput)
+{
+	ASSERT_OR_DIE(button == MOUSEBUTTON_LEFT || button == MOUSEBUTTON_RIGHT, "Unsupported mouse click event!");
+
+	Mouse& mouse = g_inputSystem->GetMouse();
+	bool isLeft = (button == MOUSEBUTTON_LEFT);
+	bool justClicked = mouse.WasButtonJustPressed(button);
+	bool justReleased = mouse.WasButtonJustReleased(button);
+	bool isPressed = mouse.IsButtonPressed(button);
+
+	// Just clicks
+	if (justClicked)
+	{
+		for (size_t hoverIndex = 0; hoverIndex < hoverStack.size(); ++hoverIndex)
+		{
+			UIElement* currElement = hoverStack[hoverIndex];
+			UIMouseInputHandler handler = (isLeft ? currElement->m_onLeftClick : currElement->m_onRightClick);
+
+			if (CheckAndExecuteHandler(handler, mouseInput))
+			{
+				break;
+			}	
+		}
+	}
+
+	if (justReleased)
+	{
+		for (size_t hoverIndex = 0; hoverIndex < hoverStack.size(); ++hoverIndex)
+		{
+			UIElement* currElement = hoverStack[hoverIndex];
+			UIMouseInputHandler handler = (isLeft ? currElement->m_onLeftRelease : currElement->m_onRightRelease);
+
+			if (CheckAndExecuteHandler(handler, mouseInput))
+			{
+				break;
+			}
+		}
+	}
+
+	// Call this even if justClicked was done above - let both get called
+	if (isPressed)
+	{
+		for (size_t hoverIndex = 0; hoverIndex < hoverStack.size(); ++hoverIndex)
+		{
+			UIElement* currElement = hoverStack[hoverIndex];
+			UIMouseInputHandler clickedOnHandler = (isLeft ? currElement->m_onLeftHoldClickedOn : currElement->m_onRightHeldClickedOn); check this and also see if these handlers should be object methods
+			UIMouseInputHandler clickedOffHandler = (isLeft ? currElement->m_onLeftHoldClickedOff : currElement->m_onRightHeldClickedOff);
+			UIMouseInputHandler handler = (m_clickedElement == currElement ? clickedOnHandler : clickedOffHandler);
+
+			if (CheckAndExecuteHandler(handler, mouseInput))
+			{
+				break;
+			}
+		}
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Canvas::HandleMouseUnhovers(const std::vector<UIElement*>& hoverStack, const UIMouseInput& mouseInput)
+{
+	// Check all elements hovered last frame, and if they're no longer hovered then call the unhover handlers
+	for (size_t lastFrameHoverIndex = 0; lastFrameHoverIndex < m_lastFrameMouseHoveredElements.size(); ++lastFrameHoverIndex)
+	{
+		UIElement* lastFrameHoverElement = m_lastFrameMouseHoveredElements[lastFrameHoverIndex];
+		bool notHoveredThisFrame = (std::find(hoverStack.begin(), hoverStack.end(), lastFrameHoverElement) == hoverStack.end());
+		
+		if (notHoveredThisFrame)
+		{
+			// Unhovers don't consume any input
+			CheckAndExecuteHandler(lastFrameHoverElement->m_onUnhovered, mouseInput);
+		}
+	}
 }
