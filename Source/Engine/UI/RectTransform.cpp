@@ -323,7 +323,7 @@ OBB2 RectTransform::GetBounds() const
 		AABB2& alignedRefBounds = orientedRefBounds.alignedBounds;
 
 		Vector2 scale = GetScale();
-		Vector2 parentDimensions = orientedRefBounds.GetDimensions();
+		Vector2 parentDimensions = orientedRefBounds.GetLocalDimensions();
 
 		// Get anchor positions
 		AABB2 anchorPositions = AABB2::ZERO_TO_ONE;

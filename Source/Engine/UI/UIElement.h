@@ -23,16 +23,34 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Canvas;
+class UIElement;
 
 //-------------------------------------------------------------------------------------------------
-struct UIMouseInput
+struct UIMouseInfo
 {
+	bool	m_leftClicked = false;
+	bool	m_leftHeld = false;
+	bool	m_leftReleased = false;
+	bool	m_rightClicked = false;
+	bool	m_rightHeld = false;
+	bool	m_rightReleased = false;
+	bool	m_thisElementClicked = false; // For hold input, determine if this element was clicked on first
+
 	float	m_mouseWheelDelta = 0.f;
-	Vector2 m_canvasCursorStartPos;
-	Vector2 m_canvasCursorPosition;
+
+	// All canvas space
+	Vector2 m_position = Vector2::ZERO;
+	Vector2 m_lastFramePosition = Vector2::ZERO;
+	Vector2	m_cursorCanvasDelta = Vector2::ZERO;
+
+	// Where the mouse was on the current hold/drag
+	Vector2 m_leftHoldStartPosition = Vector2::ZERO;
+	Vector2 m_rightHoldStartPosition = Vector2::ZERO;
+	Vector2 m_leftHoldDelta = Vector2::ZERO;
+	Vector2 m_rightHoldDelta = Vector2::ZERO;
 };
 
-typedef bool(*UIMouseInputHandler)(const UIMouseInput& mouseInput);
+typedef bool(*UIMouseInputHandler)(UIElement* element, const UIMouseInfo& mouseInfo);
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -54,7 +72,8 @@ public:
 	virtual void		Update();
 	virtual void		Render();
 
-	virtual void		AddChild(UIElement* child);
+	void				AddChild(UIElement* child);
+	void				RemoveChild(UIElement* child);
 	void				SetLayer(uint32 layer);
 	virtual void		InitializeFromXML(const XMLElem& element);
 
@@ -74,6 +93,9 @@ public:
 	Matrix44			CreateModelMatrix() const;
 	Matrix44			CreateModelMatrix(const OBB2& finalBounds) const;
 
+	template <typename T>
+	T* GetAsType() const;
+
 	static UIElement*	CreateUIElementFromXML(const XMLElem& element, Canvas* canvas);
 
 
@@ -87,15 +109,9 @@ public:
 	UIMouseInputHandler				m_onHovered = nullptr;
 	UIMouseInputHandler				m_onUnhovered = nullptr;
 
-	UIMouseInputHandler				m_onLeftClick = nullptr;
-	UIMouseInputHandler				m_onRightClick = nullptr;
-	UIMouseInputHandler				m_onLeftRelease = nullptr;
-	UIMouseInputHandler				m_onRightRelease = nullptr;
-
-	UIMouseInputHandler				m_onLeftHoldClickedOn = nullptr;
-	UIMouseInputHandler				m_onRightHeldClickedOn = nullptr;
-	UIMouseInputHandler				m_onLeftHoldClickedOff = nullptr;
-	UIMouseInputHandler				m_onRightHeldClickedOff = nullptr;
+	UIMouseInputHandler				m_onMouseClick = nullptr;
+	UIMouseInputHandler				m_onMouseHold = nullptr;
+	UIMouseInputHandler				m_onMouseRelease = nullptr;
 
 
 protected:
@@ -111,6 +127,18 @@ protected:
 
 };
 
+
+//-------------------------------------------------------------------------------------------------
+template <typename T>
+T* UIElement::GetAsType() const
+{
+	if (GetType() == T::GetTypeStatic())
+	{
+		return (T*)this;
+	}
+
+	return nullptr;
+}
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS

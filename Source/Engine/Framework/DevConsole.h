@@ -47,6 +47,7 @@ public:
 	void		ProcessKeydown(unsigned char keyCode);
 
 	void		BeginFrame();
+	void		ProcessInput();
 	void		EndFrame();
 	void		Render() const;
 

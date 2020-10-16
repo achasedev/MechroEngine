@@ -9,6 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Math/AABB2.h"
+#include "Engine/IO/Mouse.h"
 #include "Engine/UI/UIElement.h"
 #include "Engine/UI/UIPanel.h"
 #include "Engine/UI/UIText.h"
@@ -61,8 +62,8 @@ public:
 
 	void				SetScreenMatchMode(ScreenMatchMode mode, float widthHeightBlend = 1.0f);
 	void				SetResolution(float height, float width);
-	virtual void		AddChild(UIElement* child) override;
 	void				AddElementToGlobalMap(UIElement* element);
+	void				RemoveElementFromGlobalMap(UIElement* element);
 
 	virtual	void*		GetType() const override { return &s_type; }
 	Vector2				GetResolution() const { return m_resolution; }
@@ -78,6 +79,7 @@ public:
 	StringID			GetNextUnspecifiedID();
 	uint32				GetTopLayerIndex() const;
 	Vector2				GetMousePosition() const;
+	Vector2				GetMousePositionLastFrame() const;
 	bool				WasHoveredLastFrame(UIElement* element) const;
 
 	static void*		GetTypeStatic() { return &s_type; }
@@ -91,10 +93,12 @@ public:
 private:
 	//-----Private Methods-----
 
-	void HandleMouseJustHovers(const std::vector<UIElement*>& hoverStack, const UIMouseInput& mouseInput);
-	void HandleMouseHovers(const std::vector<UIElement*>& hoverStack, const UIMouseInput& mouseInput);
-	void HandleMouseClicks(const std::vector<UIElement*>& hoverStack, MouseButton button, const UIMouseInput& mouseInput);
-	void HandleMouseUnhovers(const std::vector<UIElement*>& hoverStack, const UIMouseInput& mouseInput);
+	void SetupUIMouseInfo(UIMouseInfo& out_input);
+	void FindMouseHoveredElements(const Vector2& cursorCanvasPos, std::vector<UIElement*>& out_hoverStack) const;
+	void HandleMouseJustHovers(const std::vector<UIElement*>& hoverStack, const UIMouseInfo& mouseInfo);
+	void HandleMouseHovers(const std::vector<UIElement*>& hoverStack, const UIMouseInfo& mouseInfo);
+	void HandleMouseUnhovers(const std::vector<UIElement*>& hoverStack, const UIMouseInfo& mouseInfo);
+	void HandleMouseClicks(const std::vector<UIElement*>& hoverStack, const UIMouseInfo& mouseInfo);
 
 
 private:
@@ -109,8 +113,9 @@ private:
 	float							m_widthOrHeightBlend = 1.0f; // 1.0 is match to height
 	std::map<StringID, UIElement*>	m_globalElementMap; // For speed and tracking
 
-	std::vector<UIElement*>			m_lastFrameMouseHoveredElements;
-	UIElement*						m_clickedElement = nullptr;
+	std::vector<UIElement*>			m_elementsHoveredLastFrame;
+	UIMouseInfo						m_lastFrameUIMouseInfo;
+	UIElement*						m_currentClickedElement = nullptr;
 
 	static int s_type;
 

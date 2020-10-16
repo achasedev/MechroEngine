@@ -194,6 +194,16 @@ UIElement::~UIElement()
 
 
 //-------------------------------------------------------------------------------------------------
+void UIElement::Update()
+{
+	for (size_t childIndex = 0; childIndex < m_children.size(); ++childIndex)
+	{
+		m_children[childIndex]->Update();
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void UIElement::Render()
 {
 	// Parent should already have rendered themselves
@@ -209,17 +219,60 @@ void UIElement::Render()
 void UIElement::AddChild(UIElement* child)
 {
 	ASSERT_OR_DIE(!child->IsCanvas(), "Canvas cannot be anyone's child!");
-	GUARANTEE_OR_DIE(child->m_parent == nullptr, "UIElement already has a parent!");
-	GUARANTEE_OR_DIE(GetChildByID(child->m_id) == nullptr, "Duplicate UIElement added!");
+	ASSERT_OR_DIE(child->m_parent == nullptr, "UIElement already has a parent!");
+	ASSERT_OR_DIE(GetChildByID(child->m_id) == nullptr, "Duplicate UIElement added!");
+
+	if (IsCanvas())
+	{
+		ASSERT_OR_DIE(child->GetCanvas() == this, "Child already belongs to a different canvas!");
+	}
+	else
+	{
+		ASSERT_OR_DIE(child->GetCanvas() == m_canvas, "Child already belongs to a different canvas!");
+	}
 
 	m_children.push_back(child);
 	child->m_parent = this;
 	child->m_transform.SetParentTransform(&m_transform);
 
-	if (m_canvas != nullptr)
+	if (!IsCanvas())
 	{
 		m_canvas->AddElementToGlobalMap(child);
 	}
+	else
+	{
+		GetAsType<Canvas>()->AddElementToGlobalMap(child);
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void UIElement::RemoveChild(UIElement* child)
+{
+	bool childFound = false;
+	for (size_t childIndex = 0; childIndex < m_children.size(); ++childIndex)
+	{
+		if (m_children[childIndex]->GetID() == child->GetID())
+		{
+			m_children.erase(m_children.begin() + childIndex);
+			child->m_parent = nullptr;
+			child->m_transform.SetParentTransform(nullptr);
+
+			if (!IsCanvas())
+			{
+				m_canvas->RemoveElementFromGlobalMap(child);
+			}
+			else
+			{
+				GetAsType<Canvas>()->RemoveElementFromGlobalMap(child);
+			}
+
+			childFound = true;
+			break;
+		}
+	}
+
+	ASSERT_RECOVERABLE(childFound, "Couldn't find child to remove!");
 }
 
 
@@ -293,7 +346,10 @@ void UIElement::InitializeFromXML(const XMLElem& element)
 //-------------------------------------------------------------------------------------------------
 bool UIElement::IsCanvas() const
 {
-	return (GetType() == Canvas::GetTypeStatic());
+	bool isCanvas = (GetType() == Canvas::GetTypeStatic());
+	ASSERT_OR_DIE(isCanvas == (m_canvas == nullptr), "Either a non-canvas has m_canvas set, or a UIElement exists without a canvas!");
+
+	return isCanvas;
 }
 
 

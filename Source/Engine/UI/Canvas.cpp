@@ -60,13 +60,13 @@ static bool CompareByLayerDescending(UIElement* a, UIElement* b)
 
 
 //-------------------------------------------------------------------------------------------------
-static bool CheckAndExecuteHandler(UIMouseInputHandler handler, UIMouseInput input)
+static bool CheckAndExecuteHandler(UIElement* element, UIMouseInputHandler handler, const UIMouseInfo& input)
 {
 	// Default to blocking input
 	bool consumeInput = true;
-	if (handler != nullptr)
+	if (element != nullptr && handler != nullptr)
 	{
-		consumeInput = handler(input);
+		consumeInput = handler(element, input);
 	}
 
 	return consumeInput;
@@ -157,48 +157,31 @@ void Canvas::InitializeFromXML(const char* xmlFilePath)
 //-------------------------------------------------------------------------------------------------
 void Canvas::ProcessInput()
 {
-	const Mouse& mouse = g_inputSystem->GetMouse();
-	UIMouseInput mouseInput;
-
-	mouseInput.m_justLeftClicked = mouse.WasButtonJustPressed(MOUSEBUTTON_LEFT);
-	mouseInput.m_justRightClicked = mouse.WasButtonJustPressed(MOUSEBUTTON_RIGHT);
-	mouseInput.m_justLeftReleased = mouse.WasButtonJustReleased(MOUSEBUTTON_LEFT);
-	mouseInput.m_justRightReleased = mouse.WasButtonJustReleased(MOUSEBUTTON_RIGHT);
-	mouseInput.m_isLeftHeld = mouse.IsButtonPressed(MOUSEBUTTON_LEFT);
-	mouseInput.m_isRightHeld = mouse.IsButtonPressed(MOUSEBUTTON_RIGHT);
-
-	Vector2 mousePos = GetMousePosition();
-	mouseInput.m_canvasCursorPosition = mousePos;
-
-	// Get all elements that the mouse is currently inside of
+	UIMouseInfo mouseInfo;
+	SetupUIMouseInfo(mouseInfo);
 
 	// We need to check all elements first before we begin calling their input functions
 	// Otherwise they may move or change mid-check
 	std::vector<UIElement*> hoverStack;
+	FindMouseHoveredElements(mouseInfo.m_position, hoverStack);
 
-	std::map<StringID, UIElement*>::iterator itr = m_globalElementMap.begin();
-	for (itr; itr != m_globalElementMap.end(); itr++)
-	{
-		UIElement* currElement = itr->second;
-		OBB2 elementCanvasBounds = currElement->GetCanvasBounds();
-
-		if (elementCanvasBounds.IsPointInside(mousePos))
-		{
-			hoverStack.push_back(currElement);
-		}
-	}
-
-	// Top layer elements get priority
-	std::sort(hoverStack.begin(), hoverStack.end(), CompareByLayerDescending);
-
-	HandleMouseJustHovers(hoverStack, mouseInput);
-	HandleMouseHovers(hoverStack, mouseInput);	
-	HandleMouseClicks(hoverStack, MOUSEBUTTON_LEFT, mouseInput);
-	HandleMouseClicks(hoverStack, MOUSEBUTTON_RIGHT, mouseInput);
-	HandleMouseUnhovers(hoverStack, mouseInput);
+	HandleMouseJustHovers(hoverStack, mouseInfo);
+	HandleMouseHovers(hoverStack, mouseInfo);	
+	HandleMouseClicks(hoverStack, mouseInfo);
+	HandleMouseUnhovers(hoverStack, mouseInfo);
 
 	// Save off current frame hovers
-	m_lastFrameMouseHoveredElements = hoverStack;
+	m_elementsHoveredLastFrame = hoverStack;
+	
+	// Save off mouse state
+	m_lastFrameUIMouseInfo = mouseInfo;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Canvas::Update()
+{
+	UIElement::Update();
 }
 
 
@@ -226,22 +209,41 @@ void Canvas::SetResolution(float width, float height)
 
 
 //-------------------------------------------------------------------------------------------------
-void Canvas::AddChild(UIElement* child)
+void Canvas::AddElementToGlobalMap(UIElement* element)
 {
-	GUARANTEE_OR_DIE(child->GetCanvas() == this, "Child already belongs to a different canvas!");
+	bool elementAlreadyAdded = m_globalElementMap.find(element->GetID()) != m_globalElementMap.end();
+	ASSERT_RECOVERABLE(!elementAlreadyAdded, "Duplicate element being added!");
 
-	UIElement::AddChild(child);
-	
-	// Need to add to the global list here, as m_canvas is nullptr
-	AddElementToGlobalMap(child);
+	// Default to preserving whatever was there
+	if (!elementAlreadyAdded)
+	{
+		m_globalElementMap[element->GetID()] = element;
+	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void Canvas::AddElementToGlobalMap(UIElement* element)
+void Canvas::RemoveElementFromGlobalMap(UIElement* element)
 {
-	GUARANTEE_OR_DIE(m_globalElementMap.find(element->GetID()) == m_globalElementMap.end(), "Duplicate element being added!");
-	m_globalElementMap[element->GetID()] = element;
+	bool elementExists = m_globalElementMap.find(element->GetID()) != m_globalElementMap.end();
+	ASSERT_RECOVERABLE(elementExists, "Element doesn't exist, can't remove!");
+
+	if (elementExists)
+	{
+		m_globalElementMap.erase(element->GetID());
+
+		// Also remove from our per-frame input cache
+		std::vector<UIElement*>::iterator itr = std::find(m_elementsHoveredLastFrame.begin(), m_elementsHoveredLastFrame.end(), element);
+		if (itr != m_elementsHoveredLastFrame.end())
+		{
+			m_elementsHoveredLastFrame.erase(itr);
+		}
+
+		if (element == m_currentClickedElement)
+		{
+			m_currentClickedElement = nullptr;
+		}
+	}
 }
 
 
@@ -348,9 +350,21 @@ Vector2 Canvas::GetMousePosition() const
 
 
 //-------------------------------------------------------------------------------------------------
+Vector2 Canvas::GetMousePositionLastFrame() const
+{
+	const Mouse& mouse = g_inputSystem->GetMouse();
+	IntVector2 mouseClientLastFramePos = mouse.GetCursorClientLastFramePosition();
+
+	// Client (0,0) is top left, but canvas (0,0) is bottom left
+	Vector2 mouseCanvasLastFramePos = Vector2(ToCanvasWidth((uint32)mouseClientLastFramePos.x), m_resolution.y - ToCanvasHeight((uint32)mouseClientLastFramePos.y));
+	return mouseCanvasLastFramePos;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 bool Canvas::WasHoveredLastFrame(UIElement* element) const
 {
-	return (std::find(m_lastFrameMouseHoveredElements.begin(), m_lastFrameMouseHoveredElements.end(), element) != m_lastFrameMouseHoveredElements.end());
+	return (std::find(m_elementsHoveredLastFrame.begin(), m_elementsHoveredLastFrame.end(), element) != m_elementsHoveredLastFrame.end());
 }
 
 
@@ -429,19 +443,84 @@ Matrix44 Canvas::GenerateOrthoMatrix() const
 
 
 //-------------------------------------------------------------------------------------------------
-void Canvas::HandleMouseJustHovers(const std::vector<UIElement*>& hoverStack, const UIMouseInput& mouseInput)
+void Canvas::SetupUIMouseInfo(UIMouseInfo& out_input)
+{
+	const Mouse& mouse = g_inputSystem->GetMouse();
+
+	out_input.m_leftClicked = mouse.WasButtonJustPressed(MOUSEBUTTON_LEFT);
+	out_input.m_leftReleased = mouse.WasButtonJustReleased(MOUSEBUTTON_LEFT);
+	out_input.m_leftHeld = mouse.IsButtonPressed(MOUSEBUTTON_LEFT);
+
+	out_input.m_rightClicked = mouse.WasButtonJustPressed(MOUSEBUTTON_RIGHT);
+	out_input.m_rightReleased = mouse.WasButtonJustReleased(MOUSEBUTTON_RIGHT);
+	out_input.m_rightHeld = mouse.IsButtonPressed(MOUSEBUTTON_RIGHT);
+
+	out_input.m_position = GetMousePosition();
+	out_input.m_lastFramePosition = GetMousePositionLastFrame();
+	out_input.m_cursorCanvasDelta = (out_input.m_position - out_input.m_lastFramePosition);
+
+	if (out_input.m_leftClicked)
+	{
+		// Start a new hold
+		out_input.m_leftHoldStartPosition = out_input.m_position;
+	}
+	else if (out_input.m_leftHeld)
+	{
+		// Preserve the start on this hold
+		out_input.m_leftHoldStartPosition = m_lastFrameUIMouseInfo.m_leftHoldStartPosition;
+	}
+
+	if (out_input.m_rightClicked)
+	{
+		// Start a new hold
+		out_input.m_rightHoldStartPosition = out_input.m_position;
+	}
+	else if (out_input.m_rightHeld)
+	{
+		// Preserve the start on this hold
+		out_input.m_rightHoldStartPosition = m_lastFrameUIMouseInfo.m_rightHoldStartPosition;
+	}
+
+	out_input.m_leftHoldDelta = out_input.m_position - out_input.m_leftHoldStartPosition;
+	out_input.m_rightHoldDelta = out_input.m_position - out_input.m_rightHoldStartPosition;
+
+	out_input.m_mouseWheelDelta = mouse.GetMouseWheelDelta();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Canvas::FindMouseHoveredElements(const Vector2& cursorCanvasPos, std::vector<UIElement*>& out_hoverStack) const
+{
+	std::map<StringID, UIElement*>::const_iterator itr = m_globalElementMap.begin();
+	for (itr; itr != m_globalElementMap.end(); itr++)
+	{
+		UIElement* currElement = itr->second;
+		OBB2 elementCanvasBounds = currElement->GetCanvasBounds();
+
+		if (elementCanvasBounds.IsPointInside(cursorCanvasPos))
+		{
+			out_hoverStack.push_back(currElement);
+		}
+	}
+
+	// Top layer elements get priority
+	std::sort(out_hoverStack.begin(), out_hoverStack.end(), CompareByLayerDescending);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Canvas::HandleMouseJustHovers(const std::vector<UIElement*>& hoverStack, const UIMouseInfo& mouseInfo)
 {
 	for (size_t hoverIndex = 0; hoverIndex < hoverStack.size(); ++hoverIndex)
 	{
 		UIElement* currElement = hoverStack[hoverIndex];
 
-		// Don't get input or block if you weren't even just hovered
 		if (WasHoveredLastFrame(currElement))
 		{
-			continue;
+			break;
 		}
 		
-		if (CheckAndExecuteHandler(currElement->m_onJustHovered, mouseInput))
+		if (CheckAndExecuteHandler(currElement, currElement->m_onJustHovered, mouseInfo))
 		{
 			break;
 		}
@@ -450,13 +529,13 @@ void Canvas::HandleMouseJustHovers(const std::vector<UIElement*>& hoverStack, co
 
 
 //-------------------------------------------------------------------------------------------------
-void Canvas::HandleMouseHovers(const std::vector<UIElement*>& hoverStack, const UIMouseInput& mouseInput)
+void Canvas::HandleMouseHovers(const std::vector<UIElement*>& hoverStack, const UIMouseInfo& mouseInfo)
 {
 	for (size_t hoverIndex = 0; hoverIndex < hoverStack.size(); ++hoverIndex)
 	{
 		UIElement* currElement = hoverStack[hoverIndex];
 
-		if (CheckAndExecuteHandler(currElement->m_onHovered, mouseInput))
+		if (CheckAndExecuteHandler(currElement, currElement->m_onHovered, mouseInfo))
 		{
 			break;
 		}
@@ -465,26 +544,26 @@ void Canvas::HandleMouseHovers(const std::vector<UIElement*>& hoverStack, const 
 
 
 //-------------------------------------------------------------------------------------------------
-void Canvas::HandleMouseClicks(const std::vector<UIElement*>& hoverStack, MouseButton button, const UIMouseInput& mouseInput)
+void Canvas::HandleMouseClicks(const std::vector<UIElement*>& hoverStack, const UIMouseInfo& mouseInfo)
 {
-	ASSERT_OR_DIE(button == MOUSEBUTTON_LEFT || button == MOUSEBUTTON_RIGHT, "Unsupported mouse click event!");
-
-	Mouse& mouse = g_inputSystem->GetMouse();
-	bool isLeft = (button == MOUSEBUTTON_LEFT);
-	bool justClicked = mouse.WasButtonJustPressed(button);
-	bool justReleased = mouse.WasButtonJustReleased(button);
-	bool isPressed = mouse.IsButtonPressed(button);
+	bool justClicked = mouseInfo.m_leftClicked || mouseInfo.m_rightClicked;
+	bool justReleased = mouseInfo.m_leftReleased || mouseInfo.m_rightReleased;
+	bool isPressed = mouseInfo.m_leftHeld || mouseInfo.m_rightHeld;
 
 	// Just clicks
 	if (justClicked)
 	{
+		bool inputConsumed = false;
 		for (size_t hoverIndex = 0; hoverIndex < hoverStack.size(); ++hoverIndex)
 		{
 			UIElement* currElement = hoverStack[hoverIndex];
-			UIMouseInputHandler handler = (isLeft ? currElement->m_onLeftClick : currElement->m_onRightClick);
 
-			if (CheckAndExecuteHandler(handler, mouseInput))
+			inputConsumed = CheckAndExecuteHandler(currElement, currElement->m_onMouseClick, mouseInfo);
+			if (inputConsumed)
 			{
+				// Consumed/Blocked input, cache it off for next frame
+				m_currentClickedElement = currElement;
+
 				break;
 			}	
 		}
@@ -492,50 +571,31 @@ void Canvas::HandleMouseClicks(const std::vector<UIElement*>& hoverStack, MouseB
 
 	if (justReleased)
 	{
-		for (size_t hoverIndex = 0; hoverIndex < hoverStack.size(); ++hoverIndex)
-		{
-			UIElement* currElement = hoverStack[hoverIndex];
-			UIMouseInputHandler handler = (isLeft ? currElement->m_onLeftRelease : currElement->m_onRightRelease);
-
-			if (CheckAndExecuteHandler(handler, mouseInput))
-			{
-				break;
-			}
-		}
+		CheckAndExecuteHandler(m_currentClickedElement, m_currentClickedElement->m_onMouseRelease, mouseInfo);
+		m_currentClickedElement = nullptr;
 	}
 
 	// Call this even if justClicked was done above - let both get called
 	if (isPressed)
 	{
-		for (size_t hoverIndex = 0; hoverIndex < hoverStack.size(); ++hoverIndex)
-		{
-			UIElement* currElement = hoverStack[hoverIndex];
-			UIMouseInputHandler clickedOnHandler = (isLeft ? currElement->m_onLeftHoldClickedOn : currElement->m_onRightHeldClickedOn); check this and also see if these handlers should be object methods
-			UIMouseInputHandler clickedOffHandler = (isLeft ? currElement->m_onLeftHoldClickedOff : currElement->m_onRightHeldClickedOff);
-			UIMouseInputHandler handler = (m_clickedElement == currElement ? clickedOnHandler : clickedOffHandler);
-
-			if (CheckAndExecuteHandler(handler, mouseInput))
-			{
-				break;
-			}
-		}
+		CheckAndExecuteHandler(m_currentClickedElement, m_currentClickedElement->m_onMouseHold, mouseInfo);
 	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void Canvas::HandleMouseUnhovers(const std::vector<UIElement*>& hoverStack, const UIMouseInput& mouseInput)
+void Canvas::HandleMouseUnhovers(const std::vector<UIElement*>& hoverStack, const UIMouseInfo& mouseInfo)
 {
 	// Check all elements hovered last frame, and if they're no longer hovered then call the unhover handlers
-	for (size_t lastFrameHoverIndex = 0; lastFrameHoverIndex < m_lastFrameMouseHoveredElements.size(); ++lastFrameHoverIndex)
+	for (size_t elementIndex = 0; elementIndex < m_elementsHoveredLastFrame.size(); ++elementIndex)
 	{
-		UIElement* lastFrameHoverElement = m_lastFrameMouseHoveredElements[lastFrameHoverIndex];
-		bool notHoveredThisFrame = (std::find(hoverStack.begin(), hoverStack.end(), lastFrameHoverElement) == hoverStack.end());
+		UIElement* elementHoveredLastFrame = m_elementsHoveredLastFrame[elementIndex];
+		bool notHoveredThisFrame = (std::find(hoverStack.begin(), hoverStack.end(), elementHoveredLastFrame) == hoverStack.end());
 		
 		if (notHoveredThisFrame)
 		{
 			// Unhovers don't consume any input
-			CheckAndExecuteHandler(lastFrameHoverElement->m_onUnhovered, mouseInput);
+			CheckAndExecuteHandler(elementHoveredLastFrame, elementHoveredLastFrame->m_onUnhovered, mouseInfo);
 		}
 	}
 }

@@ -74,6 +74,42 @@ static bool DevConsoleMessageHandler(unsigned int msg, size_t wparam, size_t lpa
 }
 
 
+static bool OnClick(UIElement* element, const UIMouseInfo& info)
+{
+	element->GetAsType<UIText>()->SetText("Click");
+	return true;
+}
+
+static bool OnHold(UIElement* element, const UIMouseInfo& info)
+{
+	element->GetAsType<UIText>()->SetText("Hold");
+	return true;
+}
+
+static bool OnRelease(UIElement* element, const UIMouseInfo& info)
+{
+	element->GetAsType<UIText>()->SetText("Release");
+	return true;
+}
+
+static bool OnJustHover(UIElement* element, const UIMouseInfo& info)
+{
+	element->GetAsType<UIText>()->SetText("JustHover");
+	return true;
+}
+
+static bool OnHover(UIElement* element, const UIMouseInfo& info)
+{
+	element->GetAsType<UIText>()->SetText("Hover");
+	return true;
+}
+
+static bool OnUnhover(UIElement* element, const UIMouseInfo& info)
+{
+	element->GetAsType<UIText>()->SetText("Unhover");
+	return true;
+}
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -139,10 +175,18 @@ void DevConsole::ProcessKeydown(unsigned char keyCode)
 	}
 }
 
-
+#include "Engine/Time/Clock.h"
 //-------------------------------------------------------------------------------------------------
 void DevConsole::BeginFrame()
 {
+	m_logScrollView->m_transform.SetOrientation(Clock::GetMasterClock()->GetTotalSeconds() * 45.f);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void DevConsole::ProcessInput()
+{
+	//m_canvas->ProcessInput();
 }
 
 
@@ -188,9 +232,9 @@ DevConsole::DevConsole()
 	m_logScrollView = new UIScrollView(m_canvas);
 	m_logScrollView->m_transform.SetAnchors(AnchorPreset::TOP_LEFT);
 	m_logScrollView->m_transform.SetPivot(Vector2(0.f, 1.0f));
-	m_logScrollView->m_transform.SetPosition(Vector2::ZERO);
+	m_logScrollView->m_transform.SetPosition(Vector2(500.f, -500.f));
 	m_logScrollView->m_transform.SetDimensions(Vector2(2333.3f, 1000.f));
-
+	m_logScrollView->m_transform.SetOrientation(90.f);
 	m_canvas->AddChild(m_logScrollView);
 
 	UIText* firstLine = new UIText(m_canvas);
@@ -216,6 +260,14 @@ DevConsole::DevConsole()
 
 	m_logScrollView->AddChildToScroll(firstLine);
 	m_logScrollView->AddChildToScroll(secondLine);
+
+	m_inputFieldText->m_onMouseClick = OnClick;
+	m_inputFieldText->m_onMouseHold = OnHold;
+	m_inputFieldText->m_onMouseRelease = OnRelease;
+
+	m_inputFieldText->m_onHovered = OnHover;
+	m_inputFieldText->m_onUnhovered = OnUnhover;
+	m_inputFieldText->m_onJustHovered = OnJustHover;
 }
 
 

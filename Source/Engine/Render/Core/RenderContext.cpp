@@ -8,8 +8,14 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Event/EventSystem.h"
+#include "Engine/Framework/Window.h"
+#include "Engine/IO/File.h"
+#include "Engine/IO/Image.h"
 #include "Engine/Job/EngineJobs.h"
 #include "Engine/Job/JobSystem.h"
+#include "Engine/Math/MathUtils.h"
+#include "Engine/Math/OBB2.h"
+#include "Engine/Math/Polygon2D.h"
 #include "Engine/Render/Buffer/UniformBuffer.h"
 #include "Engine/Render/Buffer/VertexBuffer.h"
 #include "Engine/Render/Camera/Camera.h"
@@ -26,11 +32,6 @@
 #include "Engine/Render/View/ShaderResourceView.h"
 #include "Engine/Render/View/DepthStencilTargetView.h"
 #include "Engine/Render/Texture/Texture2D.h"
-#include "Engine/IO/File.h"
-#include "Engine/Framework/Window.h"
-#include "Engine/IO/Image.h"
-#include "Engine/Math/Polygon2D.h"
-#include "Engine/Math/MathUtils.h"
 #include "Engine/Utility/NamedProperties.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -374,7 +375,7 @@ void RenderContext::DrawLine2D(const Vector2& start, const Vector2& end, Materia
 
 
 //-------------------------------------------------------------------------------------------------
-void RenderContext::DrawPolygon2D(const Polygon2D& polygon, Material* material, const Rgba& color /*= Rgba::WHITE*/)
+void RenderContext::DrawWirePolygon2D(const Polygon2D& polygon, Material* material, const Rgba& color /*= Rgba::WHITE*/)
 {
 	uint32 numVertices = polygon.GetNumVertices();
 	std::vector<Vertex3D_PCU> vertices;
@@ -386,6 +387,31 @@ void RenderContext::DrawPolygon2D(const Polygon2D& polygon, Material* material, 
 
 		uint32 nextIndex = ((i == (numVertices - 1U)) ? 0 : i + 1U);
 		Vector3 nextPosition = Vector3(polygon.GetVertexAtIndex(nextIndex), 0.f);
+		vertices.push_back(Vertex3D_PCU(nextPosition, color, Vector2::ZERO));
+	}
+
+	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+	DrawVertexArray(vertices.data(), (uint32)vertices.size(), nullptr, 0U, material);
+	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RenderContext::DrawWireOBB2D(const OBB2& obb, Material* material, const Rgba& color /*= Rgba::WHITE*/)
+{
+	Vector2 positions[4];
+	obb.GetCorners(positions);
+
+	std::vector<Vertex3D_PCU> vertices;
+
+	for (uint32 i = 0; i < 4; ++i)
+	{
+		Vector3 position = Vector3(positions[i], 0.f);
+
+		uint32 nextIndex = (i + 1) % 4;
+		Vector3 nextPosition = Vector3(positions[nextIndex], 0.f);
+
+		vertices.push_back(Vertex3D_PCU(position, color, Vector2::ZERO));
 		vertices.push_back(Vertex3D_PCU(nextPosition, color, Vector2::ZERO));
 	}
 

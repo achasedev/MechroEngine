@@ -28,6 +28,7 @@ class IndexBuffer;
 class Material;
 class Matrix44;
 class Mesh;
+class OBB2;
 class Polygon2D;
 class Renderable;
 class Sampler;
@@ -91,7 +92,8 @@ public:
 	
 	void								DrawPoint2D(const Vector2& position, float radius, Material* material, const Rgba& color = Rgba::WHITE);
 	void								DrawLine2D(const Vector2& start, const Vector2& end, Material* material, const Rgba& color = Rgba::WHITE);
-	void								DrawPolygon2D(const Polygon2D& polygon, Material* material, const Rgba& color = Rgba::WHITE);
+	void								DrawWirePolygon2D(const Polygon2D& polygon, Material* material, const Rgba& color = Rgba::WHITE);
+	void								DrawWireOBB2D(const OBB2& obb, Material* material, const Rgba& color = Rgba::WHITE);
 
 	void								SaveTextureToImage(Texture2D* texture, const char* filepath);
 

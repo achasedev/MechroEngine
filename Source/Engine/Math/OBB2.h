@@ -38,7 +38,12 @@ public:
 	OBB2(const AABB2& initialBounds);
 	OBB2(const AABB2& initialBounds, float initialDegrees);
 
-	Vector2 GetDimensions() const { return alignedBounds.GetDimensions(); }
+	Vector2 GetLocalDimensions() const { return alignedBounds.GetDimensions(); }
+	Vector2 GetTopLeft() const;
+	Vector2 GetTopRight() const;
+	Vector2 GetBottomLeft() const;
+	Vector2 GetBottomRight() const;
+	void	GetCorners(Vector2* out_vertices) const;
 
 	bool	IsPointInside(const Vector2& point) const;
 

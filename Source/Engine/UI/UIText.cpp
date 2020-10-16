@@ -138,9 +138,31 @@ void UIText::Render()
 		rend.SetDrawMesh(0, m_mesh);
 
 		g_renderContext->DrawRenderable(rend);
+		g_renderContext->DrawWireOBB2D(finalBounds, m_material, m_textColor);
 	}
 
+
 	UIElement::Render();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void UIText::SetText(uint32 lineIndex, const std::string& text, const Rgba& color /*= Rgba::WHITE*/)
+{
+	if (lineIndex >= m_lines.size())
+	{
+		m_lines.resize(lineIndex + 1);
+	}
+
+	m_lines[lineIndex] = text;
+	m_textColor = color;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void UIText::SetText(const std::string& text, const Rgba& color /*= Rgba::WHITE*/)
+{
+	SetText(0U, text, color);
 }
 
 
