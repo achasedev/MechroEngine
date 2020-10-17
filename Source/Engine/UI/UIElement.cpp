@@ -392,18 +392,23 @@ Matrix44 UIElement::CreateModelMatrix() const
 //-------------------------------------------------------------------------------------------------
 Matrix44 UIElement::CreateModelMatrix(const OBB2& finalBounds) const
 {
-	// Account for pivot:
-	// - Translate in normalized space
-	// - Apply translation/rotation/scale (now rotating about correct point)
-	// - Translate back in new scaled space to "undo" the translation to line up the rotation pivot
+	// Process
+	// - Apply scale
+	// - Translate to center the box
+	// - Rotate (since OBB2 rotation is about its center)
+	// - Undo the translate
+	// - Translate to final position
 
-	Vector3 translation = Vector3(finalBounds.alignedBounds.GetBottomLeft(), 0.f);
-	Vector3 rotation = Vector3(0.f, 0.f, finalBounds.orientationDegrees);
-	Vector3 scale = Vector3(finalBounds.alignedBounds.GetWidth(), finalBounds.alignedBounds.GetHeight(), 1.0f);
-	Vector3 pivotTranslation = Vector3(m_transform.GetPivot(), 0.f);
-	Vector3 postRotateCorrection = Vector3(pivotTranslation.x * scale.x, pivotTranslation.y * scale.y, 0.f);
+	Vector3 translation = Vector3(finalBounds.m_alignedBounds.GetBottomLeft(), 0.f);
+	Vector3 rotation = Vector3(0.f, 0.f, finalBounds.m_orientationDegrees);
+	Vector3 scale = Vector3(finalBounds.m_alignedBounds.GetWidth(), finalBounds.m_alignedBounds.GetHeight(), 1.0f);
+	Vector2 recenter = -1.0f * (finalBounds.m_alignedBounds.GetCenter() - finalBounds.m_alignedBounds.GetBottomLeft());
 
-	return Matrix44::MakeTranslation(postRotateCorrection) * Matrix44::MakeModelMatrix(translation, rotation, scale) * Matrix44::MakeTranslation(-1.0f * pivotTranslation);
+	Matrix44 scaleMat = Matrix44::MakeScale(scale);
+	Matrix44 rotationMat = Matrix44::MakeTranslation(Vector3(-1.0f * recenter, 0.f)) * Matrix44::MakeRotation(rotation) * Matrix44::MakeTranslation(Vector3(recenter, 0.f));
+	Matrix44 translationMat = Matrix44::MakeTranslation(translation);
+
+	return translationMat * rotationMat * scaleMat;
 }
 
 

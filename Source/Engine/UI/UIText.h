@@ -95,6 +95,7 @@ private:
 	Font*						m_font = nullptr;
 	float						m_fontHeight = 0.f;
 	bool						m_isDirty = true;
+	float						m_boundsHeightLastDraw = -1.0f;
 
 	HorizontalAlignment m_horizontalAlign	= ALIGNMENT_LEFT;
 	VerticalAlignment m_verticalAlign		= ALIGNMENT_TOP;

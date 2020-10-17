@@ -45,6 +45,9 @@ UIScrollView::UIScrollView(Canvas* canvas)
 //-------------------------------------------------------------------------------------------------
 void UIScrollView::Render()
 {
+	// Need to ensure if the ScrollView's dimensions get changed that the scroll field here also gets updated
+	m_scrollTransform.SetDimensions(m_transform.GetDimensions());
+
 	UIElement::Render();
 }
 

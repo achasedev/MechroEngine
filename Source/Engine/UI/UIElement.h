@@ -105,13 +105,13 @@ public:
 	RectTransform			m_transform;
 
 	// Mouse handlers
-	UIMouseInputHandler				m_onJustHovered = nullptr;
-	UIMouseInputHandler				m_onHovered = nullptr;
-	UIMouseInputHandler				m_onUnhovered = nullptr;
+	UIMouseInputHandler		m_onJustHovered = nullptr;
+	UIMouseInputHandler		m_onHovered = nullptr;
+	UIMouseInputHandler		m_onUnhovered = nullptr;
 
-	UIMouseInputHandler				m_onMouseClick = nullptr;
-	UIMouseInputHandler				m_onMouseHold = nullptr;
-	UIMouseInputHandler				m_onMouseRelease = nullptr;
+	UIMouseInputHandler		m_onMouseClick = nullptr;
+	UIMouseInputHandler		m_onMouseHold = nullptr;
+	UIMouseInputHandler		m_onMouseRelease = nullptr;
 
 
 protected:

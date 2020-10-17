@@ -166,6 +166,36 @@ bool AABB2::IsPointInside(const Vector2& point) const
 
 
 //-------------------------------------------------------------------------------------------------
+void AABB2::SetBottomLeft(const Vector2 bottomLeft)
+{
+	mins = bottomLeft;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void AABB2::SetBottomRight(const Vector2 bottomRight)
+{
+	maxs.x = bottomRight.x;
+	mins.y = bottomRight.y;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void AABB2::SetTopLeft(const Vector2 topLeft)
+{
+	mins.x = topLeft.x;
+	maxs.y = topLeft.y;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void AABB2::SetTopRight(const Vector2 topRight)
+{
+	maxs = topRight;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 Vector2 AABB2::GetDimensions() const
 {
 	float width = GetWidth();

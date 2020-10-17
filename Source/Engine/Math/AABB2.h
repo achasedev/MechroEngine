@@ -48,6 +48,11 @@ public:
 	bool	IsPointInside(float x, float y) const;
 	bool	IsPointInside(const Vector2& point) const;
 
+	void	SetBottomLeft(const Vector2 bottomLeft);
+	void	SetBottomRight(const Vector2 bottomRight);
+	void	SetTopLeft(const Vector2 topLeft);
+	void	SetTopRight(const Vector2 topRight);
+
 	Vector2 GetDimensions() const;
 	float	GetWidth() const;
 	float	GetHeight() const;

@@ -320,7 +320,7 @@ OBB2 RectTransform::GetBounds() const
 	if (m_parent != nullptr)
 	{
 		OBB2 orientedRefBounds = m_parent->GetBounds();
-		AABB2& alignedRefBounds = orientedRefBounds.alignedBounds;
+		AABB2& alignedRefBounds = orientedRefBounds.m_alignedBounds;
 
 		Vector2 scale = GetScale();
 		Vector2 parentDimensions = orientedRefBounds.GetLocalDimensions();
@@ -373,9 +373,15 @@ OBB2 RectTransform::GetBounds() const
 		}
 
 		// Rotation
-		float orientation = orientedRefBounds.orientationDegrees + m_orientation;
+		OBB2 result(bounds, 0.f);
+		result.RotateAboutPoint(orientedRefBounds.m_alignedBounds.GetCenter(), orientedRefBounds.m_orientationDegrees);
 
-		return OBB2(bounds, orientation);
+		// Get the child's pivot, then rotate about it
+		Vector2 localPivot = Vector2(bounds.GetWidth() * m_pivot.x, bounds.GetHeight() * m_pivot.y) + bounds.GetBottomLeft();
+		Vector2 worldPivot = RotatePointAboutPoint2D(localPivot, orientedRefBounds.m_alignedBounds.GetCenter(), orientedRefBounds.m_orientationDegrees);
+		result.RotateAboutPoint(worldPivot, m_orientation);
+
+		return result;
 	}
 	else
 	{
@@ -419,6 +425,13 @@ float RectTransform::GetHeight() const
 
 
 //-------------------------------------------------------------------------------------------------
+Vector2 RectTransform::GetDimensions() const
+{
+	return Vector2(GetWidth(), GetHeight());
+}
+
+
+//-------------------------------------------------------------------------------------------------
 float RectTransform::GetLeftPadding() const
 {
 	ASSERT_OR_DIE(IsPaddingHorizontal(), "Trying to read padding when anchors are using positions!");
@@ -456,6 +469,15 @@ Vector2 RectTransform::GetScale() const
 	Vector2 parentScale = (m_parent != nullptr ? m_parent->GetScale() : Vector2::ONES);
 	
 	return Vector2(m_scale.x * parentScale.x, m_scale.y * parentScale.y);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector2 RectTransform::GetPivotCanvasSpace() const
+{
+	OBB2 bounds = GetBounds();
+
+	return Vector2(bounds.m_alignedBounds.GetWidth() * m_pivot.x, bounds.m_alignedBounds.GetHeight() * m_pivot.y) + bounds.m_alignedBounds.GetBottomLeft();
 }
 
 

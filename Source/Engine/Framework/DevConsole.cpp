@@ -227,14 +227,18 @@ DevConsole::DevConsole()
 	m_backPanel = m_canvas->FindElementAsType<UIPanel>(SID("background_panel"));
 	m_inputPanel = m_canvas->FindElementAsType<UIPanel>(SID("input_panel"));
 	m_inputFieldText = m_canvas->FindElementAsType<UIText>(SID("input_text"));
+	m_canvas->RemoveChild(m_inputPanel);
+	m_inputPanel->RemoveChild(m_inputFieldText);
+
 	m_inputFieldText->SetShader(m_shader);
 
 	m_logScrollView = new UIScrollView(m_canvas);
 	m_logScrollView->m_transform.SetAnchors(AnchorPreset::TOP_LEFT);
-	m_logScrollView->m_transform.SetPivot(Vector2(0.f, 1.0f));
-	m_logScrollView->m_transform.SetPosition(Vector2(500.f, -500.f));
+	m_logScrollView->m_transform.SetPivot(Vector2(0.f, 0.0f));
+	m_logScrollView->m_transform.SetPosition(Vector2::ZERO);
 	m_logScrollView->m_transform.SetDimensions(Vector2(2333.3f, 1000.f));
-	m_logScrollView->m_transform.SetOrientation(90.f);
+	m_logScrollView->m_transform.SetOrientation(0.f);
+
 	m_canvas->AddChild(m_logScrollView);
 
 	UIText* firstLine = new UIText(m_canvas);

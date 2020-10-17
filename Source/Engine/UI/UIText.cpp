@@ -8,6 +8,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
+#include "Engine/Math/MathUtils.h"
 #include "Engine/Render/Core/RenderContext.h"
 #include "Engine/Render/Font/Font.h"
 #include "Engine/Render/Font/FontAtlas.h"
@@ -297,7 +298,7 @@ void UIText::InitializeFromXML(const XMLElem& element)
 //-------------------------------------------------------------------------------------------------
 uint32 UIText::CalculatePixelHeightForBounds(const OBB2& finalBounds)
 {
-	float canvasHeight = finalBounds.alignedBounds.GetHeight();
+	float canvasHeight = finalBounds.m_alignedBounds.GetHeight();
 	return m_canvas->ToPixelHeight(canvasHeight);
 }
 
@@ -305,14 +306,14 @@ uint32 UIText::CalculatePixelHeightForBounds(const OBB2& finalBounds)
 //-------------------------------------------------------------------------------------------------
 void UIText::UpdateMeshAndMaterial(const OBB2& finalBounds)
 {
-	if (m_isDirty)
-	{
+	if (m_isDirty || !AreMostlyEqual(finalBounds.m_alignedBounds.GetHeight(), m_boundsHeightLastDraw))
+	{	
 		ASSERT_OR_DIE(m_font != nullptr, "Null Font!");
 		ASSERT_OR_DIE(m_mesh != nullptr, "Null Mesh!");
 		ASSERT_OR_DIE(m_material != nullptr, "Null Material!");
 		ASSERT_OR_DIE(m_fontHeight > 0.f, "Font height is zero when trying to render!");
 
-		uint32 fontPixelHeight = m_canvas->ToPixelHeight(m_fontHeight);
+		uint32 fontPixelHeight = m_canvas->ToPixelHeight(m_fontHeight * m_transform.GetScale().y);
 
 		MeshBuilder mb;
 		mb.BeginBuilding(true);
@@ -320,7 +321,7 @@ void UIText::UpdateMeshAndMaterial(const OBB2& finalBounds)
 		// Send the bounds as if they're at 0,0
 		// The model matrix will handle the positioning
 		// Font pixel height may be updated/adjusted based on draw modes
-		fontPixelHeight = mb.PushText(m_lines, fontPixelHeight, m_font, AABB2(Vector2::ZERO, finalBounds.alignedBounds.GetDimensions()), m_canvas->GetCanvasUnitsPerPixel(), m_textColor, m_horizontalAlign, m_verticalAlign, m_textDrawMode);
+		fontPixelHeight = mb.PushText(m_lines, fontPixelHeight, m_font, AABB2(Vector2::ZERO, finalBounds.m_alignedBounds.GetDimensions()), m_canvas->GetCanvasUnitsPerPixel(), m_textColor, m_horizontalAlign, m_verticalAlign, m_textDrawMode);
 
 		mb.FinishBuilding();
 		mb.UpdateMesh<Vertex3D_PCU>(*m_mesh);
@@ -335,6 +336,7 @@ void UIText::UpdateMeshAndMaterial(const OBB2& finalBounds)
 
 		ASSERT_OR_DIE(resourceView->GetSampler() == nullptr, "Whyyyyy!");
 
+		m_boundsHeightLastDraw = finalBounds.m_alignedBounds.GetHeight();
 		m_isDirty = false;
 	}
 }

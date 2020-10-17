@@ -400,7 +400,7 @@ void RenderContext::DrawWirePolygon2D(const Polygon2D& polygon, Material* materi
 void RenderContext::DrawWireOBB2D(const OBB2& obb, Material* material, const Rgba& color /*= Rgba::WHITE*/)
 {
 	Vector2 positions[4];
-	obb.GetCorners(positions);
+	obb.GetPositions(positions);
 
 	std::vector<Vertex3D_PCU> vertices;
 

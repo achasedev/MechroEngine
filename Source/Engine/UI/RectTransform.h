@@ -102,6 +102,7 @@ public:
 	float		GetYPosition() const;
 	float		GetWidth() const;
 	float		GetHeight() const;
+	Vector2		GetDimensions() const;
 	float		GetLeftPadding() const;
 	float		GetRightPadding() const;
 	float		GetBottomPadding() const;
@@ -109,6 +110,7 @@ public:
 	Vector2		GetScale() const;
 	AnchorMode	GetAnchorMode() const { return m_anchorMode; }
 	Vector2		GetPivot() const { return m_pivot; }
+	Vector2		GetPivotCanvasSpace() const;
 
 
 private:

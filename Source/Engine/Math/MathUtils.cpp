@@ -1011,6 +1011,26 @@ bool AreMostlyEqual(const Quaternion& a, const Quaternion& b, float epsilon /*= 
 }
 
 
+//-------------------------------------------------------------------------------------------------
+Vector2 RotatePointAboutPoint2D(const Vector2& pointToRotate, const Vector2& pointOfRotation, float angleDegrees)
+{
+	float c = CosDegrees(angleDegrees);
+	float s = SinDegrees(angleDegrees);
+
+	return RotatePointAboutPoint2D(pointToRotate, pointOfRotation, c, s);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector2 RotatePointAboutPoint2D(const Vector2& pointToRotate, const Vector2& pointOfRotation, float cosAngle, float sinAngle)
+{
+	Vector2 toPoint = (pointToRotate - pointOfRotation);
+	Vector2 rotatedPoint = Vector2(toPoint.x * cosAngle - toPoint.y * sinAngle, toPoint.x * sinAngle + toPoint.y * cosAngle);
+	
+	return rotatedPoint + pointOfRotation;
+}
+
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
