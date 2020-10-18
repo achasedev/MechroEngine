@@ -79,6 +79,9 @@ public:
 	void		SetXPosition(float x);
 	void		SetYPosition(float y);
 	void		SetPosition(const Vector2& position);
+	void		TranslateX(float xTranslation);
+	void		TranslateY(float yTranslation);
+	void		Translate(float xTranslation, float yTranslation);
 
 	void		SetWidth(float width);
 	void		SetHeight(float height);

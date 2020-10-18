@@ -28,6 +28,50 @@
 #define CAT(A,B) _CAT(A,B)
 #define NO_RETURN_VAL
 
+#define RTTI_BASE_CLASS(CLASS)													\
+static const int s_type;														\
+virtual const void* GetType() const { return &s_type; }							\
+virtual const char* GetTypeAsString() const { return QUOTE(CLASS); }			\
+																				\
+template <typename TYPE>														\
+bool IsOfType() const															\
+{																				\
+	return (GetType() == TYPE::GetTypeStatic());								\
+}																				\
+																				\
+template <typename TYPE>														\
+TYPE* GetAsType()																\
+{																				\
+	if (IsOfType<TYPE>())														\
+	{																			\
+		return reinterpret_cast<TYPE*>(this);									\
+	}																			\
+																				\
+	return nullptr;																\
+}																				\
+																				\
+template <typename TYPE>														\
+const TYPE* GetAsType() const													\
+{																				\
+	if (IsOfType<TYPE>())														\
+	{																			\
+		return reinterpret_cast<const TYPE*>(this);								\
+	}																			\
+																				\
+	return nullptr;																\
+}																				\
+																				\
+
+#define RTTI_DERIVED_CLASS(CLASS)												\
+static const int s_type;														\
+static const void* GetTypeStatic() { return &s_type;}							\
+virtual const void* GetType() const override { return &s_type; }				\
+virtual const char* GetTypeAsString() const override { return QUOTE(CLASS); }	\
+
+
+#define RTTI_TYPE_DEFINE(CLASS) const int CLASS::s_type = 0; 
+
+
 //-------------------------------------------------------------------------------------------------
 // COMPILE-TIME OPTIONS
 

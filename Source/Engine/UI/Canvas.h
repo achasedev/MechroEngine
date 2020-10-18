@@ -45,6 +45,7 @@ class Canvas : public UIElement
 {
 public:
 	//-----Public Methods-----
+	RTTI_DERIVED_CLASS(Canvas);
 
 	Canvas();
 	~Canvas();
@@ -65,7 +66,6 @@ public:
 	void				AddElementToGlobalMap(UIElement* element);
 	void				RemoveElementFromGlobalMap(UIElement* element);
 
-	virtual	void*		GetType() const override { return &s_type; }
 	Vector2				GetResolution() const { return m_resolution; }
 	Texture2D*			GetOutputTexture() const;
 	UIElement*			FindElementByID(StringID id);
@@ -82,7 +82,6 @@ public:
 	Vector2				GetMousePositionLastFrame() const;
 	bool				WasHoveredLastFrame(UIElement* element) const;
 
-	static void*		GetTypeStatic() { return &s_type; }
 
 	template <typename T>
 	T*					FindElementAsType(StringID id);
@@ -116,8 +115,6 @@ private:
 	std::vector<UIElement*>			m_elementsHoveredLastFrame;
 	UIMouseInfo						m_lastFrameUIMouseInfo;
 	UIElement*						m_currentClickedElement = nullptr;
-
-	static int s_type;
 
 };
 

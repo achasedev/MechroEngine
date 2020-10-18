@@ -32,20 +32,15 @@ class UIPanel : public UIElement
 {
 public:
 	//-----Public Methods-----
+	RTTI_DERIVED_CLASS(UIPanel);
 
 	UIPanel(Canvas* canvas);
 	
 	virtual void	Render() override;
 
-	virtual void*	GetType() const override { return &s_type; }
-
-	static void*	GetTypeStatic() { return &s_type; }
-
 
 private:
 	//-----Private Data-----
-
-	static int	s_type;
 
 };
 

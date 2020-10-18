@@ -30,7 +30,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-int UIText::s_type = 0;
+RTTI_TYPE_DEFINE(UIText);
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
@@ -157,6 +157,7 @@ void UIText::SetText(uint32 lineIndex, const std::string& text, const Rgba& colo
 
 	m_lines[lineIndex] = text;
 	m_textColor = color;
+	m_isDirty = true;
 }
 
 
@@ -168,11 +169,21 @@ void UIText::SetText(const std::string& text, const Rgba& color /*= Rgba::WHITE*
 
 
 //-------------------------------------------------------------------------------------------------
-void UIText::AddText(const std::string& text, const Rgba& color /*= Rgba::WHITE*/)
+void UIText::AddLine(const std::string& text, const Rgba& color /*= Rgba::WHITE*/)
 {
 	m_lines.push_back(text);
 	m_textColor = color;
 	m_isDirty = true;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void UIText::AddLines(const std::vector<std::string>& lines, const Rgba& color /*= Rgba::WHITE*/)
+{
+	for (size_t lineIndex = 0; lineIndex < lines.size(); ++lineIndex)
+	{
+		m_lines.push_back(lines[lineIndex]);
+	}
 }
 
 

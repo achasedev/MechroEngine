@@ -26,6 +26,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+RTTI_TYPE_DEFINE(Canvas);
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
@@ -34,7 +35,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-int Canvas::s_type = 0;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
@@ -535,7 +535,7 @@ void Canvas::HandleMouseHovers(const std::vector<UIElement*>& hoverStack, const 
 	{
 		UIElement* currElement = hoverStack[hoverIndex];
 
-		if (CheckAndExecuteHandler(currElement, currElement->m_onHovered, mouseInfo))
+		if (CheckAndExecuteHandler(currElement, currElement->m_onHover, mouseInfo))
 		{
 			break;
 		}
@@ -569,14 +569,14 @@ void Canvas::HandleMouseClicks(const std::vector<UIElement*>& hoverStack, const 
 		}
 	}
 
-	if (justReleased)
+	if (justReleased && m_currentClickedElement != nullptr)
 	{
 		CheckAndExecuteHandler(m_currentClickedElement, m_currentClickedElement->m_onMouseRelease, mouseInfo);
 		m_currentClickedElement = nullptr;
 	}
 
 	// Call this even if justClicked was done above - let both get called
-	if (isPressed)
+	if (isPressed && m_currentClickedElement != nullptr)
 	{
 		CheckAndExecuteHandler(m_currentClickedElement, m_currentClickedElement->m_onMouseHold, mouseInfo);
 	}

@@ -134,15 +134,7 @@ bool OBB2::IsPointInside(const Vector2& point) const
 {
 	// Assumes rotation is about the box's center
 	Vector2 center = m_alignedBounds.GetCenter();
-	Vector2 toPoint = (point - center);
-	float c = CosDegrees(m_orientationDegrees);
-	float s = SinDegrees(m_orientationDegrees);
-
-	Vector2 rotatedPoint;
-	rotatedPoint.x = toPoint.x * c - toPoint.y * s;
-	rotatedPoint.y = toPoint.x * s + toPoint.y * c;
-
-	rotatedPoint += center;
+	Vector2 rotatedPoint = RotatePointAboutPoint2D(point, center, -m_orientationDegrees);
 
 	return (m_alignedBounds.IsPointInside(rotatedPoint));
 }

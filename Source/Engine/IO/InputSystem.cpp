@@ -151,6 +151,7 @@ void InputSystem::EndFrame()
 {
 	// Reset here we're ready for RunMessagePump() at the top of next frame
 	ResetJustKeyStates();
+	m_mouse.EndFrame();
 }
 
 

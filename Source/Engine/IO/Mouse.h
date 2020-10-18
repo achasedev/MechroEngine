@@ -80,6 +80,7 @@ private:
 	Mouse(const Mouse& copy) = delete;
 
 	void BeginFrame();
+	void EndFrame();
 	void UpdateCursorPositions();
 	void UpdateButtonState(MouseButton button, uint16 buttonFlags, uint16 buttonMask);
 

@@ -163,6 +163,30 @@ void RectTransform::SetPosition(const Vector2& position)
 
 
 //-------------------------------------------------------------------------------------------------
+void RectTransform::TranslateX(float xTranslation)
+{
+	ASSERT_RETURN(!IsPaddingHorizontal(), NO_RETURN_VAL, "No translating when padding!");
+	m_xPosition += xTranslation;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RectTransform::TranslateY(float yTranslation)
+{
+	ASSERT_RETURN(!IsPaddingVertical(), NO_RETURN_VAL, "No translating when padding!");
+	m_yPosition += yTranslation;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RectTransform::Translate(float xTranslation, float yTranslation)
+{
+	TranslateX(xTranslation);
+	TranslateY(yTranslation);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void RectTransform::SetWidth(float width)
 {
 	bool isPositioningHorizontal = !IsPaddingHorizontal();

@@ -228,6 +228,12 @@ CursorMode Mouse::GetCursorMode() const
 //-------------------------------------------------------------------------------------------------
 void Mouse::BeginFrame()
 {
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Mouse::EndFrame()
+{
 	m_currFrameWheel = 0.f;
 
 	// Reset all "just" states before updating current state

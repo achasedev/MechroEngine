@@ -11,6 +11,7 @@
 #include "Engine/UI/Canvas.h"
 #include "Engine/UI/UIElement.h"
 #include "Engine/UI/UIPanel.h"
+#include "Engine/UI/UIScrollView.h"
 #include "Engine/UI/UIText.h"
 #include "Engine/Utility/StringID.h"
 #include "Engine/Utility/XMLUtils.h"
@@ -26,7 +27,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-int UIElement::s_type = 0;
+RTTI_TYPE_DEFINE(UIElement);
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
@@ -164,6 +165,18 @@ static void SetXPaddingYPaddingFromXML(const XMLElem& element, RectTransform& tr
 }
 
 
+//-------------------------------------------------------------------------------------------------
+bool IsXMLElemForUIText(const XMLElem& element)
+{
+	std::string name = element.Name();
+	size_t underscoreIndex = name.find_last_of('_');
+	ASSERT_OR_DIE(underscoreIndex != std::string::npos && underscoreIndex != name.size() - 1, "UIElement element name %s needs to have \"_<UIElement type>\" at the end of it!", name.c_str());
+
+	std::string elementType = name.substr(underscoreIndex + 1);
+	return (elementType == "text");
+}
+
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -234,6 +247,7 @@ void UIElement::AddChild(UIElement* child)
 	m_children.push_back(child);
 	child->m_parent = this;
 	child->m_transform.SetParentTransform(&m_transform);
+	child->SetLayer(m_layer + 1);
 
 	if (!IsCanvas())
 	{
@@ -437,8 +451,9 @@ STATIC UIElement* UIElement::CreateUIElementFromXML(const XMLElem& element, Canv
 	std::string elementType = name.substr(underscoreIndex + 1);
 
 	UIElement* uiElement = nullptr;
-	if		(elementType == "panel")	{ uiElement = new UIPanel(canvas); }
-	else if (elementType == "text")		{ uiElement = new UIText(canvas); }
+	if		(elementType == "panel")		{ uiElement = new UIPanel(canvas); }
+	else if (elementType == "text")			{ uiElement = new UIText(canvas); }
+	else if (elementType == "scrollview")	{ uiElement = new UIScrollView(canvas); }
 	else
 	{
 		ERROR_RECOVERABLE("Cannot create UIElement of type %s!", elementType.c_str());

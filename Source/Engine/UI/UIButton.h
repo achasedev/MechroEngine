@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: April 21st, 2020
+/// Date Created: October 17th, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,7 +8,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Framework/Rgba.h"
 #include "Engine/UI/UIElement.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -18,31 +17,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Font;
-class OBB2;
-class Shader;
-
-enum HorizontalAlignment
-{
-	ALIGNMENT_LEFT,
-	ALIGNMENT_CENTER,
-	ALIGNMENT_RIGHT
-};
-
-enum VerticalAlignment
-{
-	ALIGNMENT_TOP,
-	ALIGNMENT_MIDDLE,
-	ALIGNMENT_BOTTOM
-};
-
-enum TextDrawMode
-{
-	TEXT_DRAW_DEFAULT,
-	TEXT_DRAW_SHRINK_TO_FIT,
-	TEXT_DRAW_EXPAND_TO_FILL,
-	TEXT_DRAW_WORD_WRAP
-};
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -53,53 +27,23 @@ enum TextDrawMode
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class UIText : public UIElement
+class UIButton : public UIElement
 {
 public:
 	//-----Public Methods-----
-	RTTI_DERIVED_CLASS(UIText);
+	RTTI_DERIVED_CLASS(UIButton);
 
-	UIText(Canvas* canvas);
-	virtual ~UIText();
+	UIButton(Canvas* canvas);
+	virtual ~UIButton();
 
-	virtual void	InitializeFromXML(const XMLElem& element) override;
-	virtual void	Render() override;
-	
-	void			SetText(const std::string& text, const Rgba& color = Rgba::WHITE);
-	void			SetText(uint32 lineNumber, const std::string& text, const Rgba& color = Rgba::WHITE);
-	void			AddLine(const std::string& text, const Rgba& color = Rgba::WHITE);
-	void			AddLines(const std::vector<std::string>& lines, const Rgba& color = Rgba::WHITE);
-	void			SetFont(Font* font);
-	void			SetShader(Shader* shader);
-	void			SetFontHeight(float fontHeight);
-	void			MarkDirty() { m_isDirty = true; }
+	virtual void		InitializeFromXML(const XMLElem& element);
 
-	Material*		GetMaterial() const { return m_material; }
-	Font*			GetFont() const { return m_font; }
+	virtual void		Update();
+	virtual void		Render();
 
 
 private:
 	//-----Private Data-----
-
-	uint32			CalculatePixelHeightForBounds(const OBB2& finalBounds);
-	void			UpdateMeshAndMaterial(const OBB2& finalBounds);
-
-
-private:
-	//-----Private Data-----
-
-	std::vector<std::string>	m_lines;
-	Rgba						m_textColor;
-	Mesh*						m_mesh = nullptr;
-	Material*					m_material = nullptr;
-	Font*						m_font = nullptr;
-	float						m_fontHeight = 0.f;
-	bool						m_isDirty = true;
-	float						m_boundsHeightLastDraw = -1.0f;
-
-	HorizontalAlignment m_horizontalAlign	= ALIGNMENT_LEFT;
-	VerticalAlignment m_verticalAlign		= ALIGNMENT_TOP;
-	TextDrawMode m_textDrawMode				= TEXT_DRAW_DEFAULT;
 
 };
 

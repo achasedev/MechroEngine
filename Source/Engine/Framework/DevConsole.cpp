@@ -175,18 +175,23 @@ void DevConsole::ProcessKeydown(unsigned char keyCode)
 	}
 }
 
-#include "Engine/Time/Clock.h"
+
 //-------------------------------------------------------------------------------------------------
 void DevConsole::BeginFrame()
 {
-	m_logScrollView->m_transform.SetOrientation(Clock::GetMasterClock()->GetTotalSeconds() * 45.f);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void DevConsole::ProcessInput()
 {
-	//m_canvas->ProcessInput();
+	if (m_timer.HasIntervalElapsed())
+	{
+		int x = 0;
+		x = 5;
+	}
+
+	m_canvas->ProcessInput();
 }
 
 
@@ -227,51 +232,10 @@ DevConsole::DevConsole()
 	m_backPanel = m_canvas->FindElementAsType<UIPanel>(SID("background_panel"));
 	m_inputPanel = m_canvas->FindElementAsType<UIPanel>(SID("input_panel"));
 	m_inputFieldText = m_canvas->FindElementAsType<UIText>(SID("input_text"));
-	m_canvas->RemoveChild(m_inputPanel);
-	m_inputPanel->RemoveChild(m_inputFieldText);
+	m_logScrollView = m_canvas->FindElementAsType<UIScrollView>(SID("log_scrollview"));
 
 	m_inputFieldText->SetShader(m_shader);
-
-	m_logScrollView = new UIScrollView(m_canvas);
-	m_logScrollView->m_transform.SetAnchors(AnchorPreset::TOP_LEFT);
-	m_logScrollView->m_transform.SetPivot(Vector2(0.f, 0.0f));
-	m_logScrollView->m_transform.SetPosition(Vector2::ZERO);
-	m_logScrollView->m_transform.SetDimensions(Vector2(2333.3f, 1000.f));
-	m_logScrollView->m_transform.SetOrientation(0.f);
-
-	m_canvas->AddChild(m_logScrollView);
-
-	UIText* firstLine = new UIText(m_canvas);
-	UIText* secondLine = new UIText(m_canvas);
-
-	firstLine->SetID("first_line");
-	secondLine->SetID("second_line");
-
-	firstLine->m_transform.SetDimensions(2333.3f, 25.f);
-	secondLine->m_transform.SetDimensions(2333.3f, 25.f);
-
-	firstLine->SetFont(m_inputFieldText->GetFont());
-	secondLine->SetFont(m_inputFieldText->GetFont());
-
-	firstLine->SetFontHeight(25.f);
-	secondLine->SetFontHeight(25.f);
-
-	firstLine->SetShader(m_shader);
-	secondLine->SetShader(m_shader);
-
-	firstLine->AddText("First Line First Line First Line First Line First Line First Line", Rgba::WHITE);
-	secondLine->AddText("Second Line Second Line Second Line Second Line Second Line Second Line", Rgba::YELLOW);
-
-	m_logScrollView->AddChildToScroll(firstLine);
-	m_logScrollView->AddChildToScroll(secondLine);
-
-	m_inputFieldText->m_onMouseClick = OnClick;
-	m_inputFieldText->m_onMouseHold = OnHold;
-	m_inputFieldText->m_onMouseRelease = OnRelease;
-
-	m_inputFieldText->m_onHovered = OnHover;
-	m_inputFieldText->m_onUnhovered = OnUnhover;
-	m_inputFieldText->m_onJustHovered = OnJustHover;
+	m_logScrollView->GetScrollTextElement()->SetShader(m_shader);
 }
 
 
@@ -282,7 +246,7 @@ DevConsole::~DevConsole()
 	m_backPanel = nullptr;
 	m_inputPanel = nullptr;
 	m_inputFieldText = nullptr;
-
+	
 	SAFE_DELETE(m_shader);
 	SAFE_DELETE(m_canvas);
 }
