@@ -211,6 +211,16 @@ void UIText::SetFontHeight(float fontHeight)
 
 
 //-------------------------------------------------------------------------------------------------
+float UIText::GetLineHeight() const
+{
+	uint32 fontPixelHeight = m_canvas->ToPixelHeight(m_fontHeight * m_transform.GetScale().y);
+	FontAtlas* atlas = m_font->CreateOrGetAtlasForPixelHeight(fontPixelHeight);
+
+	return m_canvas->ToCanvasHeight(atlas->GetVerticalLineSpacingPixels());
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void UIText::InitializeFromXML(const XMLElem& element)
 {
 	UIElement::InitializeFromXML(element);

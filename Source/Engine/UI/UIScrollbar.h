@@ -20,6 +20,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class UIButton;
 class UIImage;
+class UIScrollView;
 
 //-------------------------------------------------------------------------------------------------
 enum ScrollDirection
@@ -39,6 +40,8 @@ enum ScrollDirection
 //-------------------------------------------------------------------------------------------------
 class UIScrollbar : public UIElement
 {
+	friend class UIScrollView;
+
 public:
 	//-----Public Methods-----
 	RTTI_DERIVED_CLASS(UIScrollbar);
@@ -51,11 +54,21 @@ public:
 	virtual void		Update();
 	virtual void		Render();
 
-	
+	void				ScrollFromSlider(float sliderDeltaY);
+	void				Scroll(float deltaSeconds);
+	void				SetScrollSpeed(float speed) { m_scrollSpeed = speed; }
+
+	UIImage*			GetSliderElement() const { return m_slider; }
+	float				GetScrollSpeed() const { return m_scrollSpeed; }
+
+
 private:
 	//-----Private Data-----
 
-	RectTransform*	m_transformToScroll = nullptr;
+	float			m_scrollSpeed = 50.f;
+	float			m_thickness = 10.f;
+	ScrollDirection m_scrollDirection = SCROLL_DIRECTION_VERTICAL;
+	UIScrollView*	m_scrollView = nullptr;
 	UIButton*		m_minButton = nullptr;
 	UIButton*		m_maxButton = nullptr;
 	UIImage*		m_slider = nullptr;

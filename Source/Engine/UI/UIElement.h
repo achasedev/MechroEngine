@@ -37,6 +37,7 @@ struct UIMouseInfo
 	bool	m_thisElementClicked = false; // For hold input, determine if this element was clicked on first
 
 	float	m_mouseWheelDelta = 0.f;
+	float	m_deltaSeconds = 0.f;
 
 	// All canvas space
 	Vector2 m_position = Vector2::ZERO;
@@ -128,3 +129,4 @@ protected:
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 bool IsXMLElemForUIText(const XMLElem& element);
+bool IsXMLElemForUIImage(const XMLElem& element);

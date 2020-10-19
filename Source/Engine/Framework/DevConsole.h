@@ -49,6 +49,7 @@ public:
 
 	void		BeginFrame();
 	void		ProcessInput();
+	void		Update();
 	void		EndFrame();
 	void		Render() const;
 

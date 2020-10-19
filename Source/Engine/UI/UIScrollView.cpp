@@ -8,6 +8,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
+#include "Engine/Math/MathUtils.h"
 #include "Engine/UI/UIScrollbar.h"
 #include "Engine/UI/UIScrollView.h"
 #include "Engine/UI/UIText.h"
@@ -32,9 +33,11 @@ RTTI_TYPE_DEFINE(UIScrollView);
 //-------------------------------------------------------------------------------------------------
 static bool OnHover_Scroll(UIElement* element, const UIMouseInfo& info)
 {
-	UIScrollView* scrollView = element->GetAsType<UIScrollView>();
-
-	scrollView->Scroll(info.m_mouseWheelDelta * 50.f);
+	if (info.m_mouseWheelDelta != 0.f)
+	{
+		UIScrollView* scrollView = element->GetAsType<UIScrollView>();
+		scrollView->Scroll(-info.m_mouseWheelDelta * scrollView->GetScrollSpeed());
+	}
 
 	return true;
 }
@@ -57,7 +60,6 @@ UIScrollView::UIScrollView(Canvas* canvas)
 	: UIElement(canvas)
 {
 	m_onHover = OnHover_Scroll;
-	SetupDefaultScrollText();
 }
 
 
@@ -75,21 +77,6 @@ UIScrollView::~UIScrollView()
 void UIScrollView::InitializeFromXML(const XMLElem& element)
 {
 	UIElement::InitializeFromXML(element);
-
-	// Check for scrollbars
-	const XMLElem* vertScrollElem = element.FirstChildElement("vertical_scrollbar");
-	if (vertScrollElem != nullptr)
-	{
-		m_verticalScrollBar = new UIScrollbar(m_canvas);
-		m_verticalScrollBar->InitializeFromXML(*vertScrollElem);
-	}
-
-	const XMLElem* horizScrollElem = element.FirstChildElement("horizontal_scrollbar");
-	if (horizScrollElem != nullptr)
-	{
-		m_horizontalScrollBar = new UIScrollbar(m_canvas);
-		m_horizontalScrollBar->InitializeFromXML(*horizScrollElem);
-	}
 
 	// Still set up some sort of default
 	const XMLElem* scrollTextElem = nullptr;
@@ -121,6 +108,10 @@ void UIScrollView::InitializeFromXML(const XMLElem& element)
 			}
 		}
 
+		// Ensure it's not word wrapped
+		ASSERT_RECOVERABLE(m_scrollableText->GetTextDrawMode() != TEXT_DRAW_WORD_WRAP, "Cannot word wrap with scrollable text!");
+		m_scrollableText->SetTextDrawMode(TEXT_DRAW_DEFAULT);
+
 		m_scrollableText->m_onHover = OnHover_Child;
 	}
 	else
@@ -129,6 +120,20 @@ void UIScrollView::InitializeFromXML(const XMLElem& element)
 	}
 
 	m_scrollSpeed = XML::ParseAttribute(element, "scroll_speed", m_scrollSpeed);
+
+	// Cache off scrollbar
+	for (size_t childIndex = 0; childIndex < m_children.size(); ++childIndex)
+	{
+		if (m_children[childIndex]->GetID() == SID("vertical_scrollbar"))
+		{
+			m_verticalScrollBar = m_children[childIndex]->GetAsType<UIScrollbar>();
+
+			m_transform.SetWidth(m_transform.GetWidth() - m_verticalScrollBar->m_transform.GetWidth());
+			m_transform.TranslateX(m_verticalScrollBar->m_transform.GetWidth());
+			m_verticalScrollBar->m_scrollView = this;
+			m_verticalScrollBar->m_transform.TranslateX(-m_verticalScrollBar->m_transform.GetWidth());
+		}
+	}
 }
 
 
@@ -138,19 +143,24 @@ void UIScrollView::Update()
 	// In case we shouldn't have a horizontal scroll and need to update width
 	if (!m_independentScrollWidth)
 	{
-		m_scrollableWidth = m_transform.GetWidth();
+		m_scrollableText->m_transform.SetWidth(m_transform.GetWidth());
 	}
 
+	// Also update height to be based on number of lines in the log
+	// NOTE: Word wrap does not work with this, as it is done in the render step and can add an
+	//		 unknown number of lines to it
+	float totalHeight = m_scrollableText->GetLineHeight() * m_scrollableText->GetNumLines();
+	m_scrollableText->m_transform.SetHeight(totalHeight);
+
 	// TODO: Check for text changes
+
+	UIElement::Update();
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void UIScrollView::Render()
 {
-	// Need to ensure if the ScrollView's dimensions get changed that the scroll field here also gets updated
-	m_scrollableText->m_transform.SetDimensions(m_transform.GetDimensions());
-
 	UIElement::Render();
 }
 
@@ -179,9 +189,20 @@ void UIScrollView::AddTextToScroll(const std::string& text)
 //-------------------------------------------------------------------------------------------------
 void UIScrollView::Scroll(float translation)
 {
-	m_scrollableText->m_transform.TranslateY(translation);
+	if (translation != 0.f)
+	{
+		// Clamp the scroll from moving out of the view
+		float newY = m_scrollableText->m_transform.GetYPosition() + translation;
 
-	// If we have scroll bars, tell them to update too
+		float windowHeight = m_transform.GetHeight();
+		float total = m_scrollableText->m_transform.GetHeight();
+
+		if (total > windowHeight)
+		{
+			newY = Clamp(newY, m_transform.GetYPosition() - (total - windowHeight), 0.f);
+			m_scrollableText->m_transform.SetYPosition(newY);
+		}
+	}
 }
 
 

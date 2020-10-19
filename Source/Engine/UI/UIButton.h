@@ -17,6 +17,9 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class Image;
+class UIImage;
+class UIText;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -36,14 +39,27 @@ public:
 	UIButton(Canvas* canvas);
 	virtual ~UIButton();
 
+	void				Initialize();
 	virtual void		InitializeFromXML(const XMLElem& element);
 
 	virtual void		Update();
 	virtual void		Render();
 
+	void				SetImage(Image* image);
+
+
+private:
+	//-----Private Methods-----
+
+	void				SetupDefaultImageElement();
+	void				SetupDefaultTextElement();
+
 
 private:
 	//-----Private Data-----
+
+	UIImage*	m_imageElement = nullptr;
+	UIText*		m_textElement = nullptr;
 
 };
 

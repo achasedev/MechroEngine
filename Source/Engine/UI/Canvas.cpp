@@ -14,6 +14,7 @@
 #include "Engine/Render/Camera/Camera.h"
 #include "Engine/Render/Core/RenderContext.h"
 #include "Engine/Render/Texture/Texture2D.h"
+#include "Engine/Time/Clock.h"
 #include "Engine/UI/Canvas.h"
 #include "Engine/UI/UIPanel.h"
 #include "Engine/UI/UIElement.h"
@@ -485,6 +486,9 @@ void Canvas::SetupUIMouseInfo(UIMouseInfo& out_input)
 	out_input.m_rightHoldDelta = out_input.m_position - out_input.m_rightHoldStartPosition;
 
 	out_input.m_mouseWheelDelta = mouse.GetMouseWheelDelta();
+
+	// TODO: Canvas clock
+	out_input.m_deltaSeconds = Clock::GetMasterClock()->GetDeltaSeconds();
 }
 
 

@@ -72,10 +72,14 @@ public:
 	void			SetFont(Font* font);
 	void			SetShader(Shader* shader);
 	void			SetFontHeight(float fontHeight);
+	void			SetTextDrawMode(TextDrawMode drawMode) { m_textDrawMode = drawMode; }
 	void			MarkDirty() { m_isDirty = true; }
 
+	uint32			GetNumLines() const { return (uint32) m_lines.size(); }
 	Material*		GetMaterial() const { return m_material; }
 	Font*			GetFont() const { return m_font; }
+	float			GetLineHeight() const;
+	TextDrawMode	GetTextDrawMode() const { return m_textDrawMode; }
 
 
 private:

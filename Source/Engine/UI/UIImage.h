@@ -9,6 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/UI/UIElement.h"
+#include <string>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -17,6 +18,10 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class Image;
+class Material;
+class Shader;
+class Texture2D;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -36,14 +41,23 @@ public:
 	UIImage(Canvas* canvas);
 	virtual ~UIImage();
 
+	void				LoadImageInto(const std::string& filepath);
 	virtual void		InitializeFromXML(const XMLElem& element);
 
 	virtual void		Update();
 	virtual void		Render();
 
+	void				SetImage(Image* image);
+	void				SetShader(Shader* shader);
+
 
 private:
 	//-----Private Data-----
+
+	Image*		m_image = nullptr;
+	Texture2D*	m_texture = nullptr;
+	Material*	m_material = nullptr;
+	Mesh*		m_mesh = nullptr;
 
 };
 

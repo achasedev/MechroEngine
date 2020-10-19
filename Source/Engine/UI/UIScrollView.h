@@ -48,6 +48,7 @@ public:
 	void			AddTextToScroll(const std::string& text);
 	void			Scroll(float translation);
 
+	float			GetScrollSpeed() const { return m_scrollSpeed; }
 	UIText*			GetScrollTextElement() const { return m_scrollableText; }
 
 
@@ -61,10 +62,8 @@ private:
 	//-----Private Data-----
 
 	float			m_scrollSpeed = 50.f;
-
 	bool			m_independentScrollWidth = false;
-	float			m_scrollableWidth = -1.f; // Default to width of the scrollview itself
-	UIText*			m_scrollableText;
+	UIText*			m_scrollableText = nullptr;
 	UIScrollbar*	m_verticalScrollBar = nullptr;
 	UIScrollbar*	m_horizontalScrollBar = nullptr;
 	
