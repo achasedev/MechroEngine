@@ -433,6 +433,13 @@ float RectTransform::GetYPosition() const
 
 
 //-------------------------------------------------------------------------------------------------
+Vector2 RectTransform::GetPosition() const
+{
+	return Vector2(GetXPosition(), GetYPosition());
+}
+
+
+//-------------------------------------------------------------------------------------------------
 float RectTransform::GetWidth() const
 {
 	ASSERT_OR_DIE(!IsPaddingHorizontal(), "Trying to read position when anchors are using padding!");

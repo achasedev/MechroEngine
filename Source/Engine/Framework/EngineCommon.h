@@ -47,6 +47,7 @@ TYPE* GetAsType()																\
 		return reinterpret_cast<TYPE*>(this);									\
 	}																			\
 																				\
+	ASSERT_RECOVERABLE(false, "GetAsType() failed!");							\
 	return nullptr;																\
 }																				\
 																				\
@@ -58,6 +59,7 @@ const TYPE* GetAsType() const													\
 		return reinterpret_cast<const TYPE*>(this);								\
 	}																			\
 																				\
+	ASSERT_RECOVERABLE(false, "GetAsType() failed!");							\
 	return nullptr;																\
 }																				\
 																				\
@@ -67,7 +69,6 @@ static const int s_type;														\
 static const void* GetTypeStatic() { return &s_type;}							\
 virtual const void* GetType() const override { return &s_type; }				\
 virtual const char* GetTypeAsString() const override { return QUOTE(CLASS); }	\
-
 
 #define RTTI_TYPE_DEFINE(CLASS) const int CLASS::s_type = 0; 
 

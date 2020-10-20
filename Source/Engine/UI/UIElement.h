@@ -86,6 +86,9 @@ public:
 	Canvas*				GetCanvas() const { return m_canvas; }
 	bool				IsCanvas() const;
 
+	template <typename T>
+	T* GetFirstChildOfType();
+
 	void				SetID(StringID id);
 	void				SetID(const std::string& name);
 	void				SetID(const char* name);
@@ -122,6 +125,29 @@ protected:
 	uint32							m_layer = 0U;
 
 };
+
+
+//-------------------------------------------------------------------------------------------------
+template <typename T>
+T* UIElement::GetFirstChildOfType()
+{
+	T* childOfType = nullptr;
+	for (size_t childIndex = 0; childIndex < m_children.size(); ++childIndex)
+	{
+		if (m_children[childIndex]->IsOfType<T>())
+		{
+#ifdef DISABLE_ASSERTS
+			childOfType = m_children[childIndex]->GetAsType<T>();
+			break;
+#else
+			ASSERT_RETURN(childOfType == nullptr, childOfType, "Duplicate children of type when calling GetFirstChildOfType()!");
+			childOfType = m_children[childIndex]->GetAsType<T>();
+#endif
+		}
+	}
+
+	return childOfType;
+}
 
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

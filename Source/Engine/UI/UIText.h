@@ -76,9 +76,11 @@ public:
 	void			MarkDirty() { m_isDirty = true; }
 
 	uint32			GetNumLines() const { return (uint32) m_lines.size(); }
+	float			GetLineHeight() const;
+	float			GetTotalLinesHeight() const;
+	float			GetMaxLineLength() const;
 	Material*		GetMaterial() const { return m_material; }
 	Font*			GetFont() const { return m_font; }
-	float			GetLineHeight() const;
 	TextDrawMode	GetTextDrawMode() const { return m_textDrawMode; }
 
 

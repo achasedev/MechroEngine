@@ -222,7 +222,6 @@
     <ClCompile Include="UI\Canvas.cpp" />
     <ClCompile Include="UI\UIButton.cpp" />
     <ClCompile Include="UI\UIImage.cpp" />
-    <ClCompile Include="UI\UIScrollbar.cpp" />
     <ClCompile Include="UI\UIScrollView.cpp" />
     <ClCompile Include="UI\UIPanel.cpp" />
     <ClCompile Include="UI\RectTransform.cpp" />
@@ -267,7 +266,6 @@
     <ClInclude Include="Physics\RigidBody2D.h" />
     <ClInclude Include="UI\UIButton.h" />
     <ClInclude Include="UI\UIImage.h" />
-    <ClInclude Include="UI\UIScrollbar.h" />
     <ClInclude Include="UI\UIScrollView.h" />
     <ClInclude Include="UI\UIText.h" />
     <ClInclude Include="Utility\Swizzle.h" />

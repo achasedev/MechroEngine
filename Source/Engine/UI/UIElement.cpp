@@ -11,7 +11,6 @@
 #include "Engine/UI/Canvas.h"
 #include "Engine/UI/UIElement.h"
 #include "Engine/UI/UIPanel.h"
-#include "Engine/UI/UIScrollbar.h"
 #include "Engine/UI/UIScrollView.h"
 #include "Engine/UI/UIText.h"
 #include "Engine/Utility/StringID.h"
@@ -467,7 +466,6 @@ STATIC UIElement* UIElement::CreateUIElementFromXML(const XMLElem& element, Canv
 	if		(elementType == "panel")		{ uiElement = new UIPanel(canvas); }
 	else if (elementType == "text")			{ uiElement = new UIText(canvas); }
 	else if (elementType == "scrollview")	{ uiElement = new UIScrollView(canvas); }
-	else if (elementType == "scrollbar")	{ uiElement = new UIScrollbar(canvas); }
 	else
 	{
 		ERROR_RECOVERABLE("Cannot create UIElement of type %s!", elementType.c_str());

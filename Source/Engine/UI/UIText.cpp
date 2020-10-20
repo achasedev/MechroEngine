@@ -221,6 +221,35 @@ float UIText::GetLineHeight() const
 
 
 //-------------------------------------------------------------------------------------------------
+float UIText::GetTotalLinesHeight() const
+{
+	return GetLineHeight() * (float)m_lines.size();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float UIText::GetMaxLineLength() const
+{
+	uint32 fontPixelHeight = m_canvas->ToPixelHeight(m_fontHeight);
+
+	int maxLengthPixels = 0;
+	for (size_t lineIndex = 0; lineIndex < m_lines.size(); ++lineIndex)
+	{
+		int lengthPixels = m_font->GetTextDimensionsPixels(fontPixelHeight, m_lines[lineIndex]).x;
+		maxLengthPixels = Max(maxLengthPixels, lengthPixels);
+	}
+
+	float maxLength = 0.f;
+	if (maxLengthPixels > 0)
+	{
+		maxLength = m_canvas->ToCanvasWidth((uint32)maxLengthPixels);
+	}
+
+	return maxLength;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void UIText::InitializeFromXML(const XMLElem& element)
 {
 	UIElement::InitializeFromXML(element);

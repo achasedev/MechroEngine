@@ -658,7 +658,7 @@ RenderContext::~RenderContext()
 
 	if (m_dxDebug != nullptr)
 	{
-		m_dxDebug->ReportLiveDeviceObjects(D3D11_RLDO_IGNORE_INTERNAL);
+		m_dxDebug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
 		DX_SAFE_RELEASE(m_dxDebug);
 	}
 }

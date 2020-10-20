@@ -18,6 +18,9 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Font;
+class UIButton;
+class UIImage;
+class UIPanel;
 class UIScrollbar;
 class UIText;
 
@@ -46,27 +49,46 @@ public:
 	void			SetFont(Font* font);
 	void			SetFontHeight(float height);
 	void			AddTextToScroll(const std::string& text);
-	void			Scroll(float translation);
+	void			ScrollVerticalWithTranslation(float translation);
+	void			ScrollHorizontalWithTranslation(float translation);
+	void			ScrollFromVerticalSlider(float deltaScroll);
+	void			ScrollFromHorizontalSlider(float deltaScroll);
 
+	AABB2			GetLocalViewBounds() const;
 	float			GetScrollSpeed() const { return m_scrollSpeed; }
-	UIText*			GetScrollTextElement() const { return m_scrollableText; }
+	UIText*			GetScrollTextElement() const { return m_textElement; }
 
 
 private:
 	//-----Private Methods-----
 
 	void			SetupDefaultScrollText();
+	void			CreateVerticalScrollbar();
+	void			CreateHorizontalScrollbar();
 
+	void			UpdateVerticalSlider();
+	void			UpdateHorizontalSlider();
+	
 
 private:
 	//-----Private Data-----
 
+	UIText*			m_textElement = nullptr;
 	float			m_scrollSpeed = 50.f;
-	bool			m_independentScrollWidth = false;
-	UIText*			m_scrollableText = nullptr;
-	UIScrollbar*	m_verticalScrollBar = nullptr;
-	UIScrollbar*	m_horizontalScrollBar = nullptr;
-	
+	float			m_buttonSize = 10.f;
+
+	// Vertical
+	UIPanel*		m_verticalPanel = nullptr;
+	UIButton*		m_downButton = nullptr;
+	UIButton*		m_upButton = nullptr;
+	UIImage*		m_verticalSlider = nullptr;
+
+	// Horizontal
+	UIPanel*		m_horizontalPanel = nullptr;
+	UIButton*		m_leftButton = nullptr;
+	UIButton*		m_rightButton = nullptr;
+	UIImage*		m_horizontalSlider = nullptr;
+
 };
 
 

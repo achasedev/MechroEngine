@@ -103,6 +103,7 @@ public:
 	OBB2		GetBounds() const;
 	float		GetXPosition() const;
 	float		GetYPosition() const;
+	Vector2		GetPosition() const;
 	float		GetWidth() const;
 	float		GetHeight() const;
 	Vector2		GetDimensions() const;

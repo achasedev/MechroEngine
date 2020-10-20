@@ -144,10 +144,6 @@ void UIButton::InitializeFromXML(const XMLElem& element)
 //-------------------------------------------------------------------------------------------------
 void UIButton::Update()
 {
-	// Ugh, need to find a way around doing this - TODO
-	m_imageElement->m_transform.SetDimensions(m_transform.GetDimensions());
-	m_textElement->m_transform.SetDimensions(m_transform.GetDimensions());
-
 	UIElement::Update();
 }
 
