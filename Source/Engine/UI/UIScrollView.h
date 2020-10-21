@@ -63,7 +63,6 @@ public:
 private:
 	//-----Private Methods-----
 
-	void			SetupDefaultScrollText();
 	void			CreateViewPanel();
 	void			CreateVerticalScrollbar();
 	void			CreateHorizontalScrollbar();
@@ -86,12 +85,14 @@ private:
 	UIButton*		m_downButton = nullptr;
 	UIButton*		m_upButton = nullptr;
 	UIImage*		m_verticalSlider = nullptr;
+	bool			m_verticalScrollOnLeft = false;
 
 	// Horizontal
 	UIPanel*		m_horizontalPanel = nullptr;
 	UIButton*		m_leftButton = nullptr;
 	UIButton*		m_rightButton = nullptr;
 	UIImage*		m_horizontalSlider = nullptr;
+	bool			m_horizontalScrollOnBottom = false;
 
 };
 

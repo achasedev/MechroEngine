@@ -74,6 +74,9 @@ public:
 	void			SetFontHeight(float fontHeight);
 	void			SetTextDrawMode(TextDrawMode drawMode) { m_textDrawMode = drawMode; }
 	void			MarkDirty() { m_isDirty = true; }
+	void			SetTextAlignment(HorizontalAlignment horizAlign, VerticalAlignment vertAlign);
+	void			SetTextHorizontalAlignment(HorizontalAlignment horizAlign);
+	void			SetTextVerticalAlignment(VerticalAlignment vertAlign);
 
 	uint32			GetNumLines() const { return (uint32) m_lines.size(); }
 	float			GetLineHeight() const;
@@ -113,3 +116,7 @@ private:
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+bool IsValidHorizontalAlignment(const std::string& text);
+bool IsValidVerticalAlignment(const std::string& text);
+void GetTextAlignmentFromXML(const XMLElem& element, HorizontalAlignment& out_horizAlign, VerticalAlignment& out_vertAlign);

@@ -80,7 +80,80 @@ static TextDrawMode StringToTextDrawMode(const std::string& text)
 
 
 //-------------------------------------------------------------------------------------------------
-static bool IsValidHorizontalAlignment(const std::string& text)
+void GetTextAlignmentFromXML(const XMLElem& element, HorizontalAlignment& out_horizAlign, VerticalAlignment& out_vertAlign)
+{
+	bool xAlignSpecified = XML::DoesAttributeExist(element, "x_align");
+	bool yAlignSpecified = XML::DoesAttributeExist(element, "y_align");
+	bool combinedAlignSpecified = XML::DoesAttributeExist(element, "align");
+	bool separateAlignsSpecified = xAlignSpecified && yAlignSpecified;
+
+	GUARANTEE_OR_DIE((separateAlignsSpecified && !combinedAlignSpecified) || (!xAlignSpecified && !yAlignSpecified && combinedAlignSpecified), "Element %s: Duplicate aligns specified!", element.Name());
+
+	if (combinedAlignSpecified)
+	{
+		std::string alignText = XML::ParseAttribute(element, "align", "");
+		size_t underscoreIndex = alignText.find('_');
+
+		if (underscoreIndex != std::string::npos)
+		{
+			// Split into the two specified alignments and try to figure out which is which
+			std::string first = alignText.substr(0, underscoreIndex);
+			std::string second = alignText.substr(underscoreIndex + 1);
+
+			bool firstIsHorizontal = IsValidHorizontalAlignment(first);
+			bool firstIsVertical = IsValidVerticalAlignment(first);
+			bool secondIsHorizontal = IsValidHorizontalAlignment(second);
+			bool secondIsVertical = IsValidVerticalAlignment(second);
+
+			GUARANTEE_OR_DIE((firstIsHorizontal && secondIsVertical) || (secondIsHorizontal && firstIsVertical), "Element %s: Invalid align \"%s\" specified!", element.Name(), alignText.c_str());
+
+			if (firstIsHorizontal)
+			{
+				out_horizAlign = StringToHorizontalAlignment(first);
+				out_vertAlign = StringToVerticalAlignment(second);
+			}
+			else
+			{
+				out_horizAlign = StringToHorizontalAlignment(second);
+				out_vertAlign = StringToVerticalAlignment(first);
+			}
+		}
+		else
+		{
+			// Only one alignment specified, so figure out which was specified and default the other
+			if (IsValidHorizontalAlignment(alignText))
+			{
+				std::string xAlignText = XML::ParseAttribute(element, "x_align", "left");
+				out_horizAlign = StringToHorizontalAlignment(xAlignText);
+				out_vertAlign = ALIGNMENT_BOTTOM;
+			}
+			else if (IsValidVerticalAlignment(alignText))
+			{
+				out_horizAlign = ALIGNMENT_LEFT;
+				std::string yAlignText = XML::ParseAttribute(element, "y_align", "bottom");
+				out_vertAlign = StringToVerticalAlignment(yAlignText);
+			}
+			else
+			{
+				ERROR_RECOVERABLE("Invalid align \"%s\" specified in element %s", alignText.c_str(), element.Name());
+				out_horizAlign = ALIGNMENT_LEFT;
+				out_vertAlign = ALIGNMENT_BOTTOM;
+			}
+		}
+	}
+	else
+	{
+		// Individuals were specified instead
+		std::string xAlignText = XML::ParseAttribute(element, "x_align", "left");
+		std::string yAlignText = XML::ParseAttribute(element, "y_align", "bottom");
+		out_horizAlign = StringToHorizontalAlignment(xAlignText);
+		out_vertAlign = StringToVerticalAlignment(yAlignText);
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool IsValidHorizontalAlignment(const std::string& text)
 {
 	if ((text == "left") || (text == "center") || (text == "right")) 
 	{ 
@@ -92,7 +165,7 @@ static bool IsValidHorizontalAlignment(const std::string& text)
 
 
 //-------------------------------------------------------------------------------------------------
-static bool IsValidVerticalAlignment(const std::string& text)
+bool IsValidVerticalAlignment(const std::string& text)
 {
 	if ((text == "top") || (text == "middle") || (text == "bottom"))
 	{
@@ -101,6 +174,7 @@ static bool IsValidVerticalAlignment(const std::string& text)
 
 	return false;
 }
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
@@ -172,7 +246,7 @@ void UIText::SetText(const std::string& text, const Rgba& color /*= Rgba::WHITE*
 void UIText::AddLine(const std::string& text, const Rgba& color /*= Rgba::WHITE*/)
 {
 	m_lines.push_back(text);
-	m_textColor = color;
+	m_textColor = color; // TODO: colored lines
 	m_isDirty = true;
 }
 
@@ -184,6 +258,8 @@ void UIText::AddLines(const std::vector<std::string>& lines, const Rgba& color /
 	{
 		m_lines.push_back(lines[lineIndex]);
 	}
+
+	m_textColor = color;
 }
 
 
@@ -207,6 +283,30 @@ void UIText::SetFontHeight(float fontHeight)
 {
 	ASSERT_OR_DIE(fontHeight > 0.f, "Negative font height!");
 	m_fontHeight = fontHeight;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void UIText::SetTextAlignment(HorizontalAlignment horizAlign, VerticalAlignment vertAlign)
+{
+	SetTextHorizontalAlignment(horizAlign);
+	SetTextVerticalAlignment(vertAlign);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void UIText::SetTextHorizontalAlignment(HorizontalAlignment horizAlign)
+{
+	m_horizontalAlign = horizAlign;
+	m_isDirty = true;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void UIText::SetTextVerticalAlignment(VerticalAlignment vertAlign)
+{
+	m_verticalAlign = vertAlign;
+	m_isDirty = true;
 }
 
 
@@ -269,73 +369,7 @@ void UIText::InitializeFromXML(const XMLElem& element)
 	m_textColor = XML::ParseAttribute(element, "text_color", Rgba::WHITE);
 
 	// Alignments
-	bool xAlignSpecified			= XML::DoesAttributeExist(element, "x_align");
-	bool yAlignSpecified			= XML::DoesAttributeExist(element, "y_align");
-	bool combinedAlignSpecified		= XML::DoesAttributeExist(element, "align");
-	bool separateAlignsSpecified	= xAlignSpecified && yAlignSpecified;
-
-	GUARANTEE_OR_DIE((separateAlignsSpecified && !combinedAlignSpecified) || (!xAlignSpecified && !yAlignSpecified && combinedAlignSpecified), "Element %s: Duplicate aligns specified!", element.Name());
-
-	if (combinedAlignSpecified)
-	{
-		std::string alignText = XML::ParseAttribute(element, "align", "");
-		size_t underscoreIndex = alignText.find('_');
-
-		if (underscoreIndex != std::string::npos)
-		{
-			// Split into the two specified alignments and try to figure out which is which
-			std::string first = alignText.substr(0, underscoreIndex);
-			std::string second = alignText.substr(underscoreIndex + 1);
-
-			bool firstIsHorizontal	= IsValidHorizontalAlignment(first);
-			bool firstIsVertical	= IsValidVerticalAlignment(first);
-			bool secondIsHorizontal = IsValidHorizontalAlignment(second);
-			bool secondIsVertical	= IsValidVerticalAlignment(second);
-
-			GUARANTEE_OR_DIE((firstIsHorizontal && secondIsVertical) || (secondIsHorizontal && firstIsVertical), "Element %s: Invalid align \"%s\" specified!", element.Name(), alignText.c_str());
-
-			if (firstIsHorizontal)
-			{
-				m_horizontalAlign = StringToHorizontalAlignment(first);
-				m_verticalAlign = StringToVerticalAlignment(second);
-			}
-			else
-			{
-				m_horizontalAlign = StringToHorizontalAlignment(second);
-				m_verticalAlign = StringToVerticalAlignment(first);
-			}
-		}
-		else
-		{
-			// Only one alignment specified, so figure out which was specified and default the other
-			if (IsValidHorizontalAlignment(alignText))
-			{
-				std::string xAlignText = XML::ParseAttribute(element, "x_align", "left");
-				m_horizontalAlign = StringToHorizontalAlignment(xAlignText);
-				m_verticalAlign = ALIGNMENT_BOTTOM;
-			}
-			else if (IsValidVerticalAlignment(alignText))
-			{
-				m_horizontalAlign = ALIGNMENT_LEFT;
-				std::string yAlignText = XML::ParseAttribute(element, "y_align", "bottom");
-				m_verticalAlign = StringToVerticalAlignment(yAlignText);
-			}
-			else
-			{
-				ERROR_RECOVERABLE("Invalid align \"%s\" specified in element %s", alignText.c_str(), element.Name());
-				m_horizontalAlign = ALIGNMENT_LEFT;
-				m_verticalAlign = ALIGNMENT_BOTTOM;
-			}
-		}
-	}
-	else
-	{
-		// Individuals were specified instead
-		std::string xAlignText = XML::ParseAttribute(element, "x_align", "left");
-		std::string yAlignText = XML::ParseAttribute(element, "y_align", "bottom");
-		m_horizontalAlign = StringToHorizontalAlignment(xAlignText);
-		m_verticalAlign = StringToVerticalAlignment(yAlignText);
-	}
+	GetTextAlignmentFromXML(element, m_horizontalAlign, m_verticalAlign);
 
 	// Draw mode
 	std::string drawModeText = XML::ParseAttribute(element, "draw_mode", "default");

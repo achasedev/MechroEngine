@@ -32,6 +32,9 @@ RTTI_TYPE_DEFINE(UIButton);
 //-------------------------------------------------------------------------------------------------
 static bool DontBlockInput(UIElement* element, const UIMouseInfo& info)
 {
+	UNUSED(element);
+	UNUSED(info);
+
 	return false;
 }
 

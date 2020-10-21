@@ -23,6 +23,7 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Camera;
+class Clock;
 class Texture2D;
 
 enum ScreenMatchMode
@@ -66,6 +67,7 @@ public:
 	void				SetResolution(float height, float width);
 	void				AddElementToGlobalMap(UIElement* element);
 	void				RemoveElementFromGlobalMap(UIElement* element);
+	void				SetClock(Clock* clock) { m_clock = clock; }
 
 	Vector2				GetResolution() const { return m_resolution; }
 	Texture2D*			GetOutputTexture() const;
@@ -79,6 +81,7 @@ public:
 	float				ToCanvasHeight(uint32 pixelHeight) const;
 	StringID			GetNextUnspecifiedID();
 	uint32				GetTopLayerIndex() const;
+	Clock*				GetClock() const;
 	Vector2				GetMousePosition() const;
 	Vector2				GetMousePositionLastFrame() const;
 	bool				WasHoveredLastFrame(UIElement* element) const;
@@ -112,6 +115,7 @@ private:
 	int								m_outputTextureHeight = 0; // For detecting changes that will require fonts to be re-rendered
 	int								m_nextUnspecifiedIDSuffix = 0;
 	Vector2							m_defaultPadding = Vector2::ONES; // Just to space stuff around
+	Clock*							m_clock = nullptr;
 
 	float							m_widthOrHeightBlend = 1.0f; // 1.0 is match to height
 	std::map<StringID, UIElement*>	m_globalElementMap; // For speed and tracking

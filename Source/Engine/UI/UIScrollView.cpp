@@ -11,6 +11,7 @@
 #include "Engine/IO/Image.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Render/Core/RenderContext.h"
+#include "Engine/Render/Font/FontLoader.h"
 #include "Engine/Render/Material.h"
 #include "Engine/Render/Shader.h"
 #include "Engine/UI/Canvas.h"
@@ -51,7 +52,7 @@ static bool OnHover_MouseWheelScroll(UIElement* element, const UIMouseInfo& info
 
 
 //-------------------------------------------------------------------------------------------------
-static bool OnHover_Passthrough(UIElement* element, const UIMouseInfo& info)
+static bool PassInputToNextElement(UIElement* element, const UIMouseInfo& info)
 {
 	UNUSED(element);
 	UNUSED(info);
@@ -267,49 +268,43 @@ void UIScrollView::InitializeFromXML(const XMLElem& element)
 {
 	UIElement::InitializeFromXML(element);
 
-	// Still set up some sort of default
-	const XMLElem* scrollTextElem = nullptr;
-	const XMLElem* currChild = element.FirstChildElement();
-	while (currChild != nullptr)
-	{
-		if (IsXMLElemForUIText(*currChild))
-		{
-			if (scrollTextElem != nullptr)
-			{
-				ERROR_RECOVERABLE("Element %s: Has more than one text element, using the first we found!", element.Name());
-				break;
-			}
-
-			scrollTextElem = currChild;
-		}
-
-		currChild = currChild->NextSiblingElement();
-	}
-
-	if (scrollTextElem != nullptr)
-	{
-		// Cache off the Text for convenience
-		for (size_t childIndex = 0; childIndex < m_children.size(); ++childIndex)
-		{
-			if (m_children[childIndex]->IsOfType<UIText>())
-			{
-				m_textElement = m_children[childIndex]->GetAsType<UIText>();
-			}
-		}
-
-		// Ensure it's not word wrapped
-		ASSERT_RECOVERABLE(m_textElement->GetTextDrawMode() != TEXT_DRAW_WORD_WRAP, "Cannot word wrap with scrollable text!");
-		m_textElement->SetTextDrawMode(TEXT_DRAW_DEFAULT);
-		m_textElement->m_onHover = OnHover_Passthrough;
-	}
-	else
-	{
-		SetupDefaultScrollText();
-	}
-
 	m_buttonSize = XML::ParseAttribute(element, "button_size", m_buttonSize);
 	m_scrollSpeed = XML::ParseAttribute(element, "scroll_speed", m_scrollSpeed);
 
+	// Font size
+	float fontHeight = XML::ParseAttribute(element, "font_size", 10.f);
+
+	// Font name
+	std::string fontPath = XML::ParseAttribute(element, "font", "Data/Font/default.ttf");
+	Font* font = g_fontLoader->LoadFont(fontPath.c_str(), 0);
+
+	// Text
+	std::string rawText = XML::ParseAttribute(element, "text", "SAMPLE TEXT");
+	std::vector<std::string> lines;
+	BreakStringIntoLines(rawText, lines);
+
+	// Text Color
+	Rgba textColor = XML::ParseAttribute(element, "text_color", Rgba::WHITE);
+
+	// Aligns
+	HorizontalAlignment horizAlign;
+	VerticalAlignment vertAlign;
+	GetTextAlignmentFromXML(element, horizAlign, vertAlign);
+
+	// Create the scrolling text element
+	m_textElement = new UIText(m_canvas);
+	m_textElement->SetFont(font);
+	m_textElement->SetFontHeight(fontHeight);
+	m_textElement->AddLines(lines, textColor);
+	m_textElement->SetTextAlignment(horizAlign, vertAlign);
+
+	m_textElement->m_transform.SetAnchors(AnchorPreset::BOTTOM_LEFT);
+	m_textElement->m_transform.SetPivot(Vector2::ZERO);
+	m_textElement->m_transform.SetPosition(Vector2::ZERO);
+	m_textElement->m_onHover = PassInputToNextElement;
+	m_textElement->m_onMouseClick = PassInputToNextElement;
+
+	CreateViewPanel();
 	CreateVerticalScrollbar();
 	CreateHorizontalScrollbar();
 	SetupInitialTransforms();
@@ -322,8 +317,6 @@ void UIScrollView::Update()
 	// Also update height to be based on number of lines in the log
 	ShrinkTextElementBoundsToFit(m_textElement);
 
-	// TODO: Check for text changes
-
 	UIElement::Update();
 }
 
@@ -331,10 +324,9 @@ void UIScrollView::Update()
 //-------------------------------------------------------------------------------------------------
 void UIScrollView::Render()
 {
-	OBB2 canvasBounds = GetCanvasBounds();
-	canvasBounds.m_alignedBounds.mins.y += m_buttonSize;
+	OBB2 canvasBounds = m_viewPanel->GetCanvasBounds();
 
-	float screenLeft = (float)m_canvas->ToPixelWidth(canvasBounds.m_alignedBounds.left + m_buttonSize);
+	float screenLeft = (float)m_canvas->ToPixelWidth(canvasBounds.m_alignedBounds.left);
 	float screenTop = (float)(m_canvas->ToPixelHeight(m_canvas->GetResolution().y) - m_canvas->ToPixelHeight(canvasBounds.m_alignedBounds.top));
 	float screenRight = (float)m_canvas->ToPixelWidth(canvasBounds.m_alignedBounds.right);
 	float screenBottom = (float)(m_canvas->ToPixelHeight(m_canvas->GetResolution().y) - m_canvas->ToPixelHeight(canvasBounds.m_alignedBounds.bottom));
@@ -365,6 +357,8 @@ void UIScrollView::SetFontHeight(float height)
 void UIScrollView::AddTextToScroll(const std::string& text)
 {
 	m_textElement->AddLine(text);
+	UpdateVerticalSlider();
+	UpdateHorizontalSlider();
 }
 
 
@@ -376,12 +370,12 @@ void UIScrollView::ScrollVerticalWithTranslation(float translation)
 		// Clamp the scroll from moving out of the view
 		float newY = m_textElement->m_transform.GetYPosition() + translation;
 
-		float viewHeight = m_transform.GetHeight() - m_buttonSize;
+		float viewHeight = m_transform.GetHeight() - m_viewPanel->m_transform.GetTopPadding() - m_viewPanel->m_transform.GetBottomPadding();
 		float total = m_textElement->m_transform.GetHeight();
 
 		if (total > viewHeight)
 		{
-			newY = Clamp(newY, m_buttonSize - (total - viewHeight), m_buttonSize);
+			newY = Clamp(newY, viewHeight - total, 0.f);
 			m_textElement->m_transform.SetYPosition(newY);
 		}
 
@@ -398,12 +392,12 @@ void UIScrollView::ScrollHorizontalWithTranslation(float translation)
 		// Clamp the scroll from moving out of the view
 		float newX = m_textElement->m_transform.GetXPosition() + translation;
 
-		float viewWidth = m_transform.GetWidth() - m_buttonSize;
+		float viewWidth = m_transform.GetWidth() - m_viewPanel->m_transform.GetLeftPadding() - m_viewPanel->m_transform.GetRightPadding();
 		float total = m_textElement->m_transform.GetWidth();
 
 		if (total > viewWidth)
 		{
-			newX = Clamp(newX, m_transform.GetXPosition() + m_buttonSize - (total - viewWidth), m_buttonSize);
+			newX = Clamp(newX, viewWidth - total, 0.f);
 			m_textElement->m_transform.SetXPosition(newX);
 		}
 
@@ -448,16 +442,43 @@ AABB2 UIScrollView::GetLocalViewBounds() const
 
 
 //-------------------------------------------------------------------------------------------------
-void UIScrollView::SetupDefaultScrollText()
+void UIScrollView::CreateViewPanel()
 {
-	m_textElement = new UIText(m_canvas);
-	m_textElement->m_transform.SetParentTransform(&m_transform);
-	m_textElement->m_transform.SetAnchors(AnchorPreset::TOP_LEFT);
-	m_textElement->m_transform.SetPivot(Vector2(0.f, 1.0f));
-	m_textElement->m_transform.SetPosition(Vector2(0.f, 0.f));
-	m_textElement->m_onHover = OnHover_Passthrough;
+	// The panel for how much we can see
+	m_viewPanel = new UIPanel(m_canvas);
+	m_viewPanel->m_transform.SetAnchors(AnchorPreset::STRETCH_ALL);
 
-	AddChild(m_textElement);
+	// Pad based on scrollbar positions
+	float leftPadding = 0.f;
+	float rightPadding = 0.f;
+	float bottomPadding = 0.f;
+	float topPadding = 0.f;
+	
+	if (m_verticalScrollOnLeft)
+	{
+		leftPadding = m_buttonSize;
+	}
+	else
+	{
+		rightPadding = m_buttonSize;
+	}
+
+	if (m_horizontalScrollOnBottom)
+	{
+		bottomPadding = m_buttonSize;
+	}
+	else
+	{
+		topPadding = m_buttonSize;
+	}
+
+	m_viewPanel->m_transform.SetHorizontalPadding(leftPadding, rightPadding);
+	m_viewPanel->m_transform.SetVerticalPadding(topPadding, bottomPadding);
+	m_viewPanel->m_transform.SetPivot(Vector2(0.5f));
+	m_viewPanel->m_onHover = PassInputToNextElement;
+
+	m_viewPanel->AddChild(m_textElement);
+	AddChild(m_viewPanel);
 }
 
 
@@ -467,7 +488,7 @@ void UIScrollView::CreateVerticalScrollbar()
 	// TODO: Delete this from orbit
 	Image* image1 = new Image(IntVector2(2), Rgba::BLUE);
 	Image* image2 = new Image(IntVector2(2), Rgba::BLUE);
-	Image* image3 = new Image(IntVector2(2), Rgba::RED);
+	Image* image3 = new Image(IntVector2(2), Rgba::YELLOW);
 
 	// Create the elements
 	m_downButton = new UIButton(m_canvas);
@@ -480,7 +501,7 @@ void UIScrollView::CreateVerticalScrollbar()
 	m_downButton->m_onMouseHold = OnHold_DownButton;
 	m_downButton->m_onMouseClick = OnMouseClick_Button;
 	m_downButton->m_onMouseRelease = OnMouseRelease_Button;
-	m_downButton->m_onHover = OnHover_Passthrough;
+	m_downButton->m_onHover = PassInputToNextElement;
 
 	m_upButton = new UIButton(m_canvas);
 	m_upButton->Initialize();
@@ -492,27 +513,51 @@ void UIScrollView::CreateVerticalScrollbar()
 	m_upButton->m_onMouseHold = OnHold_UpButton;
 	m_upButton->m_onMouseClick = OnMouseClick_Button;
 	m_upButton->m_onMouseRelease = OnMouseRelease_Button;
-	m_upButton->m_onHover = OnHover_Passthrough;
+	m_upButton->m_onHover = PassInputToNextElement;
 
 	m_verticalSlider = new UIImage(m_canvas);
 	m_verticalSlider->m_transform.SetAnchors(AnchorPreset::BOTTOM_LEFT);
 	m_verticalSlider->m_transform.SetPosition(Vector2(0.f, m_buttonSize));
 	m_verticalSlider->m_transform.SetPivot(Vector2::ZERO);
 	m_verticalSlider->m_transform.SetDimensions(Vector2(m_buttonSize)); // Height will be set correctly in first Update()
+	
 	m_verticalSlider->SetImage(image3);
-
 	m_verticalSlider->m_onMouseHold = OnHold_VerticalSlider;
 	m_verticalSlider->m_onMouseClick = OnMouseClick_Slider;
 	m_verticalSlider->m_onMouseRelease = OnMouseRelease_Slider;
-	m_verticalSlider->m_onHover = OnHover_Passthrough;
+	m_verticalSlider->m_onHover = PassInputToNextElement;
 
 	m_verticalPanel = new UIPanel(m_canvas);
-	m_verticalPanel->m_transform.SetAnchors(AnchorPreset::BOTTOM_LEFT);
-	m_verticalPanel->m_transform.SetPosition(Vector2(0.f, m_buttonSize));
-	m_verticalPanel->m_transform.SetPivot(Vector2::ZERO);
-	m_verticalPanel->m_transform.SetDimensions(Vector2(m_buttonSize, m_transform.GetHeight() - m_buttonSize));
+	m_verticalPanel->m_transform.SetAnchors(AnchorPreset::STRETCH_ALL);
+
+	float leftPadding = 0.f;
+	float rightPadding = 0.f;
+	float bottomPadding = 0.f;
+	float topPadding = 0.f;
+
+	if (m_verticalScrollOnLeft)
+	{
+		rightPadding = m_transform.GetWidth() - m_viewPanel->m_transform.GetLeftPadding();
+	}
+	else
+	{
+		leftPadding = m_transform.GetWidth() - m_viewPanel->m_transform.GetRightPadding();
+	}
+
+	if (m_horizontalScrollOnBottom)
+	{
+		bottomPadding = m_viewPanel->m_transform.GetBottomPadding();
+	}
+	else
+	{
+		topPadding = m_viewPanel->m_transform.GetTopPadding();
+	}
+
+	m_verticalPanel->m_transform.SetHorizontalPadding(leftPadding, rightPadding);
+	m_verticalPanel->m_transform.SetVerticalPadding(topPadding, bottomPadding);
+	m_verticalPanel->m_transform.SetPivot(Vector2(0.5f));
 	m_verticalPanel->m_onMouseHold = OnHold_VerticalScrollbar;
-	m_verticalPanel->m_onHover = OnHover_Passthrough;
+	m_verticalPanel->m_onHover = PassInputToNextElement;
 
 	m_verticalPanel->AddChild(m_downButton);
 	m_verticalPanel->AddChild(m_upButton);
@@ -541,7 +586,7 @@ void UIScrollView::CreateHorizontalScrollbar()
 	m_leftButton->m_onMouseHold = OnHold_LeftButton;
 	m_leftButton->m_onMouseClick = OnMouseClick_Button;
 	m_leftButton->m_onMouseRelease = OnMouseRelease_Button;
-	m_leftButton->m_onHover = OnHover_Passthrough;
+	m_leftButton->m_onHover = PassInputToNextElement;
 
 	m_rightButton = new UIButton(m_canvas);
 	m_rightButton->Initialize();
@@ -553,7 +598,7 @@ void UIScrollView::CreateHorizontalScrollbar()
 	m_rightButton->m_onMouseHold = OnHold_RightButton;
 	m_rightButton->m_onMouseClick = OnMouseClick_Button;
 	m_rightButton->m_onMouseRelease = OnMouseRelease_Button;
-	m_rightButton->m_onHover = OnHover_Passthrough;
+	m_rightButton->m_onHover = PassInputToNextElement;
 
 	m_horizontalSlider = new UIImage(m_canvas);
 	m_horizontalSlider->m_transform.SetAnchors(AnchorPreset::BOTTOM_LEFT);
@@ -564,15 +609,39 @@ void UIScrollView::CreateHorizontalScrollbar()
 	m_horizontalSlider->m_onMouseHold = OnHold_HorizontalSlider;
 	m_horizontalSlider->m_onMouseClick = OnMouseClick_Slider;
 	m_horizontalSlider->m_onMouseRelease = OnMouseRelease_Slider;
-	m_horizontalSlider->m_onHover = OnHover_Passthrough;
+	m_horizontalSlider->m_onHover = PassInputToNextElement;
 
 	m_horizontalPanel = new UIPanel(m_canvas);
-	m_horizontalPanel->m_transform.SetAnchors(AnchorPreset::BOTTOM_LEFT);
-	m_horizontalPanel->m_transform.SetPosition(Vector2(m_buttonSize, 0.f));
-	m_horizontalPanel->m_transform.SetPivot(Vector2::ZERO);
-	m_horizontalPanel->m_transform.SetDimensions(Vector2(m_transform.GetWidth() - m_buttonSize, m_buttonSize));
+	m_horizontalPanel->m_transform.SetAnchors(AnchorPreset::STRETCH_ALL);
+
+	float leftPadding = 0.f;
+	float rightPadding = 0.f;
+	float bottomPadding = 0.f;
+	float topPadding = 0.f;
+
+	if (m_verticalScrollOnLeft)
+	{
+		leftPadding = m_viewPanel->m_transform.GetLeftPadding();
+	}
+	else
+	{
+		rightPadding = m_viewPanel->m_transform.GetRightPadding();
+	}
+
+	if (m_horizontalScrollOnBottom)
+	{
+		topPadding = m_transform.GetHeight() - m_viewPanel->m_transform.GetBottomPadding();
+	}
+	else
+	{
+		bottomPadding = m_transform.GetHeight() - m_viewPanel->m_transform.GetTopPadding();
+	}
+
+	m_horizontalPanel->m_transform.SetHorizontalPadding(leftPadding, rightPadding);
+	m_horizontalPanel->m_transform.SetVerticalPadding(topPadding, bottomPadding);
+	m_horizontalPanel->m_transform.SetPivot(Vector2(0.5f));
 	m_horizontalPanel->m_onMouseHold = OnHold_HorizontalScrollbar;
-	m_horizontalPanel->m_onHover = OnHover_Passthrough;
+	m_horizontalPanel->m_onHover = PassInputToNextElement;
 
 	m_horizontalPanel->AddChild(m_leftButton);
 	m_horizontalPanel->AddChild(m_rightButton);
@@ -585,10 +654,6 @@ void UIScrollView::CreateHorizontalScrollbar()
 //-------------------------------------------------------------------------------------------------
 void UIScrollView::SetupInitialTransforms()
 {
-	// Offset text element to be inside the scrollbars
-	AABB2 viewBounds = GetLocalViewBounds();
-	m_textElement->m_transform.SetPosition(viewBounds.GetBottomLeft());
-
 	ShrinkTextElementBoundsToFit(m_textElement);
 	UpdateVerticalSlider();
 	UpdateHorizontalSlider();
@@ -599,11 +664,11 @@ void UIScrollView::SetupInitialTransforms()
 void UIScrollView::UpdateVerticalSlider()
 {
 	float totalTextHeight = m_textElement->m_transform.GetHeight();
-	float viewSize = m_verticalPanel->m_transform.GetHeight();
-	float spaceBetweenButtons = viewSize - 2.f * m_buttonSize;
+	float viewHeight = m_transform.GetHeight() - m_viewPanel->m_transform.GetTopPadding() - m_viewPanel->m_transform.GetBottomPadding();
+	float spaceBetweenButtons = viewHeight - 2.f * m_buttonSize;
 	float minSliderPos = m_buttonSize;
 
-	if (totalTextHeight <= viewSize)
+	if (totalTextHeight <= viewHeight)
 	{
 		m_verticalSlider->m_transform.SetHeight(spaceBetweenButtons);
 		m_verticalSlider->m_transform.SetYPosition(minSliderPos);
@@ -611,12 +676,12 @@ void UIScrollView::UpdateVerticalSlider()
 	else
 	{
 		// Slider height
-		float fractionInView = viewSize / totalTextHeight;
+		float fractionInView = viewHeight / totalTextHeight;
 		float sliderHeight = spaceBetweenButtons * fractionInView;
 		m_verticalSlider->m_transform.SetHeight(sliderHeight);
 
 		// Slider position
-		float amountBelow = m_buttonSize - m_textElement->m_transform.GetYPosition();
+		float amountBelow = -1.0f * m_textElement->m_transform.GetYPosition(); // >= 0.f after the - sign, thanks to clamping in ScrollVerticalWithDirection
 		float sliderOffset = (amountBelow / totalTextHeight) * spaceBetweenButtons;
 		float yPosition = minSliderPos + sliderOffset;
 		m_verticalSlider->m_transform.SetYPosition(yPosition);
@@ -628,11 +693,11 @@ void UIScrollView::UpdateVerticalSlider()
 void UIScrollView::UpdateHorizontalSlider()
 {
 	float totalTextWidth = m_textElement->m_transform.GetWidth();
-	float viewSize = m_horizontalPanel->m_transform.GetWidth();
-	float spaceBetweenButtons = viewSize - 2.f * m_buttonSize;
+	float viewWidth = m_transform.GetWidth() - m_viewPanel->m_transform.GetLeftPadding() - m_viewPanel->m_transform.GetRightPadding();
+	float spaceBetweenButtons = viewWidth - 2.f * m_buttonSize;
 	float minSliderPos = m_buttonSize;
 
-	if (totalTextWidth <= viewSize)
+	if (totalTextWidth <= viewWidth)
 	{
 		m_horizontalSlider->m_transform.SetWidth(spaceBetweenButtons);
 		m_horizontalSlider->m_transform.SetXPosition(minSliderPos);
@@ -640,12 +705,12 @@ void UIScrollView::UpdateHorizontalSlider()
 	else
 	{
 		// Slider width
-		float fractionInView = viewSize / totalTextWidth;
+		float fractionInView = viewWidth / totalTextWidth;
 		float sliderWidth = spaceBetweenButtons * fractionInView;
 		m_horizontalSlider->m_transform.SetWidth(sliderWidth);
 
 		// Slider position
-		float amountToLeft = m_buttonSize - m_textElement->m_transform.GetXPosition();
+		float amountToLeft = -1.0f * m_textElement->m_transform.GetXPosition(); // >= 0.f after the - sign, thanks to clamping in ScrollVerticalWithDirection
 		float sliderOffset = (amountToLeft / totalTextWidth) * spaceBetweenButtons;
 		float xPosition = minSliderPos + sliderOffset;
 		m_horizontalSlider->m_transform.SetXPosition(xPosition);

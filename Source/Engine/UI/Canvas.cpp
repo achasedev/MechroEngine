@@ -348,6 +348,18 @@ StringID Canvas::GetNextUnspecifiedID()
 
 
 //-------------------------------------------------------------------------------------------------
+Clock* Canvas::GetClock() const
+{
+	if (m_clock != nullptr)
+	{
+		return m_clock;
+	}
+
+	return Clock::GetMasterClock();
+}
+
+
+//-------------------------------------------------------------------------------------------------
 Vector2 Canvas::GetMousePosition() const
 {
 	const Mouse& mouse = g_inputSystem->GetMouse();
@@ -391,9 +403,9 @@ bool Canvas::Event_WindowResize(NamedProperties& args)
 
 		for (itr; itr != m_globalElementMap.end(); itr++)
 		{
-			if (itr->second->GetType() == UIText::GetTypeStatic())
+			if (itr->second->IsOfType<UIText>())
 			{
-				UIText* text = (UIText*)itr->second;
+				UIText* text = itr->second->GetAsType<UIText>();
 				text->MarkDirty();
 			}
 		}
@@ -495,9 +507,7 @@ void Canvas::SetupUIMouseInfo(UIMouseInfo& out_input)
 	out_input.m_rightHoldDelta = out_input.m_position - out_input.m_rightHoldStartPosition;
 
 	out_input.m_mouseWheelDelta = mouse.GetMouseWheelDelta();
-
-	// TODO: Canvas clock
-	out_input.m_deltaSeconds = Clock::GetMasterClock()->GetDeltaSeconds();
+	out_input.m_deltaSeconds = GetClock()->GetDeltaSeconds();
 }
 
 

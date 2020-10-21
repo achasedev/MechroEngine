@@ -56,13 +56,13 @@ void FontAtlas::Initialize(const Font* font, uint32 pixelHeight, uint32 maxHoriz
 {
 	if (texture == nullptr)
 	{
-		// TODO: Don't use pixel height, instead use the max dimension of the face bounding box
 		texture = new Texture2D();
 
 		// Just an estimation on the smallest power of two dimensions for the texture that can hold all the sprites
 		// This may not be large enough, but most likely will be too large
+		uint32 maxSpriteDimension = Max(maxHorizontalPixelAdvance, pixelLineSpacing);
 		uint32 size = 2U;
-		while (size < 8U * pixelHeight && size <= 2048U)
+		while (size < 8U * maxSpriteDimension && size <= 2048U)
 		{
 			size *= 2U;
 		}

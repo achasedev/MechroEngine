@@ -43,6 +43,5 @@ UIPanel::UIPanel(Canvas* canvas)
 //-------------------------------------------------------------------------------------------------
 void UIPanel::Render()
 {
-	// TODO: Render a texture
 	UIElement::Render();
 }
