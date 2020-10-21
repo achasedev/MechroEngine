@@ -77,12 +77,12 @@ ID3DBlob* CompileHLSL(const char* filename, const void* sourceCode, const size_t
 	if (errors != nullptr)
 	{
 		const char* errorString = (const char*)errors->GetBufferPointer();
-		ERROR_RECOVERABLE("Failed to compile shader %s, Compiler gave the following output: %s/n", filename, errorString);
+		ERROR_RECOVERABLE("Failed to compile shader %s, Compiler gave the following output: %s", filename, errorString);
 		DX_SAFE_RELEASE(errors);
 	}
 	else if (FAILED(hr))
 	{
-		ERROR_RECOVERABLE("Failed with HRESULT: %u\n", hr);
+		ERROR_RECOVERABLE("Failed with HRESULT: %u", hr);
 	}
 
 	return code;
@@ -346,7 +346,7 @@ void Shader::UpdateRasterizerState()
 		rasterDesc.SlopeScaledDepthBias = 0.0f;
 		rasterDesc.DepthBiasClamp = 0.0f;
 		rasterDesc.DepthClipEnable = true;
-		rasterDesc.ScissorEnable = false;
+		rasterDesc.ScissorEnable = m_scissorEnabled;
 		rasterDesc.MultisampleEnable = false;
 		rasterDesc.AntialiasedLineEnable = false;
 
@@ -354,6 +354,19 @@ void Shader::UpdateRasterizerState()
 		HRESULT hr = dxDevice->CreateRasterizerState(&rasterDesc, &m_dxRasterizerState);
 
 		ASSERT_RETURN(SUCCEEDED(hr), NO_RETURN_VAL, "Couldn't create rasterizer state!");
+
+		// Scissor
+		ID3D11DeviceContext* dxContext = g_renderContext->GetDxContext();
+		if (m_scissorEnabled)
+		{
+			D3D11_RECT dxRect;
+			dxRect = { (LONG)m_scissorRect.left, (LONG)m_scissorRect.bottom, (LONG)m_scissorRect.right, (LONG)m_scissorRect.top };
+			dxContext->RSSetScissorRects(1, &dxRect);
+		}
+		else
+		{
+			dxContext->RSSetScissorRects(0, NULL);
+		}
 
 		m_rasterizerStateDirty = false;
 	}
@@ -430,3 +443,29 @@ void Shader::SetFillMode(FillMode fillMode)
 	m_fillMode = fillMode;
 	m_rasterizerStateDirty = true;
 }
+
+
+//-------------------------------------------------------------------------------------------------
+// Expects screenSpaceRect's mins to be top left on the screen, since DX is top left (0,0)
+void Shader::EnableScissor(const AABB2& screenSpaceRect)
+{
+	m_scissorRect = screenSpaceRect;
+	m_scissorEnabled = true;
+	m_rasterizerStateDirty = true;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Shader::DisableScissor()
+{
+	m_scissorEnabled = false;
+	m_rasterizerStateDirty = true;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool Shader::IsDirty() const
+{
+	return m_rasterizerStateDirty || m_blendStateDirty;
+}
+

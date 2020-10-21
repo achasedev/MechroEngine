@@ -4,6 +4,7 @@
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
+#include "Engine/Render/Buffer/UniformBuffer.h"
 #include "Engine/UI/UIElement.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -63,8 +64,10 @@ private:
 	//-----Private Methods-----
 
 	void			SetupDefaultScrollText();
+	void			CreateViewPanel();
 	void			CreateVerticalScrollbar();
 	void			CreateHorizontalScrollbar();
+	void			SetupInitialTransforms();
 
 	void			UpdateVerticalSlider();
 	void			UpdateHorizontalSlider();
@@ -72,7 +75,8 @@ private:
 
 private:
 	//-----Private Data-----
-
+	
+	UIPanel*		m_viewPanel = nullptr;
 	UIText*			m_textElement = nullptr;
 	float			m_scrollSpeed = 50.f;
 	float			m_buttonSize = 10.f;

@@ -209,7 +209,7 @@ void RenderContext::BindShader(Shader* shader)
 {
 	ASSERT_OR_DIE(shader != nullptr, "Shader was nullptr when being bound!");
 
-	if (m_currentShader != shader)
+	if (m_currentShader != shader || m_currentShader->IsDirty())
 	{
 		m_dxContext->VSSetShader(shader->GetVertexStage(), 0, 0);
 		m_dxContext->PSSetShader(shader->GetFragmentStage(), 0, 0);

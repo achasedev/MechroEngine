@@ -103,8 +103,7 @@ void Canvas::Initialize(Texture2D* outputTexture, const Vector2& resolution, Scr
 	m_outputTextureHeight = m_outputTexture->GetHeight();
 	m_matchMode = mode;
 	m_widthOrHeightBlend = widthHeightBlend;
-	m_resolution = Vector2(resolution.x, resolution.y);
-	m_transform.SetDimensions(resolution.x, resolution.y);
+	SetResolution(resolution);
 }
 
 
@@ -115,8 +114,8 @@ void Canvas::InitializeFromXML(const XMLElem& element)
 	ASSERT_OR_DIE(strcmp(element.Name(), "canvas") == 0, "XMLElement isn't for a canvas!");
 
 	// Resolution
-	m_resolution = XML::ParseAttribute(element, "resolution", Vector2(1000.f));
-	m_transform.SetDimensions(m_resolution.x, m_resolution.y);
+	Vector2 resolution = XML::ParseAttribute(element, "resolution", Vector2(1000.f));
+	SetResolution(resolution);
 
 	// Match mode
 	std::string matchModeText = XML::ParseAttribute(element, "match_mode", "blend");
@@ -206,6 +205,16 @@ void Canvas::SetResolution(float width, float height)
 {
 	m_resolution = Vector2(width, height);
 	m_transform.SetDimensions(width, height);
+
+	// Ensure default padding is influenced by aspect
+	m_defaultPadding = 0.001f * Vector2(m_resolution.x, m_resolution.y);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Canvas::SetResolution(const Vector2& resolution)
+{
+	SetResolution(resolution.x, resolution.y);
 }
 
 

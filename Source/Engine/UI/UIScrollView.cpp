@@ -10,6 +10,10 @@
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/IO/Image.h"
 #include "Engine/Math/MathUtils.h"
+#include "Engine/Render/Core/RenderContext.h"
+#include "Engine/Render/Material.h"
+#include "Engine/Render/Shader.h"
+#include "Engine/UI/Canvas.h"
 #include "Engine/UI/UIButton.h"
 #include "Engine/UI/UIImage.h"
 #include "Engine/UI/UIPanel.h"
@@ -49,6 +53,9 @@ static bool OnHover_MouseWheelScroll(UIElement* element, const UIMouseInfo& info
 //-------------------------------------------------------------------------------------------------
 static bool OnHover_Passthrough(UIElement* element, const UIMouseInfo& info)
 {
+	UNUSED(element);
+	UNUSED(info);
+
 	// Don't block input
 	return false;
 }
@@ -165,6 +172,8 @@ static bool OnHold_HorizontalSlider(UIElement* element, const UIMouseInfo& info)
 //-------------------------------------------------------------------------------------------------
 static bool OnMouseClick_Button(UIElement* element, const UIMouseInfo& info)
 {
+	UNUSED(info);
+
 	UIButton* button = element->GetAsType<UIButton>();
 	Image* image = new Image(IntVector2(2), Rgba::YELLOW);
 	button->SetImage(image);
@@ -176,6 +185,8 @@ static bool OnMouseClick_Button(UIElement* element, const UIMouseInfo& info)
 //-------------------------------------------------------------------------------------------------
 static bool OnMouseRelease_Button(UIElement* element, const UIMouseInfo& info)
 {
+	UNUSED(info);
+
 	UIButton* button = element->GetAsType<UIButton>();
 	Image* image = new Image(IntVector2(2), Rgba::BLUE);
 	button->SetImage(image);
@@ -187,6 +198,8 @@ static bool OnMouseRelease_Button(UIElement* element, const UIMouseInfo& info)
 //-------------------------------------------------------------------------------------------------
 static bool OnMouseRelease_Slider(UIElement* element, const UIMouseInfo& info)
 {
+	UNUSED(info);
+
 	UIImage* slider = element->GetAsType<UIImage>();
 	Image* image = new Image(IntVector2(2), Rgba::RED);
 	slider->SetImage(image);
@@ -198,11 +211,26 @@ static bool OnMouseRelease_Slider(UIElement* element, const UIMouseInfo& info)
 //-------------------------------------------------------------------------------------------------
 static bool OnMouseClick_Slider(UIElement* element, const UIMouseInfo& info)
 {
+	UNUSED(info);
+
 	UIImage* slider = element->GetAsType<UIImage>();
 	Image* image = new Image(IntVector2(2), Rgba::YELLOW);
 	slider->SetImage(image);
 
 	return true;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void ShrinkTextElementBoundsToFit(UIText* textElement)
+{
+	// NOTE: Word wrap does not work with this, as it is done in the render step and can add an
+	//		 unknown number of lines to it
+	float totalHeight = textElement->GetTotalLinesHeight();
+	textElement->m_transform.SetHeight(totalHeight);
+
+	float maxLineLength = textElement->GetMaxLineLength();
+	textElement->m_transform.SetWidth(maxLineLength);
 }
 
 
@@ -284,9 +312,7 @@ void UIScrollView::InitializeFromXML(const XMLElem& element)
 
 	CreateVerticalScrollbar();
 	CreateHorizontalScrollbar();
-
-	AABB2 viewBounds = GetLocalViewBounds();
-	m_textElement->m_transform.SetPosition(viewBounds.GetBottomLeft());
+	SetupInitialTransforms();
 }
 
 
@@ -294,18 +320,9 @@ void UIScrollView::InitializeFromXML(const XMLElem& element)
 void UIScrollView::Update()
 {
 	// Also update height to be based on number of lines in the log
-	// NOTE: Word wrap does not work with this, as it is done in the render step and can add an
-	//		 unknown number of lines to it
-	float totalHeight = m_textElement->GetTotalLinesHeight();
-	m_textElement->m_transform.SetHeight(totalHeight);
-
-	float maxLineLength = m_textElement->GetMaxLineLength();
-	m_textElement->m_transform.SetWidth(maxLineLength);
+	ShrinkTextElementBoundsToFit(m_textElement);
 
 	// TODO: Check for text changes
-
-	UpdateVerticalSlider();
-	UpdateHorizontalSlider();
 
 	UIElement::Update();
 }
@@ -314,7 +331,19 @@ void UIScrollView::Update()
 //-------------------------------------------------------------------------------------------------
 void UIScrollView::Render()
 {
+	OBB2 canvasBounds = GetCanvasBounds();
+	canvasBounds.m_alignedBounds.mins.y += m_buttonSize;
+
+	float screenLeft = (float)m_canvas->ToPixelWidth(canvasBounds.m_alignedBounds.left + m_buttonSize);
+	float screenTop = (float)(m_canvas->ToPixelHeight(m_canvas->GetResolution().y) - m_canvas->ToPixelHeight(canvasBounds.m_alignedBounds.top));
+	float screenRight = (float)m_canvas->ToPixelWidth(canvasBounds.m_alignedBounds.right);
+	float screenBottom = (float)(m_canvas->ToPixelHeight(m_canvas->GetResolution().y) - m_canvas->ToPixelHeight(canvasBounds.m_alignedBounds.bottom));
+	AABB2 screenRect = AABB2(screenLeft, screenTop, screenRight, screenBottom);
+
+	// TODO: Fix this with a shader instance on text
+	m_textElement->GetMaterial()->GetShader()->EnableScissor(screenRect);
 	UIElement::Render();
+	m_textElement->GetMaterial()->GetShader()->DisableScissor();
 }
 
 
@@ -352,9 +381,11 @@ void UIScrollView::ScrollVerticalWithTranslation(float translation)
 
 		if (total > viewHeight)
 		{
-			newY = Clamp(newY, m_transform.GetYPosition() + m_buttonSize - (total - viewHeight), m_buttonSize);
+			newY = Clamp(newY, m_buttonSize - (total - viewHeight), m_buttonSize);
 			m_textElement->m_transform.SetYPosition(newY);
 		}
+
+		UpdateVerticalSlider();
 	}
 }
 
@@ -375,6 +406,8 @@ void UIScrollView::ScrollHorizontalWithTranslation(float translation)
 			newX = Clamp(newX, m_transform.GetXPosition() + m_buttonSize - (total - viewWidth), m_buttonSize);
 			m_textElement->m_transform.SetXPosition(newX);
 		}
+
+		UpdateHorizontalSlider();
 	}
 }
 
@@ -406,10 +439,9 @@ void UIScrollView::ScrollFromHorizontalSlider(float deltaScroll)
 //-------------------------------------------------------------------------------------------------
 AABB2 UIScrollView::GetLocalViewBounds() const
 {
-	// Account for buttons, so the scroll bars are inside the scrollview's bounds
-	Vector2 bottomLeft = m_transform.GetPosition();
-	Vector2 topRight = bottomLeft + m_transform.GetDimensions();
-	bottomLeft += Vector2(m_buttonSize);
+	// Account for scrollbars, as they exist inside the scrollview's transform
+	Vector2 bottomLeft = Vector2(m_buttonSize);
+	Vector2 topRight = m_transform.GetDimensions();
 
 	return AABB2(bottomLeft, topRight);
 }
@@ -547,6 +579,19 @@ void UIScrollView::CreateHorizontalScrollbar()
 	m_horizontalPanel->AddChild(m_horizontalSlider);
 
 	AddChild(m_horizontalPanel);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void UIScrollView::SetupInitialTransforms()
+{
+	// Offset text element to be inside the scrollbars
+	AABB2 viewBounds = GetLocalViewBounds();
+	m_textElement->m_transform.SetPosition(viewBounds.GetBottomLeft());
+
+	ShrinkTextElementBoundsToFit(m_textElement);
+	UpdateVerticalSlider();
+	UpdateHorizontalSlider();
 }
 
 

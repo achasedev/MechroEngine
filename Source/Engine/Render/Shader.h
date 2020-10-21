@@ -8,6 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Math/AABB2.h"
 #include "Engine/Render/Core/DX11Common.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -154,6 +155,10 @@ public:
 	void					SetColorBlend(const BlendInfo& blend);
 	void					SetAlphaBlend(const BlendInfo& blend);
 	void					SetFillMode(FillMode fillMode);
+	void					EnableScissor(const AABB2& screenSpaceRect);
+	void					DisableScissor();
+
+	bool					IsDirty() const;
 
 	ID3D11VertexShader*		GetVertexStage() const { return m_vertexShader.GetAsVertexShader(); }
 	ID3D11PixelShader*		GetFragmentStage() const { return m_fragmentShader.GetAsFragmentShader(); }
@@ -175,6 +180,8 @@ private:
 	bool					m_blendStateDirty = true;
 
 	FillMode				m_fillMode = FILL_MODE_SOLID;
+	AABB2					m_scissorRect;
+	bool					m_scissorEnabled = false;
 	ID3D11RasterizerState*	m_dxRasterizerState = nullptr;
 	bool					m_rasterizerStateDirty = true;
 

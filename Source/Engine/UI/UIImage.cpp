@@ -52,7 +52,7 @@ UIImage::UIImage(Canvas* canvas)
 
 	// TODO: Delete this
 	Shader* shader = new Shader();
-	shader->CreateFromFile("Data/Shader/font.shader");
+	shader->CreateFromFile("Data/Shader/test.shader");
 	shader->SetBlend(BLEND_PRESET_ALPHA);
 	SetShader(shader);
 }

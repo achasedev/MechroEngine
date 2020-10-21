@@ -62,6 +62,7 @@ public:
 	Matrix44			GenerateOrthoMatrix() const;
 
 	void				SetScreenMatchMode(ScreenMatchMode mode, float widthHeightBlend = 1.0f);
+	void				SetResolution(const Vector2& resolution);
 	void				SetResolution(float height, float width);
 	void				AddElementToGlobalMap(UIElement* element);
 	void				RemoveElementFromGlobalMap(UIElement* element);
@@ -81,7 +82,9 @@ public:
 	Vector2				GetMousePosition() const;
 	Vector2				GetMousePositionLastFrame() const;
 	bool				WasHoveredLastFrame(UIElement* element) const;
-
+	Vector2				GetDefaultPadding() const { return m_defaultPadding; }
+	float				GetDefaultHorizontalPadding() const { return m_defaultPadding.x; }
+	float				GetDefaultVerticalPadding() const { return m_defaultPadding.y; }
 
 	template <typename T>
 	T*					FindElementAsType(StringID id);
@@ -108,6 +111,7 @@ private:
 	Texture2D*						m_outputTexture = nullptr;
 	int								m_outputTextureHeight = 0; // For detecting changes that will require fonts to be re-rendered
 	int								m_nextUnspecifiedIDSuffix = 0;
+	Vector2							m_defaultPadding = Vector2::ONES; // Just to space stuff around
 
 	float							m_widthOrHeightBlend = 1.0f; // 1.0 is match to height
 	std::map<StringID, UIElement*>	m_globalElementMap; // For speed and tracking
