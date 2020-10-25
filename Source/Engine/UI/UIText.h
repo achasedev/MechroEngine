@@ -78,6 +78,8 @@ public:
 	void			SetTextHorizontalAlignment(HorizontalAlignment horizAlign);
 	void			SetTextVerticalAlignment(VerticalAlignment vertAlign);
 
+	std::string		GetText() const;
+	std::string		GetText(uint32 lineNumber) const;
 	uint32			GetNumLines() const { return (uint32) m_lines.size(); }
 	float			GetLineHeight() const;
 	float			GetTotalLinesHeight() const;

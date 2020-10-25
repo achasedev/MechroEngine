@@ -55,7 +55,8 @@ public:
 	void				InitializeFromXML(const char* xmlFilePath);
 	virtual void		InitializeFromXML(const XMLElem& element) override;
 
-	void				ProcessInput();
+	void				ProcessMouseInput();
+	void				ProcessKeyboardInput(unsigned char character);
 	virtual void		Update() override;
 	virtual void		Render() override;
 
@@ -68,6 +69,7 @@ public:
 	void				AddElementToGlobalMap(UIElement* element);
 	void				RemoveElementFromGlobalMap(UIElement* element);
 	void				SetClock(Clock* clock) { m_clock = clock; }
+	void				SetElementInFocus(UIElement* element);
 
 	Vector2				GetResolution() const { return m_resolution; }
 	Texture2D*			GetOutputTexture() const;
@@ -123,6 +125,7 @@ private:
 	std::vector<UIElement*>			m_elementsHoveredLastFrame;
 	UIMouseInfo						m_lastFrameUIMouseInfo;
 	UIElement*						m_currentClickedElement = nullptr;
+	UIElement*						m_elementInFocus = nullptr;
 
 };
 

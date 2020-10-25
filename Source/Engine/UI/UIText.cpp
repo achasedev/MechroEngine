@@ -311,6 +311,21 @@ void UIText::SetTextVerticalAlignment(VerticalAlignment vertAlign)
 
 
 //-------------------------------------------------------------------------------------------------
+std::string UIText::GetText() const
+{
+	return GetText(0U);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+std::string UIText::GetText(uint32 lineNumber) const
+{
+	ASSERT_RETURN(lineNumber < (uint32)m_lines.size(), "", "Index out of range!");
+	return m_lines[lineNumber];
+}
+
+
+//-------------------------------------------------------------------------------------------------
 float UIText::GetLineHeight() const
 {
 	uint32 fontPixelHeight = m_canvas->ToPixelHeight(m_fontHeight * m_transform.GetScale().y);

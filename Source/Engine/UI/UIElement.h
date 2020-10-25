@@ -52,6 +52,7 @@ struct UIMouseInfo
 };
 
 typedef bool(*UIMouseInputHandler)(UIElement* element, const UIMouseInfo& mouseInfo);
+typedef bool(*UIKeyboardInputHandler)(UIElement* element, unsigned char character);
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -109,10 +110,12 @@ public:
 	UIMouseInputHandler		m_onJustHovered = nullptr;
 	UIMouseInputHandler		m_onHover = nullptr;
 	UIMouseInputHandler		m_onUnhovered = nullptr;
-
 	UIMouseInputHandler		m_onMouseClick = nullptr;
 	UIMouseInputHandler		m_onMouseHold = nullptr;
 	UIMouseInputHandler		m_onMouseRelease = nullptr;
+
+	// Keyboard
+	UIKeyboardInputHandler	m_onKeyDown = nullptr;
 
 
 protected:

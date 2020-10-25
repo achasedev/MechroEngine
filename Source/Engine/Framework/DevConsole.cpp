@@ -74,6 +74,19 @@ static bool DevConsoleMessageHandler(unsigned int msg, size_t wparam, size_t lpa
 }
 
 
+//-------------------------------------------------------------------------------------------------
+static bool OnKeyDown_InputField(UIElement* element, unsigned char character)
+{
+	UIText* textElement = element->GetAsType<UIText>();
+
+	std::string text = textElement->GetText();
+	text += character;
+	textElement->SetText(text);
+
+	return true;
+}
+
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -149,13 +162,7 @@ void DevConsole::BeginFrame()
 //-------------------------------------------------------------------------------------------------
 void DevConsole::ProcessInput()
 {
-	if (m_timer.HasIntervalElapsed())
-	{
-		int x = 0;
-		x = 5;
-	}
-
-	m_canvas->ProcessInput();
+	m_canvas->ProcessMouseInput();
 }
 
 
@@ -190,6 +197,15 @@ void DevConsole::Render() const
 
 
 //-------------------------------------------------------------------------------------------------
+void DevConsole::SetIsActive(bool isActive)
+{
+	m_isActive = isActive;
+
+	m_canvas->SetElementInFocus(m_inputFieldText);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 DevConsole::DevConsole()
 {
 	// TODO: Remove these when ResourceManager is going
@@ -206,6 +222,7 @@ DevConsole::DevConsole()
 	m_logScrollView = m_canvas->FindElementAsType<UIScrollView>(SID("log_scrollview"));
 
 	m_inputFieldText->SetShader(m_shader);
+	m_inputFieldText->m_onKeyDown = OnKeyDown_InputField;
 
 	m_logScrollView->GetScrollTextElement()->SetShader(m_shader);
 }
@@ -227,7 +244,7 @@ DevConsole::~DevConsole()
 //-------------------------------------------------------------------------------------------------
 void DevConsole::HandleTilde()
 {
-	m_isActive = !m_isActive;
+	SetIsActive(!m_isActive);
 }
 
 
@@ -327,5 +344,5 @@ void DevConsole::HandleRightArrow()
 //-------------------------------------------------------------------------------------------------
 void DevConsole::AddCharacterToInputBuffer(unsigned char character)
 {
-	UNUSED(character);
+	m_canvas->ProcessKeyboardInput(character);
 }

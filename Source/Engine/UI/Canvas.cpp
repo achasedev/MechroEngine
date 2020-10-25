@@ -92,6 +92,9 @@ Canvas::Canvas()
 //-------------------------------------------------------------------------------------------------
 Canvas::~Canvas()
 {
+	m_elementInFocus = nullptr;
+	m_currentClickedElement = nullptr;
+
 	g_eventSystem->UnsubscribeEventCallbackObjectMethod("window-resize", &Canvas::Event_WindowResize, *this);
 }
 
@@ -155,7 +158,7 @@ void Canvas::InitializeFromXML(const char* xmlFilePath)
 
 
 //-------------------------------------------------------------------------------------------------
-void Canvas::ProcessInput()
+void Canvas::ProcessMouseInput()
 {
 	UIMouseInfo mouseInfo;
 	SetupUIMouseInfo(mouseInfo);
@@ -175,6 +178,16 @@ void Canvas::ProcessInput()
 	
 	// Save off mouse state
 	m_lastFrameUIMouseInfo = mouseInfo;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Canvas::ProcessKeyboardInput(unsigned char character)
+{
+	if (m_elementInFocus != nullptr && m_elementInFocus->m_onKeyDown)
+	{
+		m_elementInFocus->m_onKeyDown(m_elementInFocus, character);
+	}
 }
 
 
@@ -253,7 +266,20 @@ void Canvas::RemoveElementFromGlobalMap(UIElement* element)
 		{
 			m_currentClickedElement = nullptr;
 		}
+
+		if (element == m_elementInFocus)
+		{
+			m_elementInFocus = nullptr;
+		}
 	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Canvas::SetElementInFocus(UIElement* element)
+{
+	ASSERT_RETURN(FindElementByID(element->GetID()) != nullptr, NO_RETURN_VAL, "UIElement cannot be set in focus, it's not in the canvas!");
+	m_elementInFocus = element;
 }
 
 
@@ -586,7 +612,7 @@ void Canvas::HandleMouseClicks(const std::vector<UIElement*>& hoverStack, const 
 			{
 				// Consumed/Blocked input, cache it off for next frame
 				m_currentClickedElement = currElement;
-
+				m_elementInFocus = currElement;
 				break;
 			}	
 		}
