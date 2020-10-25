@@ -25,6 +25,20 @@ class UIPanel;
 class UIScrollbar;
 class UIText;
 
+enum VerticalScrollbarType
+{
+	NO_VERTICAL_SCROLLBAR,
+	VERTICAL_SCROLLBAR_LEFT,
+	VERTICAL_SCROLLBAR_RIGHT
+};
+
+enum HorizontalScrollbarType
+{
+	NO_HORIZONTAL_SCROLLBAR,
+	HORIZONTAL_SCROLLBAR_BOTTOM,
+	HORIZONTAL_SCROLLBAR_TOP
+};
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -75,24 +89,24 @@ private:
 private:
 	//-----Private Data-----
 	
-	UIPanel*		m_viewPanel = nullptr;
-	UIText*			m_textElement = nullptr;
-	float			m_scrollSpeed = 50.f;
-	float			m_buttonSize = 10.f;
+	UIPanel*					m_viewPanel = nullptr;
+	UIText*						m_textElement = nullptr;
+	float						m_scrollSpeed = 50.f;
+	float						m_buttonSize = 10.f;
 
 	// Vertical
-	UIPanel*		m_verticalPanel = nullptr;
-	UIButton*		m_downButton = nullptr;
-	UIButton*		m_upButton = nullptr;
-	UIImage*		m_verticalSlider = nullptr;
-	bool			m_verticalScrollOnLeft = false;
+	UIPanel*					m_verticalPanel = nullptr;
+	UIButton*					m_downButton = nullptr;
+	UIButton*					m_upButton = nullptr;
+	UIImage*					m_verticalSlider = nullptr;
+	VerticalScrollbarType		m_verticalScrollbarType = NO_VERTICAL_SCROLLBAR;
 
 	// Horizontal
-	UIPanel*		m_horizontalPanel = nullptr;
-	UIButton*		m_leftButton = nullptr;
-	UIButton*		m_rightButton = nullptr;
-	UIImage*		m_horizontalSlider = nullptr;
-	bool			m_horizontalScrollOnBottom = false;
+	UIPanel*					m_horizontalPanel = nullptr;
+	UIButton*					m_leftButton = nullptr;
+	UIButton*					m_rightButton = nullptr;
+	UIImage*					m_horizontalSlider = nullptr;
+	HorizontalScrollbarType	m_horizontalScrollbarType = NO_HORIZONTAL_SCROLLBAR;
 
 };
 

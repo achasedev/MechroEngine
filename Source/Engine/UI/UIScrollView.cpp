@@ -235,6 +235,36 @@ void ShrinkTextElementBoundsToFit(UIText* textElement)
 }
 
 
+//-------------------------------------------------------------------------------------------------
+HorizontalScrollbarType StringToHorizontalScrollbarType(const std::string& text)
+{
+	if		(text == "none")	{ return NO_HORIZONTAL_SCROLLBAR; }
+	else if (text == "bottom")	{ return HORIZONTAL_SCROLLBAR_BOTTOM; }
+	else if (text == "top")		{ return HORIZONTAL_SCROLLBAR_TOP; }
+	else
+	{
+		ERROR_RECOVERABLE("Invalid HorizontalScrollbarType %s", text.c_str());
+	}
+
+	return NO_HORIZONTAL_SCROLLBAR;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+VerticalScrollbarType StringToVerticalScrollbarType(const std::string& text)
+{
+	if		(text == "none")	{ return NO_VERTICAL_SCROLLBAR; }
+	else if (text == "left")	{ return VERTICAL_SCROLLBAR_LEFT; }
+	else if (text == "right")	{ return VERTICAL_SCROLLBAR_RIGHT; }
+	else
+	{
+		ERROR_RECOVERABLE("Invalid VerticalScrollbarType %s", text.c_str());
+	}
+
+	return NO_VERTICAL_SCROLLBAR;
+}
+
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -291,6 +321,13 @@ void UIScrollView::InitializeFromXML(const XMLElem& element)
 	VerticalAlignment vertAlign;
 	GetTextAlignmentFromXML(element, horizAlign, vertAlign);
 
+	// Scroll bar placement
+	std::string horizScrollText = XML::ParseAttribute(element, "horizontal_scrollbar", "none");
+	m_horizontalScrollbarType = StringToHorizontalScrollbarType(horizScrollText);
+
+	std::string vertScrollType = XML::ParseAttribute(element, "vertical_scrollbar", "none");
+	m_verticalScrollbarType = StringToVerticalScrollbarType(vertScrollType);
+
 	// Create the scrolling text element
 	m_textElement = new UIText(m_canvas);
 	m_textElement->SetFont(font);
@@ -305,8 +342,17 @@ void UIScrollView::InitializeFromXML(const XMLElem& element)
 	m_textElement->m_onMouseClick = PassInputToNextElement;
 
 	CreateViewPanel();
-	CreateVerticalScrollbar();
-	CreateHorizontalScrollbar();
+
+	if (m_verticalScrollbarType != NO_VERTICAL_SCROLLBAR)
+	{
+		CreateVerticalScrollbar();
+	}
+
+	if (m_horizontalScrollbarType != NO_HORIZONTAL_SCROLLBAR)
+	{
+		CreateHorizontalScrollbar();
+	}
+
 	SetupInitialTransforms();
 }
 
@@ -454,22 +500,32 @@ void UIScrollView::CreateViewPanel()
 	float bottomPadding = 0.f;
 	float topPadding = 0.f;
 	
-	if (m_verticalScrollOnLeft)
+	switch (m_verticalScrollbarType)
 	{
+	case NO_VERTICAL_SCROLLBAR:
+		break;
+	case VERTICAL_SCROLLBAR_LEFT:
 		leftPadding = m_buttonSize;
-	}
-	else
-	{
+		break;
+	case VERTICAL_SCROLLBAR_RIGHT:
 		rightPadding = m_buttonSize;
+		break;
+	default:
+		break;
 	}
 
-	if (m_horizontalScrollOnBottom)
+	switch (m_horizontalScrollbarType)
 	{
+	case NO_HORIZONTAL_SCROLLBAR:
+		break;
+	case HORIZONTAL_SCROLLBAR_BOTTOM:
 		bottomPadding = m_buttonSize;
-	}
-	else
-	{
+		break;
+	case HORIZONTAL_SCROLLBAR_TOP:
 		topPadding = m_buttonSize;
+		break;
+	default:
+		break;
 	}
 
 	m_viewPanel->m_transform.SetHorizontalPadding(leftPadding, rightPadding);
@@ -485,6 +541,11 @@ void UIScrollView::CreateViewPanel()
 //-------------------------------------------------------------------------------------------------
 void UIScrollView::CreateVerticalScrollbar()
 {
+	if (m_verticalScrollbarType == NO_VERTICAL_SCROLLBAR)
+	{
+		return;
+	}
+
 	// TODO: Delete this from orbit
 	Image* image1 = new Image(IntVector2(2), Rgba::BLUE);
 	Image* image2 = new Image(IntVector2(2), Rgba::BLUE);
@@ -535,22 +596,30 @@ void UIScrollView::CreateVerticalScrollbar()
 	float bottomPadding = 0.f;
 	float topPadding = 0.f;
 
-	if (m_verticalScrollOnLeft)
+	switch (m_verticalScrollbarType)
 	{
+	case VERTICAL_SCROLLBAR_LEFT:
 		rightPadding = m_transform.GetWidth() - m_viewPanel->m_transform.GetLeftPadding();
-	}
-	else
-	{
+		break;
+	case VERTICAL_SCROLLBAR_RIGHT:
 		leftPadding = m_transform.GetWidth() - m_viewPanel->m_transform.GetRightPadding();
+		break;
+	case NO_VERTICAL_SCROLLBAR:
+	default:
+		break;
 	}
 
-	if (m_horizontalScrollOnBottom)
+	switch (m_horizontalScrollbarType)
 	{
+	case HORIZONTAL_SCROLLBAR_BOTTOM:
 		bottomPadding = m_viewPanel->m_transform.GetBottomPadding();
-	}
-	else
-	{
+		break;
+	case HORIZONTAL_SCROLLBAR_TOP:
 		topPadding = m_viewPanel->m_transform.GetTopPadding();
+		break;
+	case NO_HORIZONTAL_SCROLLBAR:
+	default:
+		break;
 	}
 
 	m_verticalPanel->m_transform.SetHorizontalPadding(leftPadding, rightPadding);
@@ -570,6 +639,11 @@ void UIScrollView::CreateVerticalScrollbar()
 //-------------------------------------------------------------------------------------------------
 void UIScrollView::CreateHorizontalScrollbar()
 {
+	if (m_horizontalScrollbarType == NO_HORIZONTAL_SCROLLBAR)
+	{
+		return;
+	}
+
 	// TODO: Delete this from orbit
 	Image* image1 = new Image(IntVector2(2), Rgba::BLUE);
 	Image* image2 = new Image(IntVector2(2), Rgba::BLUE);
@@ -619,22 +693,30 @@ void UIScrollView::CreateHorizontalScrollbar()
 	float bottomPadding = 0.f;
 	float topPadding = 0.f;
 
-	if (m_verticalScrollOnLeft)
+	switch (m_verticalScrollbarType)
 	{
+	case VERTICAL_SCROLLBAR_LEFT:
 		leftPadding = m_viewPanel->m_transform.GetLeftPadding();
-	}
-	else
-	{
+		break;
+	case VERTICAL_SCROLLBAR_RIGHT:
 		rightPadding = m_viewPanel->m_transform.GetRightPadding();
+		break;
+	case NO_VERTICAL_SCROLLBAR:
+	default:
+		break;
 	}
 
-	if (m_horizontalScrollOnBottom)
+	switch (m_horizontalScrollbarType)
 	{
+	case HORIZONTAL_SCROLLBAR_BOTTOM:
 		topPadding = m_transform.GetHeight() - m_viewPanel->m_transform.GetBottomPadding();
-	}
-	else
-	{
+		break;
+	case HORIZONTAL_SCROLLBAR_TOP:
 		bottomPadding = m_transform.GetHeight() - m_viewPanel->m_transform.GetTopPadding();
+		break;
+	case NO_HORIZONTAL_SCROLLBAR:
+	default:
+		break;
 	}
 
 	m_horizontalPanel->m_transform.SetHorizontalPadding(leftPadding, rightPadding);
@@ -663,6 +745,11 @@ void UIScrollView::SetupInitialTransforms()
 //-------------------------------------------------------------------------------------------------
 void UIScrollView::UpdateVerticalSlider()
 {
+	if (m_verticalScrollbarType == NO_VERTICAL_SCROLLBAR)
+	{
+		return;
+	}
+
 	float totalTextHeight = m_textElement->m_transform.GetHeight();
 	float viewHeight = m_transform.GetHeight() - m_viewPanel->m_transform.GetTopPadding() - m_viewPanel->m_transform.GetBottomPadding();
 	float spaceBetweenButtons = viewHeight - 2.f * m_buttonSize;
@@ -692,6 +779,11 @@ void UIScrollView::UpdateVerticalSlider()
 //-------------------------------------------------------------------------------------------------
 void UIScrollView::UpdateHorizontalSlider()
 {
+	if (m_horizontalScrollbarType == NO_HORIZONTAL_SCROLLBAR)
+	{
+		return;
+	}
+
 	float totalTextWidth = m_textElement->m_transform.GetWidth();
 	float viewWidth = m_transform.GetWidth() - m_viewPanel->m_transform.GetLeftPadding() - m_viewPanel->m_transform.GetRightPadding();
 	float spaceBetweenButtons = viewWidth - 2.f * m_buttonSize;
