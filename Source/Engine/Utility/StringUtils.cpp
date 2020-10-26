@@ -18,9 +18,9 @@
 #include "Engine/Math/Vector4.h"
 #include "Engine/Utility/NamedProperties.h"
 #include "Engine/Utility/StringUtils.h"
+#include <cctype>
 #include <cstring>
 #include <stdarg.h>
-
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -164,6 +164,29 @@ void BreakStringIntoLines(const std::string& stringToBreak, std::vector<std::str
 
 
 //-------------------------------------------------------------------------------------------------
+bool AreEqualCaseInsensitive(const std::string& first, const std::string& second)
+{
+	if (first.size() != second.size())
+	{
+		return false;
+	}
+
+	for (size_t index = 0; index < first.size(); ++index)
+	{
+		const char firstChar = first[index];
+		const char secondChar = second[index];
+
+		if (firstChar != secondChar && std::toupper(firstChar) != std::toupper(secondChar))
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 std::string ToString(float inValue)
 {
 	return Stringf("%f", inValue);
@@ -255,34 +278,54 @@ float StringToFloat(const std::string& inValue)
 
 
 //-------------------------------------------------------------------------------------------------
-Rgba StringToRgba(const std::string& inValue)
+bool StringToRgba(const std::string& inValue, Rgba& out_color)
 {
-	ASSERT_RETURN(inValue.size() > 0, Rgba::BLACK, "Empty string!");
+	ASSERT_RETURN(inValue.size() > 0, false, "Empty string!");
 
-	std::vector<std::string> tokens;
-	TokenizeByCommasOrSpaces(inValue, tokens);
-
-	ASSERT_RETURN(tokens.size() > 0, Rgba::WHITE, "No components!");
-	ASSERT_RECOVERABLE(tokens.size() < 5, "Too many components for an RGBA, only using the first 4!");
-
-	// Check if the string is in floats or ints
-	bool isFloats = inValue.find('.') != std::string::npos;
-
-	Rgba color;
-	for (size_t colorIndex = 0; colorIndex < tokens.size(); ++colorIndex)
+	// Check if the text is a name first
+	bool isName = true;
+	if		(AreEqualCaseInsensitive(inValue, "white"))		{ out_color = Rgba::WHITE; }
+	else if (AreEqualCaseInsensitive(inValue, "black"))		{ out_color = Rgba::BLACK; }
+	else if (AreEqualCaseInsensitive(inValue, "red"))		{ out_color = Rgba::RED; }
+	else if (AreEqualCaseInsensitive(inValue, "green"))		{ out_color = Rgba::GREEN; }
+	else if (AreEqualCaseInsensitive(inValue, "blue"))		{ out_color = Rgba::BLUE; }
+	else if (AreEqualCaseInsensitive(inValue, "cyan"))		{ out_color = Rgba::CYAN; }
+	else if (AreEqualCaseInsensitive(inValue, "magenta"))	{ out_color = Rgba::MAGENTA; }
+	else if (AreEqualCaseInsensitive(inValue, "yellow"))	{ out_color = Rgba::YELLOW; }
+	else if (AreEqualCaseInsensitive(inValue, "gray"))		{ out_color = Rgba::GRAY; }
+	else if (AreEqualCaseInsensitive(inValue, "grey"))		{ out_color = Rgba::GRAY; }
+	else
 	{
-		if (isFloats)
-		{
-			color.data[colorIndex] = NormalizedFloatToByte(StringToFloat(tokens[colorIndex]));
-		}
-		else
-		{
-			int colorUnclamped = StringToInt(tokens[colorIndex].c_str());
-			color.data[colorIndex] = static_cast<uint8>(Clamp(colorUnclamped, 0, 255));
-		}
+		isName = false;
 	}
 
-	return color;
+	// Specified components
+	if (!isName)
+	{
+		std::vector<std::string> tokens;
+		TokenizeByCommasOrSpaces(inValue, tokens);
+
+		ASSERT_RETURN(tokens.size() > 0, false, "No components!");
+		ASSERT_RECOVERABLE(tokens.size() < 5, "Too many components for an RGBA, only using the first 4!");
+
+		// Check if the string is in floats or ints
+		bool isFloats = inValue.find('.') != std::string::npos;
+
+		for (size_t colorIndex = 0; colorIndex < tokens.size(); ++colorIndex)
+		{
+			if (isFloats)
+			{
+				out_color.data[colorIndex] = NormalizedFloatToByte(StringToFloat(tokens[colorIndex]));
+			}
+			else
+			{
+				int colorUnclamped = StringToInt(tokens[colorIndex].c_str());
+				out_color.data[colorIndex] = static_cast<uint8>(Clamp(colorUnclamped, 0, 255));
+			}
+		}
+	}	
+
+	return true;
 }
 
 

@@ -69,7 +69,7 @@ UIImage::~UIImage()
 
 
 //-------------------------------------------------------------------------------------------------
-void UIImage::LoadImageInto(const std::string& filepath)
+void UIImage::LoadImage(const std::string& filepath)
 {
 	Image* image = new Image();
 
@@ -85,10 +85,21 @@ void UIImage::InitializeFromXML(const XMLElem& element)
 {
 	UIElement::InitializeFromXML(element);
 
-	std::string filepath = XML::ParseAttribute(element, "image", "");
-	if (filepath.size() > 0)
+	// Check if the image is the name of a color first
+	std::string imageText = XML::ParseAttribute(element, "image", "");
+
+	if (imageText.size() > 0)
 	{
-		LoadImageInto(filepath);
+		Rgba color;
+		if (StringToRgba(imageText, color))
+		{
+			Image* image = new Image(IntVector2::ONES, color);
+			SetImage(image);
+		}
+		else
+		{
+			LoadImage(imageText);
+		}
 	}
 }
 
@@ -103,7 +114,7 @@ void UIImage::Update()
 //-------------------------------------------------------------------------------------------------
 void UIImage::Render()
 {
-	if (m_texture != nullptr)
+	if (ShouldRenderSelf() && m_texture != nullptr)
 	{
 		// Check if the text or the scale changed which would require a rebuild
 		OBB2 finalBounds = GetCanvasBounds();

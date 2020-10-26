@@ -42,8 +42,8 @@ public:
 	void				Initialize();
 	virtual void		InitializeFromXML(const XMLElem& element);
 
-	virtual void		Update();
-	virtual void		Render();
+	virtual void		Update() override;
+	virtual void		Render() override;
 
 	void				SetImage(Image* image);
 

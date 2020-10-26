@@ -201,7 +201,7 @@ UIText::~UIText()
 //-------------------------------------------------------------------------------------------------
 void UIText::Render()
 {
-	if (m_lines.size() > 0)
+	if (ShouldRenderSelf() && m_lines.size() > 0)
 	{
 		// Check if the text or the scale changed which would require a rebuild
 		OBB2 finalBounds = GetCanvasBounds();
@@ -213,11 +213,22 @@ void UIText::Render()
 		rend.SetDrawMesh(0, m_mesh);
 
 		g_renderContext->DrawRenderable(rend);
-		g_renderContext->DrawWireOBB2D(finalBounds, m_material, m_textColor);
+
+		// TODO: This needs to use a different material
+		if (IsInFocus())
+		{
+			g_renderContext->DrawWireOBB2D(finalBounds, m_material, m_textColor);
+		}
 	}
 
-
 	UIElement::Render();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void UIText::ClearText()
+{
+	m_lines.clear();
 }
 
 
@@ -320,6 +331,11 @@ std::string UIText::GetText() const
 //-------------------------------------------------------------------------------------------------
 std::string UIText::GetText(uint32 lineNumber) const
 {
+	if (m_lines.size() == 0)
+	{
+		return "";
+	}
+
 	ASSERT_RETURN(lineNumber < (uint32)m_lines.size(), "", "Index out of range!");
 	return m_lines[lineNumber];
 }
@@ -361,6 +377,37 @@ float UIText::GetMaxLineLength() const
 	}
 
 	return maxLength;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector2 UIText::GetTextCanvasDimensions() const
+{
+	return GetTextCanvasDimensions(0U);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector2 UIText::GetTextCanvasDimensions(uint32 lineIndex) const
+{
+	if (m_lines.size() == 0)
+	{
+		return Vector2::ZERO;
+	}
+
+	ASSERT_RETURN(lineIndex < (uint32)m_lines.size(), Vector2::ZERO, "Index out of range!");
+
+	return GetTextCanvasDimensions(m_lines[lineIndex]);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector2 UIText::GetTextCanvasDimensions(const std::string& text) const
+{
+	uint32 fontPixelHeight = m_canvas->ToPixelHeight(m_fontHeight);
+	IntVector2 pixelDimensions = m_font->GetTextDimensionsPixels(fontPixelHeight, text);
+
+	return Vector2(m_canvas->ToCanvasWidth(pixelDimensions.x), m_canvas->ToCanvasHeight(pixelDimensions.y));
 }
 
 

@@ -28,13 +28,13 @@ class Clock;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class StepTimer
+class FrameTimer
 {
 public:
 	//-----Public Methods-----
 
-	StepTimer();
-	StepTimer(Clock* referenceClock);
+	FrameTimer();
+	FrameTimer(Clock* referenceClock);
 
 	// Mutators
 	void	Reset();
@@ -42,6 +42,7 @@ public:
 	void	SetInterval(float seconds);
 	void	SetElapsedTime(float secondsElapsed);
 	bool	CheckAndReset();
+	bool	CheckAndDecrementAll();
 	bool	DecrementByIntervalOnce();
 	int		DecrementByIntervalAll();
 

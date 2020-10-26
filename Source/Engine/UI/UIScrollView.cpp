@@ -370,18 +370,22 @@ void UIScrollView::Update()
 //-------------------------------------------------------------------------------------------------
 void UIScrollView::Render()
 {
-	OBB2 canvasBounds = m_viewPanel->GetCanvasBounds();
+	// Children are considered part of self...
+	if (ShouldRenderSelf())
+	{
+		OBB2 canvasBounds = m_viewPanel->GetCanvasBounds();
 
-	float screenLeft = (float)m_canvas->ToPixelWidth(canvasBounds.m_alignedBounds.left);
-	float screenTop = (float)(m_canvas->ToPixelHeight(m_canvas->GetResolution().y) - m_canvas->ToPixelHeight(canvasBounds.m_alignedBounds.top));
-	float screenRight = (float)m_canvas->ToPixelWidth(canvasBounds.m_alignedBounds.right);
-	float screenBottom = (float)(m_canvas->ToPixelHeight(m_canvas->GetResolution().y) - m_canvas->ToPixelHeight(canvasBounds.m_alignedBounds.bottom));
-	AABB2 screenRect = AABB2(screenLeft, screenTop, screenRight, screenBottom);
+		float screenLeft = (float)m_canvas->ToPixelWidth(canvasBounds.m_alignedBounds.left);
+		float screenTop = (float)(m_canvas->ToPixelHeight(m_canvas->GetResolution().y) - m_canvas->ToPixelHeight(canvasBounds.m_alignedBounds.top));
+		float screenRight = (float)m_canvas->ToPixelWidth(canvasBounds.m_alignedBounds.right);
+		float screenBottom = (float)(m_canvas->ToPixelHeight(m_canvas->GetResolution().y) - m_canvas->ToPixelHeight(canvasBounds.m_alignedBounds.bottom));
+		AABB2 screenRect = AABB2(screenLeft, screenTop, screenRight, screenBottom);
 
-	// TODO: Fix this with a shader instance on text
-	m_textElement->GetMaterial()->GetShader()->EnableScissor(screenRect);
-	UIElement::Render();
-	m_textElement->GetMaterial()->GetShader()->DisableScissor();
+		// TODO: Fix this with a shader instance on text
+		m_textElement->GetMaterial()->GetShader()->EnableScissor(screenRect);
+		UIElement::Render();
+		m_textElement->GetMaterial()->GetShader()->DisableScissor();
+	}
 }
 
 

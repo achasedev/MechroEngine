@@ -386,7 +386,7 @@ Mesh* QEFLoader::CreateMesh()
 	for (int i = 0; i < numColors; ++i)
 	{
 		m_file->GetNextLine(colorText);
-		colors[i] = StringToRgba(colorText);
+		StringToRgba(colorText, colors[i]);
 	}
 
 	uint32 maxVoxels = dimensions.x * dimensions.y * dimensions.z;

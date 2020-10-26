@@ -41,7 +41,7 @@ public:
 	UIImage(Canvas* canvas);
 	virtual ~UIImage();
 
-	void				LoadImageInto(const std::string& filepath);
+	void				LoadImage(const std::string& filepath);
 	virtual void		InitializeFromXML(const XMLElem& element);
 
 	virtual void		Update();

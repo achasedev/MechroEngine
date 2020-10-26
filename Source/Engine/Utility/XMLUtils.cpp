@@ -83,7 +83,7 @@ Rgba XML::ParseAttribute(const XMLElem& element, const char* attributeName, cons
 
 	if (attributeText != nullptr)
 	{
-		result = StringToRgba(attributeText);
+		StringToRgba(attributeText, result);
 	}
 
 	return result;

@@ -10,7 +10,7 @@
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Time/Clock.h"
-#include "Engine/Time/StepTimer.h"
+#include "Engine/Time/FrameTimer.h"
 #include "Engine/Time/Time.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -34,7 +34,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-StepTimer::StepTimer()
+FrameTimer::FrameTimer()
 {
 	SetClock(nullptr);
 	Reset();
@@ -42,7 +42,7 @@ StepTimer::StepTimer()
 
 
 //-------------------------------------------------------------------------------------------------
-StepTimer::StepTimer(Clock* referenceClock)
+FrameTimer::FrameTimer(Clock* referenceClock)
 {
 	SetClock(referenceClock);
 	Reset();
@@ -50,7 +50,7 @@ StepTimer::StepTimer(Clock* referenceClock)
 
 
 //-------------------------------------------------------------------------------------------------
-void StepTimer::Reset()
+void FrameTimer::Reset()
 {
 	m_startHPC = m_referenceClock->GetTotalHPC();
 	m_endHPC = m_startHPC;
@@ -58,14 +58,14 @@ void StepTimer::Reset()
 
 
 //-------------------------------------------------------------------------------------------------
-void StepTimer::SetClock(Clock* clock)
+void FrameTimer::SetClock(Clock* clock)
 {
 	m_referenceClock = (clock != nullptr ? clock : Clock::GetMasterClock());
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void StepTimer::SetInterval(float seconds)
+void FrameTimer::SetInterval(float seconds)
 {
 	uint64 interval = TimeSystem::SecondsToPerformanceCount(seconds);
 	m_startHPC = m_referenceClock->GetTotalHPC();
@@ -74,7 +74,7 @@ void StepTimer::SetInterval(float seconds)
 
 
 //-------------------------------------------------------------------------------------------------
-void StepTimer::SetElapsedTime(float secondsElapsed)
+void FrameTimer::SetElapsedTime(float secondsElapsed)
 {
 	// Save off the interval length to preserve it
 	uint64 intervalLength = m_endHPC - m_startHPC;
@@ -88,7 +88,7 @@ void StepTimer::SetElapsedTime(float secondsElapsed)
 
 
 //-------------------------------------------------------------------------------------------------
-bool StepTimer::CheckAndReset()
+bool FrameTimer::CheckAndReset()
 {
 	if (HasIntervalElapsed())
 	{
@@ -101,7 +101,19 @@ bool StepTimer::CheckAndReset()
 
 
 //-------------------------------------------------------------------------------------------------
-bool StepTimer::DecrementByIntervalOnce()
+bool FrameTimer::CheckAndDecrementAll()
+{
+	if (DecrementByIntervalAll() > 0)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool FrameTimer::DecrementByIntervalOnce()
 {
 	if (HasIntervalElapsed())
 	{
@@ -117,7 +129,7 @@ bool StepTimer::DecrementByIntervalOnce()
 
 
 //-------------------------------------------------------------------------------------------------
-int StepTimer::DecrementByIntervalAll()
+int FrameTimer::DecrementByIntervalAll()
 {
 	uint64 currentHPC = m_referenceClock->GetTotalHPC();
 	uint64 interval = m_endHPC - m_startHPC;
@@ -135,7 +147,7 @@ int StepTimer::DecrementByIntervalAll()
 
 
 //-------------------------------------------------------------------------------------------------
-float StepTimer::GetElapsedSeconds() const
+float FrameTimer::GetElapsedSeconds() const
 {
 	uint64 currentHPC = m_referenceClock->GetTotalHPC();
 	uint64 elapsedHPC = currentHPC - m_startHPC;
@@ -145,7 +157,7 @@ float StepTimer::GetElapsedSeconds() const
 
 
 //-------------------------------------------------------------------------------------------------
-float StepTimer::GetElapsedTimeNormalized() const
+float FrameTimer::GetElapsedTimeNormalized() const
 {
 	float elapsedSeconds = GetElapsedSeconds();
 	float intervalSeconds = static_cast<float>(TimeSystem::PerformanceCountToSeconds(m_endHPC - m_startHPC));
@@ -155,7 +167,7 @@ float StepTimer::GetElapsedTimeNormalized() const
 
 
 //-------------------------------------------------------------------------------------------------
-float StepTimer::GetSecondsUntilIntervalEnds() const
+float FrameTimer::GetSecondsUntilIntervalEnds() const
 {
 	uint64 currentHPC = m_referenceClock->GetTotalHPC();
 
@@ -170,7 +182,7 @@ float StepTimer::GetSecondsUntilIntervalEnds() const
 
 
 //-------------------------------------------------------------------------------------------------
-bool StepTimer::HasIntervalElapsed() const
+bool FrameTimer::HasIntervalElapsed() const
 {
 	uint64 currentHPC = m_referenceClock->GetTotalHPC();
 
@@ -179,7 +191,7 @@ bool StepTimer::HasIntervalElapsed() const
 
 
 //-------------------------------------------------------------------------------------------------
-float StepTimer::GetDeltaSeconds() const
+float FrameTimer::GetDeltaSeconds() const
 {
 	return m_referenceClock->GetDeltaSeconds();
 }

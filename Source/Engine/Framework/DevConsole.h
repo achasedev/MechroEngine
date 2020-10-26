@@ -8,6 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Time/FrameTimer.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -17,6 +18,7 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Canvas;
+class UIImage;
 class UIPanel;
 class UIScrollView;
 class UIText;
@@ -74,14 +76,16 @@ private:
 	void HandleLeftArrow();
 	void HandleRightArrow();
 	void AddCharacterToInputBuffer(unsigned char character);
+	void UpdateCursorElementPosition();
+	void ResetCursorTimer();
+	void MoveCursor(int valueToAddToCursor);
+	void SetCursor(int valueToBeSetTo);
 
 
 private:
 	//-----Private Data-----
 
 	bool			m_isActive = false;
-
-	std::string		m_inputBuffer;
 	int				m_cursorPosition = 0;
 
 	// Rendering
@@ -90,6 +94,10 @@ private:
 	UIPanel*		m_inputPanel = nullptr;
 	UIText*			m_inputFieldText = nullptr;
 	UIScrollView*	m_logScrollView = nullptr;
+	UIImage*		m_inputCursor = nullptr;
+	FrameTimer		m_cursorTimer;
+	bool			m_showInputCursor = false;
+	float			m_cursorInterval = 0.25f; // 0.5 seconds per state (shown or hidden)
 
 	// TODO: Resource System
 	Shader*			m_shader = nullptr;

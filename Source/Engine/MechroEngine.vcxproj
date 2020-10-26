@@ -216,7 +216,7 @@
     <ClCompile Include="Math\Vector4.cpp" />
     <ClCompile Include="Render\View\TextureView.cpp" />
     <ClCompile Include="Time\Clock.cpp" />
-    <ClCompile Include="Time\StepTimer.cpp" />
+    <ClCompile Include="Time\FrameTimer.cpp" />
     <ClCompile Include="Time\Time.cpp" />
     <ClCompile Include="Time\Timer.cpp" />
     <ClCompile Include="UI\Canvas.cpp" />
@@ -310,7 +310,7 @@
     <ClInclude Include="Math\Vector4.h" />
     <ClInclude Include="Resource\Resource.h" />
     <ClInclude Include="Time\Clock.h" />
-    <ClInclude Include="Time\StepTimer.h" />
+    <ClInclude Include="Time\FrameTimer.h" />
     <ClInclude Include="Time\Time.h" />
     <ClInclude Include="Time\Timer.h" />
     <ClInclude Include="UI\Canvas.h" />

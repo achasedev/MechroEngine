@@ -74,6 +74,7 @@ public:
 	Vector2				GetResolution() const { return m_resolution; }
 	Texture2D*			GetOutputTexture() const;
 	UIElement*			FindElementByID(StringID id);
+	UIElement*			GetElementInFocus() const { return m_elementInFocus; }
 	float				GetAspect() const;
 	Vector2				GetPixelsPerUnit() const;
 	Vector2				GetCanvasUnitsPerPixel() const;

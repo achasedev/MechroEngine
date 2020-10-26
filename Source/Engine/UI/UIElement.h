@@ -54,6 +54,15 @@ struct UIMouseInfo
 typedef bool(*UIMouseInputHandler)(UIElement* element, const UIMouseInfo& mouseInfo);
 typedef bool(*UIKeyboardInputHandler)(UIElement* element, unsigned char character);
 
+//-------------------------------------------------------------------------------------------------
+enum UIElementRenderMode
+{
+	ELEMENT_RENDER_ALL,
+	ELEMENT_RENDER_SELF,
+	ELEMENT_RENDER_CHILDREN,
+	ELEMENT_RENDER_NONE
+};
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -86,13 +95,17 @@ public:
 	UIElement*			GetChildByID(StringID id);
 	Canvas*				GetCanvas() const { return m_canvas; }
 	bool				IsCanvas() const;
+	bool				IsInFocus() const;
+	bool				ShouldRenderSelf() const;
+	bool				ShouldRenderChildren() const;
 
 	template <typename T>
-	T* GetFirstChildOfType();
+	T*					GetFirstChildOfType();
 
 	void				SetID(StringID id);
 	void				SetID(const std::string& name);
 	void				SetID(const char* name);
+	void				SetRenderMode(UIElementRenderMode mode) { m_renderMode = mode; }
 
 	OBB2				GetCanvasBounds() const;
 	Matrix44			CreateModelMatrix() const;
@@ -126,6 +139,7 @@ protected:
 	Canvas*							m_canvas = nullptr;
 	std::vector<UIElement*>			m_children;
 	uint32							m_layer = 0U;
+	UIElementRenderMode				m_renderMode = ELEMENT_RENDER_ALL;
 
 };
 

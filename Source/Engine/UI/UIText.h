@@ -65,6 +65,7 @@ public:
 	virtual void	InitializeFromXML(const XMLElem& element) override;
 	virtual void	Render() override;
 	
+	void			ClearText();
 	void			SetText(const std::string& text, const Rgba& color = Rgba::WHITE);
 	void			SetText(uint32 lineNumber, const std::string& text, const Rgba& color = Rgba::WHITE);
 	void			AddLine(const std::string& text, const Rgba& color = Rgba::WHITE);
@@ -87,6 +88,9 @@ public:
 	Material*		GetMaterial() const { return m_material; }
 	Font*			GetFont() const { return m_font; }
 	TextDrawMode	GetTextDrawMode() const { return m_textDrawMode; }
+	Vector2			GetTextCanvasDimensions() const;
+	Vector2			GetTextCanvasDimensions(uint32 lineNumber) const;
+	Vector2			GetTextCanvasDimensions(const std::string& text) const;
 
 
 private:

@@ -155,5 +155,6 @@ int Font::GetKerningInPixels(uint32 pixelHeight, const char firstGlyph, const ch
 IntVector2 Font::GetTextDimensionsPixels(uint32 pixelHeight, const std::string& text)
 {
 	FontAtlas* atlas = GetFontAtlasForPixelHeight(pixelHeight);
-	return atlas->GetTextDimensionsPixels(text);
+
+	return (atlas != nullptr ? atlas->GetTextDimensionsPixels(text) : IntVector2::ZERO);
 }

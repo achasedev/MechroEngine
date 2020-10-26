@@ -29,7 +29,7 @@ const Rgba Rgba::BLUE		= Rgba(0, 0, 255, 255);
 const Rgba Rgba::CYAN		= Rgba(0, 255, 255, 255);
 const Rgba Rgba::MAGENTA	= Rgba(255, 0, 255, 255);
 const Rgba Rgba::YELLOW		= Rgba(255, 255, 0, 255);
-const Rgba Rgba::GRAY		= Rgba(153, 153, 153, 255);;
+const Rgba Rgba::GRAY		= Rgba(153, 153, 153, 255);
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
@@ -109,3 +109,4 @@ Vector4 Rgba::GetAsFloats() const
 {
 	return Vector4(Normalize(r), Normalize(g), Normalize(b), Normalize(a));
 }
+

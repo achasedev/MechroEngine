@@ -12,16 +12,19 @@
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Framework/Window.h"
 #include "Engine/IO/Image.h"
+#include "Engine/Math/MathUtils.h"
 #include "Engine/Render/Camera/Camera.h"
 #include "Engine/Render/Core/RenderContext.h"
 #include "Engine/Render/Material.h"
 #include "Engine/Render/Shader.h"
 #include "Engine/Render/Texture/Texture2D.h"
 #include "Engine/UI/Canvas.h"
+#include "Engine/UI/UIImage.h"
 #include "Engine/UI/UIPanel.h"
 #include "Engine/UI/UIScrollView.h"
 #include "Engine/UI/UIText.h"
 #include "Engine/Utility/NamedProperties.h"
+#include "Engine/Render/Font/Font.h"
 #include "Engine/Render/Font/FontLoader.h"
 
 #ifndef WIN32_LEAN_AND_MEAN
@@ -71,19 +74,6 @@ static bool DevConsoleMessageHandler(unsigned int msg, size_t wparam, size_t lpa
 	}
 
 	return false;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-static bool OnKeyDown_InputField(UIElement* element, unsigned char character)
-{
-	UIText* textElement = element->GetAsType<UIText>();
-
-	std::string text = textElement->GetText();
-	text += character;
-	textElement->SetText(text);
-
-	return true;
 }
 
 
@@ -169,6 +159,18 @@ void DevConsole::ProcessInput()
 //-------------------------------------------------------------------------------------------------
 void DevConsole::Update()
 {
+	if (m_cursorTimer.CheckAndDecrementAll())
+	{
+		m_showInputCursor = !m_showInputCursor;
+
+		UIElementRenderMode mode = (m_showInputCursor ? ELEMENT_RENDER_ALL : ELEMENT_RENDER_NONE);
+		m_inputCursor->SetRenderMode(mode);
+	}
+
+	// Cursor gets moved from many functions, easiest to just update its position constantly
+	// also it's cheap, so why not
+	UpdateCursorElementPosition();
+
 	m_canvas->Update();
 }
 
@@ -220,11 +222,15 @@ DevConsole::DevConsole()
 	m_inputPanel = m_canvas->FindElementAsType<UIPanel>(SID("input_panel"));
 	m_inputFieldText = m_canvas->FindElementAsType<UIText>(SID("input_text"));
 	m_logScrollView = m_canvas->FindElementAsType<UIScrollView>(SID("log_scrollview"));
+	m_inputCursor = m_canvas->FindElementAsType<UIImage>(SID("input_cursor_image"));
 
 	m_inputFieldText->SetShader(m_shader);
-	m_inputFieldText->m_onKeyDown = OnKeyDown_InputField;
+	m_inputCursor->SetShader(m_shader);
 
 	m_logScrollView->GetScrollTextElement()->SetShader(m_shader);
+
+	m_inputFieldText->SetText(">");
+	SetCursor(0);
 }
 
 
@@ -251,11 +257,15 @@ void DevConsole::HandleTilde()
 //-------------------------------------------------------------------------------------------------
 void DevConsole::HandleEnter()
 {
-	if (m_inputBuffer.size() > 0)
+	std::string input = m_inputFieldText->GetText();
+
+	// > 1 since the first character is a ">"
+	if (input.size() > 1)
 	{
 		// Print the command to the console log
+		m_logScrollView->AddTextToScroll(input);
 
-		// Add the command to history
+		// TODO: Add the command to history
 
 
 		// Parse the command arguments from the command name
@@ -285,6 +295,9 @@ void DevConsole::HandleEnter()
 
 		//// Run the command
 		//FireEvent(eventID, args);
+
+		m_inputFieldText->SetText(">");
+		m_cursorPosition = 0U;
 	}
 }
 
@@ -292,21 +305,40 @@ void DevConsole::HandleEnter()
 //-------------------------------------------------------------------------------------------------
 void DevConsole::HandleBackSpace()
 {
+	if (m_cursorPosition > 0)
+	{
+		std::string inputText = m_inputFieldText->GetText();
 
+		if (inputText.size() > 1)
+		{
+			inputText.erase(inputText.begin() + m_cursorPosition);
+			m_inputFieldText->SetText(inputText);
+
+			MoveCursor(-1);
+		}
+	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void DevConsole::HandleDelete()
 {
-
+	std::string inputText = m_inputFieldText->GetText();
+	if (m_cursorPosition < (int)inputText.size() - 1)
+	{
+		if (inputText.size() > 1)
+		{
+			inputText.erase(inputText.begin() + m_cursorPosition + 1);
+			m_inputFieldText->SetText(inputText);
+		}
+	}	
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void DevConsole::HandleEscape()
 {
-
+	
 }
 
 
@@ -323,26 +355,76 @@ void DevConsole::HandleDownArrow()
 
 }
 
+
 //-------------------------------------------------------------------------------------------------
 void DevConsole::HandleLeftArrow()
 {
-	// Move the cursor to the left, not going beyond right before the first character
-	//m_cursorPosition--;
-	//m_cursorPosition = ClampInt(m_cursorPosition, 0, static_cast<int>(m_inputBuffer.size()));
+	MoveCursor(-1);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void DevConsole::HandleRightArrow()
 {
-	// Move the cursor to the right, not going pass the very end of the string
-	//m_cursorPosition++;
-	//m_cursorPosition = ClampInt(m_cursorPosition, 0, static_cast<int>(m_inputBuffer.size()));
+	MoveCursor(1);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void DevConsole::AddCharacterToInputBuffer(unsigned char character)
 {
-	m_canvas->ProcessKeyboardInput(character);
+	if (m_inputFieldText->IsInFocus())
+	{
+		std::string inputText = m_inputFieldText->GetText();
+		inputText.insert(inputText.begin() + m_cursorPosition + 1, character);
+		m_inputFieldText->SetText(inputText);
+
+		MoveCursor(1);
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void DevConsole::UpdateCursorElementPosition()
+{
+	// Only update the position when the cursor is shown
+	if (m_showInputCursor)
+	{
+		std::string text = m_inputFieldText->GetText();
+
+		// Find the text the cursor would be placed after
+		// + 1 since the ">" isn't counted for the cursor position
+		text = text.substr(0, m_cursorPosition + 1);
+
+		Vector2 canvasDimensions = m_inputFieldText->GetTextCanvasDimensions(text);
+		m_inputCursor->m_transform.SetXPosition(canvasDimensions.x);
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void DevConsole::ResetCursorTimer()
+{
+	m_cursorTimer.SetInterval(m_cursorInterval);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void DevConsole::MoveCursor(int valueToAddToCursor)
+{
+	SetCursor(m_cursorPosition + valueToAddToCursor);
+}
+
+
+void DevConsole::SetCursor(int valueToBeSetTo)
+{
+	// Keep the cursor in bounds
+	std::string inputText = m_inputFieldText->GetText();
+	int finalValue = Clamp(valueToBeSetTo, 0, (int)inputText.size() - 1);
+	m_cursorPosition = finalValue;
+
+	// Reset the cursor and force show it
+	m_showInputCursor = true;
+	m_inputCursor->SetRenderMode(ELEMENT_RENDER_ALL);
+	ResetCursorTimer();
 }

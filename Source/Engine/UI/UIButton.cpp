@@ -154,7 +154,11 @@ void UIButton::Update()
 //-------------------------------------------------------------------------------------------------
 void UIButton::Render()
 {
-	UIElement::Render();
+	// Button's two children are considered part of self.....
+	if (ShouldRenderSelf())
+	{
+		UIElement::Render();
+	}
 }
 
 

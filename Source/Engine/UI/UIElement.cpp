@@ -10,6 +10,7 @@
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/UI/Canvas.h"
 #include "Engine/UI/UIElement.h"
+#include "Engine/UI/UIImage.h"
 #include "Engine/UI/UIPanel.h"
 #include "Engine/UI/UIScrollView.h"
 #include "Engine/UI/UIText.h"
@@ -233,9 +234,12 @@ void UIElement::Render()
 {
 	// Parent should already have rendered themselves
 	// Now render the children on top
-	for (size_t childIndex = 0; childIndex < m_children.size(); ++childIndex)
+	if (ShouldRenderChildren())
 	{
-		m_children[childIndex]->Render();
+		for (size_t childIndex = 0; childIndex < m_children.size(); ++childIndex)
+		{
+			m_children[childIndex]->Render();
+		}
 	}
 }
 
@@ -380,6 +384,27 @@ bool UIElement::IsCanvas() const
 
 
 //-------------------------------------------------------------------------------------------------
+bool UIElement::IsInFocus() const
+{
+	return (m_canvas->GetElementInFocus() == this);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool UIElement::ShouldRenderSelf() const
+{
+	return m_renderMode == ELEMENT_RENDER_ALL || m_renderMode == ELEMENT_RENDER_SELF;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool UIElement::ShouldRenderChildren() const
+{
+	return m_renderMode == ELEMENT_RENDER_ALL || m_renderMode == ELEMENT_RENDER_CHILDREN;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void UIElement::SetID(StringID id)
 {
 	m_id = id;
@@ -466,6 +491,7 @@ STATIC UIElement* UIElement::CreateUIElementFromXML(const XMLElem& element, Canv
 	if		(elementType == "panel")		{ uiElement = new UIPanel(canvas); }
 	else if (elementType == "text")			{ uiElement = new UIText(canvas); }
 	else if (elementType == "scrollview")	{ uiElement = new UIScrollView(canvas); }
+	else if (elementType == "image")		{ uiElement = new UIImage(canvas); }
 	else
 	{
 		ERROR_RECOVERABLE("Cannot create UIElement of type %s!", elementType.c_str());
