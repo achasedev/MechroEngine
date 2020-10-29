@@ -4,6 +4,7 @@
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
+#include "Engine/DataStructures/ColoredText.h"
 #include "Engine/Render/Buffer/UniformBuffer.h"
 #include "Engine/UI/UIElement.h"
 
@@ -63,7 +64,8 @@ public:
 
 	void			SetFont(Font* font);
 	void			SetFontHeight(float height);
-	void			AddTextToScroll(const std::string& text);
+	void			AddTextToScroll(const std::string& text, Rgba color = Rgba::WHITE);
+	void			AddTextToScroll(const ColoredText& coloredText);
 	void			ScrollVerticalWithTranslation(float translation);
 	void			ScrollHorizontalWithTranslation(float translation);
 	void			ScrollFromVerticalSlider(float deltaScroll);

@@ -33,7 +33,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-const int STRINGF_STACK_LOCAL_TEMP_LENGTH = 2048;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
@@ -63,12 +62,12 @@ static void TokenizeByCommasOrSpaces(const std::string& text, std::vector<std::s
 //-------------------------------------------------------------------------------------------------
 const std::string Stringf(const char* format, ...)
 {
-	char textLiteral[STRINGF_STACK_LOCAL_TEMP_LENGTH];
+	char textLiteral[VARIABLE_ARG_STACK_LOCAL_TEMP_LENGTH];
 	va_list variableArgumentList;
 	va_start(variableArgumentList, format);
-	vsnprintf_s(textLiteral, STRINGF_STACK_LOCAL_TEMP_LENGTH, _TRUNCATE, format, variableArgumentList);
+	vsnprintf_s(textLiteral, VARIABLE_ARG_STACK_LOCAL_TEMP_LENGTH, _TRUNCATE, format, variableArgumentList);
 	va_end(variableArgumentList);
-	textLiteral[STRINGF_STACK_LOCAL_TEMP_LENGTH - 1] = '\0'; // In case vsnprintf overran (doesn't auto-terminate)
+	textLiteral[VARIABLE_ARG_STACK_LOCAL_TEMP_LENGTH - 1] = '\0'; // In case vsnprintf overran (doesn't auto-terminate)
 
 	return std::string(textLiteral);
 }
@@ -76,9 +75,9 @@ const std::string Stringf(const char* format, ...)
 //-------------------------------------------------------------------------------------------------
 const std::string Stringf(const int maxLength, const char* format, ...)
 {
-	char textLiteralSmall[STRINGF_STACK_LOCAL_TEMP_LENGTH];
+	char textLiteralSmall[VARIABLE_ARG_STACK_LOCAL_TEMP_LENGTH];
 	char* textLiteral = textLiteralSmall;
-	if (maxLength > STRINGF_STACK_LOCAL_TEMP_LENGTH)
+	if (maxLength > VARIABLE_ARG_STACK_LOCAL_TEMP_LENGTH)
 		textLiteral = new char[maxLength];
 
 	va_list variableArgumentList;
@@ -88,7 +87,7 @@ const std::string Stringf(const int maxLength, const char* format, ...)
 	textLiteral[maxLength - 1] = '\0'; // In case vsnprintf overran (doesn't auto-terminate)
 
 	std::string returnValue(textLiteral);
-	if (maxLength > STRINGF_STACK_LOCAL_TEMP_LENGTH)
+	if (maxLength > VARIABLE_ARG_STACK_LOCAL_TEMP_LENGTH)
 		delete[] textLiteral;
 
 	return returnValue;

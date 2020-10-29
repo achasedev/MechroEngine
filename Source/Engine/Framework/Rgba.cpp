@@ -110,3 +110,14 @@ Vector4 Rgba::GetAsFloats() const
 	return Vector4(Normalize(r), Normalize(g), Normalize(b), Normalize(a));
 }
 
+
+//-------------------------------------------------------------------------------------------------
+Rgba Rgba::GetRandomColor()
+{
+	float red = GetRandomFloatZeroToOne();
+	float green = GetRandomFloatZeroToOne();
+	float blue = GetRandomFloatZeroToOne();
+
+	return Rgba(red, green, blue, 1.0f);
+}
+

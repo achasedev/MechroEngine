@@ -404,9 +404,16 @@ void UIScrollView::SetFontHeight(float height)
 
 
 //-------------------------------------------------------------------------------------------------
-void UIScrollView::AddTextToScroll(const std::string& text)
+void UIScrollView::AddTextToScroll(const ColoredText& coloredText)
 {
-	m_textElement->AddLine(text);
+	AddTextToScroll(coloredText.m_text, coloredText.m_color);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void UIScrollView::AddTextToScroll(const std::string& text, Rgba color /*= Rgba::WHITE*/)
+{
+	m_textElement->AddLine(text, color);
 	UpdateVerticalSlider();
 	UpdateHorizontalSlider();
 }

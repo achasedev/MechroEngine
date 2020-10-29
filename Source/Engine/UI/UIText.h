@@ -8,6 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/DataStructures/ColoredText.h"
 #include "Engine/Framework/Rgba.h"
 #include "Engine/UI/UIElement.h"
 
@@ -66,10 +67,10 @@ public:
 	virtual void	Render() override;
 	
 	void			ClearText();
-	void			SetText(const std::string& text, const Rgba& color = Rgba::WHITE);
-	void			SetText(uint32 lineNumber, const std::string& text, const Rgba& color = Rgba::WHITE);
-	void			AddLine(const std::string& text, const Rgba& color = Rgba::WHITE);
-	void			AddLines(const std::vector<std::string>& lines, const Rgba& color = Rgba::WHITE);
+	void			SetText(const std::string& text, Rgba color = Rgba::WHITE);
+	void			SetText(uint32 lineNumber, const std::string& text, Rgba color = Rgba::WHITE);
+	void			AddLine(const std::string& text, Rgba color = Rgba::WHITE);
+	void			AddLines(const std::vector<std::string>& lines, Rgba color = Rgba::WHITE);
 	void			SetFont(Font* font);
 	void			SetShader(Shader* shader);
 	void			SetFontHeight(float fontHeight);
@@ -104,8 +105,7 @@ private:
 private:
 	//-----Private Data-----
 
-	std::vector<std::string>	m_lines;
-	Rgba						m_textColor;
+	std::vector<ColoredText>	m_lines;
 	Mesh*						m_mesh = nullptr;
 	Material*					m_material = nullptr;
 	Font*						m_font = nullptr;
@@ -113,9 +113,9 @@ private:
 	bool						m_isDirty = true;
 	float						m_boundsHeightLastDraw = -1.0f;
 
-	HorizontalAlignment m_horizontalAlign	= ALIGNMENT_LEFT;
-	VerticalAlignment m_verticalAlign		= ALIGNMENT_TOP;
-	TextDrawMode m_textDrawMode				= TEXT_DRAW_DEFAULT;
+	HorizontalAlignment			m_horizontalAlign	= ALIGNMENT_LEFT;
+	VerticalAlignment			m_verticalAlign		= ALIGNMENT_TOP;
+	TextDrawMode				m_textDrawMode		= TEXT_DRAW_DEFAULT;
 
 };
 

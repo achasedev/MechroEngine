@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: February 15th, 2020
+/// Date Created: October 28th, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,9 +8,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Framework/EngineCommon.h"
-#include "Engine/Math/Vector4.h"
-#pragma warning(disable : 4201) // Keep the structs anonymous in the union for usability
+#include "Engine/Framework/Rgba.h"
+#include <string>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -20,6 +19,18 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
+//-------------------------------------------------------------------------------------------------
+struct ColoredText
+{
+	ColoredText() {}
+	explicit ColoredText(const std::string& text, Rgba color = Rgba::WHITE)
+	 : m_text(text), m_color(color) {}
+
+	std::string m_text = "";
+	Rgba		m_color = Rgba::WHITE;
+};
+
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -27,58 +38,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------------------------------
-class Rgba
-{
-public:
-	//-----Public Methods-----
-
-	Rgba();
-	explicit Rgba(int red, int green, int blue, int alpha);
-	explicit Rgba(float red, float green, float blue, float alpha);
-	Rgba(const Rgba& copy);
-
-	float		GetRedFloat() const;
-	float		GetBlueFloat() const;
-	float		GetGreenFloat() const;
-	float		GetAlphaFloat() const;
-	Vector4		GetAsFloats() const;
-
-	static Rgba GetRandomColor();
-
-
-public:
-	//-----Public Static Data-----
-
-	static const Rgba WHITE;
-	static const Rgba BLACK;
-	static const Rgba RED;
-	static const Rgba GREEN;
-	static const Rgba BLUE;
-	static const Rgba CYAN;
-	static const Rgba MAGENTA;
-	static const Rgba YELLOW;
-	static const Rgba GRAY;
-
-
-public:
-	//-----Public Member Data-----
-
-	union
-	{
-		uint8 data[4];
-		struct
-		{
-			uint8 r;
-			uint8 g;
-			uint8 b;
-			uint8 a;
-		};
-	};
-};
-
-#pragma warning(default : 4201)
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS

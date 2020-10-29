@@ -29,32 +29,47 @@ EventSystem* g_eventSystem = nullptr;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-void FireEvent(const char* eventName)
+bool FireEvent(const char* eventName)
 {
 	NamedProperties args;
-	FireEvent(SID(eventName), args);
+	return FireEvent(SID(eventName), args);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void FireEvent(const StringID& eventSID)
+bool FireEvent(const std::string& eventName)
 {
 	NamedProperties args;
-	FireEvent(eventSID, args);
+	return FireEvent(SID(eventName), args);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void FireEvent(const char* eventName, NamedProperties& args)
+bool FireEvent(const StringID& eventSID)
 {
-	FireEvent(SID(eventName), args);
+	NamedProperties args;
+	return FireEvent(eventSID, args);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void FireEvent(const StringID& eventSID, NamedProperties& args)
+bool FireEvent(const char* eventName, NamedProperties& args)
 {
-	g_eventSystem->FireEvent(eventSID, args);
+	return FireEvent(SID(eventName), args);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool FireEvent(const std::string& eventName, NamedProperties& args)
+{
+	return FireEvent(SID(eventName), args);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool FireEvent(const StringID& eventSID, NamedProperties& args)
+{
+	return g_eventSystem->FireEvent(eventSID, args);
 }
 
 
@@ -145,7 +160,7 @@ void EventSystem::UnsubscribeEventCallbackFunction(const char* eventName, EventF
 
 
 //-------------------------------------------------------------------------------------------------
-void EventSystem::FireEvent(const StringID& eventSID, NamedProperties& args)
+bool EventSystem::FireEvent(const StringID& eventSID, NamedProperties& args)
 {
 	bool eventHasSubscribers = (m_subscriptions.find(eventSID) != m_subscriptions.end());
 
@@ -164,4 +179,6 @@ void EventSystem::FireEvent(const StringID& eventSID, NamedProperties& args)
 			}
 		}
 	}
+
+	return eventHasSubscribers;
 }

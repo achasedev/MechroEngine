@@ -8,6 +8,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/DataStructures/ColoredText.h"
+#include "Engine/DataStructures/ThreadSafeQueue.h"
 #include "Engine/Time/FrameTimer.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -18,13 +20,12 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Canvas;
+class Shader;
+class Texture2D;
 class UIImage;
 class UIPanel;
 class UIScrollView;
 class UIText;
-
-class Shader;
-class Texture2D;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -55,6 +56,7 @@ public:
 	void		Render() const;
 
 	void		SetIsActive(bool isActive);
+	void		AddToMessageQueue(const ColoredText& outputText);
 
 	// Accessors
 	bool		IsActive() const { return m_isActive; }
@@ -86,10 +88,11 @@ private:
 private:
 	//-----Private Data-----
 
-	bool						m_isActive = false;
-	int							m_cursorPosition = 0;
-	int							m_historyIndex = 0;
-	std::vector<std::string>	m_commandHistory;
+	bool								m_isActive = false;
+	int									m_cursorPosition = 0;
+	int									m_historyIndex = 0;
+	std::vector<std::string>			m_commandHistory;
+	ThreadSafeQueue<ColoredText>	m_outputQueue;
 
 	// Rendering
 	Canvas*			m_canvas = nullptr;

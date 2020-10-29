@@ -106,12 +106,11 @@ Vector2 CalcLineStartFromAlignment(const AABB2& textBounds, const Vector2& textD
 //-------------------------------------------------------------------------------------------------
 static uint32 PushText_Default(
 	MeshBuilder& mb,
-	std::vector<std::string> textLines,
+	const std::vector<ColoredText>& textLines,
 	uint32 pixelHeight,
 	Font* font,
 	const AABB2& textBounds,
 	const Vector2& canvasUnitsPerPixel,
-	const Rgba& color,
 	HorizontalAlignment xAlign,
 	VerticalAlignment yAlign)
 {
@@ -121,7 +120,7 @@ static uint32 PushText_Default(
 
 	for (size_t lineIndex = 0; lineIndex < textLines.size(); ++lineIndex)
 	{
-		std::string& text = textLines[lineIndex];
+		const std::string& text = textLines[lineIndex].m_text;
 		int numChars = text.size();
 
 		IntVector2 strPixelDimensions = atlas->GetTextDimensionsPixels(text);
@@ -159,7 +158,7 @@ static uint32 PushText_Default(
 			glyphBounds.right = glyphBounds.left + ConvertPixelOffsetToNormalizedOffset(info.m_pixelWidth, canvasUnitsPerPixel.x, textBoundsWidth);
 			glyphBounds.top = glyphBounds.bottom + ConvertPixelOffsetToNormalizedOffset(info.m_pixelHeight, canvasUnitsPerPixel.y, textBoundsHeight);
 
-			mb.PushQuad2D(glyphBounds, info.m_glyphUVs, color);
+			mb.PushQuad2D(glyphBounds, info.m_glyphUVs, textLines[lineIndex].m_color);
 
 			// Update running position
 			runningPos.x += ConvertPixelOffsetToNormalizedOffset(info.m_pixelHorizontalAdvance + pixelLeftSideAdjustment, canvasUnitsPerPixel.x, textBoundsWidth);
@@ -174,12 +173,11 @@ static uint32 PushText_Default(
 //-------------------------------------------------------------------------------------------------
 static uint32 PushText_ShrinkToFit(
 	MeshBuilder& mb,
-	std::vector<std::string> textLines,
+	const std::vector<ColoredText>& textLines,
 	uint32 pixelHeight,
 	Font* font,
 	const AABB2& textBounds,
 	const Vector2& canvasUnitsPerPixel,
-	const Rgba& color,
 	HorizontalAlignment xAlign,
 	VerticalAlignment yAlign)
 {
@@ -188,7 +186,7 @@ static uint32 PushText_ShrinkToFit(
 
 	for (size_t lineIndex = 0; lineIndex < textLines.size(); ++lineIndex)
 	{
-		IntVector2 strPixelDimensions = atlas->GetTextDimensionsPixels(textLines[lineIndex]);
+		IntVector2 strPixelDimensions = atlas->GetTextDimensionsPixels(textLines[lineIndex].m_text);
 		Vector2 textCanvasDimensions = Vector2(canvasUnitsPerPixel.x * (float)strPixelDimensions.x, canvasUnitsPerPixel.y * (float)strPixelDimensions.y);
 
 		float boundsWidth = textBounds.GetWidth();
@@ -214,19 +212,18 @@ static uint32 PushText_ShrinkToFit(
 		finalHeight = Min(finalHeight, xDesiredHeight, yDesiredHeight);
 	}
 
-	return PushText_Default(mb, textLines, finalHeight, font, textBounds, canvasUnitsPerPixel, color, xAlign, yAlign);
+	return PushText_Default(mb, textLines, finalHeight, font, textBounds, canvasUnitsPerPixel, xAlign, yAlign);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 static uint32 PushText_ExpandToFill(
 	MeshBuilder& mb,
-	std::vector<std::string> textLines,
+	const std::vector<ColoredText>& textLines,
 	uint32 pixelHeight,
 	Font* font,
 	const AABB2& textBounds,
 	const Vector2& canvasUnitsPerPixel,
-	const Rgba& color,
 	HorizontalAlignment xAlign,
 	VerticalAlignment yAlign)
 {
@@ -235,7 +232,7 @@ static uint32 PushText_ExpandToFill(
 
 	for (size_t lineIndex = 0; lineIndex < textLines.size(); ++lineIndex)
 	{
-		IntVector2 strPixelDimensions = atlas->GetTextDimensionsPixels(textLines[lineIndex]);
+		IntVector2 strPixelDimensions = atlas->GetTextDimensionsPixels(textLines[lineIndex].m_text);
 		Vector2 textCanvasDimensions = Vector2(canvasUnitsPerPixel.x * (float)strPixelDimensions.x, canvasUnitsPerPixel.y * (float)strPixelDimensions.y);
 
 		float boundsWidth = textBounds.GetWidth();
@@ -262,29 +259,28 @@ static uint32 PushText_ExpandToFill(
 	}
 	
 
-	return PushText_Default(mb, textLines, finalHeight, font, textBounds, canvasUnitsPerPixel, color, xAlign, yAlign);
+	return PushText_Default(mb, textLines, finalHeight, font, textBounds, canvasUnitsPerPixel, xAlign, yAlign);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 static uint32 PushText_WordWrap(
 	MeshBuilder& mb,
-	std::vector<std::string> textLines,
+	const std::vector<ColoredText>& textLines,
 	uint32 pixelHeight,
 	Font* font,
 	const AABB2& textBounds,
 	const Vector2& canvasUnitsPerPixel,
-	const Rgba& color /*= Rgba::WHITE*/,
-	HorizontalAlignment xAlign /*= ALIGNMENT_LEFT*/,
-	VerticalAlignment yAlign /*= ALIGNMENT_TOP*/)
+	HorizontalAlignment xAlign,
+	VerticalAlignment yAlign)
 {
 	FontAtlas* atlas = font->CreateOrGetAtlasForPixelHeight(pixelHeight);
 	float textBoundsWidth = textBounds.GetWidth();
-	std::vector<std::string> finalLines;
+	std::vector<ColoredText> finalLines;
 
 	for (size_t textLineIndex = 0; textLineIndex < textLines.size(); ++textLineIndex)
 	{
-		std::string text = textLines[textLineIndex];
+		std::string text = textLines[textLineIndex].m_text;
 
 		std::vector<std::string> words;
 		Tokenize(text, ' ', words);
@@ -307,7 +303,7 @@ static uint32 PushText_WordWrap(
 			else
 			{
 				// Save off the line
-				finalLines.push_back(currLine);
+				finalLines.push_back(ColoredText(currLine, textLines[textLineIndex].m_color));
 
 				// Update for where the next line will be
 				currLine = words[wordIndex];
@@ -317,11 +313,11 @@ static uint32 PushText_WordWrap(
 		// Be sure to draw any leftovers
 		if (currLine.size() > 0)
 		{
-			finalLines.push_back(currLine);
+			finalLines.push_back(ColoredText(currLine, textLines[textLineIndex].m_color));
 		}
 	}
 
-	return PushText_Default(mb, finalLines, pixelHeight, font, textBounds, canvasUnitsPerPixel, color, xAlign, yAlign);
+	return PushText_Default(mb, finalLines, pixelHeight, font, textBounds, canvasUnitsPerPixel, xAlign, yAlign);
 }
 
 
@@ -484,23 +480,37 @@ uint32 MeshBuilder::PushText(
 
 
 //-------------------------------------------------------------------------------------------------
-uint32 MeshBuilder::PushText(std::vector<std::string> textLines, uint32 pixelHeight, Font* font, const AABB2& textBounds, const Vector2& canvasUnitsPerPixel, const Rgba& color /*= Rgba::WHITE*/, HorizontalAlignment xAlign /*= ALIGNMENT_LEFT*/, VerticalAlignment yAlign /*= ALIGNMENT_TOP*/, TextDrawMode drawMode /*= TEXT_DRAW_DEFAULT*/)
+uint32 MeshBuilder::PushText(const std::vector<std::string>& textLines, uint32 pixelHeight, Font* font, const AABB2& textBounds, const Vector2& canvasUnitsPerPixel, const Rgba& color /*= Rgba::WHITE*/, HorizontalAlignment xAlign /*= ALIGNMENT_LEFT*/, VerticalAlignment yAlign /*= ALIGNMENT_TOP*/, TextDrawMode drawMode /*= TEXT_DRAW_DEFAULT*/)
+{
+	std::vector<ColoredText> coloredLines;
+
+	for (size_t lineIndex = 0; lineIndex < textLines.size(); ++lineIndex)
+	{
+		coloredLines.push_back(ColoredText(textLines[lineIndex], color));
+	}
+
+	return PushText(coloredLines, pixelHeight, font, textBounds, canvasUnitsPerPixel, xAlign, yAlign, drawMode);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+uint32 MeshBuilder::PushText(const std::vector<ColoredText>& textLines, uint32 pixelHeight, Font* font, const AABB2& textBounds, const Vector2& canvasUnitsPerPixel, HorizontalAlignment xAlign /*= ALIGNMENT_LEFT*/, VerticalAlignment yAlign /*= ALIGNMENT_TOP*/, TextDrawMode drawMode /*= TEXT_DRAW_DEFAULT*/)
 {
 	ASSERT_RETURN(m_isBuilding, pixelHeight, "Meshbuilder not setup!");
 
 	switch (drawMode)
 	{
 	case TEXT_DRAW_DEFAULT:
-		return PushText_Default(*this, textLines, pixelHeight, font, textBounds, canvasUnitsPerPixel, color, xAlign, yAlign);
+		return PushText_Default(*this, textLines, pixelHeight, font, textBounds, canvasUnitsPerPixel, xAlign, yAlign);
 		break;
 	case TEXT_DRAW_SHRINK_TO_FIT:
-		return PushText_ShrinkToFit(*this, textLines, pixelHeight, font, textBounds, canvasUnitsPerPixel, color, xAlign, yAlign);
+		return PushText_ShrinkToFit(*this, textLines, pixelHeight, font, textBounds, canvasUnitsPerPixel, xAlign, yAlign);
 		break;
 	case TEXT_DRAW_EXPAND_TO_FILL:
-		return PushText_ExpandToFill(*this, textLines, pixelHeight, font, textBounds, canvasUnitsPerPixel, color, xAlign, yAlign);
+		return PushText_ExpandToFill(*this, textLines, pixelHeight, font, textBounds, canvasUnitsPerPixel, xAlign, yAlign);
 		break;
 	case TEXT_DRAW_WORD_WRAP:
-		return PushText_WordWrap(*this, textLines, pixelHeight, font, textBounds, canvasUnitsPerPixel, color, xAlign, yAlign);
+		return PushText_WordWrap(*this, textLines, pixelHeight, font, textBounds, canvasUnitsPerPixel, xAlign, yAlign);
 		break;
 	default:
 		ERROR_AND_DIE("Invalid TextDrawMode!");

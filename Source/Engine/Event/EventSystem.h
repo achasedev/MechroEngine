@@ -46,7 +46,7 @@ public:
 	template <typename T, typename T_Method> void SubscribeEventCallbackObjectMethod(const char* eventName, T_Method callback, T& object);
 	template <typename T, typename T_Method> void UnsubscribeEventCallbackObjectMethod(const char* eventName, T_Method callback, T& object);
 
-	void FireEvent(const StringID& eventSID, NamedProperties& args);
+	bool FireEvent(const StringID& eventSID, NamedProperties& args);
 
 
 private:
@@ -111,7 +111,9 @@ void EventSystem::UnsubscribeEventCallbackObjectMethod(const char* eventName, T_
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-void FireEvent(const char* eventName);
-void FireEvent(const StringID& eventSID);
-void FireEvent(const char* eventName, NamedProperties& args);
-void FireEvent(const StringID& eventSID, NamedProperties& args);
+bool FireEvent(const char* eventName);
+bool FireEvent(const std::string& eventName);
+bool FireEvent(const StringID& eventSID);
+bool FireEvent(const char* eventName, NamedProperties& args);
+bool FireEvent(const std::string& eventName, NamedProperties& args);
+bool FireEvent(const StringID& eventSID, NamedProperties& args);

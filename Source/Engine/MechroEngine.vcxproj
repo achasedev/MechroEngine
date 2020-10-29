@@ -242,6 +242,7 @@
     <ClInclude Include="..\ThirdParty\stb\stb_image.h" />
     <ClInclude Include="..\ThirdParty\stb\stb_image_write.h" />
     <ClInclude Include="..\ThirdParty\tinyxml2\tinyxml2.h" />
+    <ClInclude Include="DataStructures\ColoredText.h" />
     <ClInclude Include="DataStructures\ThreadSafeQueue.h" />
     <ClInclude Include="Event\EventSubscription.h" />
     <ClInclude Include="Event\EventSystem.h" />

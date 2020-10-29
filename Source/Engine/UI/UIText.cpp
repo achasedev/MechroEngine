@@ -213,12 +213,6 @@ void UIText::Render()
 		rend.SetDrawMesh(0, m_mesh);
 
 		g_renderContext->DrawRenderable(rend);
-
-		// TODO: This needs to use a different material
-		if (IsInFocus())
-		{
-			g_renderContext->DrawWireOBB2D(finalBounds, m_material, m_textColor);
-		}
 	}
 
 	UIElement::Render();
@@ -233,44 +227,40 @@ void UIText::ClearText()
 
 
 //-------------------------------------------------------------------------------------------------
-void UIText::SetText(uint32 lineIndex, const std::string& text, const Rgba& color /*= Rgba::WHITE*/)
+void UIText::SetText(uint32 lineIndex, const std::string& text, Rgba color /*= Rgba::WHITE*/)
 {
 	if (lineIndex >= m_lines.size())
 	{
 		m_lines.resize(lineIndex + 1);
 	}
 
-	m_lines[lineIndex] = text;
-	m_textColor = color;
+	m_lines[lineIndex] = ColoredText(text, color);
 	m_isDirty = true;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void UIText::SetText(const std::string& text, const Rgba& color /*= Rgba::WHITE*/)
+void UIText::SetText(const std::string& text, Rgba color /*= Rgba::WHITE*/)
 {
 	SetText(0U, text, color);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void UIText::AddLine(const std::string& text, const Rgba& color /*= Rgba::WHITE*/)
+void UIText::AddLine(const std::string& text, Rgba color /*= Rgba::WHITE*/)
 {
-	m_lines.push_back(text);
-	m_textColor = color; // TODO: colored lines
+	m_lines.push_back(ColoredText(text, color));
 	m_isDirty = true;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void UIText::AddLines(const std::vector<std::string>& lines, const Rgba& color /*= Rgba::WHITE*/)
+void UIText::AddLines(const std::vector<std::string>& lines, Rgba color /*= Rgba::WHITE*/)
 {
 	for (size_t lineIndex = 0; lineIndex < lines.size(); ++lineIndex)
 	{
-		m_lines.push_back(lines[lineIndex]);
+		m_lines.push_back(ColoredText(lines[lineIndex], color));
 	}
-
-	m_textColor = color;
 }
 
 
@@ -337,7 +327,7 @@ std::string UIText::GetText(uint32 lineNumber) const
 	}
 
 	ASSERT_RETURN(lineNumber < (uint32)m_lines.size(), "", "Index out of range!");
-	return m_lines[lineNumber];
+	return m_lines[lineNumber].m_text;
 }
 
 
@@ -349,7 +339,7 @@ std::string UIText::GetLastLine() const
 		return "";
 	}
 
-	return m_lines.back();
+	return m_lines.back().m_text;
 }
 
 
@@ -378,7 +368,7 @@ float UIText::GetMaxLineLength() const
 	int maxLengthPixels = 0;
 	for (size_t lineIndex = 0; lineIndex < m_lines.size(); ++lineIndex)
 	{
-		int lengthPixels = m_font->GetTextDimensionsPixels(fontPixelHeight, m_lines[lineIndex]).x;
+		int lengthPixels = m_font->GetTextDimensionsPixels(fontPixelHeight, m_lines[lineIndex].m_text).x;
 		maxLengthPixels = Max(maxLengthPixels, lengthPixels);
 	}
 
@@ -409,7 +399,7 @@ Vector2 UIText::GetTextCanvasDimensions(uint32 lineIndex) const
 
 	ASSERT_RETURN(lineIndex < (uint32)m_lines.size(), Vector2::ZERO, "Index out of range!");
 
-	return GetTextCanvasDimensions(m_lines[lineIndex]);
+	return GetTextCanvasDimensions(m_lines[lineIndex].m_text);
 }
 
 
@@ -437,10 +427,17 @@ void UIText::InitializeFromXML(const XMLElem& element)
 
 	// Text
 	std::string rawText = XML::ParseAttribute(element, "text", "SAMPLE TEXT");
-	BreakStringIntoLines(rawText, m_lines);
+	std::vector<std::string> rawLines;
+	BreakStringIntoLines(rawText, rawLines);
 
 	// Text Color
-	m_textColor = XML::ParseAttribute(element, "text_color", Rgba::WHITE);
+	Rgba color = XML::ParseAttribute(element, "text_color", Rgba::WHITE);
+
+	// Assemble the text
+	for (size_t lineIndex = 0; lineIndex < rawLines.size(); ++lineIndex)
+	{
+		m_lines.push_back(ColoredText(rawLines[lineIndex], color));
+	}
 
 	// Alignments
 	GetTextAlignmentFromXML(element, m_horizontalAlign, m_verticalAlign);
@@ -479,7 +476,7 @@ void UIText::UpdateMeshAndMaterial(const OBB2& finalBounds)
 		// Send the bounds as if they're at 0,0
 		// The model matrix will handle the positioning
 		// Font pixel height may be updated/adjusted based on draw modes
-		fontPixelHeight = mb.PushText(m_lines, fontPixelHeight, m_font, AABB2(Vector2::ZERO, finalBounds.m_alignedBounds.GetDimensions()), m_canvas->GetCanvasUnitsPerPixel(), m_textColor, m_horizontalAlign, m_verticalAlign, m_textDrawMode);
+		fontPixelHeight = mb.PushText(m_lines, fontPixelHeight, m_font, AABB2(Vector2::ZERO, finalBounds.m_alignedBounds.GetDimensions()), m_canvas->GetCanvasUnitsPerPixel(), m_horizontalAlign, m_verticalAlign, m_textDrawMode);
 
 		mb.FinishBuilding();
 		mb.UpdateMesh<Vertex3D_PCU>(*m_mesh);

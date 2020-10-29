@@ -23,6 +23,7 @@
 #include "Engine/UI/UIPanel.h"
 #include "Engine/UI/UIScrollView.h"
 #include "Engine/UI/UIText.h"
+#include "Engine/Utility/Assert.h"
 #include "Engine/Utility/NamedProperties.h"
 #include "Engine/Render/Font/Font.h"
 #include "Engine/Render/Font/FontLoader.h"
@@ -74,6 +75,28 @@ static bool DevConsoleMessageHandler(unsigned int msg, size_t wparam, size_t lpa
 	}
 
 	return false;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void ConsolePrintf(const Rgba &color, char const *format, ...)
+{
+	ASSERT_RETURN(g_devConsole != nullptr, NO_RETURN_VAL, "DevConsole not initialized!");
+
+	// Construct the string
+	char textLiteral[VARIABLE_ARG_STACK_LOCAL_TEMP_LENGTH];
+	va_list variableArgumentList;
+	va_start(variableArgumentList, format);
+	vsnprintf_s(textLiteral, VARIABLE_ARG_STACK_LOCAL_TEMP_LENGTH, _TRUNCATE, format, variableArgumentList);
+	va_end(variableArgumentList);
+	textLiteral[VARIABLE_ARG_STACK_LOCAL_TEMP_LENGTH - 1] = '\0'; // In case vsnprintf overran (doesn't auto-terminate)
+
+	// Add it to the console log
+	ColoredText colorText;
+	colorText.m_text = std::string(textLiteral);
+	colorText.m_color = color;
+
+	g_devConsole->AddToMessageQueue(colorText);
 }
 
 
@@ -171,6 +194,13 @@ void DevConsole::Update()
 	// also it's cheap, so why not
 	UpdateCursorElementPosition();
 
+	// Update the message logs with messages in the queue
+	ColoredText text;
+	while (m_outputQueue.Dequeue(text)) // returns false when empty
+	{
+		m_logScrollView->AddTextToScroll(text.m_text, text.m_color);
+	}
+
 	m_canvas->Update();
 }
 
@@ -204,6 +234,13 @@ void DevConsole::SetIsActive(bool isActive)
 	m_isActive = isActive;
 
 	m_canvas->SetElementInFocus(m_inputFieldText);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void DevConsole::AddToMessageQueue(const ColoredText& outputText)
+{
+	m_outputQueue.Enqueue(outputText);
 }
 
 
@@ -258,6 +295,7 @@ void DevConsole::HandleTilde()
 void DevConsole::HandleEnter()
 {
 	std::string input = m_inputFieldText->GetText();
+	TrimWhitespace(input);
 
 	// Trim the ">"
 	std::string command = input.substr(1);
@@ -274,33 +312,29 @@ void DevConsole::HandleEnter()
 		// Let the event parse the individual commands, as each 
 		// command may expect/treat arguments as different types
 		// This also preserves the order of the arguments
-		//NamedProperties args;
-		//size_t firstSpaceIndex = m_inputBuffer.find_first_of(' ');
+		NamedProperties args;
+		size_t firstSpaceIndex = command.find_first_of(' ');
+		std::string commandID = command;
 
-		//std::string eventName;
-		//std::string argString;
+		// If there's arguments
+		if (firstSpaceIndex != std::string::npos)
+		{
+			std::string argsText = command.substr(firstSpaceIndex);
+			commandID = command.substr(0, firstSpaceIndex);
+			TrimWhitespace(argsText);
 
-		//if (firstSpaceIndex < m_inputBuffer.size() - 1)
-		//{
-		//	args.Set("args", m_inputBuffer.substr());
+			args.Set("args", argsText);
+		}
 
-		//}
-		//else
-		//{
+		// Run the command
+		bool hasSubscribers = FireEvent(commandID, args);
 
-		//}
-		//StringID eventID = ParseCommandLine(m_inputBuffer, args);
+		if (!hasSubscribers)
+		{
 
-		//// Reset input buffer
-		//m_inputBuffer.clear();
-		//m_cursorPosition = 0;
-
-		//// Run the command
-		//FireEvent(eventID, args);
+		}
 
 		ClearInputField();
-
-
 	}
 }
 
