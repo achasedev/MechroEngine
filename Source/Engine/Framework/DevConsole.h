@@ -62,6 +62,12 @@ public:
 	bool		IsActive() const { return m_isActive; }
 
 
+public:
+	//-----Public Data-----
+
+	static const Rgba DEFAULT_CONSOLE_LOG_COLOR;
+
+
 private:
 	//-----Private Methods-----
 
@@ -88,10 +94,10 @@ private:
 private:
 	//-----Private Data-----
 
-	bool								m_isActive = false;
-	int									m_cursorPosition = 0;
-	int									m_historyIndex = 0;
-	std::vector<std::string>			m_commandHistory;
+	bool							m_isActive = false;
+	int								m_cursorPosition = 0;
+	int								m_historyIndex = 0;
+	std::vector<std::string>		m_commandHistory;
 	ThreadSafeQueue<ColoredText>	m_outputQueue;
 
 	// Rendering

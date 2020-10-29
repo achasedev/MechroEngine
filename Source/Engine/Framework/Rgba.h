@@ -60,6 +60,7 @@ public:
 	static const Rgba MAGENTA;
 	static const Rgba YELLOW;
 	static const Rgba GRAY;
+	static const Rgba ORANGE;
 
 
 public:

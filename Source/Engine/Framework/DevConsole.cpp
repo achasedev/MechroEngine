@@ -46,6 +46,7 @@
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 DevConsole* g_devConsole = nullptr;
+const Rgba DevConsole::DEFAULT_CONSOLE_LOG_COLOR = Rgba(204, 204, 204, 255);
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
@@ -79,16 +80,12 @@ static bool DevConsoleMessageHandler(unsigned int msg, size_t wparam, size_t lpa
 
 
 //-------------------------------------------------------------------------------------------------
-void ConsolePrintf(const Rgba &color, char const *format, ...)
+static void ConsolePrintv(const Rgba& color, char const* format, va_list args)
 {
 	ASSERT_RETURN(g_devConsole != nullptr, NO_RETURN_VAL, "DevConsole not initialized!");
 
-	// Construct the string
 	char textLiteral[VARIABLE_ARG_STACK_LOCAL_TEMP_LENGTH];
-	va_list variableArgumentList;
-	va_start(variableArgumentList, format);
-	vsnprintf_s(textLiteral, VARIABLE_ARG_STACK_LOCAL_TEMP_LENGTH, _TRUNCATE, format, variableArgumentList);
-	va_end(variableArgumentList);
+	vsnprintf_s(textLiteral, VARIABLE_ARG_STACK_LOCAL_TEMP_LENGTH, _TRUNCATE, format, args);
 	textLiteral[VARIABLE_ARG_STACK_LOCAL_TEMP_LENGTH - 1] = '\0'; // In case vsnprintf overran (doesn't auto-terminate)
 
 	// Add it to the console log
@@ -97,6 +94,47 @@ void ConsolePrintf(const Rgba &color, char const *format, ...)
 	colorText.m_color = color;
 
 	g_devConsole->AddToMessageQueue(colorText);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void ConsolePrintf(const Rgba &color, char const *format, ...)
+{
+	va_list variableArgumentList;
+	va_start(variableArgumentList, format);
+	ConsolePrintv(color, format, variableArgumentList);
+	va_end(variableArgumentList);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void ConsolePrintf(char const *format, ...)
+{
+	// Construct the string
+	va_list variableArgumentList;
+	va_start(variableArgumentList, format);
+	ConsolePrintv(DevConsole::DEFAULT_CONSOLE_LOG_COLOR, format, variableArgumentList);
+	va_end(variableArgumentList);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void ConsoleWarningf(char const *format, ...)
+{
+	va_list variableArgumentList;
+	va_start(variableArgumentList, format);
+	ConsolePrintv(Rgba::ORANGE, format, variableArgumentList);
+	va_end(variableArgumentList);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void ConsoleErrorf(char const *format, ...)
+{
+	va_list variableArgumentList;
+	va_start(variableArgumentList, format);
+	ConsolePrintv(Rgba::RED, format, variableArgumentList);
+	va_end(variableArgumentList);
 }
 
 
@@ -243,6 +281,19 @@ void DevConsole::AddToMessageQueue(const ColoredText& outputText)
 	m_outputQueue.Enqueue(outputText);
 }
 
+static bool AddTwoNumbers(NamedProperties& args)
+{
+	std::string argsText = args.Get("args", "");
+	std::vector<std::string> tokens;
+	Tokenize(argsText, ' ', tokens);
+
+	float a = StringToFloat(tokens[0]);
+	float b = StringToFloat(tokens[1]);
+
+	ConsolePrintf("%.2f + %.2f = %.2f", a, b, a + b);
+
+	return true;
+}
 
 //-------------------------------------------------------------------------------------------------
 DevConsole::DevConsole()
@@ -268,6 +319,8 @@ DevConsole::DevConsole()
 
 	m_inputFieldText->SetText(">");
 	SetCursor(0);
+
+	g_eventSystem->SubscribeEventCallbackFunction("add", AddTwoNumbers);
 }
 
 
@@ -299,8 +352,9 @@ void DevConsole::HandleEnter()
 
 	// Trim the ">"
 	std::string command = input.substr(1);
+	TrimWhitespace(command);
 
-	if (input.size() > 0)
+	if (command.size() > 0)
 	{
 		// Print the command to the console log
 		m_logScrollView->AddTextToScroll(input);
@@ -331,7 +385,7 @@ void DevConsole::HandleEnter()
 
 		if (!hasSubscribers)
 		{
-
+			ConsoleWarningf("Unknown command: %s", commandID.c_str());
 		}
 
 		ClearInputField();
