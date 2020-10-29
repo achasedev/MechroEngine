@@ -259,14 +259,16 @@ void DevConsole::HandleEnter()
 {
 	std::string input = m_inputFieldText->GetText();
 
-	// > 1 since the first character is a ">"
-	if (input.size() > 1)
+	// Trim the ">"
+	std::string command = input.substr(1);
+
+	if (input.size() > 0)
 	{
 		// Print the command to the console log
 		m_logScrollView->AddTextToScroll(input);
 
-		// TODO: Add the command to history
-
+		m_commandHistory.push_back(command);
+		m_historyIndex = (int)m_commandHistory.size();
 
 		// Parse the command arguments from the command name
 		// Let the event parse the individual commands, as each 
@@ -296,8 +298,9 @@ void DevConsole::HandleEnter()
 		//// Run the command
 		//FireEvent(eventID, args);
 
-		m_inputFieldText->SetText(">");
-		m_cursorPosition = 0U;
+		ClearInputField();
+
+
 	}
 }
 
@@ -338,21 +341,40 @@ void DevConsole::HandleDelete()
 //-------------------------------------------------------------------------------------------------
 void DevConsole::HandleEscape()
 {
-	
+	ClearInputField();
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void DevConsole::HandleUpArrow()
 {
+	if (m_commandHistory.size() > 0)
+	{
+		m_historyIndex = Max(m_historyIndex - 1, 0);
 
+		std::string command = m_commandHistory[m_historyIndex];
+		m_inputFieldText->SetText(">" + command);
+		m_cursorPosition = (int)command.size();
+	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void DevConsole::HandleDownArrow()
 {
+	if (m_commandHistory.size() > 0)
+	{
+		m_historyIndex = Min(m_historyIndex + 1, (int)m_commandHistory.size());
 
+		std::string command = ">";
+		if (m_historyIndex < (int)m_commandHistory.size())
+		{
+			command += m_commandHistory[m_historyIndex];
+		}
+
+		m_inputFieldText->SetText(command);
+		m_cursorPosition = (int)command.size();
+	}
 }
 
 
@@ -427,4 +449,12 @@ void DevConsole::SetCursor(int valueToBeSetTo)
 	m_showInputCursor = true;
 	m_inputCursor->SetRenderMode(ELEMENT_RENDER_ALL);
 	ResetCursorTimer();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void DevConsole::ClearInputField()
+{
+	m_inputFieldText->SetText(">");
+	SetCursor(0);
 }

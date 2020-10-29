@@ -80,13 +80,16 @@ private:
 	void ResetCursorTimer();
 	void MoveCursor(int valueToAddToCursor);
 	void SetCursor(int valueToBeSetTo);
+	void ClearInputField();
 
 
 private:
 	//-----Private Data-----
 
-	bool			m_isActive = false;
-	int				m_cursorPosition = 0;
+	bool						m_isActive = false;
+	int							m_cursorPosition = 0;
+	int							m_historyIndex = 0;
+	std::vector<std::string>	m_commandHistory;
 
 	// Rendering
 	Canvas*			m_canvas = nullptr;

@@ -342,6 +342,18 @@ std::string UIText::GetText(uint32 lineNumber) const
 
 
 //-------------------------------------------------------------------------------------------------
+std::string UIText::GetLastLine() const
+{
+	if (m_lines.size() == 0)
+	{
+		return "";
+	}
+
+	return m_lines.back();
+}
+
+
+//-------------------------------------------------------------------------------------------------
 float UIText::GetLineHeight() const
 {
 	uint32 fontPixelHeight = m_canvas->ToPixelHeight(m_fontHeight * m_transform.GetScale().y);

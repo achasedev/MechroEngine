@@ -82,6 +82,7 @@ public:
 	std::string		GetText() const;
 	std::string		GetText(uint32 lineNumber) const;
 	uint32			GetNumLines() const { return (uint32) m_lines.size(); }
+	std::string		GetLastLine() const;
 	float			GetLineHeight() const;
 	float			GetTotalLinesHeight() const;
 	float			GetMaxLineLength() const;
