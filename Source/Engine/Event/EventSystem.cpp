@@ -182,3 +182,31 @@ bool EventSystem::FireEvent(const StringID& eventSID, NamedProperties& args)
 
 	return eventHasSubscribers;
 }
+
+
+//-------------------------------------------------------------------------------------------------
+void EventSystem::GetAllEventNames(std::vector<std::string>& out_eventNames) const
+{
+	std::map<StringID, std::vector<EventSubscription*>>::const_iterator itr = m_subscriptions.begin();
+
+	for (itr; itr != m_subscriptions.end(); itr++)
+	{
+		out_eventNames.push_back(itr->first.ToString());
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void EventSystem::GetAllEventNamesThatStartWithPrefix(const char* prefix, std::vector<std::string>& out_eventNames) const
+{
+	std::map<StringID, std::vector<EventSubscription*>>::const_iterator itr = m_subscriptions.begin();
+
+	for (itr; itr != m_subscriptions.end(); itr++)
+	{
+		std::string currName = itr->first.ToString();
+		if (currName.find(prefix) == 0)
+		{
+			out_eventNames.push_back(itr->first.ToString());
+		}	
+	}
+}

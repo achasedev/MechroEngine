@@ -247,6 +247,18 @@ void UIText::SetText(const std::string& text, Rgba color /*= Rgba::WHITE*/)
 
 
 //-------------------------------------------------------------------------------------------------
+void UIText::SetText(const std::vector<std::string>& lines, Rgba color /*= Rgba::WHITE*/)
+{
+	m_lines.clear();
+
+	for (size_t lineIndex = 0; lineIndex < lines.size(); ++lineIndex)
+	{
+		m_lines.push_back(ColoredText(lines[lineIndex], color));
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void UIText::AddLine(const std::string& text, Rgba color /*= Rgba::WHITE*/)
 {
 	m_lines.push_back(ColoredText(text, color));

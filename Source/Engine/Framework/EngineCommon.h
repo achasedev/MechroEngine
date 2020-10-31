@@ -100,7 +100,7 @@ typedef char int8;
 typedef short int16;
 typedef long long int64;
 
-class DebugSIDSystem;
+class StringIDSystem;
 class DevConsole;
 class EventSystem;
 class FontLoader;
@@ -112,7 +112,7 @@ class Window;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-extern DebugSIDSystem*	g_debugSIDSystem;
+extern StringIDSystem*	g_sidSystem;
 extern DevConsole*		g_devConsole;
 extern EventSystem*		g_eventSystem;
 extern FontLoader*		g_fontLoader;

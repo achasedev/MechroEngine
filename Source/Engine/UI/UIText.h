@@ -69,6 +69,7 @@ public:
 	void			ClearText();
 	void			SetText(const std::string& text, Rgba color = Rgba::WHITE);
 	void			SetText(uint32 lineNumber, const std::string& text, Rgba color = Rgba::WHITE);
+	void			SetText(const std::vector<std::string>& lines, Rgba color = Rgba::WHITE);
 	void			AddLine(const std::string& text, Rgba color = Rgba::WHITE);
 	void			AddLines(const std::vector<std::string>& lines, Rgba color = Rgba::WHITE);
 	void			SetFont(Font* font);

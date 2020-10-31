@@ -21,82 +21,77 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-DebugSIDSystem* g_debugSIDSystem = nullptr;
+StringIDSystem* g_sidSystem = nullptr;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------------------------------
-StringID HashString(const char* str)
-{
-	uint32 strHash = HashData((void*)str, strlen(str));
-	StringID strID = static_cast<StringID>(strHash);
-
-	if (DebugSIDSystem::IsInitialized())
-	{
-		g_debugSIDSystem->InternString(strID, str);
-	}
-
-	return strID;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-StringID HashString(const std::string& str)
-{
-	return HashString(str.c_str());
-}
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-void DebugSIDSystem::Initialize()
+void StringIDSystem::Initialize()
 {
-	ASSERT_OR_DIE(g_debugSIDSystem == nullptr, "DebugSIDSystem being reinitialized!");
-	g_debugSIDSystem = new DebugSIDSystem();
+	ASSERT_OR_DIE(g_sidSystem == nullptr, "DebugSIDSystem being reinitialized!");
+	g_sidSystem = new StringIDSystem();
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void DebugSIDSystem::Shutdown()
+void StringIDSystem::Shutdown()
 {
-	SAFE_DELETE(g_debugSIDSystem);
+	SAFE_DELETE(g_sidSystem);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 // Debug-only function for storing StringID -> strings and checking for collisions
-void DebugSIDSystem::InternString(const StringID& strID, const char* str)
+StringID StringIDSystem::InternString(const char* str)
 {
-	size_t bufferSize = strlen(str) + 1U;
-
-	std::map<StringID, const char*>::iterator itr = m_stringIDs.find(strID);	
-	if (itr == m_stringIDs.end())
+	uint32 strHash = HashData((void*)str, strlen(str));
+	std::map<uint32, const char*>::iterator itr = m_internedStrings.find(strHash);	
+	if (itr == m_internedStrings.end())
 	{
 		// Allocate and add the string
-		char* temp = (char*) malloc(bufferSize);
-		strncpy_s(temp, bufferSize, str, strlen(str));
-		m_stringIDs[strID] = temp;
+		size_t bufferSize = strlen(str) + 1U;
+		char* internBuffer = (char*) malloc(bufferSize);
+		strncpy_s(internBuffer, bufferSize, str, strlen(str));
+
+		m_internedStrings[strHash] = internBuffer;
+		return StringID(strHash, internBuffer);
 	}
 	else
 	{
 		// Check for hash collisions
 		ASSERT_OR_DIE(strcmp(str, itr->second) == 0, "Hash collision on strings %s and %s", str, itr->second);
+		return StringID(strHash, itr->second);
 	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
-const char* DebugSIDSystem::GetStringForStringID(const StringID& stringID)
+StringID StringIDSystem::CreateOrGetStringID(const char* str)
 {
-	bool idInterned = m_stringIDs.find(stringID) != m_stringIDs.end();
+	return InternString(str);
+}
 
-	if (idInterned)
+
+//-------------------------------------------------------------------------------------------------
+StringID StringIDSystem::CreateOrGetStringID(const std::string& str)
+{
+	return InternString(str.c_str());
+}
+
+
+//-------------------------------------------------------------------------------------------------
+const char* StringIDSystem::GetStringForStringID(const StringID& stringID) const
+{
+	std::map<uint32, const char*>::const_iterator itr = m_internedStrings.find(stringID.m_hash);
+	if (itr != m_internedStrings.end())
 	{
-		return m_stringIDs[stringID];
+		return itr->second;
 	}
 
 	return nullptr;
@@ -104,15 +99,15 @@ const char* DebugSIDSystem::GetStringForStringID(const StringID& stringID)
 
 
 //-------------------------------------------------------------------------------------------------
-DebugSIDSystem::~DebugSIDSystem()
+StringIDSystem::~StringIDSystem()
 {
 	// Free up any id's in the map
-	std::map<StringID, const char*>::iterator itr = m_stringIDs.begin();
+	std::map<uint32, const char*>::iterator itr = m_internedStrings.begin();
 
-	for (itr; itr != m_stringIDs.end(); itr++)
+	for (itr; itr != m_internedStrings.end(); itr++)
 	{
 		free((void*)itr->second);
 	}
 
-	m_stringIDs.clear();
+	m_internedStrings.clear();
 }

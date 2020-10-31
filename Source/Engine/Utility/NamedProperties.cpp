@@ -79,10 +79,10 @@ std::string NamedProperties::ToString() const
 
 	for (itr; itr != m_properties.end(); itr++)
 	{
-		if (DebugSIDSystem::IsInitialized())
+		if (StringIDSystem::IsInitialized())
 		{
 			// Convert StringID's to const char* for printing
-			const char* name = g_debugSIDSystem->GetStringForStringID(itr->first);
+			const char* name = g_sidSystem->GetStringForStringID(itr->first);
 
 			totalString += Stringf("\"%s\" -> ", name);
 		}

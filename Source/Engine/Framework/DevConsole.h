@@ -89,6 +89,7 @@ private:
 	void MoveCursor(int valueToAddToCursor);
 	void SetCursor(int valueToBeSetTo);
 	void ClearInputField();
+	void UpdateAutoCompleteElements();
 
 
 private:
@@ -107,6 +108,9 @@ private:
 	UIText*			m_inputFieldText = nullptr;
 	UIScrollView*	m_logScrollView = nullptr;
 	UIImage*		m_inputCursor = nullptr;
+	UIImage*		m_autocompleteImage = nullptr;
+	UIText*			m_autocompleteText = nullptr;
+
 	FrameTimer		m_cursorTimer;
 	bool			m_showInputCursor = false;
 	float			m_cursorInterval = 0.25f; // 0.5 seconds per state (shown or hidden)

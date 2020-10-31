@@ -15,13 +15,9 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-typedef uint32 StringID;
+class StringID;
 #define INVALID_STRING_ID 0
-
-StringID HashString(const char* str);
-StringID HashString(const std::string& str);
-#define SID(x) HashString(x)
-
+#define SID(x) g_sidSystem->CreateOrGetStringID(x)
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
@@ -36,31 +32,67 @@ StringID HashString(const std::string& str);
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class DebugSIDSystem
+class StringID
 {
+	friend class StringIDSystem;
+
 public:
 	//-----Public Methods-----
 
-	static void				Initialize();
-	static void				Shutdown();
-	static bool				IsInitialized() { return g_debugSIDSystem != nullptr; }
+	StringID() {}
 
-	void					InternString(const StringID& stringID, const char* str);
-	const char*				GetStringForStringID(const StringID& stringID);
+	const char* ToString() const { return m_string; }
 
+	bool operator==(const StringID& compare) const { return m_hash == compare.m_hash; } 
+	bool operator!=(const StringID& compare) const { return m_hash != compare.m_hash; } 
+	bool operator<(const StringID& compare) const { return m_hash < compare.m_hash; } // For std::map
+	
 
 private:
 	//-----Private Methods-----
 
-	DebugSIDSystem() {}
-	~DebugSIDSystem();
-	DebugSIDSystem(const DebugSIDSystem& copy) = delete;
+	StringID(uint32 hash, const char* string)
+	 : m_hash(hash), m_string(string) {}
 
 
 private:
 	//-----Private Data-----
 
-	std::map<StringID, const char*> m_stringIDs;
+	uint32		m_hash = INVALID_STRING_ID;
+	const char* m_string = nullptr;
+
+};
+
+
+//-------------------------------------------------------------------------------------------------
+class StringIDSystem
+{
+public:
+	//-----Public Methods-----
+
+	static void		Initialize();
+	static void		Shutdown();
+	static bool		IsInitialized() { return g_sidSystem != nullptr; }
+
+	StringID		CreateOrGetStringID(const char* str);
+	StringID		CreateOrGetStringID(const std::string& str);
+	const char*		GetStringForStringID(const StringID& stringID) const;
+
+
+private:
+	//-----Private Methods-----
+
+	StringIDSystem() {}
+	~StringIDSystem();
+	StringIDSystem(const StringIDSystem& copy) = delete;
+
+	StringID		InternString(const char* str);
+
+
+private:
+	//-----Private Data-----
+
+	std::map<uint32, const char*> m_internedStrings;
 
 };
 

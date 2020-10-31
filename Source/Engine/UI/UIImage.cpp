@@ -41,16 +41,10 @@ RTTI_TYPE_DEFINE(UIImage);
 UIImage::UIImage(Canvas* canvas)
 	: UIElement(canvas)
 {
-	// TODO: Use default mesh
-	MeshBuilder mb;
-	mb.BeginBuilding(true);
-	mb.PushQuad2D(AABB2::ZERO_TO_ONE);
-	mb.FinishBuilding();
-
-	m_material = new Material();
-	m_mesh = mb.CreateMesh<Vertex3D_PCU>();
+	UpdateMesh();
 
 	// TODO: Delete this
+	m_material = new Material();
 	Shader* shader = new Shader();
 	shader->CreateFromFile("Data/Shader/test.shader");
 	shader->SetBlend(BLEND_PRESET_ALPHA);
@@ -90,17 +84,15 @@ void UIImage::InitializeFromXML(const XMLElem& element)
 
 	if (imageText.size() > 0)
 	{
-		Rgba color;
-		if (StringToRgba(imageText, color))
-		{
-			Image* image = new Image(IntVector2::ONES, color);
-			SetImage(image);
-		}
-		else
-		{
-			LoadImage(imageText);
-		}
+		LoadImage(imageText);
 	}
+	else
+	{
+		SetImage(new Image(IntVector2::ONES, Rgba::WHITE));
+	}
+
+	Rgba color = XML::ParseAttribute(element, "color", m_colorTint);
+	SetColor(color);
 }
 
 
@@ -116,6 +108,8 @@ void UIImage::Render()
 {
 	if (ShouldRenderSelf() && m_texture != nullptr)
 	{
+		UpdateMesh();
+
 		// Check if the text or the scale changed which would require a rebuild
 		OBB2 finalBounds = GetCanvasBounds();
 
@@ -128,6 +122,15 @@ void UIImage::Render()
 	}
 
 	UIElement::Render();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void UIImage::SetColor(const Rgba& color)
+{
+	m_colorTint = color;
+	m_meshDirty = true;
+
 }
 
 
@@ -157,6 +160,30 @@ void UIImage::SetImage(Image* image)
 void UIImage::SetShader(Shader* shader)
 {
 	m_material->SetShader(shader);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void UIImage::UpdateMesh()
+{
+	if (m_meshDirty)
+	{
+		MeshBuilder mb;
+		mb.BeginBuilding(true);
+		mb.PushQuad2D(AABB2::ZERO_TO_ONE, AABB2::ZERO_TO_ONE, m_colorTint);
+		mb.FinishBuilding();
+
+		if (m_mesh == nullptr)
+		{
+			m_mesh = mb.CreateMesh<Vertex3D_PCU>();
+		}
+		else
+		{
+			mb.UpdateMesh<Vertex3D_PCU>(*m_mesh);
+		}
+
+		m_meshDirty = false;
+	}
 }
 
 

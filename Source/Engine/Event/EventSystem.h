@@ -37,16 +37,18 @@ class EventSystem
 public:
 	//-----Public Methods-----
 
-	static void Initialize();
-	static void Shutdown();
+	static void										Initialize();
+	static void										Shutdown();
 
 	// Subscriptions
-	void SubscribeEventCallbackFunction(const char* eventName, EventFunctionCallback callback);
-	void UnsubscribeEventCallbackFunction(const char* eventName, EventFunctionCallback callback);
-	template <typename T, typename T_Method> void SubscribeEventCallbackObjectMethod(const char* eventName, T_Method callback, T& object);
-	template <typename T, typename T_Method> void UnsubscribeEventCallbackObjectMethod(const char* eventName, T_Method callback, T& object);
+	void											SubscribeEventCallbackFunction(const char* eventName, EventFunctionCallback callback);
+	void											UnsubscribeEventCallbackFunction(const char* eventName, EventFunctionCallback callback);
+	template <typename T, typename T_Method> void	SubscribeEventCallbackObjectMethod(const char* eventName, T_Method callback, T& object);
+	template <typename T, typename T_Method> void	UnsubscribeEventCallbackObjectMethod(const char* eventName, T_Method callback, T& object);
 
-	bool FireEvent(const StringID& eventSID, NamedProperties& args);
+	bool											FireEvent(const StringID& eventSID, NamedProperties& args);
+	void											GetAllEventNames(std::vector<std::string>& out_eventNames) const;
+	void											GetAllEventNamesThatStartWithPrefix(const char* prefix, std::vector<std::string>& out_eventNames) const;
 
 
 private:

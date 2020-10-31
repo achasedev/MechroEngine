@@ -134,7 +134,7 @@ public:
 protected:
 	//-----Protected Data------
 
-	StringID						m_id = INVALID_STRING_ID;
+	StringID						m_id;
 	UIElement*						m_parent = nullptr;
 	Canvas*							m_canvas = nullptr;
 	std::vector<UIElement*>			m_children;

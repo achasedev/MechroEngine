@@ -202,7 +202,7 @@ static bool OnMouseRelease_Slider(UIElement* element, const UIMouseInfo& info)
 	UNUSED(info);
 
 	UIImage* slider = element->GetAsType<UIImage>();
-	Image* image = new Image(IntVector2(2), Rgba::RED);
+	Image* image = new Image(IntVector2(2), Rgba::CYAN);
 	slider->SetImage(image);
 
 	return true;
@@ -560,7 +560,7 @@ void UIScrollView::CreateVerticalScrollbar()
 	// TODO: Delete this from orbit
 	Image* image1 = new Image(IntVector2(2), Rgba::BLUE);
 	Image* image2 = new Image(IntVector2(2), Rgba::BLUE);
-	Image* image3 = new Image(IntVector2(2), Rgba::YELLOW);
+	Image* image3 = new Image(IntVector2(2), Rgba::CYAN);
 
 	// Create the elements
 	m_downButton = new UIButton(m_canvas);
@@ -658,7 +658,7 @@ void UIScrollView::CreateHorizontalScrollbar()
 	// TODO: Delete this from orbit
 	Image* image1 = new Image(IntVector2(2), Rgba::BLUE);
 	Image* image2 = new Image(IntVector2(2), Rgba::BLUE);
-	Image* image3 = new Image(IntVector2(2), Rgba::RED);
+	Image* image3 = new Image(IntVector2(2), Rgba::CYAN);
 
 	// Create the elements
 	m_leftButton = new UIButton(m_canvas);

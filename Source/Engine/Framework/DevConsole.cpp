@@ -311,22 +311,35 @@ DevConsole::DevConsole()
 	m_inputFieldText = m_canvas->FindElementAsType<UIText>(SID("input_text"));
 	m_logScrollView = m_canvas->FindElementAsType<UIScrollView>(SID("log_scrollview"));
 	m_inputCursor = m_canvas->FindElementAsType<UIImage>(SID("input_cursor_image"));
+	m_autocompleteImage = m_canvas->FindElementAsType<UIImage>(SID("autocomplete_image"));
+	m_autocompleteText = m_canvas->FindElementAsType<UIText>(SID("autocomplete_text"));
+	m_autocompleteText->SetRenderMode(ELEMENT_RENDER_NONE);
 
 	m_inputFieldText->SetShader(m_shader);
 	m_inputCursor->SetShader(m_shader);
-
+	m_autocompleteText->SetShader(m_shader);
 	m_logScrollView->GetScrollTextElement()->SetShader(m_shader);
 
 	m_inputFieldText->SetText(">");
 	SetCursor(0);
 
 	g_eventSystem->SubscribeEventCallbackFunction("add", AddTwoNumbers);
+	g_eventSystem->SubscribeEventCallbackFunction("adder", AddTwoNumbers);
+	g_eventSystem->SubscribeEventCallbackFunction("adding", AddTwoNumbers);
+	g_eventSystem->SubscribeEventCallbackFunction("adda", AddTwoNumbers);
+	g_eventSystem->SubscribeEventCallbackFunction("addt", AddTwoNumbers);
+	g_eventSystem->SubscribeEventCallbackFunction("addg", AddTwoNumbers);
+	g_eventSystem->SubscribeEventCallbackFunction("addfdsa", AddTwoNumbers);
+	g_eventSystem->SubscribeEventCallbackFunction("add0", AddTwoNumbers);
+	g_eventSystem->SubscribeEventCallbackFunction("add-", AddTwoNumbers);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 DevConsole::~DevConsole()
 {
+	m_autocompleteText = nullptr;
+	m_autocompleteImage = nullptr;
 	m_logScrollView = nullptr;
 	m_backPanel = nullptr;
 	m_inputPanel = nullptr;
@@ -385,7 +398,7 @@ void DevConsole::HandleEnter()
 
 		if (!hasSubscribers)
 		{
-			ConsoleWarningf("Unknown command: %s", commandID.c_str());
+			ConsoleWarningf("No subscribers to %s", commandID.c_str());
 		}
 
 		ClearInputField();
@@ -404,7 +417,7 @@ void DevConsole::HandleBackSpace()
 		{
 			inputText.erase(inputText.begin() + m_cursorPosition);
 			m_inputFieldText->SetText(inputText);
-
+			UpdateAutoCompleteElements();
 			MoveCursor(-1);
 		}
 	}
@@ -421,6 +434,7 @@ void DevConsole::HandleDelete()
 		{
 			inputText.erase(inputText.begin() + m_cursorPosition + 1);
 			m_inputFieldText->SetText(inputText);
+			UpdateAutoCompleteElements();
 		}
 	}	
 }
@@ -490,6 +504,7 @@ void DevConsole::AddCharacterToInputBuffer(unsigned char character)
 		m_inputFieldText->SetText(inputText);
 
 		MoveCursor(1);
+		UpdateAutoCompleteElements();
 	}
 }
 
@@ -545,4 +560,46 @@ void DevConsole::ClearInputField()
 {
 	m_inputFieldText->SetText(">");
 	SetCursor(0);
+	UpdateAutoCompleteElements();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void DevConsole::UpdateAutoCompleteElements()
+{
+	std::string inputText = m_inputFieldText->GetText();
+	inputText = inputText.substr(1);
+
+	if (inputText.size() > 0)
+	{
+		std::vector<std::string> eventNames;
+		g_eventSystem->GetAllEventNamesThatStartWithPrefix(inputText.c_str(), eventNames);
+		std::sort(eventNames.begin(), eventNames.end());
+
+		if (eventNames.size() > 0)
+		{
+			// Add an ">" to all the lines
+			for (size_t nameIndex = 0; nameIndex < eventNames.size(); ++nameIndex)
+			{
+				std::string& currName = eventNames[nameIndex];
+				currName = ">" + currName;
+			}
+
+			m_autocompleteText->SetText(eventNames, DEFAULT_CONSOLE_LOG_COLOR);
+			m_autocompleteText->SetRenderMode(ELEMENT_RENDER_ALL);
+
+			float totalHeight = m_autocompleteText->GetTotalLinesHeight();
+			m_autocompleteText->m_transform.SetHeight(totalHeight);
+		}
+		else
+		{
+			m_autocompleteText->ClearText();
+			m_autocompleteText->SetRenderMode(ELEMENT_RENDER_NONE);
+		}
+	}
+	else
+	{
+		m_autocompleteText->ClearText();
+		m_autocompleteText->SetRenderMode(ELEMENT_RENDER_NONE);
+	}
 }

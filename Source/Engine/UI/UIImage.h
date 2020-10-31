@@ -8,6 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Framework/Rgba.h"
 #include "Engine/UI/UIElement.h"
 #include <string>
 
@@ -47,8 +48,15 @@ public:
 	virtual void		Update();
 	virtual void		Render();
 
+	void				SetColor(const Rgba& color);
 	void				SetImage(Image* image);
 	void				SetShader(Shader* shader);
+
+
+private:
+	//-----Private Methods-----
+
+	void UpdateMesh();
 
 
 private:
@@ -58,6 +66,8 @@ private:
 	Texture2D*	m_texture = nullptr;
 	Material*	m_material = nullptr;
 	Mesh*		m_mesh = nullptr;
+	Rgba		m_colorTint = Rgba::WHITE;
+	bool		m_meshDirty = true;
 
 };
 
