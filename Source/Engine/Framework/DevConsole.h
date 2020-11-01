@@ -83,13 +83,15 @@ private:
 	void HandleDownArrow();
 	void HandleLeftArrow();
 	void HandleRightArrow();
+	void HandleTab();
 	void AddCharacterToInputBuffer(unsigned char character);
-	void UpdateCursorElementPosition();
+	void UpdateInputCursorUI();
 	void ResetCursorTimer();
 	void MoveCursor(int valueToAddToCursor);
 	void SetCursor(int valueToBeSetTo);
+	void SetCursorToEnd();
 	void ClearInputField();
-	void UpdateAutoCompleteElements();
+	void UpdateAutoCompleteUI();
 
 
 private:
@@ -100,6 +102,8 @@ private:
 	int								m_historyIndex = 0;
 	std::vector<std::string>		m_commandHistory;
 	ThreadSafeQueue<ColoredText>	m_outputQueue;
+	int								m_autocompleteIndex = 0;
+	bool							m_autocompleteShown = false;
 
 	// Rendering
 	Canvas*			m_canvas = nullptr;
@@ -108,8 +112,8 @@ private:
 	UIText*			m_inputFieldText = nullptr;
 	UIScrollView*	m_logScrollView = nullptr;
 	UIImage*		m_inputCursor = nullptr;
-	UIImage*		m_autocompleteImage = nullptr;
-	UIText*			m_autocompleteText = nullptr;
+	UIImage*		m_popupImage = nullptr;
+	UIText*			m_popupText = nullptr;
 
 	FrameTimer		m_cursorTimer;
 	bool			m_showInputCursor = false;

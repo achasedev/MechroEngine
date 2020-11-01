@@ -67,11 +67,16 @@ public:
 	virtual void	Render() override;
 	
 	void			ClearText();
-	void			SetText(const std::string& text, Rgba color = Rgba::WHITE);
-	void			SetText(uint32 lineNumber, const std::string& text, Rgba color = Rgba::WHITE);
-	void			SetText(const std::vector<std::string>& lines, Rgba color = Rgba::WHITE);
-	void			AddLine(const std::string& text, Rgba color = Rgba::WHITE);
-	void			AddLines(const std::vector<std::string>& lines, Rgba color = Rgba::WHITE);
+	void			SetText(const std::string& text);
+	void			SetText(const std::string& text, const Rgba& color);
+	void			SetLine(int lineIndex, const std::string& text);
+	void			SetLine(int lineIndex, const std::string& text, const Rgba& color);
+	void			SetLines(const std::vector<std::string>& lines);
+	void			SetLines(const std::vector<std::string>& lines, const Rgba& color);
+	void			AddLine(const std::string& text, const Rgba& color = Rgba::WHITE);
+	void			AddLines(const std::vector<std::string>& lines, const Rgba& color = Rgba::WHITE);
+	void			SetColor(const Rgba& color);
+	void			SetColor(int lineIndex, const Rgba& color);
 	void			SetFont(Font* font);
 	void			SetShader(Shader* shader);
 	void			SetFontHeight(float fontHeight);

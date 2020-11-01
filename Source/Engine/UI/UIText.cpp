@@ -227,7 +227,7 @@ void UIText::ClearText()
 
 
 //-------------------------------------------------------------------------------------------------
-void UIText::SetText(uint32 lineIndex, const std::string& text, Rgba color /*= Rgba::WHITE*/)
+void UIText::SetLine(int lineIndex, const std::string& text, const Rgba& color)
 {
 	if (lineIndex >= m_lines.size())
 	{
@@ -240,14 +240,14 @@ void UIText::SetText(uint32 lineIndex, const std::string& text, Rgba color /*= R
 
 
 //-------------------------------------------------------------------------------------------------
-void UIText::SetText(const std::string& text, Rgba color /*= Rgba::WHITE*/)
+void UIText::SetText(const std::string& text, const Rgba& color)
 {
-	SetText(0U, text, color);
+	SetLine(0U, text, color);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void UIText::SetText(const std::vector<std::string>& lines, Rgba color /*= Rgba::WHITE*/)
+void UIText::SetLines(const std::vector<std::string>& lines, const Rgba& color)
 {
 	m_lines.clear();
 
@@ -259,7 +259,54 @@ void UIText::SetText(const std::vector<std::string>& lines, Rgba color /*= Rgba:
 
 
 //-------------------------------------------------------------------------------------------------
-void UIText::AddLine(const std::string& text, Rgba color /*= Rgba::WHITE*/)
+void UIText::SetText(const std::string& text)
+{
+	SetLine(0, text);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void UIText::SetLine(int lineIndex, const std::string& text)
+{
+	if (lineIndex >= m_lines.size())
+	{
+		m_lines.resize(lineIndex + 1);
+	}
+
+	m_lines[lineIndex].m_text = text;
+	m_isDirty = true;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void UIText::SetLines(const std::vector<std::string>& lines)
+{
+	m_lines.resize(lines.size());
+
+	for (size_t lineIndex = 0; lineIndex < lines.size(); ++lineIndex)
+	{
+		m_lines[lineIndex].m_text = lines[lineIndex];
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void UIText::SetColor(const Rgba& color)
+{
+	SetColor(0, color);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void UIText::SetColor(int lineIndex, const Rgba& color)
+{
+	m_lines[lineIndex].m_color = color;
+	m_isDirty = true;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void UIText::AddLine(const std::string& text, const Rgba& color /*= Rgba::WHITE*/)
 {
 	m_lines.push_back(ColoredText(text, color));
 	m_isDirty = true;
@@ -267,7 +314,7 @@ void UIText::AddLine(const std::string& text, Rgba color /*= Rgba::WHITE*/)
 
 
 //-------------------------------------------------------------------------------------------------
-void UIText::AddLines(const std::vector<std::string>& lines, Rgba color /*= Rgba::WHITE*/)
+void UIText::AddLines(const std::vector<std::string>& lines, const Rgba& color /*= Rgba::WHITE*/)
 {
 	for (size_t lineIndex = 0; lineIndex < lines.size(); ++lineIndex)
 	{

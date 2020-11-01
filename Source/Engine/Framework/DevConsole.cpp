@@ -172,6 +172,7 @@ void DevConsole::ProcessCharacter(unsigned char keyCode)
 		case VK_RETURN: HandleEnter();		break;
 		case VK_BACK:	HandleBackSpace();	break;
 		case VK_ESCAPE: HandleEscape();		break;
+		case VK_TAB:						break; // Do nothing
 		default:
 			// Regular input, so add to the input field
 			AddCharacterToInputBuffer(keyCode);
@@ -197,6 +198,7 @@ void DevConsole::ProcessKeydown(unsigned char keyCode)
 		case VK_RIGHT:	HandleRightArrow(); break;
 		case VK_UP:		HandleUpArrow();	break;
 		case VK_DOWN:	HandleDownArrow();	break;
+		case VK_TAB:	HandleTab();		break;
 		default:
 			break;
 		}
@@ -230,7 +232,7 @@ void DevConsole::Update()
 
 	// Cursor gets moved from many functions, easiest to just update its position constantly
 	// also it's cheap, so why not
-	UpdateCursorElementPosition();
+	UpdateInputCursorUI();
 
 	// Update the message logs with messages in the queue
 	ColoredText text;
@@ -311,13 +313,13 @@ DevConsole::DevConsole()
 	m_inputFieldText = m_canvas->FindElementAsType<UIText>(SID("input_text"));
 	m_logScrollView = m_canvas->FindElementAsType<UIScrollView>(SID("log_scrollview"));
 	m_inputCursor = m_canvas->FindElementAsType<UIImage>(SID("input_cursor_image"));
-	m_autocompleteImage = m_canvas->FindElementAsType<UIImage>(SID("autocomplete_image"));
-	m_autocompleteText = m_canvas->FindElementAsType<UIText>(SID("autocomplete_text"));
-	m_autocompleteText->SetRenderMode(ELEMENT_RENDER_NONE);
+	m_popupImage = m_canvas->FindElementAsType<UIImage>(SID("popup_image"));
+	m_popupText = m_canvas->FindElementAsType<UIText>(SID("popup_text"));
+	m_popupText->SetRenderMode(ELEMENT_RENDER_NONE);
 
 	m_inputFieldText->SetShader(m_shader);
 	m_inputCursor->SetShader(m_shader);
-	m_autocompleteText->SetShader(m_shader);
+	m_popupText->SetShader(m_shader);
 	m_logScrollView->GetScrollTextElement()->SetShader(m_shader);
 
 	m_inputFieldText->SetText(">");
@@ -338,8 +340,8 @@ DevConsole::DevConsole()
 //-------------------------------------------------------------------------------------------------
 DevConsole::~DevConsole()
 {
-	m_autocompleteText = nullptr;
-	m_autocompleteImage = nullptr;
+	m_popupText = nullptr;
+	m_popupImage = nullptr;
 	m_logScrollView = nullptr;
 	m_backPanel = nullptr;
 	m_inputPanel = nullptr;
@@ -360,48 +362,51 @@ void DevConsole::HandleTilde()
 //-------------------------------------------------------------------------------------------------
 void DevConsole::HandleEnter()
 {
-	std::string input = m_inputFieldText->GetText();
-	TrimWhitespace(input);
-
-	// Trim the ">"
-	std::string command = input.substr(1);
-	TrimWhitespace(command);
-
-	if (command.size() > 0)
+	if (m_inputFieldText->IsInFocus())
 	{
-		// Print the command to the console log
-		m_logScrollView->AddTextToScroll(input);
+		std::string input = m_inputFieldText->GetText();
+		TrimWhitespace(input);
 
-		m_commandHistory.push_back(command);
-		m_historyIndex = (int)m_commandHistory.size();
+		// Trim the ">"
+		std::string command = input.substr(1);
+		TrimWhitespace(command);
 
-		// Parse the command arguments from the command name
-		// Let the event parse the individual commands, as each 
-		// command may expect/treat arguments as different types
-		// This also preserves the order of the arguments
-		NamedProperties args;
-		size_t firstSpaceIndex = command.find_first_of(' ');
-		std::string commandID = command;
-
-		// If there's arguments
-		if (firstSpaceIndex != std::string::npos)
+		if (command.size() > 0)
 		{
-			std::string argsText = command.substr(firstSpaceIndex);
-			commandID = command.substr(0, firstSpaceIndex);
-			TrimWhitespace(argsText);
+			// Print the command to the console log
+			m_logScrollView->AddTextToScroll(input);
 
-			args.Set("args", argsText);
+			m_commandHistory.push_back(command);
+			m_historyIndex = (int)m_commandHistory.size();
+
+			// Parse the command arguments from the command name
+			// Let the event parse the individual commands, as each 
+			// command may expect/treat arguments as different types
+			// This also preserves the order of the arguments
+			NamedProperties args;
+			size_t firstSpaceIndex = command.find_first_of(' ');
+			std::string commandID = command;
+
+			// If there's arguments
+			if (firstSpaceIndex != std::string::npos)
+			{
+				std::string argsText = command.substr(firstSpaceIndex);
+				commandID = command.substr(0, firstSpaceIndex);
+				TrimWhitespace(argsText);
+
+				args.Set("args", argsText);
+			}
+
+			// Run the command
+			bool hasSubscribers = FireEvent(commandID, args);
+
+			if (!hasSubscribers)
+			{
+				ConsoleWarningf("No subscribers to %s", commandID.c_str());
+			}
+
+			ClearInputField();
 		}
-
-		// Run the command
-		bool hasSubscribers = FireEvent(commandID, args);
-
-		if (!hasSubscribers)
-		{
-			ConsoleWarningf("No subscribers to %s", commandID.c_str());
-		}
-
-		ClearInputField();
 	}
 }
 
@@ -409,7 +414,7 @@ void DevConsole::HandleEnter()
 //-------------------------------------------------------------------------------------------------
 void DevConsole::HandleBackSpace()
 {
-	if (m_cursorPosition > 0)
+	if (m_inputFieldText->IsInFocus() && m_cursorPosition > 0)
 	{
 		std::string inputText = m_inputFieldText->GetText();
 
@@ -417,7 +422,7 @@ void DevConsole::HandleBackSpace()
 		{
 			inputText.erase(inputText.begin() + m_cursorPosition);
 			m_inputFieldText->SetText(inputText);
-			UpdateAutoCompleteElements();
+			UpdateAutoCompleteUI();
 			MoveCursor(-1);
 		}
 	}
@@ -427,36 +432,51 @@ void DevConsole::HandleBackSpace()
 //-------------------------------------------------------------------------------------------------
 void DevConsole::HandleDelete()
 {
-	std::string inputText = m_inputFieldText->GetText();
-	if (m_cursorPosition < (int)inputText.size() - 1)
+	if (m_inputFieldText->IsInFocus())
 	{
-		if (inputText.size() > 1)
+		std::string inputText = m_inputFieldText->GetText();
+		if (m_cursorPosition < (int)inputText.size() - 1)
 		{
-			inputText.erase(inputText.begin() + m_cursorPosition + 1);
-			m_inputFieldText->SetText(inputText);
-			UpdateAutoCompleteElements();
+			if (inputText.size() > 1)
+			{
+				inputText.erase(inputText.begin() + m_cursorPosition + 1);
+				m_inputFieldText->SetText(inputText);
+				UpdateAutoCompleteUI();
+			}
 		}
-	}	
+	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void DevConsole::HandleEscape()
 {
-	ClearInputField();
+	if (m_inputFieldText->IsInFocus())
+	{
+		ClearInputField();
+	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void DevConsole::HandleUpArrow()
 {
-	if (m_commandHistory.size() > 0)
+	if (m_inputFieldText->IsInFocus())
 	{
-		m_historyIndex = Max(m_historyIndex - 1, 0);
+		if (m_autocompleteShown)
+		{
+			m_popupText->SetColor(m_autocompleteIndex, DEFAULT_CONSOLE_LOG_COLOR);
+			m_autocompleteIndex = Max(0, m_autocompleteIndex - 1);
+			m_popupText->SetColor(m_autocompleteIndex, Rgba::YELLOW);
+		}
+		else if (m_commandHistory.size() > 0)
+		{
+			m_historyIndex = Max(m_historyIndex - 1, 0);
 
-		std::string command = m_commandHistory[m_historyIndex];
-		m_inputFieldText->SetText(">" + command);
-		m_cursorPosition = (int)command.size();
+			std::string command = m_commandHistory[m_historyIndex];
+			m_inputFieldText->SetText(">" + command);
+			m_cursorPosition = (int)command.size();
+		}
 	}
 }
 
@@ -464,18 +484,29 @@ void DevConsole::HandleUpArrow()
 //-------------------------------------------------------------------------------------------------
 void DevConsole::HandleDownArrow()
 {
-	if (m_commandHistory.size() > 0)
+	if (m_inputFieldText->IsInFocus())
 	{
-		m_historyIndex = Min(m_historyIndex + 1, (int)m_commandHistory.size());
-
-		std::string command = ">";
-		if (m_historyIndex < (int)m_commandHistory.size())
+		if (m_autocompleteShown)
 		{
-			command += m_commandHistory[m_historyIndex];
-		}
+			int numLines = (int)m_popupText->GetNumLines();
 
-		m_inputFieldText->SetText(command);
-		m_cursorPosition = (int)command.size();
+			m_popupText->SetColor(m_autocompleteIndex, DEFAULT_CONSOLE_LOG_COLOR);
+			m_autocompleteIndex = Min(m_autocompleteIndex + 1, numLines - 1);
+			m_popupText->SetColor(m_autocompleteIndex, Rgba::YELLOW);
+		}
+		else if (m_commandHistory.size() > 0)
+		{
+			m_historyIndex = Min(m_historyIndex + 1, (int)m_commandHistory.size());
+
+			std::string command = ">";
+			if (m_historyIndex < (int)m_commandHistory.size())
+			{
+				command += m_commandHistory[m_historyIndex];
+			}
+
+			m_inputFieldText->SetText(command);
+			m_cursorPosition = (int)command.size();
+		}
 	}
 }
 
@@ -483,14 +514,36 @@ void DevConsole::HandleDownArrow()
 //-------------------------------------------------------------------------------------------------
 void DevConsole::HandleLeftArrow()
 {
-	MoveCursor(-1);
+	if (m_inputFieldText->IsInFocus())
+	{
+		MoveCursor(-1);
+	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void DevConsole::HandleRightArrow()
 {
-	MoveCursor(1);
+	if (m_inputFieldText->IsInFocus())
+	{
+		MoveCursor(1);
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void DevConsole::HandleTab()
+{
+	if (m_inputFieldText->IsInFocus())
+	{
+		if (m_autocompleteShown)
+		{
+			std::string selectedCommand = m_popupText->GetText(m_autocompleteIndex);
+			m_inputFieldText->SetText(selectedCommand);
+			SetCursorToEnd();
+			UpdateAutoCompleteUI();
+		}
+	}
 }
 
 
@@ -504,13 +557,13 @@ void DevConsole::AddCharacterToInputBuffer(unsigned char character)
 		m_inputFieldText->SetText(inputText);
 
 		MoveCursor(1);
-		UpdateAutoCompleteElements();
+		UpdateAutoCompleteUI();
 	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void DevConsole::UpdateCursorElementPosition()
+void DevConsole::UpdateInputCursorUI()
 {
 	// Only update the position when the cursor is shown
 	if (m_showInputCursor)
@@ -556,16 +609,24 @@ void DevConsole::SetCursor(int valueToBeSetTo)
 
 
 //-------------------------------------------------------------------------------------------------
-void DevConsole::ClearInputField()
+void DevConsole::SetCursorToEnd()
 {
-	m_inputFieldText->SetText(">");
-	SetCursor(0);
-	UpdateAutoCompleteElements();
+	int index = m_inputFieldText->GetText().size();
+	SetCursor(index);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void DevConsole::UpdateAutoCompleteElements()
+void DevConsole::ClearInputField()
+{
+	m_inputFieldText->SetText(">");
+	SetCursor(0);
+	UpdateAutoCompleteUI();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void DevConsole::UpdateAutoCompleteUI()
 {
 	std::string inputText = m_inputFieldText->GetText();
 	inputText = inputText.substr(1);
@@ -578,28 +639,44 @@ void DevConsole::UpdateAutoCompleteElements()
 
 		if (eventNames.size() > 0)
 		{
-			// Add an ">" to all the lines
-			for (size_t nameIndex = 0; nameIndex < eventNames.size(); ++nameIndex)
+			// If there's only one matching event name and we already typed it out, hide the auto complete
+			if (eventNames.size() == 1 && eventNames[0] == inputText)
 			{
-				std::string& currName = eventNames[nameIndex];
-				currName = ">" + currName;
+				m_popupText->ClearText();
+				m_popupText->SetRenderMode(ELEMENT_RENDER_NONE);
+				m_autocompleteShown = false;
 			}
+			else
+			{
+				// Add an ">" to all the lines
+				for (size_t nameIndex = 0; nameIndex < eventNames.size(); ++nameIndex)
+				{
+					std::string& currName = eventNames[nameIndex];
+					currName = ">" + currName;
+				}
 
-			m_autocompleteText->SetText(eventNames, DEFAULT_CONSOLE_LOG_COLOR);
-			m_autocompleteText->SetRenderMode(ELEMENT_RENDER_ALL);
+				m_popupText->SetLines(eventNames, DEFAULT_CONSOLE_LOG_COLOR);
+				m_popupText->SetColor(0, Rgba::YELLOW);
+				m_popupText->SetRenderMode(ELEMENT_RENDER_ALL);
+				m_autocompleteShown = true;
 
-			float totalHeight = m_autocompleteText->GetTotalLinesHeight();
-			m_autocompleteText->m_transform.SetHeight(totalHeight);
+				float totalHeight = m_popupText->GetTotalLinesHeight();
+				m_popupText->m_transform.SetHeight(totalHeight);
+			}
 		}
 		else
 		{
-			m_autocompleteText->ClearText();
-			m_autocompleteText->SetRenderMode(ELEMENT_RENDER_NONE);
+			m_popupText->ClearText();
+			m_popupText->SetRenderMode(ELEMENT_RENDER_NONE);
+			m_autocompleteShown = false;
 		}
 	}
 	else
 	{
-		m_autocompleteText->ClearText();
-		m_autocompleteText->SetRenderMode(ELEMENT_RENDER_NONE);
+		m_popupText->ClearText();
+		m_popupText->SetRenderMode(ELEMENT_RENDER_NONE);
+		m_autocompleteShown = false;
 	}
+
+	m_autocompleteIndex = 0;
 }
