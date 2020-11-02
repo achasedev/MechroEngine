@@ -38,8 +38,8 @@ RTTI_TYPE_DEFINE(UIImage);
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-UIImage::UIImage(Canvas* canvas)
-	: UIElement(canvas)
+UIImage::UIImage(Canvas* canvas, const StringID& id)
+	: UIElement(canvas, id)
 {
 	UpdateMesh();
 

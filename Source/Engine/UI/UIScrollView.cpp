@@ -270,8 +270,8 @@ VerticalScrollbarType StringToVerticalScrollbarType(const std::string& text)
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-UIScrollView::UIScrollView(Canvas* canvas)
-	: UIElement(canvas)
+UIScrollView::UIScrollView(Canvas* canvas, const StringID& id)
+	: UIElement(canvas, id)
 {
 	m_onHover = OnHover_MouseWheelScroll;
 }
@@ -329,7 +329,7 @@ void UIScrollView::InitializeFromXML(const XMLElem& element)
 	m_verticalScrollbarType = StringToVerticalScrollbarType(vertScrollType);
 
 	// Create the scrolling text element
-	m_textElement = new UIText(m_canvas);
+	m_textElement = new UIText(m_canvas, m_canvas->GetNextUnspecifiedID());
 	m_textElement->SetFont(font);
 	m_textElement->SetFontHeight(fontHeight);
 	m_textElement->AddLines(lines, textColor);
@@ -502,7 +502,7 @@ AABB2 UIScrollView::GetLocalViewBounds() const
 void UIScrollView::CreateViewPanel()
 {
 	// The panel for how much we can see
-	m_viewPanel = new UIPanel(m_canvas);
+	m_viewPanel = new UIPanel(m_canvas, m_canvas->GetNextUnspecifiedID());
 	m_viewPanel->m_transform.SetAnchors(AnchorPreset::STRETCH_ALL);
 
 	// Pad based on scrollbar positions
@@ -540,7 +540,7 @@ void UIScrollView::CreateViewPanel()
 	}
 
 	m_viewPanel->m_transform.SetHorizontalPadding(leftPadding, rightPadding);
-	m_viewPanel->m_transform.SetVerticalPadding(topPadding, bottomPadding);
+	m_viewPanel->m_transform.SetVerticalPadding(bottomPadding, topPadding);
 	m_viewPanel->m_transform.SetPivot(Vector2(0.5f));
 	m_viewPanel->m_onHover = PassInputToNextElement;
 
@@ -563,7 +563,7 @@ void UIScrollView::CreateVerticalScrollbar()
 	Image* image3 = new Image(IntVector2(2), Rgba::CYAN);
 
 	// Create the elements
-	m_downButton = new UIButton(m_canvas);
+	m_downButton = new UIButton(m_canvas, m_canvas->GetNextUnspecifiedID());
 	m_downButton->Initialize();
 	m_downButton->m_transform.SetAnchors(AnchorPreset::BOTTOM_LEFT);
 	m_downButton->m_transform.SetPosition(Vector2::ZERO);
@@ -575,7 +575,7 @@ void UIScrollView::CreateVerticalScrollbar()
 	m_downButton->m_onMouseRelease = OnMouseRelease_Button;
 	m_downButton->m_onHover = PassInputToNextElement;
 
-	m_upButton = new UIButton(m_canvas);
+	m_upButton = new UIButton(m_canvas, m_canvas->GetNextUnspecifiedID());
 	m_upButton->Initialize();
 	m_upButton->m_transform.SetAnchors(AnchorPreset::TOP_LEFT);
 	m_upButton->m_transform.SetPosition(Vector2::ZERO);
@@ -587,7 +587,7 @@ void UIScrollView::CreateVerticalScrollbar()
 	m_upButton->m_onMouseRelease = OnMouseRelease_Button;
 	m_upButton->m_onHover = PassInputToNextElement;
 
-	m_verticalSlider = new UIImage(m_canvas);
+	m_verticalSlider = new UIImage(m_canvas, m_canvas->GetNextUnspecifiedID());
 	m_verticalSlider->m_transform.SetAnchors(AnchorPreset::BOTTOM_LEFT);
 	m_verticalSlider->m_transform.SetPosition(Vector2(0.f, m_buttonSize));
 	m_verticalSlider->m_transform.SetPivot(Vector2::ZERO);
@@ -599,8 +599,13 @@ void UIScrollView::CreateVerticalScrollbar()
 	m_verticalSlider->m_onMouseRelease = OnMouseRelease_Slider;
 	m_verticalSlider->m_onHover = PassInputToNextElement;
 
-	m_verticalPanel = new UIPanel(m_canvas);
+	m_verticalPanel = new UIPanel(m_canvas, m_canvas->GetNextUnspecifiedID());
 	m_verticalPanel->m_transform.SetAnchors(AnchorPreset::STRETCH_ALL);
+
+	m_verticalPanel->AddChild(m_downButton);
+	m_verticalPanel->AddChild(m_upButton);
+	m_verticalPanel->AddChild(m_verticalSlider);
+	AddChild(m_verticalPanel);
 
 	float leftPadding = 0.f;
 	float rightPadding = 0.f;
@@ -634,16 +639,10 @@ void UIScrollView::CreateVerticalScrollbar()
 	}
 
 	m_verticalPanel->m_transform.SetHorizontalPadding(leftPadding, rightPadding);
-	m_verticalPanel->m_transform.SetVerticalPadding(topPadding, bottomPadding);
+	m_verticalPanel->m_transform.SetVerticalPadding(bottomPadding, topPadding);
 	m_verticalPanel->m_transform.SetPivot(Vector2(0.5f));
 	m_verticalPanel->m_onMouseHold = OnHold_VerticalScrollbar;
 	m_verticalPanel->m_onHover = PassInputToNextElement;
-
-	m_verticalPanel->AddChild(m_downButton);
-	m_verticalPanel->AddChild(m_upButton);
-	m_verticalPanel->AddChild(m_verticalSlider);
-
-	AddChild(m_verticalPanel);
 }
 
 
@@ -661,7 +660,7 @@ void UIScrollView::CreateHorizontalScrollbar()
 	Image* image3 = new Image(IntVector2(2), Rgba::CYAN);
 
 	// Create the elements
-	m_leftButton = new UIButton(m_canvas);
+	m_leftButton = new UIButton(m_canvas, m_canvas->GetNextUnspecifiedID());
 	m_leftButton->Initialize();
 	m_leftButton->m_transform.SetAnchors(AnchorPreset::BOTTOM_LEFT);
 	m_leftButton->m_transform.SetPosition(Vector2::ZERO);
@@ -673,7 +672,7 @@ void UIScrollView::CreateHorizontalScrollbar()
 	m_leftButton->m_onMouseRelease = OnMouseRelease_Button;
 	m_leftButton->m_onHover = PassInputToNextElement;
 
-	m_rightButton = new UIButton(m_canvas);
+	m_rightButton = new UIButton(m_canvas, m_canvas->GetNextUnspecifiedID());
 	m_rightButton->Initialize();
 	m_rightButton->m_transform.SetAnchors(AnchorPreset::BOTTOM_RIGHT);
 	m_rightButton->m_transform.SetPosition(Vector2::ZERO);
@@ -685,7 +684,7 @@ void UIScrollView::CreateHorizontalScrollbar()
 	m_rightButton->m_onMouseRelease = OnMouseRelease_Button;
 	m_rightButton->m_onHover = PassInputToNextElement;
 
-	m_horizontalSlider = new UIImage(m_canvas);
+	m_horizontalSlider = new UIImage(m_canvas, m_canvas->GetNextUnspecifiedID());
 	m_horizontalSlider->m_transform.SetAnchors(AnchorPreset::BOTTOM_LEFT);
 	m_horizontalSlider->m_transform.SetPosition(Vector2(m_buttonSize, 0.f));
 	m_horizontalSlider->m_transform.SetPivot(Vector2::ZERO);
@@ -696,7 +695,7 @@ void UIScrollView::CreateHorizontalScrollbar()
 	m_horizontalSlider->m_onMouseRelease = OnMouseRelease_Slider;
 	m_horizontalSlider->m_onHover = PassInputToNextElement;
 
-	m_horizontalPanel = new UIPanel(m_canvas);
+	m_horizontalPanel = new UIPanel(m_canvas, m_canvas->GetNextUnspecifiedID());
 	m_horizontalPanel->m_transform.SetAnchors(AnchorPreset::STRETCH_ALL);
 
 	float leftPadding = 0.f;
@@ -731,7 +730,7 @@ void UIScrollView::CreateHorizontalScrollbar()
 	}
 
 	m_horizontalPanel->m_transform.SetHorizontalPadding(leftPadding, rightPadding);
-	m_horizontalPanel->m_transform.SetVerticalPadding(topPadding, bottomPadding);
+	m_horizontalPanel->m_transform.SetVerticalPadding(bottomPadding, topPadding);
 	m_horizontalPanel->m_transform.SetPivot(Vector2(0.5f));
 	m_horizontalPanel->m_onMouseHold = OnHold_HorizontalScrollbar;
 	m_horizontalPanel->m_onHover = PassInputToNextElement;

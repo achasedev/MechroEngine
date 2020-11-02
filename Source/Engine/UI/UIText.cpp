@@ -182,8 +182,8 @@ bool IsValidVerticalAlignment(const std::string& text)
 
 
 //-------------------------------------------------------------------------------------------------
-UIText::UIText(Canvas* canvas)
-	: UIElement(canvas)
+UIText::UIText(Canvas* canvas, const StringID& id)
+	: UIElement(canvas, id)
 {
 	m_mesh = new Mesh();
 	m_material = new Material();
@@ -229,7 +229,7 @@ void UIText::ClearText()
 //-------------------------------------------------------------------------------------------------
 void UIText::SetLine(int lineIndex, const std::string& text, const Rgba& color)
 {
-	if (lineIndex >= m_lines.size())
+	if (lineIndex >= (int)m_lines.size())
 	{
 		m_lines.resize(lineIndex + 1);
 	}
@@ -268,7 +268,7 @@ void UIText::SetText(const std::string& text)
 //-------------------------------------------------------------------------------------------------
 void UIText::SetLine(int lineIndex, const std::string& text)
 {
-	if (lineIndex >= m_lines.size())
+	if (lineIndex >= (int)m_lines.size())
 	{
 		m_lines.resize(lineIndex + 1);
 	}

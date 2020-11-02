@@ -248,6 +248,7 @@
     <ClInclude Include="Event\EventSystem.h" />
     <ClInclude Include="Framework\CommentSnippets.h" />
     <ClInclude Include="Framework\DevConsole.h" />
+    <ClInclude Include="Framework\EngineCommands.h" />
     <ClInclude Include="Framework\GameObject.h" />
     <ClInclude Include="IO\InputSystem.h" />
     <ClInclude Include="IO\Joypad.h" />

@@ -27,6 +27,14 @@ class UIPanel;
 class UIScrollView;
 class UIText;
 
+struct DevConsoleCommand
+{
+	std::string m_description;
+	std::string m_usage;
+
+};
+
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -114,10 +122,13 @@ private:
 	UIImage*		m_inputCursor = nullptr;
 	UIImage*		m_popupImage = nullptr;
 	UIText*			m_popupText = nullptr;
+	UIText*			m_fpsText = nullptr;
 
 	FrameTimer		m_cursorTimer;
 	bool			m_showInputCursor = false;
-	float			m_cursorInterval = 0.25f; // 0.5 seconds per state (shown or hidden)
+	float			m_cursorInterval = 0.5f; // seconds per cursor state (shown or hidden)
+	
+	FrameTimer		m_fpsUpdateTimer;
 
 	// TODO: Resource System
 	Shader*			m_shader = nullptr;

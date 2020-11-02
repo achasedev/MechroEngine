@@ -73,8 +73,8 @@ public:
 
 	void		SetTopPadding(float top);
 	void		SetBottomPadding(float bottom);
-	void		SetVerticalPadding(float top, float bottom);
-	void		SetPadding(float left, float right, float top, float bottom);
+	void		SetVerticalPadding(float bottom, float top);
+	void		SetPadding(float left, float right, float bottom, float top);
 
 	void		SetXPosition(float x);
 	void		SetYPosition(float y);

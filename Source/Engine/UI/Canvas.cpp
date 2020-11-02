@@ -16,8 +16,10 @@
 #include "Engine/Render/Texture/Texture2D.h"
 #include "Engine/Time/Clock.h"
 #include "Engine/UI/Canvas.h"
-#include "Engine/UI/UIPanel.h"
 #include "Engine/UI/UIElement.h"
+#include "Engine/UI/UIImage.h"
+#include "Engine/UI/UIPanel.h"
+#include "Engine/UI/UIScrollView.h"
 #include "Engine/UI/UIText.h"
 #include "Engine/Utility/NamedProperties.h"
 #include "Engine/Utility/StringID.h"
@@ -80,9 +82,8 @@ static bool CheckAndExecuteHandler(UIElement* element, UIMouseInputHandler handl
 
 //-------------------------------------------------------------------------------------------------
 Canvas::Canvas()
-	: UIElement(nullptr)
+	: UIElement(nullptr, SID("canvas"))
 {
-	m_id = SID("canvas");
 	m_outputTexture = g_renderContext->GetDefaultRenderTarget();
 	m_outputTextureHeight = m_outputTexture->GetHeight();
 	g_eventSystem->SubscribeEventCallbackObjectMethod("window-resize", &Canvas::Event_WindowResize, *this);
@@ -130,18 +131,12 @@ void Canvas::InitializeFromXML(const XMLElem& element)
 		m_widthOrHeightBlend = XML::ParseAttribute(element, "blend", 1.0f);
 	}
 
-	// Create the child elements
-	const XMLElem* child = element.FirstChildElement();
-	while (child != nullptr)
+	// Recursively create and add children
+	const XMLElem* childElement = element.FirstChildElement();
+	while (childElement != nullptr)
 	{
-		UIElement* newElement = CreateUIElementFromXML(*child, this);
-
-		if (newElement != nullptr)
-		{
-			AddChild(newElement);
-		}
-
-		child = child->NextSiblingElement();
+		CreateUIElementFromXML(*childElement, this, this);
+		childElement = childElement->NextSiblingElement();
 	}
 }
 

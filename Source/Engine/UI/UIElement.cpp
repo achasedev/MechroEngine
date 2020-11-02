@@ -195,15 +195,11 @@ bool IsXMLElemForUIImage(const XMLElem& element)
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-UIElement::UIElement(Canvas* canvas)
+UIElement::UIElement(Canvas* canvas, const StringID& id)
 	: m_transform(RectTransform(canvas))
 	, m_canvas(canvas)
+	, m_id(id)
 {
-	if (canvas != nullptr)
-	{
-		// Ensure all UIElements have an ID of some sort
-		m_id = m_canvas->GetNextUnspecifiedID();
-	}
 }
 
 
@@ -322,9 +318,6 @@ void UIElement::SetLayer(uint32 layer)
 //-------------------------------------------------------------------------------------------------
 void UIElement::InitializeFromXML(const XMLElem& element)
 {
-	// name
-	m_id = SID(element.Name());
-
 	// pivot
 	Vector2 pivot = XML::ParseAttribute(element, "pivot", Vector2::ZERO);
 	m_transform.SetPivot(pivot);
@@ -358,17 +351,11 @@ void UIElement::InitializeFromXML(const XMLElem& element)
 	}
 
 	// Recursively create and add children
-	const XMLElem* xmlChild = element.FirstChildElement();
-	while (xmlChild != nullptr)
+	const XMLElem* childElement = element.FirstChildElement();
+	while (childElement != nullptr)
 	{
-		UIElement* newElement = CreateUIElementFromXML(*xmlChild, m_canvas);
-
-		if (newElement != nullptr)
-		{
-			AddChild(newElement);
-		}
-
-		xmlChild = xmlChild->NextSiblingElement();
+		CreateUIElementFromXML(*childElement, this, m_canvas);
+		childElement = childElement->NextSiblingElement();
 	}
 }
 
@@ -464,6 +451,36 @@ Matrix44 UIElement::CreateModelMatrix(const OBB2& finalBounds) const
 
 
 //-------------------------------------------------------------------------------------------------
+STATIC UIElement* UIElement::CreateUIElementFromXML(const XMLElem& element, UIElement* parent, Canvas* canvas)
+{
+	std::string name = element.Name();
+	size_t underscoreIndex = name.find_last_of('_');
+	ASSERT_OR_DIE(underscoreIndex != std::string::npos && underscoreIndex != name.size() - 1, "UIElement element name %s needs to have \"_<UIElement type>\" at the end of it!", name.c_str());
+
+	std::string elementType = name.substr(underscoreIndex + 1);
+
+	UIElement* newElement = nullptr;
+	if		(elementType == "panel")		{ newElement = new UIPanel(canvas, SID(name)); }
+	else if (elementType == "text")			{ newElement = new UIText(canvas, SID(name)); }
+	else if (elementType == "scrollview")	{ newElement = new UIScrollView(canvas, SID(name)); }
+	else if (elementType == "image")		{ newElement = new UIImage(canvas, SID(name)); }
+	else
+	{
+		ERROR_RECOVERABLE("Cannot create UIElement of type %s!", elementType.c_str());
+	}
+
+	if (newElement != nullptr)
+	{
+		parent->AddChild(newElement);
+	}
+
+	// Initialize after being parented
+	newElement->InitializeFromXML(element);
+	return newElement;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 UIElement* UIElement::GetChildByID(StringID id)
 {
 	for (size_t childIndex = 0; childIndex < m_children.size(); ++childIndex)
@@ -475,29 +492,4 @@ UIElement* UIElement::GetChildByID(StringID id)
 	}
 
 	return nullptr;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-STATIC UIElement* UIElement::CreateUIElementFromXML(const XMLElem& element, Canvas* canvas)
-{
-	std::string name = element.Name();
-	size_t underscoreIndex = name.find_last_of('_');
-	ASSERT_OR_DIE(underscoreIndex != std::string::npos && underscoreIndex != name.size() - 1, "UIElement element name %s needs to have \"_<UIElement type>\" at the end of it!", name.c_str());
-
-	std::string elementType = name.substr(underscoreIndex + 1);
-
-	UIElement* uiElement = nullptr;
-	if		(elementType == "panel")		{ uiElement = new UIPanel(canvas); }
-	else if (elementType == "text")			{ uiElement = new UIText(canvas); }
-	else if (elementType == "scrollview")	{ uiElement = new UIScrollView(canvas); }
-	else if (elementType == "image")		{ uiElement = new UIImage(canvas); }
-	else
-	{
-		ERROR_RECOVERABLE("Cannot create UIElement of type %s!", elementType.c_str());
-		return nullptr;
-	}
-
-	uiElement->InitializeFromXML(element);
-	return uiElement;
 }

@@ -55,7 +55,7 @@ public:
 	//-----Public Methods-----
 	RTTI_DERIVED_CLASS(UIScrollView);
 
-	UIScrollView(Canvas* canvas);
+	UIScrollView(Canvas* canvas, const StringID& id);
 	virtual ~UIScrollView();
 
 	virtual void	InitializeFromXML(const XMLElem& element) override;

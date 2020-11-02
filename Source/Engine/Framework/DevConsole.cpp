@@ -27,6 +27,7 @@
 #include "Engine/Utility/NamedProperties.h"
 #include "Engine/Render/Font/Font.h"
 #include "Engine/Render/Font/FontLoader.h"
+#include "Engine/Time/Clock.h"
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -241,6 +242,21 @@ void DevConsole::Update()
 		m_logScrollView->AddTextToScroll(text.m_text, text.m_color);
 	}
 
+	// Update FPS display
+	if (m_fpsUpdateTimer.CheckAndDecrementAll())
+	{
+		Clock* masterClock = Clock::GetMasterClock();
+		float deltaSeconds = masterClock->GetDeltaSeconds();
+		float fps = (deltaSeconds > 0.f ? (1.0f / deltaSeconds) : 0.f);
+
+		std::string fpsText = Stringf("FPS: %.2f", fps);
+		std::string frameText = (deltaSeconds > 0.01f ? Stringf("%.2f ms", deltaSeconds) : Stringf("%.2f us", deltaSeconds * 1000.f));
+
+		m_fpsText->SetLine(0, fpsText);
+		m_fpsText->SetLine(1, frameText);
+	}
+
+	// UI update
 	m_canvas->Update();
 }
 
@@ -248,7 +264,6 @@ void DevConsole::Update()
 //-------------------------------------------------------------------------------------------------
 void DevConsole::EndFrame()
 {
-
 }
 
 
@@ -316,14 +331,18 @@ DevConsole::DevConsole()
 	m_popupImage = m_canvas->FindElementAsType<UIImage>(SID("popup_image"));
 	m_popupText = m_canvas->FindElementAsType<UIText>(SID("popup_text"));
 	m_popupText->SetRenderMode(ELEMENT_RENDER_NONE);
+	m_fpsText = m_canvas->FindElementAsType<UIText>(SID("fps_text"));
 
 	m_inputFieldText->SetShader(m_shader);
 	m_inputCursor->SetShader(m_shader);
 	m_popupText->SetShader(m_shader);
 	m_logScrollView->GetScrollTextElement()->SetShader(m_shader);
+	m_fpsText->SetShader(m_shader);
 
 	m_inputFieldText->SetText(">");
 	SetCursor(0);
+
+	m_fpsUpdateTimer.SetInterval(0.5f);
 
 	g_eventSystem->SubscribeEventCallbackFunction("add", AddTwoNumbers);
 	g_eventSystem->SubscribeEventCallbackFunction("adder", AddTwoNumbers);
@@ -340,13 +359,14 @@ DevConsole::DevConsole()
 //-------------------------------------------------------------------------------------------------
 DevConsole::~DevConsole()
 {
+	m_fpsText = nullptr;
 	m_popupText = nullptr;
 	m_popupImage = nullptr;
 	m_logScrollView = nullptr;
 	m_backPanel = nullptr;
 	m_inputPanel = nullptr;
 	m_inputFieldText = nullptr;
-	
+
 	SAFE_DELETE(m_shader);
 	SAFE_DELETE(m_canvas);
 }
@@ -402,7 +422,7 @@ void DevConsole::HandleEnter()
 
 			if (!hasSubscribers)
 			{
-				ConsoleWarningf("No subscribers to %s", commandID.c_str());
+				ConsoleWarningf("Unknown command: %s", commandID.c_str());
 			}
 
 			ClearInputField();
@@ -565,6 +585,12 @@ void DevConsole::AddCharacterToInputBuffer(unsigned char character)
 //-------------------------------------------------------------------------------------------------
 void DevConsole::UpdateInputCursorUI()
 {
+	if (!m_inputFieldText->IsInFocus())
+	{
+		m_inputCursor->SetRenderMode(ELEMENT_RENDER_NONE);
+		m_showInputCursor = false;
+	}
+
 	// Only update the position when the cursor is shown
 	if (m_showInputCursor)
 	{

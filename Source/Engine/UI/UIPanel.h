@@ -34,7 +34,7 @@ public:
 	//-----Public Methods-----
 	RTTI_DERIVED_CLASS(UIPanel);
 
-	UIPanel(Canvas* canvas);
+	UIPanel(Canvas* canvas, const StringID& id);
 	
 	virtual void	Render() override;
 

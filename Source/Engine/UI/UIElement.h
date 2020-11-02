@@ -78,7 +78,7 @@ public:
 	//-----Public Methods-----
 	RTTI_BASE_CLASS(UIElement);
 
-	UIElement(Canvas* canvas);
+	UIElement(Canvas* canvas, const StringID& id);
 	virtual ~UIElement();
 
 	virtual void		Update();
@@ -111,7 +111,7 @@ public:
 	Matrix44			CreateModelMatrix() const;
 	Matrix44			CreateModelMatrix(const OBB2& finalBounds) const;
 	
-	static UIElement*	CreateUIElementFromXML(const XMLElem& element, Canvas* canvas);
+	static UIElement*	CreateUIElementFromXML(const XMLElem& element, UIElement* parent, Canvas* canvas);
 
 
 public:

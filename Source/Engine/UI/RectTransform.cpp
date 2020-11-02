@@ -107,24 +107,24 @@ void RectTransform::SetBottomPadding(float bottom)
 
 
 //-------------------------------------------------------------------------------------------------
-void RectTransform::SetVerticalPadding(float top, float bottom)
+void RectTransform::SetVerticalPadding(float bottom, float top)
 {
 	bool isPaddingVertical = IsPaddingVertical();
 	ASSERT_RECOVERABLE(isPaddingVertical, "Attempting to set UIElement vertical padding when anchors aren't set to pad vertical!");
 
 	if (isPaddingVertical)
 	{
-		m_topPadding = top;
 		m_bottomPadding = bottom;
+		m_topPadding = top;
 	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void RectTransform::SetPadding(float left, float right, float top, float bottom)
+void RectTransform::SetPadding(float left, float right, float bottom, float top)
 {
 	SetHorizontalPadding(left, right);
-	SetVerticalPadding(top, bottom);
+	SetVerticalPadding(bottom, top);
 }
 
 
@@ -442,16 +442,32 @@ Vector2 RectTransform::GetPosition() const
 //-------------------------------------------------------------------------------------------------
 float RectTransform::GetWidth() const
 {
-	ASSERT_OR_DIE(!IsPaddingHorizontal(), "Trying to read position when anchors are using padding!");
-	return m_width;
+	if (IsPaddingHorizontal())
+	{
+		ASSERT_RECOVERABLE(m_parent != nullptr, "Cannot get padded width without a parent!");
+
+		float parentWidth = (m_parent != nullptr ? m_parent->GetWidth() : 0.f);
+		return Max(parentWidth - m_leftPadding - m_rightPadding, 0.f);
+	}
+	else
+	{
+		return m_width;
+	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
 float RectTransform::GetHeight() const
 {
-	ASSERT_OR_DIE(!IsPaddingVertical(), "Trying to read position when anchors are using padding!");
-	return m_height;
+	if (IsPaddingVertical())
+	{
+		float parentHeight = (m_parent != nullptr ? m_parent->GetHeight() : 0.f);
+		return Max(parentHeight - m_bottomPadding - m_topPadding, 0.f);
+	}
+	else
+	{
+		return m_height;
+	}
 }
 
 

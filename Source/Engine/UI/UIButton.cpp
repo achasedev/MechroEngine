@@ -8,6 +8,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
+#include "Engine/UI/Canvas.h"
 #include "Engine/UI/UIButton.h"
 #include "Engine/UI/UIImage.h"
 #include "Engine/UI/UIText.h"
@@ -45,8 +46,8 @@ static bool DontBlockInput(UIElement* element, const UIMouseInfo& info)
 
 
 //-------------------------------------------------------------------------------------------------
-UIButton::UIButton(Canvas* canvas)
-	: UIElement(canvas)
+UIButton::UIButton(Canvas* canvas, const StringID& id)
+	: UIElement(canvas, id)
 {
 
 }
@@ -172,7 +173,7 @@ void UIButton::SetImage(Image* image)
 //-------------------------------------------------------------------------------------------------
 void UIButton::SetupDefaultImageElement()
 {
-	m_imageElement = new UIImage(m_canvas);
+	m_imageElement = new UIImage(m_canvas, m_canvas->GetNextUnspecifiedID());
 	m_imageElement->m_transform.SetParentTransform(&m_transform);
 	m_imageElement->m_transform.SetAnchors(AnchorPreset::STRETCH_ALL);
 	m_imageElement->m_transform.SetPadding(0.f, 0.f, 0.f, 0.f);
@@ -189,7 +190,7 @@ void UIButton::SetupDefaultImageElement()
 //-------------------------------------------------------------------------------------------------
 void UIButton::SetupDefaultTextElement()
 {
-	m_textElement = new UIText(m_canvas);
+	m_textElement = new UIText(m_canvas, m_canvas->GetNextUnspecifiedID());
 	m_textElement->m_transform.SetParentTransform(&m_transform);
 	m_textElement->m_transform.SetAnchors(AnchorPreset::STRETCH_ALL);
 	m_textElement->m_transform.SetPadding(0.f, 0.f, 0.f, 0.f);
