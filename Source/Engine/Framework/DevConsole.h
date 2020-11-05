@@ -65,6 +65,7 @@ public:
 
 	void		SetIsActive(bool isActive);
 	void		AddToMessageQueue(const ColoredText& outputText);
+	void		UpdateCursorFromMousePosition(const Vector2& mouseCanvasPos);
 
 	// Accessors
 	bool		IsActive() const { return m_isActive; }

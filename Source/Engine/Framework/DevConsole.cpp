@@ -139,6 +139,16 @@ void ConsoleErrorf(char const *format, ...)
 }
 
 
+//-------------------------------------------------------------------------------------------------
+static bool OnClick_InputField(UIElement* element, const UIMouseInfo& mouseInfo)
+{
+	UNUSED(element);
+	g_devConsole->UpdateCursorFromMousePosition(mouseInfo.m_position);
+
+	return true;
+}
+
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -298,6 +308,42 @@ void DevConsole::AddToMessageQueue(const ColoredText& outputText)
 	m_outputQueue.Enqueue(outputText);
 }
 
+
+//-------------------------------------------------------------------------------------------------
+void DevConsole::UpdateCursorFromMousePosition(const Vector2& mouseCanvasPos)
+{
+	std::string inputText = m_inputFieldText->GetText();
+
+	float startX = m_inputFieldText->GetCanvasBounds().m_alignedBounds.mins.x;
+	float bestDiff = -1;
+	float prevDiff = -1;
+	int bestIndex = -1;
+
+	for (int index = 0; index < (int)inputText.size(); ++index)
+	{
+		std::string testString = inputText.substr(0, index + 1);
+		Vector2 dimensions = m_inputFieldText->GetTextCanvasDimensions(testString);
+
+		float xPos = startX + dimensions.x;
+		float diff = Abs(xPos - mouseCanvasPos.x);
+
+		if (bestIndex == -1 || diff < bestDiff)
+		{
+			bestDiff = diff;
+			bestIndex = index;
+			prevDiff = diff;
+		}
+		else
+		{
+			// Once we aren't getting any better, it will forever only get worse so early out
+			break;
+		}
+	}
+
+	SetCursor(bestIndex);
+}
+
+
 static bool AddTwoNumbers(NamedProperties& args)
 {
 	std::string argsText = args.Get("args", "");
@@ -339,6 +385,7 @@ DevConsole::DevConsole()
 	m_logScrollView->GetScrollTextElement()->SetShader(m_shader);
 	m_fpsText->SetShader(m_shader);
 
+	m_inputFieldText->m_onMouseClick = OnClick_InputField;
 	m_inputFieldText->SetText(">");
 	SetCursor(0);
 
