@@ -473,6 +473,20 @@ Vector2 UIText::GetTextCanvasDimensions(const std::string& text) const
 
 
 //-------------------------------------------------------------------------------------------------
+AABB2 UIText::GetCharacterLocalBounds(uint32 lineNumber, uint32 charIndex)
+{
+	ASSERT_RETURN(m_characterLocalBounds.size() > 0, AABB2::ZERO_TO_ONE, "No lines in UIText element!");
+	ASSERT_RETURN(lineNumber < (uint32)m_characterLocalBounds.size(), AABB2::ZERO_TO_ONE, "Bad line index!");
+	
+	std::vector<AABB2>& lineBounds = m_characterLocalBounds[lineNumber];
+	ASSERT_RETURN(lineBounds.size() > 0, AABB2::ZERO_TO_ONE, "Empty line!");
+	ASSERT_RETURN(charIndex < (uint32)lineBounds.size(), AABB2::ZERO_TO_ONE, "Bad character index!");
+
+	return lineBounds[charIndex];
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void UIText::InitializeFromXML(const XMLElem& element)
 {
 	UIElement::InitializeFromXML(element);
@@ -535,7 +549,8 @@ void UIText::UpdateMeshAndMaterial(const OBB2& finalBounds)
 		// Send the bounds as if they're at 0,0
 		// The model matrix will handle the positioning
 		// Font pixel height may be updated/adjusted based on draw modes
-		fontPixelHeight = mb.PushText(m_lines, fontPixelHeight, m_font, AABB2(Vector2::ZERO, finalBounds.m_alignedBounds.GetDimensions()), m_canvas->GetCanvasUnitsPerPixel(), m_horizontalAlign, m_verticalAlign, m_textDrawMode);
+		m_characterLocalBounds.clear();
+		fontPixelHeight = mb.PushText(m_lines, fontPixelHeight, m_font, AABB2(Vector2::ZERO, finalBounds.m_alignedBounds.GetDimensions()), m_canvas->GetCanvasUnitsPerPixel(), m_horizontalAlign, m_verticalAlign, m_textDrawMode, &m_characterLocalBounds);
 
 		mb.FinishBuilding();
 		mb.UpdateMesh<Vertex3D_PCU>(*m_mesh);
@@ -547,8 +562,6 @@ void UIText::UpdateMeshAndMaterial(const OBB2& finalBounds)
 		Texture2D* texture = atlas->GetTexture();
 		ShaderResourceView* resourceView = texture->CreateOrGetShaderResourceView();
 		m_material->SetAlbedoTextureView(resourceView);
-
-		ASSERT_OR_DIE(resourceView->GetSampler() == nullptr, "Whyyyyy!");
 
 		m_boundsHeightLastDraw = finalBounds.m_alignedBounds.GetHeight();
 		m_isDirty = false;

@@ -173,3 +173,5 @@ T* UIElement::GetFirstChildOfType()
 
 bool IsXMLElemForUIText(const XMLElem& element);
 bool IsXMLElemForUIImage(const XMLElem& element);
+
+bool PassThroughMouseInput(UIElement* element, const UIMouseInfo& info);

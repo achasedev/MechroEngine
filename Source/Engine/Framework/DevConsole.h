@@ -34,6 +34,12 @@ struct DevConsoleCommand
 
 };
 
+enum UIInputCursorMode
+{
+	CURSOR_BLINK,
+	CURSOR_SELECTION
+};
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -62,13 +68,23 @@ public:
 	void		Update();
 	void		EndFrame();
 	void		Render() const;
+	
+	// Accessors
+	bool		IsActive() const { return m_isActive; }
+	int			GetBestIndexForMousePosition(const Vector2& mouseCanvasPos);
+	std::string GetSelectedInputText() const;
+	bool		HasInputSelection() const;
 
 	void		SetIsActive(bool isActive);
 	void		AddToMessageQueue(const ColoredText& outputText);
-	void		UpdateCursorFromMousePosition(const Vector2& mouseCanvasPos);
+	void		MoveCursor(int valueToAddToCursor);
+	void		SetCursor(int valueToBeSetTo);
+	void		SetCursorToEnd();
+	void		ClearInputField();
+	void		StartSelection(int startIndex);
+	void		SetSelectEndIndex(int endIndex);
+	void		ResetInputSelection();
 
-	// Accessors
-	bool		IsActive() const { return m_isActive; }
 
 
 public:
@@ -96,11 +112,8 @@ private:
 	void AddCharacterToInputBuffer(unsigned char character);
 	void UpdateInputCursorUI();
 	void ResetCursorTimer();
-	void MoveCursor(int valueToAddToCursor);
-	void SetCursor(int valueToBeSetTo);
-	void SetCursorToEnd();
-	void ClearInputField();
 	void UpdateAutoCompleteUI();
+	void DeleteSelection();
 
 
 private:
@@ -115,24 +128,30 @@ private:
 	bool							m_autocompleteShown = false;
 
 	// Rendering
-	Canvas*			m_canvas = nullptr;
-	UIPanel*		m_backPanel = nullptr;
-	UIPanel*		m_inputPanel = nullptr;
-	UIText*			m_inputFieldText = nullptr;
-	UIScrollView*	m_logScrollView = nullptr;
-	UIImage*		m_inputCursor = nullptr;
-	UIImage*		m_popupImage = nullptr;
-	UIText*			m_popupText = nullptr;
-	UIText*			m_fpsText = nullptr;
+	Canvas*							m_canvas = nullptr;
+	UIPanel*						m_backPanel = nullptr;
+	UIPanel*						m_inputPanel = nullptr;
+	UIText*							m_inputFieldText = nullptr;
+	UIScrollView*					m_logScrollView = nullptr;
+	UIImage*						m_inputCursor = nullptr;
+	UIImage*						m_popupImage = nullptr;
+	UIText*							m_popupText = nullptr;
+	UIText*							m_fpsText = nullptr;
 
-	FrameTimer		m_cursorTimer;
-	bool			m_showInputCursor = false;
-	float			m_cursorInterval = 0.5f; // seconds per cursor state (shown or hidden)
-	
-	FrameTimer		m_fpsUpdateTimer;
+	FrameTimer						m_cursorTimer;
+	bool							m_showInputCursor = false;
+	float							m_cursorInterval = 0.5f; // seconds per cursor state (shown or hidden)
+	float							m_defaultCursorWidth = -1.f;
+
+	// Text Select
+	int								m_selectionStartIndex = -1;
+	int								m_selectionEndIndex = -1;
+	bool							m_isSelecting = true;
+
+	FrameTimer						m_fpsUpdateTimer;
 
 	// TODO: Resource System
-	Shader*			m_shader = nullptr;
+	Shader*							m_shader = nullptr;
 
 };
 

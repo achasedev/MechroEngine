@@ -99,6 +99,7 @@ public:
 	Vector2			GetTextCanvasDimensions() const;
 	Vector2			GetTextCanvasDimensions(uint32 lineNumber) const;
 	Vector2			GetTextCanvasDimensions(const std::string& text) const;
+	AABB2			GetCharacterLocalBounds(uint32 lineNumber, uint32 charIndex);
 
 
 private:
@@ -111,18 +112,19 @@ private:
 private:
 	//-----Private Data-----
 
-	std::vector<ColoredText>	m_lines;
-	Mesh*						m_mesh = nullptr;
-	Material*					m_material = nullptr;
-	Font*						m_font = nullptr;
-	float						m_fontHeight = 0.f;
-	bool						m_isDirty = true;
-	float						m_boundsHeightLastDraw = -1.0f;
+	std::vector<ColoredText>		m_lines;
+	Mesh*							m_mesh = nullptr;
+	Material*						m_material = nullptr;
+	Font*							m_font = nullptr;
+	float							m_fontHeight = 0.f;
+	bool							m_isDirty = true;
+	float							m_boundsHeightLastDraw = -1.0f;
 
-	HorizontalAlignment			m_horizontalAlign	= ALIGNMENT_LEFT;
-	VerticalAlignment			m_verticalAlign		= ALIGNMENT_TOP;
-	TextDrawMode				m_textDrawMode		= TEXT_DRAW_DEFAULT;
+	HorizontalAlignment				m_horizontalAlign = ALIGNMENT_LEFT;
+	VerticalAlignment				m_verticalAlign = ALIGNMENT_TOP;
+	TextDrawMode					m_textDrawMode = TEXT_DRAW_DEFAULT;
 
+	std::vector<std::vector<AABB2>> m_characterLocalBounds;
 };
 
 

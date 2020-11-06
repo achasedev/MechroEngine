@@ -24,6 +24,7 @@
 #include "Engine/UI/UIScrollView.h"
 #include "Engine/UI/UIText.h"
 #include "Engine/Utility/Assert.h"
+#include "Engine/Utility/EngineUtils.h"
 #include "Engine/Utility/NamedProperties.h"
 #include "Engine/Render/Font/Font.h"
 #include "Engine/Render/Font/FontLoader.h"
@@ -140,10 +141,43 @@ void ConsoleErrorf(char const *format, ...)
 
 
 //-------------------------------------------------------------------------------------------------
-static bool OnClick_InputField(UIElement* element, const UIMouseInfo& mouseInfo)
+static bool OnMouseClick_InputField(UIElement* element, const UIMouseInfo& mouseInfo)
 {
 	UNUSED(element);
-	g_devConsole->UpdateCursorFromMousePosition(mouseInfo.m_position);
+
+	g_devConsole->ResetInputSelection();
+	int startIndex = g_devConsole->GetBestIndexForMousePosition(mouseInfo.m_position);
+	g_devConsole->StartSelection(startIndex);
+
+	return true;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+static bool OnMouseHold_InputField(UIElement* element, const UIMouseInfo& mouseInfo)
+{
+	UNUSED(element);
+	int endIndex = g_devConsole->GetBestIndexForMousePosition(mouseInfo.m_position);
+	g_devConsole->SetSelectEndIndex(endIndex);
+
+	return true;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+static bool OnMouseRelease_InputField(UIElement* element, const UIMouseInfo& mouseInfo)
+{
+	UNUSED(element);
+
+	// Final update for accuracy
+	int currIndex = g_devConsole->GetBestIndexForMousePosition(mouseInfo.m_position);
+	g_devConsole->SetSelectEndIndex(currIndex);
+
+	if (!g_devConsole->HasInputSelection())
+	{
+		g_devConsole->ResetInputSelection();
+		g_devConsole->SetCursor(currIndex);
+	}
 
 	return true;
 }
@@ -233,7 +267,7 @@ void DevConsole::ProcessInput()
 //-------------------------------------------------------------------------------------------------
 void DevConsole::Update()
 {
-	if (m_cursorTimer.CheckAndDecrementAll())
+	if (!HasInputSelection() && m_cursorTimer.CheckAndDecrementAll())
 	{
 		m_showInputCursor = !m_showInputCursor;
 
@@ -310,7 +344,7 @@ void DevConsole::AddToMessageQueue(const ColoredText& outputText)
 
 
 //-------------------------------------------------------------------------------------------------
-void DevConsole::UpdateCursorFromMousePosition(const Vector2& mouseCanvasPos)
+int DevConsole::GetBestIndexForMousePosition(const Vector2& mouseCanvasPos)
 {
 	std::string inputText = m_inputFieldText->GetText();
 
@@ -340,7 +374,37 @@ void DevConsole::UpdateCursorFromMousePosition(const Vector2& mouseCanvasPos)
 		}
 	}
 
-	SetCursor(bestIndex);
+	return bestIndex;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+std::string DevConsole::GetSelectedInputText() const
+{
+	std::string inputText = m_inputFieldText->GetText();
+
+	ASSERT_OR_DIE(m_selectionStartIndex > -1, "Bad selection start index!");
+	ASSERT_OR_DIE(m_selectionStartIndex <= (int)inputText.size(), "Bad selection start index!");
+	ASSERT_OR_DIE(m_selectionEndIndex > -1, "Bad selection end index!");
+	ASSERT_OR_DIE(m_selectionEndIndex <= (int)inputText.size(), "Bad selection end index!");
+	
+	if (m_selectionStartIndex == m_selectionEndIndex)
+	{
+		return "";
+	}
+
+	int lowerIndex = Min(m_selectionStartIndex, m_selectionEndIndex);
+	int upperIndex = Max(m_selectionStartIndex, m_selectionEndIndex);
+	int numChars = upperIndex - lowerIndex;
+
+	return inputText.substr(lowerIndex, numChars);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool DevConsole::HasInputSelection() const
+{
+	return (m_selectionStartIndex >= 0) && (m_selectionEndIndex >= 0) && (m_selectionStartIndex != m_selectionEndIndex);
 }
 
 
@@ -385,8 +449,13 @@ DevConsole::DevConsole()
 	m_logScrollView->GetScrollTextElement()->SetShader(m_shader);
 	m_fpsText->SetShader(m_shader);
 
-	m_inputFieldText->m_onMouseClick = OnClick_InputField;
+	m_inputFieldText->m_onMouseClick = OnMouseClick_InputField;
+	m_inputFieldText->m_onMouseHold = OnMouseHold_InputField;
+	m_inputFieldText->m_onMouseRelease = OnMouseRelease_InputField;
+	m_inputCursor->m_onMouseClick = PassThroughMouseInput;
+	m_inputCursor->m_onMouseRelease = PassThroughMouseInput;
 	m_inputFieldText->SetText(">");
+	m_defaultCursorWidth = m_inputCursor->m_transform.GetWidth();
 	SetCursor(0);
 
 	m_fpsUpdateTimer.SetInterval(0.5f);
@@ -483,15 +552,23 @@ void DevConsole::HandleBackSpace()
 {
 	if (m_inputFieldText->IsInFocus() && m_cursorPosition > 0)
 	{
-		std::string inputText = m_inputFieldText->GetText();
-
-		if (inputText.size() > 1)
+		if (HasInputSelection())
 		{
-			inputText.erase(inputText.begin() + m_cursorPosition);
-			m_inputFieldText->SetText(inputText);
-			UpdateAutoCompleteUI();
-			MoveCursor(-1);
+			DeleteSelection();
 		}
+		else
+		{
+			std::string inputText = m_inputFieldText->GetText();
+
+			if (inputText.size() > 1)
+			{
+				inputText.erase(inputText.begin() + m_cursorPosition);
+				m_inputFieldText->SetText(inputText);
+				MoveCursor(-1);
+			}
+		}
+
+		UpdateAutoCompleteUI();
 	}
 }
 
@@ -501,16 +578,26 @@ void DevConsole::HandleDelete()
 {
 	if (m_inputFieldText->IsInFocus())
 	{
-		std::string inputText = m_inputFieldText->GetText();
-		if (m_cursorPosition < (int)inputText.size() - 1)
+		if (HasInputSelection())
 		{
-			if (inputText.size() > 1)
+			DeleteSelection();
+		}
+		else
+		{
+			// Erase in front of the cursor
+			std::string inputText = m_inputFieldText->GetText();
+
+			if (m_cursorPosition < (int)inputText.size() - 1)
 			{
-				inputText.erase(inputText.begin() + m_cursorPosition + 1);
-				m_inputFieldText->SetText(inputText);
-				UpdateAutoCompleteUI();
+				if (inputText.size() > 1)
+				{
+					inputText.erase(inputText.begin() + m_cursorPosition + 1);
+					m_inputFieldText->SetText(inputText);
+				}
 			}
 		}
+
+		UpdateAutoCompleteUI();
 	}
 }
 
@@ -583,6 +670,7 @@ void DevConsole::HandleLeftArrow()
 {
 	if (m_inputFieldText->IsInFocus())
 	{
+		ResetInputSelection();
 		MoveCursor(-1);
 	}
 }
@@ -593,6 +681,7 @@ void DevConsole::HandleRightArrow()
 {
 	if (m_inputFieldText->IsInFocus())
 	{
+		ResetInputSelection();
 		MoveCursor(1);
 	}
 }
@@ -608,6 +697,7 @@ void DevConsole::HandleTab()
 			std::string selectedCommand = m_popupText->GetText(m_autocompleteIndex);
 			m_inputFieldText->SetText(selectedCommand);
 			SetCursorToEnd();
+			ResetInputSelection();
 			UpdateAutoCompleteUI();
 		}
 	}
@@ -619,6 +709,11 @@ void DevConsole::AddCharacterToInputBuffer(unsigned char character)
 {
 	if (m_inputFieldText->IsInFocus())
 	{
+		if (HasInputSelection())
+		{
+			DeleteSelection();
+		}
+
 		std::string inputText = m_inputFieldText->GetText();
 		inputText.insert(inputText.begin() + m_cursorPosition + 1, character);
 		m_inputFieldText->SetText(inputText);
@@ -632,23 +727,45 @@ void DevConsole::AddCharacterToInputBuffer(unsigned char character)
 //-------------------------------------------------------------------------------------------------
 void DevConsole::UpdateInputCursorUI()
 {
-	if (!m_inputFieldText->IsInFocus())
-	{
-		m_inputCursor->SetRenderMode(ELEMENT_RENDER_NONE);
-		m_showInputCursor = false;
-	}
-
-	// Only update the position when the cursor is shown
-	if (m_showInputCursor)
+	if (HasInputSelection())
 	{
 		std::string text = m_inputFieldText->GetText();
 
-		// Find the text the cursor would be placed after
-		// + 1 since the ">" isn't counted for the cursor position
-		text = text.substr(0, m_cursorPosition + 1);
+		int lowerIndex = Min(m_selectionStartIndex, m_selectionEndIndex) + 1;
+		int upperIndex = Max(m_selectionStartIndex, m_selectionEndIndex) + 1;
 
-		Vector2 canvasDimensions = m_inputFieldText->GetTextCanvasDimensions(text);
-		m_inputCursor->m_transform.SetXPosition(canvasDimensions.x);
+		AABB2 lowerCharBounds = m_inputFieldText->GetCharacterLocalBounds(0U, Min(lowerIndex, (int)text.size() - 1));
+		AABB2 upperCharBounds = m_inputFieldText->GetCharacterLocalBounds(0U, Min(upperIndex, (int)text.size() - 1));
+
+		// To select the last character, check if our index goes off the end
+		float xPos = lowerCharBounds.mins.x;
+		float width = (upperIndex == (int)text.size() ? upperCharBounds.maxs.x - lowerCharBounds.mins.x : upperCharBounds.mins.x - lowerCharBounds.mins.x);
+
+		m_inputCursor->m_transform.SetXPosition(xPos);
+		m_inputCursor->m_transform.SetWidth(width);
+		m_showInputCursor = true;
+		m_inputCursor->SetRenderMode(ELEMENT_RENDER_ALL);
+	}
+	else
+	{
+		if (!m_inputFieldText->IsInFocus())
+		{
+			m_inputCursor->SetRenderMode(ELEMENT_RENDER_NONE);
+			m_showInputCursor = false;
+		}
+
+		// Only update the position when the cursor is shown
+		if (m_showInputCursor)
+		{
+			std::string text = m_inputFieldText->GetText();
+
+			// Find the text the cursor would be placed after
+			// + 1 since the ">" isn't counted for the cursor position
+			text = text.substr(0, m_cursorPosition + 1);
+
+			Vector2 canvasDimensions = m_inputFieldText->GetTextCanvasDimensions(text);
+			m_inputCursor->m_transform.SetXPosition(canvasDimensions.x);
+		}
 	}
 }
 
@@ -677,7 +794,10 @@ void DevConsole::SetCursor(int valueToBeSetTo)
 	// Reset the cursor and force show it
 	m_showInputCursor = true;
 	m_inputCursor->SetRenderMode(ELEMENT_RENDER_ALL);
+	m_inputCursor->m_transform.SetWidth(m_defaultCursorWidth);
 	ResetCursorTimer();
+
+	// Don't reset input selection, as the cursor shows during an empty but in-progress selection
 }
 
 
@@ -695,6 +815,36 @@ void DevConsole::ClearInputField()
 	m_inputFieldText->SetText(">");
 	SetCursor(0);
 	UpdateAutoCompleteUI();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void DevConsole::StartSelection(int startIndex)
+{
+	m_selectionStartIndex = startIndex;
+	m_isSelecting = true;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void DevConsole::SetSelectEndIndex(int endIndex)
+{
+	m_selectionEndIndex = endIndex;
+
+	// Keep a blinking cursor if the selection is empty
+	if (m_selectionStartIndex == m_selectionEndIndex)
+	{
+		SetCursor(m_selectionStartIndex);
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void DevConsole::ResetInputSelection()
+{
+	m_selectionStartIndex = -1;
+	m_selectionEndIndex = -1;
+	m_isSelecting = false;
 }
 
 
@@ -752,4 +902,34 @@ void DevConsole::UpdateAutoCompleteUI()
 	}
 
 	m_autocompleteIndex = 0;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void DevConsole::DeleteSelection()
+{
+	std::string inputText = m_inputFieldText->GetText();
+
+	int lowerIndex = Min(m_selectionStartIndex, m_selectionEndIndex) + 1;
+	int upperIndex = Max(m_selectionStartIndex, m_selectionEndIndex) + 1;
+	int numSelectedChars = upperIndex - lowerIndex;
+
+	std::string remainingText;
+
+	// Keep before the selection
+	if (lowerIndex > 0)
+	{
+		remainingText += inputText.substr(0, lowerIndex);
+	}
+
+	// Keep after the selection
+	if (m_selectionEndIndex < (int)inputText.size())
+	{
+		remainingText += inputText.substr(lowerIndex + numSelectedChars);
+	}
+
+	// Update
+	m_inputFieldText->SetText(remainingText);
+	ResetInputSelection();
+	SetCursor(lowerIndex - 1); // -1 to undo the +1 above
 }

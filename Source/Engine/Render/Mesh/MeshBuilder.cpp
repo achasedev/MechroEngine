@@ -112,11 +112,19 @@ static uint32 PushText_Default(
 	const AABB2& textBounds,
 	const Vector2& canvasUnitsPerPixel,
 	HorizontalAlignment xAlign,
-	VerticalAlignment yAlign)
+	VerticalAlignment yAlign,
+	std::vector<std::vector<AABB2>>* out_glyphBounds)
 {
 	ASSERT_OR_DIE(font != nullptr, "Null font!");
-
 	FontAtlas* atlas = font->CreateOrGetAtlasForPixelHeight(pixelHeight);
+
+	// Make sure we create all lines
+	// If there's an empty line, we need to reserve space for it
+	if (out_glyphBounds != nullptr)
+	{
+		out_glyphBounds->clear();
+		out_glyphBounds->resize(textLines.size());
+	}
 
 	for (size_t lineIndex = 0; lineIndex < textLines.size(); ++lineIndex)
 	{
@@ -160,6 +168,19 @@ static uint32 PushText_Default(
 
 			mb.PushQuad2D(glyphBounds, info.m_glyphUVs, textLines[lineIndex].m_color);
 
+			if (out_glyphBounds != nullptr)
+			{
+				// Calculate the local space bounds for the glyph
+				AABB2 localBounds;
+
+				localBounds.mins.x = glyphBounds.mins.x * textBoundsWidth;
+				localBounds.mins.y = glyphBounds.mins.y * textBoundsHeight;
+				localBounds.maxs.x = glyphBounds.maxs.x * textBoundsWidth;
+				localBounds.maxs.y = glyphBounds.maxs.y * textBoundsHeight;
+
+				(*out_glyphBounds)[lineIndex].push_back(localBounds);
+			}
+
 			// Update running position
 			runningPos.x += ConvertPixelOffsetToNormalizedOffset(info.m_pixelHorizontalAdvance + pixelLeftSideAdjustment, canvasUnitsPerPixel.x, textBoundsWidth);
 			runningPos.y += ConvertPixelOffsetToNormalizedOffset(info.m_pixelVerticalAdvance, canvasUnitsPerPixel.y, textBoundsHeight);
@@ -179,7 +200,8 @@ static uint32 PushText_ShrinkToFit(
 	const AABB2& textBounds,
 	const Vector2& canvasUnitsPerPixel,
 	HorizontalAlignment xAlign,
-	VerticalAlignment yAlign)
+	VerticalAlignment yAlign,
+	std::vector<std::vector<AABB2>>* out_glyphBounds)
 {
 	FontAtlas* atlas = font->CreateOrGetAtlasForPixelHeight(pixelHeight);
 	uint32 finalHeight = pixelHeight;
@@ -212,7 +234,7 @@ static uint32 PushText_ShrinkToFit(
 		finalHeight = Min(finalHeight, xDesiredHeight, yDesiredHeight);
 	}
 
-	return PushText_Default(mb, textLines, finalHeight, font, textBounds, canvasUnitsPerPixel, xAlign, yAlign);
+	return PushText_Default(mb, textLines, finalHeight, font, textBounds, canvasUnitsPerPixel, xAlign, yAlign, out_glyphBounds);
 }
 
 
@@ -225,7 +247,8 @@ static uint32 PushText_ExpandToFill(
 	const AABB2& textBounds,
 	const Vector2& canvasUnitsPerPixel,
 	HorizontalAlignment xAlign,
-	VerticalAlignment yAlign)
+	VerticalAlignment yAlign,
+	std::vector<std::vector<AABB2>>* out_glyphBounds)
 {
 	FontAtlas* atlas = font->CreateOrGetAtlasForPixelHeight(pixelHeight);
 	uint32 finalHeight = pixelHeight;
@@ -259,7 +282,7 @@ static uint32 PushText_ExpandToFill(
 	}
 	
 
-	return PushText_Default(mb, textLines, finalHeight, font, textBounds, canvasUnitsPerPixel, xAlign, yAlign);
+	return PushText_Default(mb, textLines, finalHeight, font, textBounds, canvasUnitsPerPixel, xAlign, yAlign, out_glyphBounds);
 }
 
 
@@ -272,7 +295,8 @@ static uint32 PushText_WordWrap(
 	const AABB2& textBounds,
 	const Vector2& canvasUnitsPerPixel,
 	HorizontalAlignment xAlign,
-	VerticalAlignment yAlign)
+	VerticalAlignment yAlign,
+	std::vector<std::vector<AABB2>>* out_glyphBounds)
 {
 	FontAtlas* atlas = font->CreateOrGetAtlasForPixelHeight(pixelHeight);
 	float textBoundsWidth = textBounds.GetWidth();
@@ -317,7 +341,7 @@ static uint32 PushText_WordWrap(
 		}
 	}
 
-	return PushText_Default(mb, finalLines, pixelHeight, font, textBounds, canvasUnitsPerPixel, xAlign, yAlign);
+	return PushText_Default(mb, finalLines, pixelHeight, font, textBounds, canvasUnitsPerPixel, xAlign, yAlign, out_glyphBounds);
 }
 
 
@@ -468,19 +492,29 @@ uint32 MeshBuilder::PushText(
 	const Rgba& color /*= Rgba::WHITE*/, 
 	HorizontalAlignment xAlign /*= ALIGNMENT_LEFT*/, 
 	VerticalAlignment yAlign /*= ALIGNMENT_TOP*/, 
-	TextDrawMode drawMode /*= TEXT_DRAW_OVERRUN*/)
+	TextDrawMode drawMode /*= TEXT_DRAW_OVERRUN*/,
+	std::vector<std::vector<AABB2>>* out_glyphBounds /*= nullptr*/)
 {
 	ASSERT_RETURN(m_isBuilding, pixelHeight, "Meshbuilder not setup!");
 
 	std::vector<std::string> textLines;
 	BreakStringIntoLines(text, textLines);
 
-	return PushText(textLines, pixelHeight, font, textBounds, canvasUnitsPerPixel, color, xAlign, yAlign, drawMode);
+	return PushText(textLines, pixelHeight, font, textBounds, canvasUnitsPerPixel, color, xAlign, yAlign, drawMode, out_glyphBounds);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-uint32 MeshBuilder::PushText(const std::vector<std::string>& textLines, uint32 pixelHeight, Font* font, const AABB2& textBounds, const Vector2& canvasUnitsPerPixel, const Rgba& color /*= Rgba::WHITE*/, HorizontalAlignment xAlign /*= ALIGNMENT_LEFT*/, VerticalAlignment yAlign /*= ALIGNMENT_TOP*/, TextDrawMode drawMode /*= TEXT_DRAW_DEFAULT*/)
+uint32 MeshBuilder::PushText(
+	const std::vector<std::string>& textLines, 
+	uint32 pixelHeight, Font* font, 
+	const AABB2& textBounds, 
+	const Vector2& canvasUnitsPerPixel, 
+	const Rgba& color /*= Rgba::WHITE*/, 
+	HorizontalAlignment xAlign /*= ALIGNMENT_LEFT*/, 
+	VerticalAlignment yAlign /*= ALIGNMENT_TOP*/, 
+	TextDrawMode drawMode /*= TEXT_DRAW_DEFAULT*/,
+	std::vector<std::vector<AABB2>>* out_glyphBounds /*= nullptr*/)
 {
 	std::vector<ColoredText> coloredLines;
 
@@ -489,28 +523,36 @@ uint32 MeshBuilder::PushText(const std::vector<std::string>& textLines, uint32 p
 		coloredLines.push_back(ColoredText(textLines[lineIndex], color));
 	}
 
-	return PushText(coloredLines, pixelHeight, font, textBounds, canvasUnitsPerPixel, xAlign, yAlign, drawMode);
+	return PushText(coloredLines, pixelHeight, font, textBounds, canvasUnitsPerPixel, xAlign, yAlign, drawMode, out_glyphBounds);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-uint32 MeshBuilder::PushText(const std::vector<ColoredText>& textLines, uint32 pixelHeight, Font* font, const AABB2& textBounds, const Vector2& canvasUnitsPerPixel, HorizontalAlignment xAlign /*= ALIGNMENT_LEFT*/, VerticalAlignment yAlign /*= ALIGNMENT_TOP*/, TextDrawMode drawMode /*= TEXT_DRAW_DEFAULT*/)
+uint32 MeshBuilder::PushText(
+	const std::vector<ColoredText>& textLines, 
+	uint32 pixelHeight, Font* font, 
+	const AABB2& textBounds, 
+	const Vector2& canvasUnitsPerPixel, 
+	HorizontalAlignment xAlign /*= ALIGNMENT_LEFT*/, 
+	VerticalAlignment yAlign /*= ALIGNMENT_TOP*/, 
+	TextDrawMode drawMode /*= TEXT_DRAW_DEFAULT*/,
+	std::vector<std::vector<AABB2>>* out_glyphBounds /*= nullptr*/)
 {
 	ASSERT_RETURN(m_isBuilding, pixelHeight, "Meshbuilder not setup!");
 
 	switch (drawMode)
 	{
 	case TEXT_DRAW_DEFAULT:
-		return PushText_Default(*this, textLines, pixelHeight, font, textBounds, canvasUnitsPerPixel, xAlign, yAlign);
+		return PushText_Default(*this, textLines, pixelHeight, font, textBounds, canvasUnitsPerPixel, xAlign, yAlign, out_glyphBounds);
 		break;
 	case TEXT_DRAW_SHRINK_TO_FIT:
-		return PushText_ShrinkToFit(*this, textLines, pixelHeight, font, textBounds, canvasUnitsPerPixel, xAlign, yAlign);
+		return PushText_ShrinkToFit(*this, textLines, pixelHeight, font, textBounds, canvasUnitsPerPixel, xAlign, yAlign, out_glyphBounds);
 		break;
 	case TEXT_DRAW_EXPAND_TO_FILL:
-		return PushText_ExpandToFill(*this, textLines, pixelHeight, font, textBounds, canvasUnitsPerPixel, xAlign, yAlign);
+		return PushText_ExpandToFill(*this, textLines, pixelHeight, font, textBounds, canvasUnitsPerPixel, xAlign, yAlign, out_glyphBounds);
 		break;
 	case TEXT_DRAW_WORD_WRAP:
-		return PushText_WordWrap(*this, textLines, pixelHeight, font, textBounds, canvasUnitsPerPixel, xAlign, yAlign);
+		return PushText_WordWrap(*this, textLines, pixelHeight, font, textBounds, canvasUnitsPerPixel, xAlign, yAlign, out_glyphBounds);
 		break;
 	default:
 		ERROR_AND_DIE("Invalid TextDrawMode!");
