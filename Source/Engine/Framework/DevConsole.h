@@ -62,6 +62,7 @@ public:
 	// by the messages WM_CHAR or WM_KEYDOWN codes
 	void		ProcessCharacter(unsigned char keyCode);
 	void		ProcessKeydown(unsigned char keyCode);
+	void		ProcessKeyUp(unsigned char keyCode);
 
 	void		BeginFrame();
 	void		ProcessInput();
@@ -120,7 +121,7 @@ private:
 	//-----Private Data-----
 
 	bool							m_isActive = false;
-	int								m_cursorPosition = 0;
+	int								m_cursorIndex = 0;
 	int								m_historyIndex = 0;
 	std::vector<std::string>		m_commandHistory;
 	ThreadSafeQueue<ColoredText>	m_outputQueue;
@@ -146,7 +147,7 @@ private:
 	// Text Select
 	int								m_selectionStartIndex = -1;
 	int								m_selectionEndIndex = -1;
-	bool							m_isSelecting = true;
+	bool							m_shiftHeld = false;
 
 	FrameTimer						m_fpsUpdateTimer;
 

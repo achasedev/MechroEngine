@@ -75,6 +75,11 @@ static bool DevConsoleMessageHandler(unsigned int msg, size_t wparam, size_t lpa
 		g_devConsole->ProcessKeydown(keyCode);
 		return true;
 	}
+	case WM_KEYUP:
+	{
+		g_devConsole->ProcessKeyUp(keyCode);
+		return true;
+	}
 	}
 
 	return false;
@@ -244,9 +249,28 @@ void DevConsole::ProcessKeydown(unsigned char keyCode)
 		case VK_UP:		HandleUpArrow();	break;
 		case VK_DOWN:	HandleDownArrow();	break;
 		case VK_TAB:	HandleTab();		break;
+		case VK_SHIFT:
+			m_shiftHeld = true;
+			break;
 		default:
 			break;
 		}
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void DevConsole::ProcessKeyUp(unsigned char keyCode)
+{
+	// Listen for keyups even when not active in case the 
+	// console was closed before the key up
+	switch (keyCode)
+	{
+	case VK_SHIFT:
+		m_shiftHeld = false;
+		break;
+	default:
+		break;
 	}
 }
 
@@ -550,7 +574,7 @@ void DevConsole::HandleEnter()
 //-------------------------------------------------------------------------------------------------
 void DevConsole::HandleBackSpace()
 {
-	if (m_inputFieldText->IsInFocus() && m_cursorPosition > 0)
+	if (m_inputFieldText->IsInFocus() && m_cursorIndex > 0)
 	{
 		if (HasInputSelection())
 		{
@@ -562,7 +586,7 @@ void DevConsole::HandleBackSpace()
 
 			if (inputText.size() > 1)
 			{
-				inputText.erase(inputText.begin() + m_cursorPosition);
+				inputText.erase(inputText.begin() + m_cursorIndex);
 				m_inputFieldText->SetText(inputText);
 				MoveCursor(-1);
 			}
@@ -587,11 +611,11 @@ void DevConsole::HandleDelete()
 			// Erase in front of the cursor
 			std::string inputText = m_inputFieldText->GetText();
 
-			if (m_cursorPosition < (int)inputText.size() - 1)
+			if (m_cursorIndex < (int)inputText.size() - 1)
 			{
 				if (inputText.size() > 1)
 				{
-					inputText.erase(inputText.begin() + m_cursorPosition + 1);
+					inputText.erase(inputText.begin() + m_cursorIndex + 1);
 					m_inputFieldText->SetText(inputText);
 				}
 			}
@@ -629,7 +653,7 @@ void DevConsole::HandleUpArrow()
 
 			std::string command = m_commandHistory[m_historyIndex];
 			m_inputFieldText->SetText(">" + command);
-			m_cursorPosition = (int)command.size();
+			m_cursorIndex = (int)command.size();
 		}
 	}
 }
@@ -659,7 +683,7 @@ void DevConsole::HandleDownArrow()
 			}
 
 			m_inputFieldText->SetText(command);
-			m_cursorPosition = (int)command.size();
+			m_cursorIndex = (int)command.size();
 		}
 	}
 }
@@ -670,8 +694,24 @@ void DevConsole::HandleLeftArrow()
 {
 	if (m_inputFieldText->IsInFocus())
 	{
-		ResetInputSelection();
-		MoveCursor(-1);
+		if (m_shiftHeld)
+		{
+			if (HasInputSelection())
+			{
+				SetSelectEndIndex(m_selectionEndIndex - 1);
+			}
+			else if (m_cursorIndex > 0)
+			{
+				// Start a new selection
+				StartSelection(m_cursorIndex);
+				SetSelectEndIndex(m_cursorIndex - 1);
+			}
+		}	
+		else
+		{
+			ResetInputSelection();
+			MoveCursor(-1);
+		}
 	}
 }
 
@@ -681,8 +721,25 @@ void DevConsole::HandleRightArrow()
 {
 	if (m_inputFieldText->IsInFocus())
 	{
-		ResetInputSelection();
-		MoveCursor(1);
+		std::string inputText = m_inputFieldText->GetText();
+
+		if (m_shiftHeld)
+		{
+			if (HasInputSelection())
+			{
+				SetSelectEndIndex(m_selectionEndIndex + 1);
+			}
+			else if (m_cursorIndex < (int)inputText.size())
+			{
+				StartSelection(m_cursorIndex);
+				SetSelectEndIndex(m_cursorIndex + 1);
+			}
+		}
+		else
+		{
+			ResetInputSelection();
+			MoveCursor(1);
+		}
 	}
 }
 
@@ -715,7 +772,7 @@ void DevConsole::AddCharacterToInputBuffer(unsigned char character)
 		}
 
 		std::string inputText = m_inputFieldText->GetText();
-		inputText.insert(inputText.begin() + m_cursorPosition + 1, character);
+		inputText.insert(inputText.begin() + m_cursorIndex + 1, character);
 		m_inputFieldText->SetText(inputText);
 
 		MoveCursor(1);
@@ -761,7 +818,7 @@ void DevConsole::UpdateInputCursorUI()
 
 			// Find the text the cursor would be placed after
 			// + 1 since the ">" isn't counted for the cursor position
-			text = text.substr(0, m_cursorPosition + 1);
+			text = text.substr(0, m_cursorIndex + 1);
 
 			Vector2 canvasDimensions = m_inputFieldText->GetTextCanvasDimensions(text);
 			m_inputCursor->m_transform.SetXPosition(canvasDimensions.x);
@@ -780,7 +837,7 @@ void DevConsole::ResetCursorTimer()
 //-------------------------------------------------------------------------------------------------
 void DevConsole::MoveCursor(int valueToAddToCursor)
 {
-	SetCursor(m_cursorPosition + valueToAddToCursor);
+	SetCursor(m_cursorIndex + valueToAddToCursor);
 }
 
 
@@ -789,7 +846,7 @@ void DevConsole::SetCursor(int valueToBeSetTo)
 	// Keep the cursor in bounds
 	std::string inputText = m_inputFieldText->GetText();
 	int finalValue = Clamp(valueToBeSetTo, 0, (int)inputText.size() - 1);
-	m_cursorPosition = finalValue;
+	m_cursorIndex = finalValue;
 
 	// Reset the cursor and force show it
 	m_showInputCursor = true;
@@ -822,20 +879,17 @@ void DevConsole::ClearInputField()
 void DevConsole::StartSelection(int startIndex)
 {
 	m_selectionStartIndex = startIndex;
-	m_isSelecting = true;
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void DevConsole::SetSelectEndIndex(int endIndex)
 {
-	m_selectionEndIndex = endIndex;
+	std::string inputText = m_inputFieldText->GetText();
+	m_selectionEndIndex = Clamp(endIndex, 0, (int)inputText.size());
 
-	// Keep a blinking cursor if the selection is empty
-	if (m_selectionStartIndex == m_selectionEndIndex)
-	{
-		SetCursor(m_selectionStartIndex);
-	}
+	// Keep the cursor updated
+	SetCursor(m_selectionEndIndex);
 }
 
 
@@ -844,7 +898,6 @@ void DevConsole::ResetInputSelection()
 {
 	m_selectionStartIndex = -1;
 	m_selectionEndIndex = -1;
-	m_isSelecting = false;
 }
 
 
