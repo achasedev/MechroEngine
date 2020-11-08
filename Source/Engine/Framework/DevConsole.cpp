@@ -223,9 +223,20 @@ void DevConsole::ProcessCharacter(unsigned char keyCode)
 		case VK_BACK:	HandleBackSpace();	break;
 		case VK_ESCAPE: HandleEscape();		break;
 		case VK_TAB:						break; // Do nothing
+		case 1: // Ctrl + a
+			// Select the entire line
+			StartSelection(0);
+			SetSelectEndIndex(m_inputFieldText->GetText().size() - 1); // -1 here since there's still a '>'
+			break;
+		case 3: // Ctrl + c
+			CopyInputIntoClipboard();
+			break;
+		case 22: // Ctrl + v
+			PasteFromClipboard();
+			break;
 		default:
 			// Regular input, so add to the input field
-			AddCharacterToInputBuffer(keyCode);
+			AddCharacterToInputBuffer(keyCode);	
 			break;
 		}
 	}
@@ -412,6 +423,14 @@ int DevConsole::GetBestIndexForMousePosition(const Vector2& mouseCanvasPos)
 std::string DevConsole::GetSelectedInputText() const
 {
 	std::string inputText = m_inputFieldText->GetText();
+
+	if (inputText.size() == 0)
+	{
+		return "";
+	}
+
+	// Get rid of '>'
+	inputText = inputText.substr(1);
 
 	ASSERT_OR_DIE(m_selectionStartIndex > -1, "Bad selection start index!");
 	ASSERT_OR_DIE(m_selectionStartIndex <= (int)inputText.size(), "Bad selection start index!");
@@ -833,7 +852,14 @@ void DevConsole::HandleTab()
 
 
 //-------------------------------------------------------------------------------------------------
-void DevConsole::AddCharacterToInputBuffer(unsigned char character)
+void DevConsole::AddCharacterToInputBuffer(const char character)
+{
+	AddStringToInputBuffer(std::string(&character));
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void DevConsole::AddStringToInputBuffer(const std::string& text)
 {
 	if (m_inputFieldText->IsInFocus())
 	{
@@ -843,10 +869,19 @@ void DevConsole::AddCharacterToInputBuffer(unsigned char character)
 		}
 
 		std::string inputText = m_inputFieldText->GetText();
-		inputText.insert(inputText.begin() + m_cursorIndex + 1, character);
+
+		if (m_cursorIndex == (int)inputText.size())
+		{
+			inputText += text;
+		}
+		else
+		{
+			inputText.insert(m_cursorIndex + 1, text);
+		}
+
 		m_inputFieldText->SetText(inputText);
 
-		MoveCursor(1);
+		MoveCursor((int)text.size());
 		UpdateAutoCompleteUI();
 	}
 }
@@ -1056,4 +1091,49 @@ void DevConsole::DeleteSelection()
 	m_inputFieldText->SetText(remainingText);
 	ResetInputSelection();
 	SetCursor(lowerIndex - 1); // -1 to undo the +1 above
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void DevConsole::CopyInputIntoClipboard()
+{
+	if (m_inputFieldText->IsInFocus() && HasInputSelection())
+	{
+		std::string inputSelection = GetSelectedInputText();
+
+		HGLOBAL textMem = GlobalAlloc(GMEM_MOVEABLE, inputSelection.size() + 1);
+
+		memcpy(GlobalLock(textMem), inputSelection.c_str(), inputSelection.size() + 1);
+		GlobalUnlock(textMem);
+
+		OpenClipboard(NULL);
+		EmptyClipboard();
+		SetClipboardData(CF_TEXT, textMem);
+		CloseClipboard();
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void DevConsole::PasteFromClipboard()
+{
+	if (m_inputFieldText->IsInFocus())
+	{
+		std::string inputText = m_inputFieldText->GetText();
+
+		OpenClipboard(NULL);
+		HGLOBAL textMem = GetClipboardData(CF_TEXT);
+
+		if (textMem != NULL)
+		{
+			GlobalLock(textMem);
+
+			const char* text = static_cast<const char*>(textMem);
+			AddStringToInputBuffer(text);
+
+			GlobalUnlock(textMem);
+		}
+
+		CloseClipboard();
+	}
 }

@@ -110,11 +110,14 @@ private:
 	void HandleLeftArrow();
 	void HandleRightArrow();
 	void HandleTab();
-	void AddCharacterToInputBuffer(unsigned char character);
+	void AddCharacterToInputBuffer(const char character);
+	void AddStringToInputBuffer(const std::string& text);
 	void UpdateInputCursorUI();
 	void ResetCursorTimer();
 	void UpdateAutoCompleteUI();
 	void DeleteSelection();
+	void CopyInputIntoClipboard();
+	void PasteFromClipboard();
 
 
 private:
