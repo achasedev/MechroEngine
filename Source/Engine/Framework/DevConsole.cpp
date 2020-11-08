@@ -252,6 +252,9 @@ void DevConsole::ProcessKeydown(unsigned char keyCode)
 		case VK_SHIFT:
 			m_shiftHeld = true;
 			break;
+		case VK_CONTROL:
+			m_ctrlHeld = true;
+			break;
 		default:
 			break;
 		}
@@ -268,6 +271,9 @@ void DevConsole::ProcessKeyUp(unsigned char keyCode)
 	{
 	case VK_SHIFT:
 		m_shiftHeld = false;
+		break;
+	case VK_CONTROL:
+		m_ctrlHeld = false;
 		break;
 	default:
 		break;
@@ -574,7 +580,7 @@ void DevConsole::HandleEnter()
 //-------------------------------------------------------------------------------------------------
 void DevConsole::HandleBackSpace()
 {
-	if (m_inputFieldText->IsInFocus() && m_cursorIndex > 0)
+	if (m_inputFieldText->IsInFocus())
 	{
 		if (HasInputSelection())
 		{
@@ -696,20 +702,57 @@ void DevConsole::HandleLeftArrow()
 	{
 		if (m_shiftHeld)
 		{
-			if (HasInputSelection())
-			{
-				SetSelectEndIndex(m_selectionEndIndex - 1);
-			}
-			else if (m_cursorIndex > 0)
+			if (!HasInputSelection() && m_cursorIndex > 0)
 			{
 				// Start a new selection
 				StartSelection(m_cursorIndex);
+			}
+
+			if (m_ctrlHeld)
+			{
+				std::string inputText = m_inputFieldText->GetText();
+				inputText = inputText.substr(1); // Remove '>'
+
+				// Select the rest of the current token to the left, 
+				// or if already at the end of the token select the space to the left + next token
+				int endIndex = Max(m_cursorIndex - 1, 0);
+
+				// Walk over white space
+				while (endIndex > 0 && inputText[endIndex] == ' ')
+				{
+					endIndex--;
+				}
+
+				// Walk over text
+				while (endIndex > 0 && inputText[endIndex] != ' ')
+				{
+					endIndex--;
+				}
+
+				// If we stopped above by finding a whitespace, we actually need to select
+				// the character in front of the white space, but don't do this if we just selected *everything* to the left
+				if (endIndex > 0)
+				{
+					endIndex++;
+				}
+
+				SetSelectEndIndex(endIndex);
+			}
+			else
+			{
+				// Just move the end of the selection normally
 				SetSelectEndIndex(m_cursorIndex - 1);
 			}
 		}	
+		else if (HasInputSelection())
+		{
+			// Break the selection, move the cursor to the left side of the selection
+			SetCursor(Min(m_selectionStartIndex, m_selectionEndIndex));
+			ResetInputSelection();
+		}
 		else
 		{
-			ResetInputSelection();
+			// Just move cursor normally
 			MoveCursor(-1);
 		}
 	}
@@ -722,22 +765,50 @@ void DevConsole::HandleRightArrow()
 	if (m_inputFieldText->IsInFocus())
 	{
 		std::string inputText = m_inputFieldText->GetText();
+		inputText = inputText.substr(1); // Remove '>'
 
 		if (m_shiftHeld)
 		{
-			if (HasInputSelection())
-			{
-				SetSelectEndIndex(m_selectionEndIndex + 1);
-			}
-			else if (m_cursorIndex < (int)inputText.size())
+			if (!HasInputSelection() && m_cursorIndex < (int)inputText.size())
 			{
 				StartSelection(m_cursorIndex);
+			}
+
+			if (m_ctrlHeld)
+			{
+				// Select the rest of the current token to the right + whitespace, 
+				// or if already at the end of the token select the space to the right + next token
+				int endIndex = Min(m_cursorIndex + 1, (int)inputText.size());
+
+				// Walk over text
+				while (endIndex < (int)inputText.size() && inputText[endIndex] != ' ')
+				{
+					endIndex++;
+				}
+
+				// Walk over whitespace
+				while (endIndex < (int)inputText.size() && inputText[endIndex] == ' ')
+				{
+					endIndex++;
+				}
+
+				SetSelectEndIndex(endIndex);
+			}
+			else
+			{
+				// Just move the selection per normal
 				SetSelectEndIndex(m_cursorIndex + 1);
 			}
 		}
+		else if (HasInputSelection())
+		{
+			// Break the selection, place the cursor on the right side of the selection
+			SetCursor(Max(m_selectionStartIndex, m_selectionEndIndex));
+			ResetInputSelection();
+		}
 		else
 		{
-			ResetInputSelection();
+			// Move the cursor normally
 			MoveCursor(1);
 		}
 	}
@@ -886,7 +957,7 @@ void DevConsole::StartSelection(int startIndex)
 void DevConsole::SetSelectEndIndex(int endIndex)
 {
 	std::string inputText = m_inputFieldText->GetText();
-	m_selectionEndIndex = Clamp(endIndex, 0, (int)inputText.size());
+	m_selectionEndIndex = Clamp(endIndex, 0, (int)inputText.size() - 1);
 
 	// Keep the cursor updated
 	SetCursor(m_selectionEndIndex);

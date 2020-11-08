@@ -148,6 +148,7 @@ private:
 	int								m_selectionStartIndex = -1;
 	int								m_selectionEndIndex = -1;
 	bool							m_shiftHeld = false;
+	bool							m_ctrlHeld = false;
 
 	FrameTimer						m_fpsUpdateTimer;
 
