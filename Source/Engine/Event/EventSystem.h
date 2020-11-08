@@ -48,7 +48,6 @@ public:
 
 	bool											FireEvent(const StringID& eventSID, NamedProperties& args);
 	void											GetAllEventNames(std::vector<std::string>& out_eventNames) const;
-	void											GetAllEventNamesThatStartWithPrefix(const char* prefix, std::vector<std::string>& out_eventNames) const;
 
 
 private:

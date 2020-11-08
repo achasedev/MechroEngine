@@ -165,7 +165,9 @@
     <ClCompile Include="..\ThirdParty\tinyxml2\tinyxml2.cpp" />
     <ClCompile Include="Event\EventSubscription.cpp" />
     <ClCompile Include="Event\EventSystem.cpp" />
+    <ClCompile Include="Framework\ConsoleCommand.cpp" />
     <ClCompile Include="Framework\DevConsole.cpp" />
+    <ClCompile Include="Framework\EngineCommands.cpp" />
     <ClCompile Include="Framework\GameObject.cpp" />
     <ClCompile Include="IO\InputSystem.cpp" />
     <ClCompile Include="IO\Joypad.cpp" />
@@ -246,6 +248,7 @@
     <ClInclude Include="DataStructures\ThreadSafeQueue.h" />
     <ClInclude Include="Event\EventSubscription.h" />
     <ClInclude Include="Event\EventSystem.h" />
+    <ClInclude Include="Framework\ConsoleCommand.h" />
     <ClInclude Include="Framework\CommentSnippets.h" />
     <ClInclude Include="Framework\DevConsole.h" />
     <ClInclude Include="Framework\EngineCommands.h" />

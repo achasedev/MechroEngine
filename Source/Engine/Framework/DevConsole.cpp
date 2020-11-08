@@ -9,6 +9,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Event/EventSystem.h"
 #include "Engine/Framework/DevConsole.h"
+#include "Engine/Framework/EngineCommands.h"
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Framework/Window.h"
 #include "Engine/IO/Image.h"
@@ -457,20 +458,6 @@ bool DevConsole::HasInputSelection() const
 }
 
 
-static bool AddTwoNumbers(NamedProperties& args)
-{
-	std::string argsText = args.Get("args", "");
-	std::vector<std::string> tokens;
-	Tokenize(argsText, ' ', tokens);
-
-	float a = StringToFloat(tokens[0]);
-	float b = StringToFloat(tokens[1]);
-
-	ConsolePrintf("%.2f + %.2f = %.2f", a, b, a + b);
-
-	return true;
-}
-
 //-------------------------------------------------------------------------------------------------
 DevConsole::DevConsole()
 {
@@ -509,15 +496,7 @@ DevConsole::DevConsole()
 
 	m_fpsUpdateTimer.SetInterval(0.5f);
 
-	g_eventSystem->SubscribeEventCallbackFunction("add", AddTwoNumbers);
-	g_eventSystem->SubscribeEventCallbackFunction("adder", AddTwoNumbers);
-	g_eventSystem->SubscribeEventCallbackFunction("adding", AddTwoNumbers);
-	g_eventSystem->SubscribeEventCallbackFunction("adda", AddTwoNumbers);
-	g_eventSystem->SubscribeEventCallbackFunction("addt", AddTwoNumbers);
-	g_eventSystem->SubscribeEventCallbackFunction("addg", AddTwoNumbers);
-	g_eventSystem->SubscribeEventCallbackFunction("addfdsa", AddTwoNumbers);
-	g_eventSystem->SubscribeEventCallbackFunction("add0", AddTwoNumbers);
-	g_eventSystem->SubscribeEventCallbackFunction("add-", AddTwoNumbers);
+	RegisterEngineCommands();
 }
 
 
@@ -538,6 +517,14 @@ DevConsole::~DevConsole()
 
 
 //-------------------------------------------------------------------------------------------------
+void DevConsole::RegisterEngineCommands()
+{
+	ConsoleCommand::Register(SID("clear"), "Clears the log", "clear <NO_PARAMS>", Command_ClearLog);
+	ConsoleCommand::Register(SID("add"), "Adds two numbers", "add <first : float> <second : float>", Command_Add);
+}	
+
+
+//-------------------------------------------------------------------------------------------------
 void DevConsole::HandleTilde()
 {
 	SetIsActive(!m_isActive);
@@ -550,45 +537,20 @@ void DevConsole::HandleEnter()
 	if (m_inputFieldText->IsInFocus())
 	{
 		std::string input = m_inputFieldText->GetText();
-		TrimWhitespace(input);
 
-		// Trim the ">"
-		std::string command = input.substr(1);
-		TrimWhitespace(command);
+		// Trim the '>' and whitespace
+		std::string commandLine = input.substr(1);
+		TrimWhitespace(commandLine);
 
-		if (command.size() > 0)
+		if (commandLine.size() > 0)
 		{
 			// Print the command to the console log
 			m_logScrollView->AddTextToScroll(input);
 
-			m_commandHistory.push_back(command);
+			m_commandHistory.push_back(commandLine);
 			m_historyIndex = (int)m_commandHistory.size();
 
-			// Parse the command arguments from the command name
-			// Let the event parse the individual commands, as each 
-			// command may expect/treat arguments as different types
-			// This also preserves the order of the arguments
-			NamedProperties args;
-			size_t firstSpaceIndex = command.find_first_of(' ');
-			std::string commandID = command;
-
-			// If there's arguments
-			if (firstSpaceIndex != std::string::npos)
-			{
-				std::string argsText = command.substr(firstSpaceIndex);
-				commandID = command.substr(0, firstSpaceIndex);
-				TrimWhitespace(argsText);
-
-				args.Set("args", argsText);
-			}
-
-			// Run the command
-			bool hasSubscribers = FireEvent(commandID, args);
-
-			if (!hasSubscribers)
-			{
-				ConsoleWarningf("Unknown command: %s", commandID.c_str());
-			}
+			ConsoleCommand::Run(commandLine);
 
 			ClearInputField();
 		}
@@ -1008,6 +970,13 @@ void DevConsole::ResetInputSelection()
 
 
 //-------------------------------------------------------------------------------------------------
+void DevConsole::ClearLog()
+{
+	m_logScrollView->GetScrollTextElement()->ClearText();
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void DevConsole::UpdateAutoCompleteUI()
 {
 	std::string inputText = m_inputFieldText->GetText();
@@ -1015,14 +984,14 @@ void DevConsole::UpdateAutoCompleteUI()
 
 	if (inputText.size() > 0)
 	{
-		std::vector<std::string> eventNames;
-		g_eventSystem->GetAllEventNamesThatStartWithPrefix(inputText.c_str(), eventNames);
-		std::sort(eventNames.begin(), eventNames.end());
+		std::vector<std::string> commandNames;
+		ConsoleCommand::GetAllCommandsThatHavePrefix(inputText.c_str(), commandNames);
+		std::sort(commandNames.begin(), commandNames.end());
 
-		if (eventNames.size() > 0)
+		if (commandNames.size() > 0)
 		{
 			// If there's only one matching event name and we already typed it out, hide the auto complete
-			if (eventNames.size() == 1 && eventNames[0] == inputText)
+			if (commandNames.size() == 1 && commandNames[0] == inputText)
 			{
 				m_popupText->ClearText();
 				m_popupText->SetRenderMode(ELEMENT_RENDER_NONE);
@@ -1031,13 +1000,13 @@ void DevConsole::UpdateAutoCompleteUI()
 			else
 			{
 				// Add an ">" to all the lines
-				for (size_t nameIndex = 0; nameIndex < eventNames.size(); ++nameIndex)
+				for (size_t nameIndex = 0; nameIndex < commandNames.size(); ++nameIndex)
 				{
-					std::string& currName = eventNames[nameIndex];
+					std::string& currName = commandNames[nameIndex];
 					currName = ">" + currName;
 				}
 
-				m_popupText->SetLines(eventNames, DEFAULT_CONSOLE_LOG_COLOR);
+				m_popupText->SetLines(commandNames, DEFAULT_CONSOLE_LOG_COLOR);
 				m_popupText->SetColor(0, Rgba::YELLOW);
 				m_popupText->SetRenderMode(ELEMENT_RENDER_ALL);
 				m_autocompleteShown = true;
