@@ -127,6 +127,20 @@ void ConsolePrintf(char const *format, ...)
 
 
 //-------------------------------------------------------------------------------------------------
+void ConsolePrintf(const Rgba& color, const std::string& text)
+{
+	ConsolePrintf(color, text.c_str());
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void ConsolePrintf(const std::string& text)
+{
+	ConsolePrintf(DevConsole::DEFAULT_CONSOLE_LOG_COLOR, text.c_str());
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void ConsoleWarningf(char const *format, ...)
 {
 	va_list variableArgumentList;
@@ -474,14 +488,15 @@ DevConsole::DevConsole()
 	m_inputFieldText = m_canvas->FindElementAsType<UIText>(SID("input_text"));
 	m_logScrollView = m_canvas->FindElementAsType<UIScrollView>(SID("log_scrollview"));
 	m_inputCursor = m_canvas->FindElementAsType<UIImage>(SID("input_cursor_image"));
-	m_popupImage = m_canvas->FindElementAsType<UIImage>(SID("popup_image"));
-	m_popupText = m_canvas->FindElementAsType<UIText>(SID("popup_text"));
-	m_popupText->SetRenderMode(ELEMENT_RENDER_NONE);
+	m_popUpImage = m_canvas->FindElementAsType<UIImage>(SID("popup_image"));
+	m_popUpText = m_canvas->FindElementAsType<UIText>(SID("popup_text"));
+	m_popUpPanel = m_canvas->FindElementAsType<UIPanel>(SID("popup_panel"));
+	m_popUpPanel->SetRenderMode(ELEMENT_RENDER_NONE);
 	m_fpsText = m_canvas->FindElementAsType<UIText>(SID("fps_text"));
 
 	m_inputFieldText->SetShader(m_shader);
 	m_inputCursor->SetShader(m_shader);
-	m_popupText->SetShader(m_shader);
+	m_popUpText->SetShader(m_shader);
 	m_logScrollView->GetScrollTextElement()->SetShader(m_shader);
 	m_fpsText->SetShader(m_shader);
 
@@ -504,8 +519,9 @@ DevConsole::DevConsole()
 DevConsole::~DevConsole()
 {
 	m_fpsText = nullptr;
-	m_popupText = nullptr;
-	m_popupImage = nullptr;
+	m_popUpText = nullptr;
+	m_popUpImage = nullptr;
+	m_popUpPanel = nullptr;
 	m_logScrollView = nullptr;
 	m_backPanel = nullptr;
 	m_inputPanel = nullptr;
@@ -519,8 +535,9 @@ DevConsole::~DevConsole()
 //-------------------------------------------------------------------------------------------------
 void DevConsole::RegisterEngineCommands()
 {
-	ConsoleCommand::Register(SID("clear"), "Clears the log", "clear <NO_PARAMS>", Command_ClearLog);
-	ConsoleCommand::Register(SID("add"), "Adds two numbers", "add <first : float> <second : float>", Command_Add);
+	ConsoleCommand::Register(SID("clear"),	"Clears the log",	"clear <NO_PARAMS>",									Command_ClearLog,	true);
+	ConsoleCommand::Register(SID("add"),	"Adds two numbers", "add (first:float) (second:float)",						Command_Add,		true);
+	ConsoleCommand::Register(SID("help"),	"Prints out available console commands", "help (type:string:OPTIONAL)",		Command_Help,		true);
 }	
 
 
@@ -628,14 +645,15 @@ void DevConsole::HandleUpArrow()
 {
 	if (m_inputFieldText->IsInFocus())
 	{
-		if (m_autocompleteShown)
+		if (m_popUpState == POP_UP_AUTOCOMPLETE)
 		{
-			m_popupText->SetColor(m_autocompleteIndex, DEFAULT_CONSOLE_LOG_COLOR);
+			m_popUpText->SetColor(m_autocompleteIndex, DEFAULT_CONSOLE_LOG_COLOR);
 			m_autocompleteIndex = Max(0, m_autocompleteIndex - 1);
-			m_popupText->SetColor(m_autocompleteIndex, Rgba::YELLOW);
+			m_popUpText->SetColor(m_autocompleteIndex, Rgba::YELLOW);
 		}
-		else if (m_commandHistory.size() > 0)
+		else if ((m_popUpState == POP_UP_HIDDEN) && (m_commandHistory.size() > 0))
 		{
+			// Allow history scrolling
 			m_historyIndex = Max(m_historyIndex - 1, 0);
 
 			std::string command = m_commandHistory[m_historyIndex];
@@ -651,15 +669,15 @@ void DevConsole::HandleDownArrow()
 {
 	if (m_inputFieldText->IsInFocus())
 	{
-		if (m_autocompleteShown)
+		if (m_popUpState == POP_UP_AUTOCOMPLETE)
 		{
-			int numLines = (int)m_popupText->GetNumLines();
+			int numLines = (int)m_popUpText->GetNumLines();
 
-			m_popupText->SetColor(m_autocompleteIndex, DEFAULT_CONSOLE_LOG_COLOR);
+			m_popUpText->SetColor(m_autocompleteIndex, DEFAULT_CONSOLE_LOG_COLOR);
 			m_autocompleteIndex = Min(m_autocompleteIndex + 1, numLines - 1);
-			m_popupText->SetColor(m_autocompleteIndex, Rgba::YELLOW);
+			m_popUpText->SetColor(m_autocompleteIndex, Rgba::YELLOW);
 		}
-		else if (m_commandHistory.size() > 0)
+		else if ((m_popUpState == POP_UP_HIDDEN) && (m_commandHistory.size() > 0))
 		{
 			m_historyIndex = Min(m_historyIndex + 1, (int)m_commandHistory.size());
 
@@ -801,9 +819,11 @@ void DevConsole::HandleTab()
 {
 	if (m_inputFieldText->IsInFocus())
 	{
-		if (m_autocompleteShown)
+		if (m_popUpState == POP_UP_AUTOCOMPLETE)
 		{
-			std::string selectedCommand = m_popupText->GetText(m_autocompleteIndex);
+			std::string selectedCommandLine = m_popUpText->GetText(m_autocompleteIndex);
+			std::string selectedCommand = selectedCommandLine.substr(0, selectedCommandLine.find_first_of(' '));
+
 			m_inputFieldText->SetText(selectedCommand);
 			SetCursorToEnd();
 			ResetInputSelection();
@@ -977,6 +997,10 @@ void DevConsole::ClearLog()
 	m_logScrollView->GetScrollTextElement()->ClearText();
 }
 
+bool SortStuff(const ConsoleCommand* first, const ConsoleCommand* second)
+{
+	return first->GetID().ToString() < second->GetID().ToString();
+}
 
 //-------------------------------------------------------------------------------------------------
 void DevConsole::UpdateAutoCompleteUI()
@@ -986,49 +1010,60 @@ void DevConsole::UpdateAutoCompleteUI()
 
 	if (inputText.size() > 0)
 	{
-		std::vector<std::string> commandNames;
-		ConsoleCommand::GetAllCommandsThatHavePrefix(inputText.c_str(), commandNames);
-		std::sort(commandNames.begin(), commandNames.end());
+		std::vector<const ConsoleCommand*> commands;
+		std::string typedCommandName = inputText.substr(0, inputText.find_first_of(' '));
+		ConsoleCommand::GetAllCommandsWithIDPrefix(typedCommandName.c_str(), commands);
 
-		if (commandNames.size() > 0)
+		// Alphabetical order
+		std::sort(commands.begin(), commands.end(), SortStuff);
+
+		if (commands.size() > 0)
 		{
-			// If there's only one matching event name and we already typed it out, hide the auto complete
-			if (commandNames.size() == 1 && commandNames[0] == inputText)
+			// If there's only one matching event name and we already typed it out, show the usage for that command
+			if (commands.size() == 1 && commands[0]->GetID() == SID(typedCommandName))
 			{
-				m_popupText->ClearText();
-				m_popupText->SetRenderMode(ELEMENT_RENDER_NONE);
-				m_autocompleteShown = false;
+				m_popUpText->ClearText();
+				m_popUpText->SetText(">" + commands[0]->GetUsage(), Rgba::WHITE);
+				m_popUpPanel->SetRenderMode(ELEMENT_RENDER_ALL);
+				m_popUpState = POP_UP_USAGE;
 			}
 			else
 			{
-				// Add an ">" to all the lines
-				for (size_t nameIndex = 0; nameIndex < commandNames.size(); ++nameIndex)
+				// Fill the popup text window with the command ids + descriptions
+				for (int lineIndex = 0; lineIndex < static_cast<int>(commands.size()); ++lineIndex)
 				{
-					std::string& currName = commandNames[nameIndex];
-					currName = ">" + currName;
+					// Set where the cursor starts as yellow
+					Rgba lineColor = Rgba::WHITE;
+
+					if (lineIndex == 0)
+					{
+						lineColor = Rgba::YELLOW;
+					}
+
+					std::string lineText = commands[lineIndex]->GetIDWithDescription();
+					m_popUpText->SetLine(lineIndex, lineText, lineColor);
 				}
 
-				m_popupText->SetLines(commandNames, DEFAULT_CONSOLE_LOG_COLOR);
-				m_popupText->SetColor(0, Rgba::YELLOW);
-				m_popupText->SetRenderMode(ELEMENT_RENDER_ALL);
-				m_autocompleteShown = true;
+				// Yellow is where the selection cursor is
+				m_popUpPanel->SetRenderMode(ELEMENT_RENDER_ALL);
+				m_popUpState = POP_UP_AUTOCOMPLETE;
 
-				float totalHeight = m_popupText->GetTotalLinesHeight();
-				m_popupText->m_transform.SetHeight(totalHeight);
+				float totalHeight = m_popUpText->GetTotalLinesHeight();
+				m_popUpPanel->m_transform.SetHeight(totalHeight);
 			}
 		}
 		else
 		{
-			m_popupText->ClearText();
-			m_popupText->SetRenderMode(ELEMENT_RENDER_NONE);
-			m_autocompleteShown = false;
+			m_popUpText->ClearText();
+			m_popUpPanel->SetRenderMode(ELEMENT_RENDER_NONE);
+			m_popUpState = POP_UP_HIDDEN;
 		}
 	}
 	else
 	{
-		m_popupText->ClearText();
-		m_popupText->SetRenderMode(ELEMENT_RENDER_NONE);
-		m_autocompleteShown = false;
+		m_popUpText->ClearText();
+		m_popUpPanel->SetRenderMode(ELEMENT_RENDER_NONE);
+		m_popUpState = POP_UP_HIDDEN;
 	}
 
 	m_autocompleteIndex = 0;

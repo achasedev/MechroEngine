@@ -34,6 +34,12 @@ enum UIInputCursorMode
 	CURSOR_SELECTION
 };
 
+enum PopUpUIState
+{
+	POP_UP_HIDDEN,
+	POP_UP_AUTOCOMPLETE,
+	POP_UP_USAGE
+};
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -125,7 +131,7 @@ private:
 	std::vector<std::string>			m_commandHistory;
 	ThreadSafeQueue<ColoredText>		m_outputQueue;
 	int									m_autocompleteIndex = 0;
-	bool								m_autocompleteShown = false;
+	PopUpUIState						m_popUpState = POP_UP_HIDDEN;
 
 	// Rendering
 	Canvas*								m_canvas = nullptr;
@@ -134,8 +140,9 @@ private:
 	UIText*								m_inputFieldText = nullptr;
 	UIScrollView*						m_logScrollView = nullptr;
 	UIImage*							m_inputCursor = nullptr;
-	UIImage*							m_popupImage = nullptr;
-	UIText*								m_popupText = nullptr;
+	UIPanel*							m_popUpPanel = nullptr;
+	UIImage*							m_popUpImage = nullptr;
+	UIText*								m_popUpText = nullptr;
 	UIText*								m_fpsText = nullptr;
 
 	FrameTimer							m_cursorTimer;
@@ -166,5 +173,7 @@ private:
 //-------------------------------------------------------------------------------------------------
 void ConsolePrintf(const Rgba &color, char const *format, ...);
 void ConsolePrintf(char const *format, ...);
+void ConsolePrintf(const std::string& text);
+void ConsolePrintf(const Rgba& color, const std::string& text);
 void ConsoleWarningf(char const *format, ...); // Orange Font
 void ConsoleErrorf(char const *format, ...); // Red Font

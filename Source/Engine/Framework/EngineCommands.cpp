@@ -40,15 +40,83 @@ void Command_ClearLog(CommandArgs& args)
 {
 	UNUSED(args);
 	g_devConsole->ClearLog();
-
-	ConsolePrintf(Rgba::CYAN, "haha I cleared the log...but then put this line here....haha");
 }
 
 //-------------------------------------------------------------------------------------------------
 void Command_Add(CommandArgs& args)
 {
-	float a = args.GetNextFloat();
-	float b = args.GetNextFloat();
+	float a, b;
+	
+	bool aSpecified = args.GetNextFloat(a);
+	bool bSpecified = args.GetNextFloat(b);
 
-	ConsolePrintf("%.2f + %.2f = %.2f", a, b, a + b);
+	if (aSpecified && bSpecified)
+	{
+		ConsolePrintf("%.2f + %.2f = %.2f", a, b, a + b);
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+static bool CompareConsoleCommands(const ConsoleCommand* first, const ConsoleCommand* second)
+{
+	return (first->GetID().ToString() < second->GetID().ToString());
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Command_Help(CommandArgs& args)
+{
+	std::string type = args.GetNextString();
+
+	bool printGameCommands = type.size() == 0 || AreEqualCaseInsensitive(type, "game");
+	bool printEngineCommands = type.size() == 0 || AreEqualCaseInsensitive(type, "engine");
+
+	if (!printEngineCommands && !printGameCommands)
+	{
+		ConsoleWarningf("Unrecognized type of command: %s", type.c_str());
+		return;
+	}
+
+	std::vector<const ConsoleCommand*> commands;
+	ConsoleCommand::GetAllCommands(commands);
+	std::sort(commands.begin(), commands.end(), CompareConsoleCommands);
+
+	int numEngineCommands = 0;
+	if (printEngineCommands)
+	{
+		ConsolePrintf(Rgba::CYAN, "-----Engine Commands-----");
+
+		for (int commandIndex = 0; commandIndex < static_cast<int>(commands.size()); ++commandIndex)
+		{
+			const ConsoleCommand* currCommand = commands[commandIndex];
+
+			if (currCommand->IsEngineCommand())
+			{
+				ConsolePrintf(commands[commandIndex]->GetIDWithDescription());
+				numEngineCommands++;
+			}
+		}
+
+		ConsolePrintf(Rgba::CYAN, "-----End Engine Commands, %i total-----", numEngineCommands);
+	}
+
+	int numGameCommands = 0;
+	if (printGameCommands)
+	{
+		ConsolePrintf(Rgba::CYAN, "-----Game Commands-----");
+
+		for (int commandIndex = 0; commandIndex < static_cast<int>(commands.size()); ++commandIndex)
+		{
+			const ConsoleCommand* currCommand = commands[commandIndex];
+
+			if (currCommand->IsGameCommand())
+			{
+				ConsolePrintf(commands[commandIndex]->GetIDWithDescription());
+				numGameCommands++;
+			}
+		}
+
+		ConsolePrintf(Rgba::CYAN, "-----End Game Commands, %i total-----", numGameCommands);
+	}
 }

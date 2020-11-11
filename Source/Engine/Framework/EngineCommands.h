@@ -38,3 +38,4 @@
 //-------------------------------------------------------------------------------------------------
 void Command_ClearLog(CommandArgs& args);
 void Command_Add(CommandArgs& args);
+void Command_Help(CommandArgs& args);

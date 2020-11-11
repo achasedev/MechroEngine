@@ -48,7 +48,9 @@ public:
 	//-----Public Methods-----
 
 	// Getters
-	float		GetNextFloat();
+	bool		GetNextFloat(float& out_float);
+	bool		GetNextFloat(float& out_float, float defaultValue);
+
 	int			GetNextInt();
 	uint32		GetNextUInt();
 	AABB2		GetNextAABB2();
@@ -57,7 +59,7 @@ public:
 	Vector4		GetNextVector4();
 	IntVector2	GetNextIntVector2();
 	IntVector3	GetNextIntVector3();
-	std::string GetNextString();
+	std::string GetNextString(bool printError = true);
 	StringID	GetNextStringID();
 
 
@@ -65,14 +67,16 @@ private:
 	//-----Private Methods-----
 
 	CommandArgs() {}
-	CommandArgs(const std::string& commandLine);
+	CommandArgs(const std::string& argsLine);
+
+	std::string GetNextToken(bool assert);
 
 
 private:
 	//-----Private Data-----
 
-	std::string m_commandLine;
-	int			m_readHead = 0;
+	std::string m_argsLine;
+	size_t		m_readHead = 0;
 
 };
 
@@ -84,16 +88,25 @@ class ConsoleCommand
 public:
 	//-----Public Methods-----
 
-	static void Register(StringID id, const std::string& description, const std::string& usage, CommandFunction commandFunction);
+	static void Register(StringID id, const std::string& description, const std::string& usage, CommandFunction commandFunction, bool isEngine);
 	static void Run(const std::string& commandLine);
-	static void GetAllCommandsThatHavePrefix(const std::string& prefix, std::vector<std::string>& out_names);
+	static void GetAllCommands(std::vector<const ConsoleCommand*>& out_commands);
+	static void GetAllCommandsWithIDPrefix(const std::string& prefix, std::vector<const ConsoleCommand*>& out_commands);
 
+	StringID	GetID() const { return m_id; }
+	std::string GetDescription() const { return m_description; }
+	std::string GetUsage() const { return m_usage; }
+	bool		IsEngineCommand() const { return m_isEngine; }
+	bool		IsGameCommand() const { return !m_isEngine; }
+
+	// For pretty printing
+	std::string GetIDWithDescription() const;
 
 private:
 	//-----Private Methods-----
 
-	ConsoleCommand(StringID id, const std::string& description, const std::string& usage, CommandFunction commandFunction)
-		: m_id(id), m_description(description), m_usage(usage), m_function(commandFunction) {}
+	ConsoleCommand(StringID id, const std::string& description, const std::string& usage, CommandFunction commandFunction, bool isEngine)
+		: m_id(id), m_description(description), m_usage(usage), m_function(commandFunction), m_isEngine(isEngine) {}
 
 	~ConsoleCommand() {}
 
@@ -104,6 +117,7 @@ private:
 	StringID		m_id;
 	std::string		m_description;
 	std::string		m_usage;
+	bool			m_isEngine = true;
 	CommandFunction m_function = nullptr;
 
 	static std::map<StringID, const ConsoleCommand*> s_commands;

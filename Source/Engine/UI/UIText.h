@@ -63,43 +63,43 @@ public:
 	UIText(Canvas* canvas, const StringID& id);
 	virtual ~UIText();
 
-	virtual void	InitializeFromXML(const XMLElem& element) override;
-	virtual void	Render() override;
-	
-	void			ClearText();
-	void			SetText(const std::string& text);
-	void			SetText(const std::string& text, const Rgba& color);
-	void			SetLine(int lineIndex, const std::string& text);
-	void			SetLine(int lineIndex, const std::string& text, const Rgba& color);
-	void			SetLines(const std::vector<std::string>& lines);
-	void			SetLines(const std::vector<std::string>& lines, const Rgba& color);
-	void			AddLine(const std::string& text, const Rgba& color = Rgba::WHITE);
-	void			AddLines(const std::vector<std::string>& lines, const Rgba& color = Rgba::WHITE);
-	void			SetColor(const Rgba& color);
-	void			SetColor(int lineIndex, const Rgba& color);
-	void			SetFont(Font* font);
-	void			SetShader(Shader* shader);
-	void			SetFontHeight(float fontHeight);
-	void			SetTextDrawMode(TextDrawMode drawMode) { m_textDrawMode = drawMode; }
-	void			MarkDirty() { m_isDirty = true; }
-	void			SetTextAlignment(HorizontalAlignment horizAlign, VerticalAlignment vertAlign);
-	void			SetTextHorizontalAlignment(HorizontalAlignment horizAlign);
-	void			SetTextVerticalAlignment(VerticalAlignment vertAlign);
+	virtual void				InitializeFromXML(const XMLElem& element) override;
+	virtual void				Render() override;
 
-	std::string		GetText() const;
-	std::string		GetText(uint32 lineNumber) const;
-	uint32			GetNumLines() const { return (uint32) m_lines.size(); }
-	std::string		GetLastLine() const;
-	float			GetLineHeight() const;
-	float			GetTotalLinesHeight() const;
-	float			GetMaxLineLength() const;
-	Material*		GetMaterial() const { return m_material; }
-	Font*			GetFont() const { return m_font; }
-	TextDrawMode	GetTextDrawMode() const { return m_textDrawMode; }
-	Vector2			GetTextCanvasDimensions() const;
-	Vector2			GetTextCanvasDimensions(uint32 lineNumber) const;
-	Vector2			GetTextCanvasDimensions(const std::string& text) const;
-	AABB2			GetCharacterLocalBounds(uint32 lineNumber, uint32 charIndex);
+	void						ClearText();
+	void						SetText(const std::string& text);
+	void						SetText(const std::string& text, const Rgba& color);
+	void						SetLine(int lineIndex, const std::string& text);
+	void						SetLine(int lineIndex, const std::string& text, const Rgba& color);
+	void						SetLines(const std::vector<std::string>& lines);
+	void						SetLines(const std::vector<std::string>& lines, const Rgba& color);
+	void						AddLine(const std::string& text, const Rgba& color = Rgba::WHITE);
+	void						AddLines(const std::vector<std::string>& lines, const Rgba& color = Rgba::WHITE);
+	void						SetColor(const Rgba& color);
+	void						SetColor(int lineIndex, const Rgba& color);
+	void						SetFont(Font* font);
+	void						SetShader(Shader* shader);
+	void						SetFontHeight(float fontHeight);
+	void						SetTextDrawMode(TextDrawMode drawMode) { m_textDrawMode = drawMode; }
+	void						MarkDirty() { m_isDirty = true; }
+	void						SetTextAlignment(HorizontalAlignment horizAlign, VerticalAlignment vertAlign);
+	void						SetTextHorizontalAlignment(HorizontalAlignment horizAlign);
+	void						SetTextVerticalAlignment(VerticalAlignment vertAlign);
+
+	std::string					GetText() const;
+	std::string					GetText(uint32 lineNumber) const;
+	uint32						GetNumLines() const { return (uint32)m_lines.size(); }
+	std::string					GetLastLine() const;
+	float						GetLineHeight() const;
+	float						GetTotalLinesHeight() const;
+	float						GetMaxLineLength() const;
+	Material*					GetMaterial() const { return m_material; }
+	Font*						GetFont() const { return m_font; }
+	TextDrawMode				GetTextDrawMode() const { return m_textDrawMode; }
+	Vector2						GetTextCanvasDimensions() const;
+	Vector2						GetTextCanvasDimensions(uint32 lineNumber) const;
+	Vector2						GetTextCanvasDimensions(const std::string& text) const;
+	AABB2						GetCharacterLocalBounds(uint32 lineNumber, uint32 charIndex);
 
 
 private:
