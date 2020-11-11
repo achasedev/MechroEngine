@@ -85,7 +85,7 @@ float CommandArgs::GetNextFloat()
 	size_t firstSpaceIndex = m_commandLine.find_first_of(' ', m_readHead);
 	std::string nextToken = m_commandLine.substr(m_readHead, firstSpaceIndex - m_readHead);
 
-	m_readHead = m_commandLine.find_first_not_of(' ', firstSpaceIndex);
+	m_readHead = static_cast<int>(m_commandLine.find_first_not_of(' ', firstSpaceIndex));
 	return StringToFloat(nextToken);
 }
 

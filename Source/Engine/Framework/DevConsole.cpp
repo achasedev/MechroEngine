@@ -227,7 +227,7 @@ void DevConsole::ProcessCharacter(unsigned char keyCode)
 		case 1: // Ctrl + a
 			// Select the entire line
 			StartSelection(0);
-			SetSelectEndIndex(m_inputFieldText->GetText().size() - 1); // -1 here since there's still a '>'
+			SetSelectEndIndex(static_cast<int>(m_inputFieldText->GetText().size()) - 1); // -1 here since there's still a '>'
 			break;
 		case 3: // Ctrl + c
 			CopyInputIntoClipboard();
@@ -816,7 +816,9 @@ void DevConsole::HandleTab()
 //-------------------------------------------------------------------------------------------------
 void DevConsole::AddCharacterToInputBuffer(const char character)
 {
-	AddStringToInputBuffer(std::string(&character));
+	std::string text;
+	text += character;
+	AddStringToInputBuffer(text);
 }
 
 
@@ -929,7 +931,7 @@ void DevConsole::SetCursor(int valueToBeSetTo)
 //-------------------------------------------------------------------------------------------------
 void DevConsole::SetCursorToEnd()
 {
-	int index = m_inputFieldText->GetText().size();
+	int index = static_cast<int>(m_inputFieldText->GetText().size());
 	SetCursor(index);
 }
 

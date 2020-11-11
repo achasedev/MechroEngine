@@ -126,10 +126,10 @@ static uint32 PushText_Default(
 		out_glyphBounds->resize(textLines.size());
 	}
 
-	for (size_t lineIndex = 0; lineIndex < textLines.size(); ++lineIndex)
+	for (int lineIndex = 0; lineIndex < static_cast<int>(textLines.size()); ++lineIndex)
 	{
 		const std::string& text = textLines[lineIndex].m_text;
-		int numChars = text.size();
+		int numChars = static_cast<int>(text.size());
 
 		IntVector2 strPixelDimensions = atlas->GetTextDimensionsPixels(text);
 		Vector2 textCanvasDimensions = Vector2(canvasUnitsPerPixel.x * (float)strPixelDimensions.x, canvasUnitsPerPixel.y * (float)strPixelDimensions.y);
@@ -137,7 +137,7 @@ static uint32 PushText_Default(
 		float textBoundsHeight = textBounds.GetHeight();
 
 		// Calculate the line start
-		Vector2 runningPos = CalcLineStartFromAlignment(textBounds, textCanvasDimensions, atlas, canvasUnitsPerPixel, lineIndex, (int)textLines.size(), xAlign, yAlign);
+		Vector2 runningPos = CalcLineStartFromAlignment(textBounds, textCanvasDimensions, atlas, canvasUnitsPerPixel, lineIndex, static_cast<int>(textLines.size()), xAlign, yAlign);
 
 		for (int charIndex = 0; charIndex < numChars; ++charIndex)
 		{

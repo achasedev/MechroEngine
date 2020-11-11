@@ -35,7 +35,7 @@ void SetDxDeviceChildName(ID3D11DeviceChild* dxDeviceChild, const char* file, in
 	
 	std::string fullname = Stringf("\n%s(%i)\n%s", file, lineNumber, name.c_str());
 
-	dxDeviceChild->SetPrivateData(WKPDID_D3DDebugObjectName, fullname.size(), fullname.c_str());
+	dxDeviceChild->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)fullname.size(), fullname.c_str());
 }
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
