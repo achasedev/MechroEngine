@@ -1,16 +1,14 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: September 24th, 2020
+/// Date Created: November 23rd, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Framework/EngineCommon.h"
-#include "Engine/Framework/GameObject.h"
-#include "Engine/Physics/2D/Physics2D.h"
-#include "Engine/Physics/2D/RigidBody2D.h"
+#include "Engine/Math/Vector3.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -25,21 +23,39 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// C FUNCTIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// CLASS IMPLEMENTATIONS
+/// CLASS DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-GameObject::~GameObject()
+class Plane
 {
-	if (m_rigidBody != nullptr)
-	{
-		PhysicsScene2D* physicsScene = m_rigidBody->GetScene();
-		physicsScene->RemoveGameObject(this);
-	}
+public:
+	//-----Public Methods-----
 
-	// GameObjects don't own their shape for now
-}
+	Plane() {}
+	Plane(const Vector3& normal, float distance)
+	 : m_distance(distance), m_normal(normal) {}
+	
+	void	SetNormal(const Vector3& normal) { m_normal = normal; }
+	void	SetDistance(float distance) { m_distance = distance; }
+	
+	Vector3 GetNormal() const { return m_normal; }
+	Vector3 GetDistance() const { return m_distance; }
+
+	bool	ContainsPoint(const Vector3& point);
+	bool	IsPointInFront(const Vector3& point);
+	bool	IsPointBehind(const Vector3& point);
+	float	GetDistanceFromPlaneAlongNormal(const Vector3& point);
+
+
+private:
+	//-----Private Data-----
+
+	Vector3 m_normal = Vector3::ZERO;
+	float m_distance = 0.f; // Distance along normal from origin to closest point on plane
+
+};
+
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// C FUNCTIONS
+///--------------------------------------------------------------------------------------------------------------------------------------------------

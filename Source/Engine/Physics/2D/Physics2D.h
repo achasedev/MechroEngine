@@ -1,16 +1,17 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: September 24th, 2020
+/// Date Created: September 9th, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Framework/EngineCommon.h"
-#include "Engine/Framework/GameObject.h"
-#include "Engine/Physics/2D/Physics2D.h"
+#include "Engine/Math/Polygon2D.h"
+#include "Engine/Physics/2D/Arbiter2D.h"
 #include "Engine/Physics/2D/RigidBody2D.h"
+#include <map>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -19,27 +20,55 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class GameObject;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// C FUNCTIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// CLASS IMPLEMENTATIONS
+/// CLASS DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-GameObject::~GameObject()
+class PhysicsScene2D
 {
-	if (m_rigidBody != nullptr)
-	{
-		PhysicsScene2D* physicsScene = m_rigidBody->GetScene();
-		physicsScene->RemoveGameObject(this);
-	}
+public:
+	//-----Public Methods-----
 
-	// GameObjects don't own their shape for now
-}
+	PhysicsScene2D() {}
+	~PhysicsScene2D();
+
+	RigidBody2D*	AddGameObject(GameObject* gameObject);
+	void			RemoveGameObject(GameObject* gameObject);
+	void			SetGravity(const Vector2& newGravity) { m_gravity = newGravity; }
+
+	void			FrameStep(float deltaSeconds);
+	void			PerformRayCast(const Vector2& start, const Vector2& direction, float maxDistance);
+
+
+private:
+	//-----Private Data-----
+
+	void			PerformBroadphase();
+	void			ApplyForces(float deltaSeconds);
+	void			PerformArbiterPreSteps(float deltaSeconds);
+	void			ApplyImpulseIterations();
+	void			UpdatePositions(float deltaSeconds);
+
+	static const Vector2	DEFAULT_GRAVITY;
+	static const uint32		NUM_IMPULSE_ITERATIONS;
+
+
+private:
+	//-----Private Data-----
+
+	Vector2								m_gravity = DEFAULT_GRAVITY;
+	std::vector<RigidBody2D*>			m_bodies;
+	std::map<ArbiterKey2D, Arbiter2D>	m_arbiters;
+
+};
+
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// C FUNCTIONS
+///--------------------------------------------------------------------------------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: September 9th, 2020
+/// Date Created: November 23rd, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,10 +8,9 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/Polygon2D.h"
-#include "Engine/Physics/Arbiter2D.h"
-#include "Engine/Physics/RigidBody2D.h"
-#include <map>
+#include "Engine/Math/Face3D.h"
+#include "Engine/Math/Vector3.h"
+#include <vector>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -20,7 +19,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class GameObject;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -31,43 +29,38 @@ class GameObject;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class PhysicsScene2D
+class Polygon3D
 {
 public:
 	//-----Public Methods-----
 
-	PhysicsScene2D() {}
-	~PhysicsScene2D();
 
-	RigidBody2D*	AddGameObject(GameObject* gameObject);
-	void			RemoveGameObject(GameObject* gameObject);
-	void			SetGravity(const Vector2& newGravity) { m_gravity = newGravity; }
+	Polygon3D() {}
+	~Polygon3D() {}
 
-	void			FrameStep(float deltaSeconds);
-	void			PerformRayCast(const Vector2& start, const Vector2& direction, float maxDistance);
+	int		PushVertex(const Vector3& vertex);
+	void	PushIndex(int index);
+	void	PushFaceIndexCount(int faceIndexCount);
+
+	int		GetNumFaces() const { return (int)m_faceIndexCounts.size(); }
+	Face3D	GetFace(int faceIndex) const;
+
+
+private:
+	//-----Private Methods-----
+
+	int		GetStartingIndexForFaceIndex(int faceIndex) const;
 
 
 private:
 	//-----Private Data-----
 
-	void			PerformBroadphase();
-	void			ApplyForces(float deltaSeconds);
-	void			PerformArbiterPreSteps(float deltaSeconds);
-	void			ApplyImpulseIterations();
-	void			UpdatePositions(float deltaSeconds);
-
-	static const Vector2	DEFAULT_GRAVITY;
-	static const uint32		NUM_IMPULSE_ITERATIONS;
-
-
-private:
-	//-----Private Data-----
-
-	Vector2								m_gravity = DEFAULT_GRAVITY;
-	std::vector<RigidBody2D*>			m_bodies;
-	std::map<ArbiterKey2D, Arbiter2D>	m_arbiters;
+	std::vector<Vector3>	m_vertices;
+	std::vector<int>		m_indices;
+	std::vector<int>		m_faceIndexCounts;
 
 };
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS

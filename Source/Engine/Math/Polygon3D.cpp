@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: September 24th, 2020
+/// Date Created: November 25th, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -8,9 +8,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
-#include "Engine/Framework/GameObject.h"
-#include "Engine/Physics/2D/Physics2D.h"
-#include "Engine/Physics/2D/RigidBody2D.h"
+#include "Engine/Math/Polygon3D.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -32,14 +30,60 @@
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
+
 //-------------------------------------------------------------------------------------------------
-GameObject::~GameObject()
+int Polygon3D::PushVertex(const Vector3& vertex)
 {
-	if (m_rigidBody != nullptr)
+	m_vertices.push_back(vertex);
+
+	return (int)(m_vertices.size() - 1);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Polygon3D::PushIndex(int index)
+{
+	m_indices.push_back(index);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Polygon3D::PushFaceIndexCount(int faceIndexCount)
+{
+	m_faceIndexCounts.push_back(faceIndexCount);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Face3D Polygon3D::GetFace(int faceIndex) const
+{
+	int startingIndex = GetStartingIndexForFaceIndex(faceIndex);
+	int numIndicesInFace = m_faceIndexCounts[faceIndex];
+
+	Face3D face;
+	
+	for (int indiceIndex = startingIndex; indiceIndex < startingIndex + numIndicesInFace; ++indiceIndex)
 	{
-		PhysicsScene2D* physicsScene = m_rigidBody->GetScene();
-		physicsScene->RemoveGameObject(this);
+		int vertexIndex = m_indices[indiceIndex];
+		Vector3 vertex = m_vertices[vertexIndex];
+
+		face.AddVertex(vertex);
 	}
 
-	// GameObjects don't own their shape for now
+	return face;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int Polygon3D::GetStartingIndexForFaceIndex(int faceIndex) const
+{
+	ASSERT_OR_DIE(faceIndex >= 0 && faceIndex < (int)m_faceIndexCounts.size(), "Bad face index!");
+
+	int startingIndex = 0;
+	for (int indexCountIndex = 0; indexCountIndex < faceIndex; ++indexCountIndex)
+	{
+		startingIndex += m_faceIndexCounts[indexCountIndex];
+	}
+
+	return startingIndex;
 }

@@ -11,7 +11,7 @@
 #include "Engine/Framework/GameObject.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Math/Polygon2D.h"
-#include "Engine/Physics/RigidBody2D.h"
+#include "Engine/Physics/2D/RigidBody2D.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES

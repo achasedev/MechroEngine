@@ -203,7 +203,7 @@ bool Polygon2D::IsWindingClockwise() const
 		sum += (b.x - a.x) * (a.y + b.y);
 	}
 
-	return (sum > 0);
+	return (sum > 0.f);
 }
 
 

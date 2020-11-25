@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: September 24th, 2020
+/// Date Created: November 23rd, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -8,9 +8,8 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
-#include "Engine/Framework/GameObject.h"
-#include "Engine/Physics/2D/Physics2D.h"
-#include "Engine/Physics/2D/RigidBody2D.h"
+#include "Engine/Math/MathUtils.h"
+#include "Engine/Math/Plane.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -32,14 +31,30 @@
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
-//-------------------------------------------------------------------------------------------------
-GameObject::~GameObject()
-{
-	if (m_rigidBody != nullptr)
-	{
-		PhysicsScene2D* physicsScene = m_rigidBody->GetScene();
-		physicsScene->RemoveGameObject(this);
-	}
 
-	// GameObjects don't own their shape for now
+//-------------------------------------------------------------------------------------------------
+bool Plane::ContainsPoint(const Vector3& point)
+{
+	return (GetDistanceFromPlaneAlongNormal(point) == 0.f);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool Plane::IsPointInFront(const Vector3& point)
+{
+	return (GetDistanceFromPlaneAlongNormal(point) > 0.f);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool Plane::IsPointBehind(const Vector3& point)
+{
+	return (GetDistanceFromPlaneAlongNormal(point) < 0.f);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float Plane::GetDistanceFromPlaneAlongNormal(const Vector3& point)
+{
+	return DotProduct(m_normal, point) - m_distance;
 }
