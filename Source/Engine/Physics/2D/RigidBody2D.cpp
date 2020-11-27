@@ -39,7 +39,7 @@ RigidBody2D::RigidBody2D(PhysicsScene2D* scene, GameObject* owningObj)
 	: m_scene(scene)
 	, m_gameObj(owningObj)
 	, m_transform(&owningObj->m_transform) // Convenience
-	, m_shapeLs(owningObj->GetShape())
+	, m_shapeLs(owningObj->GetShape2D())
 {
 	ASSERT_RECOVERABLE(m_scene != nullptr, "RigidBody2D's scene is nullptr");
 	ASSERT_RECOVERABLE(m_gameObj != nullptr, "RigidBody2D's object is nullptr!");

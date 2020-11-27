@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: September 17th, 2020
+/// Date Created: November 25th, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -9,7 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Math/Vector3.h"
-#include "Engine/Physics/3D/Collsion3D.h"
+#include "Engine/Physics/3D/Collision3D.h"
 #include <map>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -23,9 +23,9 @@ class Arbiter3D;
 class RigidBody3D;
 
 //-------------------------------------------------------------------------------------------------
-struct ArbiterKey2D
+struct ArbiterKey3D
 {
-	ArbiterKey2D(RigidBody2D* b1, RigidBody2D* b2)
+	ArbiterKey3D(RigidBody3D* b1, RigidBody3D* b2)
 	{
 		// Sort then in order of memory
 		if (b1 < b2)
@@ -41,7 +41,7 @@ struct ArbiterKey2D
 	}
 
 	// Compare memory addresses of the bodies
-	bool operator<(const ArbiterKey2D& other) const
+	bool operator<(const ArbiterKey3D& other) const
 	{
 		if (m_body1 < other.m_body1)
 			return true;
@@ -52,10 +52,10 @@ struct ArbiterKey2D
 		return false;
 	}
 
-	RigidBody2D* m_body1;
-	RigidBody2D* m_body2;
+	RigidBody3D* m_body1;
+	RigidBody3D* m_body2;
 };
-typedef std::map<ArbiterKey2D, Arbiter2D>::iterator ArbIter;
+typedef std::map<ArbiterKey3D, Arbiter3D>::iterator Arb3DIter;
 
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -67,29 +67,29 @@ typedef std::map<ArbiterKey2D, Arbiter2D>::iterator ArbIter;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Arbiter2D
+class Arbiter3D
 {
 public:
 	//-----Public Methods-----
 
-	Arbiter2D() {}
-	Arbiter2D(RigidBody2D* body1, RigidBody2D* body2);
+	Arbiter3D() {}
+	Arbiter3D(RigidBody3D* body1, RigidBody3D* body2);
 
-	void				Update(const Contact2D* newContacts, uint32 numNewContacts);
-	void				DetectCollision();
-	void				PreStep(float deltaSeconds);
-	void				ApplyImpulse();
+	void					Update(const Contact3D* newContacts, uint32 numNewContacts);
+	void					DetectCollision();
+	void					PreStep(float deltaSeconds);
+	void					ApplyImpulse();
 
 	// Accessors
-	uint32				GetNumContacts() const { return m_numContacts; }
-	const Contact2D*	GetContacts() const { return m_contacts; }
-	float				GetFriction() const { return m_friction; }
-
+	uint32					GetNumContacts() const { return m_numContacts; }
+	const Contact3D*		GetContacts() const { return m_contacts; }
+	float					GetFriction() const { return m_friction; }
+	CollisionSeparation3D	GetSeparation() const { return m_separation; }
 
 private:
 	//-----Private Methods-----
 
-	void				CalculateContactPoints(const Polygon2D* poly1, const Polygon2D* poly2, const CollisionSeparation2D& separation);
+	void					CalculateContactPoints(const Polygon3D* poly1, const Polygon3D* poly2, const CollisionSeparation3D& separation);
 
 
 private:
@@ -104,10 +104,13 @@ private:
 private:
 	//-----Private Member Data-----
 
-	RigidBody3D*		m_body1 = nullptr;
-	RigidBody3D*		m_body2 = nullptr;
+	RigidBody3D*			m_body1 = nullptr;
+	RigidBody3D*			m_body2 = nullptr;
+	CollisionSeparation3D	m_separation;
 
-	float				m_friction = -1.0f; // Combined Frictions
+	Contact3D				m_contacts[8]; // TODO: Set max contact points
+	uint32					m_numContacts = 0;
+	float					m_friction = -1.0f; // Combined Frictions
 
 };
 

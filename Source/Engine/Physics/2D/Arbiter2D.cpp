@@ -209,7 +209,6 @@ void Arbiter2D::PreStep(float deltaSeconds)
 //-------------------------------------------------------------------------------------------------
 void Arbiter2D::ApplyImpulse()
 {
-	
 	for (uint32 contactIndex = 0; contactIndex < m_numContacts; ++contactIndex)
 	{
 		Contact2D* contact = m_contacts + contactIndex;
@@ -395,7 +394,7 @@ void Arbiter2D::CalculateContactPoints(const Polygon2D* poly1, const Polygon2D* 
 	refEdgeDirection.Normalize();
 	
 	// Keep all our results from each clip for debugging purposes
-	std::vector<ClipVertex> clippedPoints1;
+	std::vector<ClipVertex2D> clippedPoints1;
 
 	// Clip the incident edge to the start of the reference edge
 	// First determine the min value the dot would need to be in order to be inside the clipping edge
@@ -403,7 +402,7 @@ void Arbiter2D::CalculateContactPoints(const Polygon2D* poly1, const Polygon2D* 
 	// Also set up our initial vertices to be clipped
 
 	// Incident edge start vertex
-	ClipVertex initialStartVertex;
+	ClipVertex2D initialStartVertex;
 	initialStartVertex.m_position = incidentEdge->m_vertex1;
 
 	int prevVertexIndex = incidentPoly->GetPreviousValidIndex(incidentEdge->m_edgeId);
@@ -415,7 +414,7 @@ void Arbiter2D::CalculateContactPoints(const Polygon2D* poly1, const Polygon2D* 
 	initialStartVertex.m_id.m_incidentEdgeOut = (int8)incidentEdge->m_edgeId;
 
 	// Incident edge end vertex
-	ClipVertex initialEndVertex;
+	ClipVertex2D initialEndVertex;
 	initialEndVertex.m_position = incidentEdge->m_vertex2;
 	initialEndVertex.m_id.m_incidentEdgeIn = (int8)incidentEdge->m_edgeId;
 	
@@ -437,7 +436,7 @@ void Arbiter2D::CalculateContactPoints(const Polygon2D* poly1, const Polygon2D* 
 	// So clip in the opposite direction, flip some signs
 	float endDot = DotProduct(refEdgeDirection, referenceEdge->m_vertex2);
 
-	std::vector<ClipVertex> clippedPoints2;
+	std::vector<ClipVertex2D> clippedPoints2;
 	ClipIncidentEdgeToReferenceEdge(clippedPoints1[0], clippedPoints1[1], -1.0f * refEdgeDirection, -1.0f * endDot, clippedPoints2);
 
 	if (clippedPoints2.size() < 2)

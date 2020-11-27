@@ -280,7 +280,7 @@
     <ClInclude Include="Physics\2D\Physics2D.h" />
     <ClInclude Include="Physics\2D\RigidBody2D.h" />
     <ClInclude Include="Physics\3D\Arbiter3D.h" />
-    <ClInclude Include="Physics\3D\Collsion3D.h" />
+    <ClInclude Include="Physics\3D\Collision3D.h" />
     <ClInclude Include="Physics\3D\Physics3D.h" />
     <ClInclude Include="Physics\3D\RigidBody3D.h" />
     <ClInclude Include="UI\UIButton.h" />

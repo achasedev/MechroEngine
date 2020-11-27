@@ -16,6 +16,7 @@
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Math/OBB2.h"
 #include "Engine/Math/Polygon2D.h"
+#include "Engine/Math/Polygon3D.h"
 #include "Engine/Render/Buffer/UniformBuffer.h"
 #include "Engine/Render/Buffer/VertexBuffer.h"
 #include "Engine/Render/Camera/Camera.h"
@@ -388,6 +389,35 @@ void RenderContext::DrawWirePolygon2D(const Polygon2D& polygon, Material* materi
 		uint32 nextIndex = ((i == (numVertices - 1U)) ? 0 : i + 1U);
 		Vector3 nextPosition = Vector3(polygon.GetVertexAtIndex(nextIndex), 0.f);
 		vertices.push_back(Vertex3D_PCU(nextPosition, color, Vector2::ZERO));
+	}
+
+	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+	DrawVertexArray(vertices.data(), (uint32)vertices.size(), nullptr, 0U, material);
+	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RenderContext::DrawWirePolygon3D(const Polygon3D& polygon, Material* material, const Rgba& color /*= Rgba::WHITE*/)
+{
+	int numFaces = polygon.GetNumFaces();
+	ASSERT_RETURN(numFaces > 0, NO_RETURN_VAL, "No Faces!");
+
+	std::vector<Vertex3D_PCU> vertices;
+
+	for (int faceIndex = 0; faceIndex < numFaces; ++faceIndex)
+	{
+		Face3D face = polygon.GetFace(faceIndex);
+
+		int numVertices = face.GetNumVertices();
+
+		for (int vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
+		{
+			int nextVertexIndex = (vertexIndex + 1) % numVertices;
+
+			vertices.push_back(Vertex3D_PCU(face.GetVertex(vertexIndex), color, Vector2::ZERO));
+			vertices.push_back(Vertex3D_PCU(face.GetVertex(nextVertexIndex), color, Vector2::ZERO));
+		}
 	}
 
 	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);

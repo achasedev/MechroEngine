@@ -51,7 +51,7 @@ struct CollisionFeatureEdge2D
 };
 
 //-------------------------------------------------------------------------------------------------
-struct EdgePairID
+struct EdgePairID2D
 {
 	union
 	{
@@ -79,10 +79,10 @@ struct EdgePairID
 };
 
 //-------------------------------------------------------------------------------------------------
-struct ClipVertex
+struct ClipVertex2D
 {
-	Vector2		m_position;
-	EdgePairID	m_id;
+	Vector2			m_position;
+	EdgePairID2D	m_id;
 };
 
 //-------------------------------------------------------------------------------------------------
@@ -107,7 +107,7 @@ struct Contact2D
 	CollisionFeatureEdge2D m_referenceEdge;
 	CollisionFeatureEdge2D m_incidentEdge;
 
-	EdgePairID m_id;
+	EdgePairID2D m_id;
 };
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -130,6 +130,6 @@ uint32					GetSimplexSeparation2D(const std::vector<Vector2>& simplex, Collision
 CollisionSeparation2D	PerformEPA(const Polygon2D* first, const Polygon2D* second, std::vector<Vector2>& simplex);
 CollisionSeparation2D	CalculateSeparation2D(const Polygon2D* first, const Polygon2D* second);
 CollisionFeatureEdge2D	GetFeatureEdge2D(const Polygon2D* polygon, const Vector2& outwardSeparationNormal);
-void					ClipIncidentEdgeToReferenceEdge(const ClipVertex& incident1, const ClipVertex& incident2, const Vector2& refEdgeDirection, float offset, std::vector<ClipVertex>& clippedPoints);
+void					ClipIncidentEdgeToReferenceEdge(const ClipVertex2D& incident1, const ClipVertex2D& incident2, const Vector2& refEdgeDirection, float offset, std::vector<ClipVertex2D>& clippedPoints);
 
 #pragma warning(default : 4201)

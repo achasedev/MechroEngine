@@ -10,7 +10,8 @@
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Framework/GameObject.h"
 #include "Engine/Physics/2D/Physics2D.h"
-#include "Engine/Physics/2D/RigidBody2D.h"
+#include "Engine/Physics/3D/Physics3D.h"
+#include "Engine/Physics/3D/RigidBody3D.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -35,9 +36,15 @@
 //-------------------------------------------------------------------------------------------------
 GameObject::~GameObject()
 {
-	if (m_rigidBody != nullptr)
+	if (m_rigidBody2D != nullptr)
 	{
-		PhysicsScene2D* physicsScene = m_rigidBody->GetScene();
+		PhysicsScene2D* physicsScene = m_rigidBody2D->GetScene();
+		physicsScene->RemoveGameObject(this);
+	}
+
+	if (m_rigidBody3D != nullptr)
+	{
+		PhysicsScene3D* physicsScene = m_rigidBody3D->GetScene();
 		physicsScene->RemoveGameObject(this);
 	}
 

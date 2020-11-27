@@ -262,7 +262,7 @@ CollisionFeatureEdge2D GetFeatureEdge2D(const Polygon2D* polygon, const Vector2&
 
 
 //-------------------------------------------------------------------------------------------------
-void ClipIncidentEdgeToReferenceEdge(const ClipVertex& incident1, const ClipVertex& incident2, const Vector2& refEdgeDirection, float offset, std::vector<ClipVertex>& out_clippedPoints)
+void ClipIncidentEdgeToReferenceEdge(const ClipVertex2D& incident1, const ClipVertex2D& incident2, const Vector2& refEdgeDirection, float offset, std::vector<ClipVertex2D>& out_clippedPoints)
 {
 	Vector2 incident1Pos = incident1.m_position;
 	Vector2 incident2Pos = incident2.m_position;
@@ -290,7 +290,7 @@ void ClipIncidentEdgeToReferenceEdge(const ClipVertex& incident1, const ClipVert
 		Vector2 incidentEdgeOffset = incidentEdge * t;
 		Vector2 finalPos = incident1Pos + incidentEdgeOffset;
 
-		ClipVertex clipVertex;
+		ClipVertex2D clipVertex;
 		clipVertex.m_position = finalPos;
 
 		// Update the ID of the two edges this vertex is "between"

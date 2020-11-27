@@ -33,6 +33,38 @@
 
 
 //-------------------------------------------------------------------------------------------------
+Face3D::Face3D(const Vector3& a, const Vector3& b, const Vector3& c)
+{
+	AddVertex(a);
+	AddVertex(b);
+	AddVertex(c);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Creates it such that the CrossProduct(ab, ac) points in the normalDirection
+Face3D::Face3D(const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& normalDirection)
+{
+	Vector3 abcNormal = CalculateNormalForTriangle(a, b, c);
+
+	float dotProduct = DotProduct(abcNormal, normalDirection);
+
+	if (dotProduct > 0.f)
+	{
+		AddVertex(a);
+		AddVertex(b);
+		AddVertex(c);
+	}
+	else
+	{
+		AddVertex(a);
+		AddVertex(c);
+		AddVertex(b);
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void Face3D::AddVertex(const Vector3& vertex)
 {
 #ifndef DISABLE_ASSERTS
@@ -51,16 +83,11 @@ void Face3D::AddVertex(const Vector3& vertex)
 #endif
 
 	m_vertices.push_back(vertex);
-
-#ifndef DISABLE_ASSERTS
-	// Check for clockwise winding order
-	ASSERT_RECOVERABLE(IsWindingClockwise(), "Vertices not winding clockwise!");
-#endif
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Face3D::GetVertex(int vertexIndex)
+Vector3 Face3D::GetVertex(int vertexIndex) const
 {
 	ASSERT_OR_DIE(vertexIndex >= 0 && vertexIndex < (int)m_vertices.size(), "Invalid vertex index!");
 
@@ -72,7 +99,6 @@ Vector3 Face3D::GetVertex(int vertexIndex)
 Plane Face3D::GetSupportPlane() const
 {
 	ASSERT_OR_DIE(m_vertices.size() >= 3, "Cannot get the plane without at least 3 points!");
-	ASSERT_OR_DIE(IsWindingClockwise(), "Keep the winding clockwise for now!");
 
 	// Calculate the normal
 	Vector3 ab = m_vertices[1] - m_vertices[0];
@@ -89,21 +115,38 @@ Plane Face3D::GetSupportPlane() const
 
 
 //-------------------------------------------------------------------------------------------------
+Vector3 Face3D::GetNormal() const
+{
+	ASSERT_RETURN(m_vertices.size() >= 3, Vector3::ZERO, "Not enough vertices to calculate a normal!");
+
+	return CalculateNormalForTriangle(m_vertices[0], m_vertices[1], m_vertices[2]);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 // Modeled after the Polygon2D version that *does* work - not sure if this works...
-bool Face3D::IsWindingClockwise() const
+bool Face3D::IsWindingClockwise(const Vector3& normal) const
 {
 	uint32 numVertices = (uint32)m_vertices.size();
 	float sum = 0.f;
 
-	for (uint32 index = 0; index < m_vertices.size(); ++index)
+	for (uint32 aIndex = 0; aIndex < m_vertices.size(); ++aIndex)
 	{
-		uint32 nextIndex = (index == numVertices - 1 ? 0 : index + 1);
+		uint32 bIndex = (aIndex + 1) % numVertices;
+		uint32 cIndex = (aIndex + 2) % numVertices;
 
-		Vector3 a = m_vertices[index];
-		Vector3 b = m_vertices[nextIndex];
+		Vector3 a = m_vertices[aIndex];
+		Vector3 b = m_vertices[bIndex];
+		Vector3 c = m_vertices[cIndex];
 
-		sum += (b.x - a.x) * (a.y + b.y) * (a.z + b.z);
+		Vector3 ab = b - a;
+		Vector3 ac = c - a;
+
+		if (DotProduct(CrossProduct(ab, ac), normal) < 0.f)
+		{
+			return false;
+		}
 	}
 
-	return (sum > 0.f);
+	return true;
 }

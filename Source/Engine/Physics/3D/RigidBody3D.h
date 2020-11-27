@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: September 17th, 2020
+/// Date Created: November 25th, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -9,7 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
-#include "Engine/Math/Vector2.h"
+#include "Engine/Math/Vector3.h"
 #include "Engine/Math/Transform.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -21,8 +21,8 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class GameObject;
-class PhysicsScene2D;
-class Polygon2D;
+class PhysicsScene3D;
+class Polygon3D;
 class Transform;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -34,18 +34,18 @@ class Transform;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class RigidBody2D
+class RigidBody3D
 {
-	friend class Arbiter2D;
-	friend class PhysicsScene2D;
+	friend class Arbiter3D;
+	friend class PhysicsScene3D;
 
 public:
 	//-----Public Methods-----
 
 	// Mutators
-	void				SetPosition(const Vector2& position) { m_transform->position = Vector3(position, 0.f); }
-	void				SetRotationDegrees(float rotationDegrees) { m_transform->SetRotation(Vector3(0.f, 0.f, rotationDegrees)); }
-	void				SetVelocity(const Vector2& velocity) { m_velocityWs = velocity; }
+	void				SetPosition(const Vector3& position) { m_transform->position = position; }
+	void				SetRotationDegrees(float rotationDegrees) { m_transform->SetRotation(rotationDegrees); }
+	void				SetVelocity(const Vector3& velocity) { m_velocityWs = velocity; }
 	void				SetAngularVelocity(float angularVelocityDegrees) { m_angularVelocityDegrees = angularVelocityDegrees; }
 	void				SetMassProperties(float mass);
 	void				SetFriction(float friction) { m_friction = friction; }
@@ -53,33 +53,33 @@ public:
 
 	// Accessors
 	GameObject*			GetGameObject() const { return m_gameObj; }
-	PhysicsScene2D*		GetScene() const { return m_scene; }
-	Vector2				GetCenterOfMassLs() const { return m_centerOfMassLs; }
-	Vector2				GetVelocity() const { return m_velocityWs; }
-	float				GetAngularVelocity() const { return m_angularVelocityDegrees; }
+	PhysicsScene3D*		GetScene() const { return m_scene; }
+	Vector3				GetCenterOfMassLs() const { return m_centerOfMassLs; }
+	Vector3				GetVelocity() const { return m_velocityWs; }
+	Vector3				GetAngularVelocity() const { return m_angularVelocityDegrees; }
 	float				GetFriction() const { return m_friction; }
 	float				GetMass() const { return m_mass; }
 	float				GetInverseMass() const { return m_invMass; }
 	float				GetInertia() const { return m_inertia; }
 	float				GetInverseInertia() const { return m_invInertia; }
 	float				GetDensity() const { return m_density; }
-	Vector2				GetForce() const { return m_forceWs; }
+	Vector3				GetForce() const { return m_forceWs; }
 	float				GetTorque() const { return m_torque; }
-	const Polygon2D*	GetLocalShape() const { return m_shapeLs; } // Const because you shouldn't be changing this >.>
-	void				GetWorldShape(Polygon2D& out_polygon) const;
+	const Polygon3D*	GetLocalShape() const { return m_shapeLs; } // Const because you shouldn't be changing this >.>
+	void				GetWorldShape(Polygon3D& out_polygon) const;
 	bool				IsAffectedByGravity() const { return m_affectedByGravity; }
 
 	// Producers
 	bool				IsStatic() const { return m_invMass == 0.f; }
-	Vector2				GetCenterOfMassWs() const;
+	Vector3				GetCenterOfMassWs() const;
 
 
 private:
 	//-----Private Methods-----
 
 	// Only PhysicsScene2D can create/destroy these
-	RigidBody2D(PhysicsScene2D* owner, GameObject* gameObject);
-	~RigidBody2D();
+	RigidBody3D(PhysicsScene3D* owner, GameObject* gameObject);
+	~RigidBody3D();
 
 	void				CalculateCenterOfMass();
 
@@ -108,12 +108,12 @@ private:
 	float				m_density					= FLT_MAX;
 
 	// Forces
-	Vector2				m_forceWs					= Vector2::ZERO;
+	Vector3				m_forceWs					= Vector3::ZERO;
 	float				m_torque					= 0.f;
 	bool				m_affectedByGravity			= true;
 
 	// Shape
-	const Polygon2D*	m_shapeLs					= nullptr;
+	const Polygon3D*	m_shapeLs					= nullptr;
 
 };
 

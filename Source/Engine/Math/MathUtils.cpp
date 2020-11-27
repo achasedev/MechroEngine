@@ -658,6 +658,27 @@ Vector2 RotateByAngleDegrees(const Vector2& vector, float deltaAngleDegrees)
 
 
 //-------------------------------------------------------------------------------------------------
+Vector3 RotateByAngleDegrees(const Vector3& vector, const Vector3& rotation)
+{
+	Matrix44 rotationMat = Matrix44::MakeRotation(rotation);
+	return rotationMat.TransformVector(vector).xyz();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector3 CalculateNormalForTriangle(const Vector3& a, const Vector3& b, const Vector3& c)
+{
+	Vector3 ab = b - a;
+	Vector3 ac = c - a;
+
+	Vector3 cross = CrossProduct(ab, ac);
+	cross.Normalize();
+
+	return cross;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 bool AreBitsSet(unsigned char bitFlags8, unsigned char flagsToCheck)
 {
 	return ((bitFlags8 & flagsToCheck) == flagsToCheck);

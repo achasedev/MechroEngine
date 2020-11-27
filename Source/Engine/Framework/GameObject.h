@@ -18,7 +18,10 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Polygon2D;
+class Polygon3D;
 class RigidBody2D;
+class RigidBody3D;
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -37,15 +40,19 @@ public:
 	~GameObject();
 
 	// Mutators
-	void			SetShape(Polygon2D* shape) { m_shape = shape; }
-	void			SetRigidBody2D(RigidBody2D* body)  { m_rigidBody = body; }
+	void			SetShape2D(Polygon2D* shape) { m_shape2D = shape; }
+	void			SetRigidBody2D(RigidBody2D* body)  { m_rigidBody2D = body; }
+	void			SetShape3D(Polygon3D* shape) { m_shape3D = shape; }
+	void			SetRigidBody3D(RigidBody3D* body) { m_rigidBody3D = body; }
 
 	// Accessors
-	Polygon2D*		GetShape() const { return m_shape; }
-	RigidBody2D*	GetRigidBody2D() const { return m_rigidBody; }
+	Polygon2D*		GetShape2D() const { return m_shape2D; }
+	RigidBody2D*	GetRigidBody2D() const { return m_rigidBody2D; }
+	Polygon3D*		GetShape3D() const { return m_shape3D; }
+	RigidBody3D*	GetRigidBody3D() const { return m_rigidBody3D; }
 
 	// Producers
-	bool			HasPhysics() const { return m_rigidBody != nullptr; }
+	bool			HasPhysics() const { return m_rigidBody2D != nullptr; }
 
 
 public:
@@ -57,9 +64,11 @@ public:
 private:
 	//-----Private Data-----
 
-	Polygon2D*				m_shape = nullptr;
-	RigidBody2D*			m_rigidBody = nullptr;
+	Polygon2D*				m_shape2D = nullptr;
+	RigidBody2D*			m_rigidBody2D = nullptr;
 
+	Polygon3D*				m_shape3D = nullptr;
+	RigidBody3D*			m_rigidBody3D = nullptr;
 };
 
 

@@ -19,6 +19,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class Material;
+class Transform;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -38,18 +40,30 @@ public:
 	Polygon3D() {}
 	~Polygon3D() {}
 
-	int		PushVertex(const Vector3& vertex);
-	void	PushIndex(int index);
-	void	PushFaceIndexCount(int faceIndexCount);
+	void		Clear();
 
-	int		GetNumFaces() const { return (int)m_faceIndexCounts.size(); }
-	Face3D	GetFace(int faceIndex) const;
+	int			PushVertex(const Vector3& vertex);
+	void		PushIndex(int index);
+	void		PushIndicesForTriangle(int first, int second, int third);
+	void		PushFaceIndexCount(int faceIndexCount);
+
+	int			GetNumVertices() const { return (int)m_vertices.size(); }
+	int			GetNumIndices() const { return (int)m_indices.size(); }
+	int			GetNumFaces() const { return (int)m_faceIndexCounts.size(); }
+	Vector3		GetVertex(int vertexIndex) const;
+	int			GetIndice(int indiceIndex) const;
+	Face3D		GetFace(int faceIndex) const;
+	int			GetFarthestVertexInDirection(const Vector3& direction, Vector3& out_vertex) const;
+	Vector3		GetCenter() const;
+	void		GetTransformed(const Matrix44& transformMatrix, Polygon3D& out_polygonWs) const;
+
+	void		DebugRender(Transform* transform, Material* material, const Rgba& color);
 
 
 private:
 	//-----Private Methods-----
 
-	int		GetStartingIndexForFaceIndex(int faceIndex) const;
+	int			GetStartingIndexForFaceIndex(int faceIndex) const;
 
 
 private:

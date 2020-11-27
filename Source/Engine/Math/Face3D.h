@@ -34,13 +34,19 @@ class Face3D
 public:
 	//-----Public Methods-----
 
+	Face3D() {}
+	Face3D(const Vector3& a, const Vector3& b, const Vector3& c);
+	Face3D(const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& normalDirection);
+
 	void	AddVertex(const Vector3& vertex);
-	Vector3 GetVertex(int vertexIndex);
+
+	Vector3 GetVertex(int vertexIndex) const;
 	int		GetNumVertices() const { return (int)m_vertices.size(); }
 	Plane	GetSupportPlane() const;
+	Vector3 GetNormal() const;
 
-	bool	IsWindingClockwise() const;
-	bool	IsWindingCounterClockwise() const { return !IsWindingClockwise(); }
+	bool	IsWindingClockwise(const Vector3& normal) const;
+	bool	IsWindingCounterClockwise(const Vector3& normal) const { return !IsWindingClockwise(normal); }
 
 
 private:

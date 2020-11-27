@@ -72,7 +72,6 @@ virtual const char* GetTypeAsString() const override { return QUOTE(CLASS); }	\
 
 #define RTTI_TYPE_DEFINE(CLASS) const int CLASS::s_type = 0; 
 
-
 //-------------------------------------------------------------------------------------------------
 // COMPILE-TIME OPTIONS
 
