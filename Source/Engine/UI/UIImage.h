@@ -39,7 +39,7 @@ public:
 	//-----Public Methods-----
 	RTTI_DERIVED_CLASS(UIImage);
 
-	UIImage(Canvas* canvas, const StringID& id);
+	UIImage(Canvas* canvas, const StringId& id);
 	virtual ~UIImage();
 
 	void				LoadImage(const std::string& filepath);

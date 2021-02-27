@@ -36,7 +36,7 @@ public:
 	//-----Public Methods-----
 	RTTI_DERIVED_CLASS(UIButton);
 
-	UIButton(Canvas* canvas, const StringID& id);
+	UIButton(Canvas* canvas, const StringId& id);
 	virtual ~UIButton();
 
 	void				Initialize();

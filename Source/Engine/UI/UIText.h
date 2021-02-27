@@ -60,7 +60,7 @@ public:
 	//-----Public Methods-----
 	RTTI_DERIVED_CLASS(UIText);
 
-	UIText(Canvas* canvas, const StringID& id);
+	UIText(Canvas* canvas, const StringId& id);
 	virtual ~UIText();
 
 	virtual void				InitializeFromXML(const XMLElem& element) override;

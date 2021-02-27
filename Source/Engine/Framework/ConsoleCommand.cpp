@@ -22,7 +22,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-std::map<StringID, const ConsoleCommand*> ConsoleCommand::s_commands;
+std::map<StringId, const ConsoleCommand*> ConsoleCommand::s_commands;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
@@ -33,7 +33,7 @@ std::map<StringID, const ConsoleCommand*> ConsoleCommand::s_commands;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-void ConsoleCommand::Register(StringID id, const std::string& description, const std::string& usage, CommandFunction commandFunction, bool isEngine)
+void ConsoleCommand::Register(StringId id, const std::string& description, const std::string& usage, CommandFunction commandFunction, bool isEngine)
 {
 	bool alreadyExists = s_commands.find(id) != s_commands.end();
 	ASSERT_RETURN(!alreadyExists, NO_RETURN_VAL, "Duplicate command registered!");
@@ -47,7 +47,7 @@ void ConsoleCommand::Run(const std::string& commandLine)
 {
 	// Extract the command id
 	size_t firstSpaceIndex = commandLine.find_first_of(' ');
-	StringID commandID = (firstSpaceIndex != std::string::npos ? SID(commandLine.substr(0, firstSpaceIndex)) : SID(commandLine));
+	StringId commandID = (firstSpaceIndex != std::string::npos ? SID(commandLine.substr(0, firstSpaceIndex)) : SID(commandLine));
 
 	if (s_commands.find(commandID) != s_commands.end())
 	{
@@ -66,7 +66,7 @@ void ConsoleCommand::Run(const std::string& commandLine)
 //-------------------------------------------------------------------------------------------------
 void ConsoleCommand::GetAllCommands(std::vector<const ConsoleCommand*>& out_commands)
 {
-	std::map<StringID, const ConsoleCommand*>::const_iterator itr = s_commands.begin();
+	std::map<StringId, const ConsoleCommand*>::const_iterator itr = s_commands.begin();
 
 	for (itr; itr != s_commands.end(); itr++)
 	{
@@ -78,7 +78,7 @@ void ConsoleCommand::GetAllCommands(std::vector<const ConsoleCommand*>& out_comm
 //-------------------------------------------------------------------------------------------------
 void ConsoleCommand::GetAllCommandsWithIDPrefix(const std::string& prefix, std::vector<const ConsoleCommand*>& out_commands)
 {
-	std::map<StringID, const ConsoleCommand*>::const_iterator itr = s_commands.begin();
+	std::map<StringId, const ConsoleCommand*>::const_iterator itr = s_commands.begin();
 
 	for (itr; itr != s_commands.end(); itr++)
 	{

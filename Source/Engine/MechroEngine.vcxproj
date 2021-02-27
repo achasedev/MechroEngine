@@ -166,8 +166,11 @@
     <ClCompile Include="Event\EventSubscription.cpp" />
     <ClCompile Include="Event\EventSystem.cpp" />
     <ClCompile Include="Framework\ConsoleCommand.cpp" />
+    <ClCompile Include="Framework\Resource.cpp" />
+    <ClCompile Include="Render\Debug\DebugRenderObject.cpp" />
     <ClCompile Include="Framework\DevConsole.cpp" />
     <ClCompile Include="Framework\EngineCommands.cpp" />
+    <ClCompile Include="Framework\Entity.cpp" />
     <ClCompile Include="Framework\GameObject.cpp" />
     <ClCompile Include="IO\InputSystem.cpp" />
     <ClCompile Include="IO\Joypad.cpp" />
@@ -194,6 +197,7 @@
     <ClCompile Include="Render\Core\DrawCall.cpp" />
     <ClCompile Include="Render\Core\DX11Common.cpp" />
     <ClCompile Include="Render\Buffer\IndexBuffer.cpp" />
+    <ClCompile Include="Render\Debug\DebugRenderSystem.cpp" />
     <ClCompile Include="Render\Font\Font.cpp" />
     <ClCompile Include="Render\Font\FontAtlas.cpp" />
     <ClCompile Include="Render\Font\FontLoader.cpp" />
@@ -242,7 +246,7 @@
     <ClCompile Include="Utility\NamedProperties.cpp" />
     <ClCompile Include="Utility\SmartPointer.cpp" />
     <ClCompile Include="Utility\SpritePacker.cpp" />
-    <ClCompile Include="Utility\StringID.cpp" />
+    <ClCompile Include="Utility\StringId.cpp" />
     <ClCompile Include="Utility\StringUtils.cpp" />
     <ClCompile Include="Utility\XMLUtils.cpp" />
     <ClCompile Include="Voxel\QEFLoader.cpp" />
@@ -257,8 +261,11 @@
     <ClInclude Include="Event\EventSystem.h" />
     <ClInclude Include="Framework\ConsoleCommand.h" />
     <ClInclude Include="Framework\CommentSnippets.h" />
+    <ClInclude Include="Framework\Resource.h" />
+    <ClInclude Include="Render\Debug\DebugRenderObject.h" />
     <ClInclude Include="Framework\DevConsole.h" />
     <ClInclude Include="Framework\EngineCommands.h" />
+    <ClInclude Include="Framework\Entity.h" />
     <ClInclude Include="Framework\GameObject.h" />
     <ClInclude Include="IO\InputSystem.h" />
     <ClInclude Include="IO\Joypad.h" />
@@ -283,6 +290,7 @@
     <ClInclude Include="Physics\3D\Collision3D.h" />
     <ClInclude Include="Physics\3D\Physics3D.h" />
     <ClInclude Include="Physics\3D\RigidBody3D.h" />
+    <ClInclude Include="Render\Debug\DebugRenderSystem.h" />
     <ClInclude Include="UI\UIButton.h" />
     <ClInclude Include="UI\UIImage.h" />
     <ClInclude Include="UI\UIScrollView.h" />
@@ -342,7 +350,7 @@
     <ClInclude Include="Utility\LockJanitor.h" />
     <ClInclude Include="Utility\NamedProperties.h" />
     <ClInclude Include="Utility\SmartPointer.h" />
-    <ClInclude Include="Utility\StringID.h" />
+    <ClInclude Include="Utility\StringId.h" />
     <ClInclude Include="Utility\StringUtils.h" />
     <ClInclude Include="Utility\XMLUtils.h" />
     <ClInclude Include="Voxel\QEFLoader.h" />

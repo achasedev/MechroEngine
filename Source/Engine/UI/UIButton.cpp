@@ -46,7 +46,7 @@ static bool DontBlockInput(UIElement* element, const UIMouseInfo& info)
 
 
 //-------------------------------------------------------------------------------------------------
-UIButton::UIButton(Canvas* canvas, const StringID& id)
+UIButton::UIButton(Canvas* canvas, const StringId& id)
 	: UIElement(canvas, id)
 {
 

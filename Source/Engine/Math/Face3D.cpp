@@ -128,7 +128,6 @@ Vector3 Face3D::GetNormal() const
 bool Face3D::IsWindingClockwise(const Vector3& normal) const
 {
 	uint32 numVertices = (uint32)m_vertices.size();
-	float sum = 0.f;
 
 	for (uint32 aIndex = 0; aIndex < m_vertices.size(); ++aIndex)
 	{

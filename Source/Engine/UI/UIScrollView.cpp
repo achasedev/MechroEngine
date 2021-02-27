@@ -270,7 +270,7 @@ VerticalScrollbarType StringToVerticalScrollbarType(const std::string& text)
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-UIScrollView::UIScrollView(Canvas* canvas, const StringID& id)
+UIScrollView::UIScrollView(Canvas* canvas, const StringId& id)
 	: UIElement(canvas, id)
 {
 	m_onHover = OnHover_MouseWheelScroll;

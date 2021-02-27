@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: April 14th, 2020
+/// Date Created: February 12th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,17 +8,26 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Utility/StringId.h"
-#include <map>
+#include "Engine/Framework/Entity.h"
+#include "Engine/Framework/Rgba.h"
+#include "Engine/Math/Transform.h"
+#include "Engine/Time/FrameTimer.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#define INVALID_DEBUG_RENDER_OBJECT_HANDLE -1;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Font;
+typedef int DebugRenderHandle;
+struct DebugRenderOptions
+{
+	Rgba	m_color = Rgba::RED;
+	float	m_lifetime = 0.f;
+};
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -29,29 +38,31 @@ class Font;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class FontLoader
+class DebugRenderObject : public Entity
 {
+	RTTI_BASE_CLASS(DebugRenderObject);
+
 public:
 	//-----Public Methods-----
 
-	static void Initialize();
-	static void Shutdown();
+	virtual void	Render() const = 0;
 
-	Font*		LoadFont(const char* sourceFilepath, uint32 faceIndex);
+	bool			IsFinished() const;			
 
-
-private:
-	//-----Private Methods-----
-
-	FontLoader() {}
-	~FontLoader();
-	FontLoader(const FontLoader& copy) = delete;
+	void			UpdateOptions(const DebugRenderOptions& options);
+	void			SetTimeToLive(float newTtl);
+	void			SetColor(const Rgba& color);
 
 
 private:
 	//-----Private Data-----
 
-	std::map<StringId, Font*> m_fontFaces;
+	Transform			m_transform;
+	float				m_ttl = -1.0f;
+	bool				m_isFinished = false;
+	FrameTimer			m_frameTimer;
+	DebugRenderOptions	m_options;
+	DebugRenderHandle	m_debugHandle = INVALID_DEBUG_RENDER_OBJECT_HANDLE;
 
 };
 

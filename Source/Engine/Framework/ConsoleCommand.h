@@ -9,7 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
-#include "Engine/Utility/StringID.h"
+#include "Engine/Utility/StringId.h"
 #include <map>
 #include <string>
 
@@ -60,7 +60,7 @@ public:
 	IntVector2	GetNextIntVector2();
 	IntVector3	GetNextIntVector3();
 	std::string GetNextString(bool printError = true);
-	StringID	GetNextStringID();
+	StringId	GetNextStringID();
 
 
 private:
@@ -88,12 +88,12 @@ class ConsoleCommand
 public:
 	//-----Public Methods-----
 
-	static void Register(StringID id, const std::string& description, const std::string& usage, CommandFunction commandFunction, bool isEngine);
+	static void Register(StringId id, const std::string& description, const std::string& usage, CommandFunction commandFunction, bool isEngine);
 	static void Run(const std::string& commandLine);
 	static void GetAllCommands(std::vector<const ConsoleCommand*>& out_commands);
 	static void GetAllCommandsWithIDPrefix(const std::string& prefix, std::vector<const ConsoleCommand*>& out_commands);
 
-	StringID	GetID() const { return m_id; }
+	StringId	GetID() const { return m_id; }
 	std::string GetDescription() const { return m_description; }
 	std::string GetUsage() const { return m_usage; }
 	bool		IsEngineCommand() const { return m_isEngine; }
@@ -105,7 +105,7 @@ public:
 private:
 	//-----Private Methods-----
 
-	ConsoleCommand(StringID id, const std::string& description, const std::string& usage, CommandFunction commandFunction, bool isEngine)
+	ConsoleCommand(StringId id, const std::string& description, const std::string& usage, CommandFunction commandFunction, bool isEngine)
 		: m_id(id), m_description(description), m_usage(usage), m_function(commandFunction), m_isEngine(isEngine) {}
 
 	~ConsoleCommand() {}
@@ -114,12 +114,12 @@ private:
 private:
 	//-----Private Data-----
 
-	StringID		m_id;
+	StringId		m_id;
 	std::string		m_description;
 	std::string		m_usage;
 	bool			m_isEngine = true;
 	CommandFunction m_function = nullptr;
 
-	static std::map<StringID, const ConsoleCommand*> s_commands;
+	static std::map<StringId, const ConsoleCommand*> s_commands;
 
 };

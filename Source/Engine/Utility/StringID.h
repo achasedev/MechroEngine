@@ -15,9 +15,9 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class StringID;
+class StringId;
 #define INVALID_STRING_ID 0
-#define SID(x) g_sidSystem->CreateOrGetStringID(x)
+#define SID(x) g_sidSystem->CreateOrGetStringId(x)
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
@@ -32,26 +32,26 @@ class StringID;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class StringID
+class StringId
 {
-	friend class StringIDSystem;
+	friend class StringIdSystem;
 
 public:
 	//-----Public Methods-----
 
-	StringID() {}
+	StringId() {}
 
 	const char* ToString() const { return m_string; }
 
-	bool operator==(const StringID& compare) const { return m_hash == compare.m_hash; } 
-	bool operator!=(const StringID& compare) const { return m_hash != compare.m_hash; } 
-	bool operator<(const StringID& compare) const { return m_hash < compare.m_hash; } // For std::map
+	bool operator==(const StringId& compare) const { return m_hash == compare.m_hash; } 
+	bool operator!=(const StringId& compare) const { return m_hash != compare.m_hash; } 
+	bool operator<(const StringId& compare) const { return m_hash < compare.m_hash; } // For std::map
 	
 
 private:
 	//-----Private Methods-----
 
-	StringID(uint32 hash, const char* string)
+	StringId(uint32 hash, const char* string)
 	 : m_hash(hash), m_string(string) {}
 
 
@@ -65,7 +65,7 @@ private:
 
 
 //-------------------------------------------------------------------------------------------------
-class StringIDSystem
+class StringIdSystem
 {
 public:
 	//-----Public Methods-----
@@ -74,19 +74,19 @@ public:
 	static void		Shutdown();
 	static bool		IsInitialized() { return g_sidSystem != nullptr; }
 
-	StringID		CreateOrGetStringID(const char* str);
-	StringID		CreateOrGetStringID(const std::string& str);
-	const char*		GetStringForStringID(const StringID& stringID) const;
+	StringId		CreateOrGetStringId(const char* str);
+	StringId		CreateOrGetStringId(const std::string& str);
+	const char*		GetStringForStringID(const StringId& stringID) const;
 
 
 private:
 	//-----Private Methods-----
 
-	StringIDSystem() {}
-	~StringIDSystem();
-	StringIDSystem(const StringIDSystem& copy) = delete;
+	StringIdSystem() {}
+	~StringIdSystem();
+	StringIdSystem(const StringIdSystem& copy) = delete;
 
-	StringID		InternString(const char* str);
+	StringId		InternString(const char* str);
 
 
 private:

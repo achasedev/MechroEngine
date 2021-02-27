@@ -8,6 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Framework/Resource.h"
 #include "Engine/Render/Buffer/IndexBuffer.h"
 #include "Engine/Render/Buffer/VertexBuffer.h"
 
@@ -39,10 +40,15 @@ struct DrawInstruction
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Mesh
+class Mesh : public Resource<Mesh>
 {
 public:
 	//-----Public Methods-----
+
+	virtual void	Load(const char* filepath) override;
+	virtual void	Refresh() override;
+	virtual R<Mesh>	Copy() override;
+	virtual void	Clear() override;
 
 	template <typename VERT_TYPE>
 	void SetVertices(const VERT_TYPE* vertices, uint32 vertexCount)
@@ -68,11 +74,11 @@ public:
 private:
 	//-----Private Data-----
 
-	VertexBuffer m_vertexBuffer;
-	IndexBuffer m_indexBuffer;
+	VertexBuffer		m_vertexBuffer;
+	IndexBuffer			m_indexBuffer;
 
 	const VertexLayout* m_vertexLayout = nullptr;
-	DrawInstruction m_instruction;
+	DrawInstruction		m_instruction;
 
 };
 

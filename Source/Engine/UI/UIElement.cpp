@@ -14,7 +14,7 @@
 #include "Engine/UI/UIPanel.h"
 #include "Engine/UI/UIScrollView.h"
 #include "Engine/UI/UIText.h"
-#include "Engine/Utility/StringID.h"
+#include "Engine/Utility/StringId.h"
 #include "Engine/Utility/XMLUtils.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -204,7 +204,7 @@ bool PassThroughMouseInput(UIElement* element, const UIMouseInfo& info)
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-UIElement::UIElement(Canvas* canvas, const StringID& id)
+UIElement::UIElement(Canvas* canvas, const StringId& id)
 	: m_transform(RectTransform(canvas))
 	, m_canvas(canvas)
 	, m_id(id)
@@ -401,7 +401,7 @@ bool UIElement::ShouldRenderChildren() const
 
 
 //-------------------------------------------------------------------------------------------------
-void UIElement::SetID(StringID id)
+void UIElement::SetID(StringId id)
 {
 	m_id = id;
 }
@@ -490,7 +490,7 @@ STATIC UIElement* UIElement::CreateUIElementFromXML(const XMLElem& element, UIEl
 
 
 //-------------------------------------------------------------------------------------------------
-UIElement* UIElement::GetChildByID(StringID id)
+UIElement* UIElement::GetChildByID(StringId id)
 {
 	for (size_t childIndex = 0; childIndex < m_children.size(); ++childIndex)
 	{

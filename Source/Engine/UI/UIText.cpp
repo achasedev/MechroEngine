@@ -182,7 +182,7 @@ bool IsValidVerticalAlignment(const std::string& text)
 
 
 //-------------------------------------------------------------------------------------------------
-UIText::UIText(Canvas* canvas, const StringID& id)
+UIText::UIText(Canvas* canvas, const StringId& id)
 	: UIElement(canvas, id)
 {
 	m_mesh = new Mesh();

@@ -11,7 +11,7 @@
 #include "Engine/Math/OBB2.h"
 #include "Engine/Render/Core/Renderable.h"
 #include "Engine/UI/RectTransform.h"
-#include "Engine/Utility/StringID.h"
+#include "Engine/Utility/StringId.h"
 #include "Engine/Utility/XMLUtils.h"
 #include <vector>
 
@@ -78,7 +78,7 @@ public:
 	//-----Public Methods-----
 	RTTI_BASE_CLASS(UIElement);
 
-	UIElement(Canvas* canvas, const StringID& id);
+	UIElement(Canvas* canvas, const StringId& id);
 	virtual ~UIElement();
 
 	virtual void		Update();
@@ -90,9 +90,9 @@ public:
 	virtual void		InitializeFromXML(const XMLElem& element);
 
 	UIElement*			GetParent() const { return m_parent; }
-	StringID			GetID() const { return m_id; }
+	StringId			GetID() const { return m_id; }
 	uint32				GetLayer() const { return m_layer; }
-	UIElement*			GetChildByID(StringID id);
+	UIElement*			GetChildByID(StringId id);
 	Canvas*				GetCanvas() const { return m_canvas; }
 	bool				IsCanvas() const;
 	bool				IsInFocus() const;
@@ -102,7 +102,7 @@ public:
 	template <typename T>
 	T*					GetFirstChildOfType();
 
-	void				SetID(StringID id);
+	void				SetID(StringId id);
 	void				SetID(const std::string& name);
 	void				SetID(const char* name);
 	void				SetRenderMode(UIElementRenderMode mode) { m_renderMode = mode; }
@@ -134,7 +134,7 @@ public:
 protected:
 	//-----Protected Data------
 
-	StringID						m_id;
+	StringId						m_id;
 	UIElement*						m_parent = nullptr;
 	Canvas*							m_canvas = nullptr;
 	std::vector<UIElement*>			m_children;

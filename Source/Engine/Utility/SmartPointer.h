@@ -132,11 +132,9 @@ SmartPointer<T>::SmartPointer(const SmartPointer<T>& copy)
 	m_pointer = copy.m_pointer;
 	m_refCount = copy.m_refCount;
 
-	// Should never happen...?
-	if (m_refCount != nullptr)
-	{
-		m_refCount->AddRef();
-	}
+	// Should never happen!
+	ASSERT_OR_DIE(m_refCount != nullptr, "SmartPointer had nullptr RefCount!");
+	m_refCount->AddRef();
 }
 
 

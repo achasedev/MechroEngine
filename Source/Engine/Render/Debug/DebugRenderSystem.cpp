@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: April 4th, 2020
+/// Date Created: February 20th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -8,9 +8,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
-#include "Engine/Render/Core/RenderContext.h"
-#include "Engine/Render/Mesh/MeshBuilder.h"
-#include "Engine/UI/UIPanel.h"
+#include "Engine/Render/Debug/DebugRenderSystem.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -23,25 +21,79 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-RTTI_TYPE_DEFINE(UIPanel);
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------
+DebugRenderHandle DebugDrawCube(
+	const Vector3& position, 
+	const Vector3& extents, 
+	const DebugRenderOptions& options /*= DebugRenderOptions()*/)
+{
+	return DebugRenderHandle();
+}
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-UIPanel::UIPanel(Canvas* canvas, const StringId& id)
-	: UIElement(canvas, id)
+void DebugRenderSystem::Initialize()
 {
+	ASSERT_OR_DIE(g_debugRenderSystem == nullptr, "DebugRenderSystem is being initialized twice!");
+	g_debugRenderSystem = new DebugRenderSystem();
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void UIPanel::Render()
+void DebugRenderSystem::Shutdown()
 {
-	UIElement::Render();
+	ASSERT_OR_DIE(g_debugRenderSystem != nullptr, "DebugRenderSystem not initialized!");
+	SAFE_DELETE(g_debugRenderSystem);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void DebugRenderSystem::Render()
+{
+	// Draw all objects
+	for (std::map<DebugRenderHandle, DebugRenderObject*>::iterator itr = m_objects.begin(); itr != m_objects.end(); itr++)
+	{
+		itr->second->Render();
+	}
+
+	// Clean up any finished objects
+	std::map<DebugRenderHandle, DebugRenderObject*>::iterator currItr, nextItr;
+	for (currItr = m_objects.begin(), nextItr = currItr; currItr != m_objects.end(); currItr = nextItr)
+	{
+		++nextItr;
+		if (currItr->second->IsFinished())
+		{
+			SAFE_DELETE(currItr->second);
+			m_objects.erase(currItr);
+		}
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+DebugRenderObject* DebugRenderSystem::GetObject(const DebugRenderHandle& handle)
+{
+	const bool objectExists = m_objects.find(handle) != m_objects.end();
+	if (objectExists)
+	{
+		return m_objects[handle];
+	}
+
+	return nullptr;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void DebugRenderSystem::AddObject(DebugRenderObject* object)
+{
+	const DebugRenderHandle handle = m_nextHandle++;
+	m_objects[handle] = object;
 }
