@@ -7,6 +7,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Framework/DevConsole.h"
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Math/Polygon3D.h"
@@ -44,7 +45,7 @@ Vector3 GetMinkowskiDiffSupport3D(const Polygon3D* first, const Polygon3D* secon
 
 
 //-------------------------------------------------------------------------------------------------
-void SetupSimplex3D(const Polygon3D* first, const Polygon3D* second, std::vector <Vector3>& simplex)
+bool SetupSimplex3D(const Polygon3D* first, const Polygon3D* second, std::vector <Vector3>& simplex)
 {
 	// A vertex
 	Vector3 direction = second->GetCenter() - first->GetCenter();
@@ -53,6 +54,12 @@ void SetupSimplex3D(const Polygon3D* first, const Polygon3D* second, std::vector
 	// B vertex
 	direction = -1.0f * direction;
 	simplex.push_back(GetMinkowskiDiffSupport3D(first, second, direction));
+
+	if (AreMostlyEqual(simplex[0], simplex[1]))
+	{
+		ConsoleErrorf("3d simplex couldn't find second unique vertex, aborted");
+		return false;
+	}
 
 	// C vertex
 	Vector3 a = simplex[0];
@@ -79,6 +86,12 @@ void SetupSimplex3D(const Polygon3D* first, const Polygon3D* second, std::vector
 
 	simplex.push_back(GetMinkowskiDiffSupport3D(first, second, abPerp));
 
+	if (AreMostlyEqual(simplex[0], simplex[2]) || AreMostlyEqual(simplex[1], simplex[2]))
+	{
+		ConsoleErrorf("3d simplex couldn't find 3rd unique vertex, aborted");
+		return false;
+	}
+
 	// D vertex
 	Vector3 c = simplex[2];
 	Vector3 inwardNormal = -1.0f * CalculateNormalForTriangle(a, b, c); // -1.0 to make it point inward
@@ -94,6 +107,14 @@ void SetupSimplex3D(const Polygon3D* first, const Polygon3D* second, std::vector
 	}
 
 	simplex.push_back(GetMinkowskiDiffSupport3D(first, second, inwardNormal));
+
+	if (AreMostlyEqual(simplex[0], simplex[3]) || AreMostlyEqual(simplex[1], simplex[3]) || AreMostlyEqual(simplex[2], simplex[3]))
+	{
+		ConsoleErrorf("3d simplex couldn't find 4th unique vertex, aborted");
+		return false;
+	}
+
+	return true;
 }
 
 
@@ -221,10 +242,10 @@ CollisionSeparation3D PerformEPA3D(const Polygon3D* first, const Polygon3D* seco
 	// Create a list of faces to work with instead of vertices
 	// Ensure all normals point outward
 	std::vector<Face3> faceSimplex;
-	faceSimplex.push_back(Face3(vertexSimplex[0], vertexSimplex[1], vertexSimplex[2], vertexSimplex[0]));
-	faceSimplex.push_back(Face3(vertexSimplex[0], vertexSimplex[1], vertexSimplex[3], vertexSimplex[0]));
-	faceSimplex.push_back(Face3(vertexSimplex[0], vertexSimplex[2], vertexSimplex[3], vertexSimplex[0]));
-	faceSimplex.push_back(Face3(vertexSimplex[1], vertexSimplex[2], vertexSimplex[3], vertexSimplex[1]));
+	faceSimplex.push_back(Face3(vertexSimplex[0], vertexSimplex[1], vertexSimplex[2], -1.0f * vertexSimplex[3]));
+	faceSimplex.push_back(Face3(vertexSimplex[0], vertexSimplex[1], vertexSimplex[3], -1.0f * vertexSimplex[2]));
+	faceSimplex.push_back(Face3(vertexSimplex[0], vertexSimplex[2], vertexSimplex[3], -1.0f * vertexSimplex[1]));
+	faceSimplex.push_back(Face3(vertexSimplex[1], vertexSimplex[2], vertexSimplex[3], -1.0f * vertexSimplex[0]));
 
 	for (uint32 iteration = 0; iteration < NUM_EPA_ITERATIONS; ++iteration)
 	{
@@ -234,7 +255,7 @@ CollisionSeparation3D PerformEPA3D(const Polygon3D* first, const Polygon3D* seco
 
 		Vector3 expandedMinkowskiPoint = GetMinkowskiDiffSupport3D(first, second, simplexSeparation.m_dirFromFirst);
 		float distanceToMinkowskiEdge = DotProduct(simplexSeparation.m_dirFromFirst, expandedMinkowskiPoint);
-		ASSERT_OR_DIE(distanceToMinkowskiEdge >= 0, "This should always be positive!");
+		ASSERT_OR_DIE(distanceToMinkowskiEdge >= -DEFAULT_EPSILON, "This should always be positive!");
 
 		float diff = Abs(simplexSeparation.m_separation - distanceToMinkowskiEdge);
 		if (diff < DEFAULT_EPSILON)
@@ -277,9 +298,22 @@ CollisionSeparation3D PerformEPA3D(const Polygon3D* first, const Polygon3D* seco
 				for (int edgeIndex = 0; edgeIndex < numLooseEdges; ++edgeIndex)
 				{
 					const Edge3& currEdge = looseEdges[edgeIndex];
-					faceSimplex.push_back(Face3(currEdge.GetStart(), currEdge.GetEnd(), expandedMinkowskiPoint, currEdge.GetStart()));
+					Face3 newFace(currEdge.GetStart(), currEdge.GetEnd(), expandedMinkowskiPoint, currEdge.GetStart());
+
+					// Check for duplicates.......shouldn't have duplicates...
+					for (int faceIndex = 0; faceIndex < (int)faceSimplex.size(); ++faceIndex)
+					{
+						if (faceSimplex[faceIndex].IsEquivalentTo(newFace))
+						{
+							ERROR_AND_DIE("Dupe face!");
+						}
+					}
+
+					faceSimplex.push_back(newFace);
 				}
 			}
+
+			ASSERT_OR_DIE(faceSimplex.size() > 0, "wut");
 
 			// Our simplex face is inside the Minkowski difference shape, not on the edge
 			// So remove the bad face and add 3 new faces simulating adding this point
@@ -304,7 +338,13 @@ CollisionSeparation3D CalculateSeparation3D(const Polygon3D* first, const Polygo
 	std::vector<Vector3> simplex;
 
 	// Set up initial vertices
-	SetupSimplex3D(first, second, simplex);
+	bool success = SetupSimplex3D(first, second, simplex);
+
+	if (!success)
+	{
+		// Sometimes due to floating point error we get false positives which leads to math falling apart...
+		return CollisionSeparation3D(false);
+	}
 
 	while (result == SIMPLEX_STILL_EVOLVING)
 	{

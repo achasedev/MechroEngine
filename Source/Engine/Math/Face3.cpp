@@ -78,7 +78,15 @@ void Face3::AddVertex(const Vector3& vertex)
 	if (m_vertices.size() >= 3)
 	{
 		Plane supportPlane = GetSupportPlane();
-		ASSERT_RETURN(supportPlane.ContainsPoint(vertex), NO_RETURN_VAL, "Vertex added doesn't lie within the plane!");
+		bool containsPoint = supportPlane.ContainsPoint(vertex);
+
+		if (!containsPoint)
+		{
+			supportPlane = GetSupportPlane();
+			containsPoint = supportPlane.ContainsPoint(vertex);
+		}
+
+		ASSERT_RETURN(containsPoint, NO_RETURN_VAL, "Vertex added doesn't lie within the plane!");
 	}
 #endif
 
@@ -115,9 +123,9 @@ Plane Face3::GetSupportPlane() const
 
 	// Calculate the normal
 	Vector3 ab = m_vertices[1] - m_vertices[0];
-	Vector3 bc = m_vertices[2] - m_vertices[1];
+	Vector3 ac = m_vertices[2] - m_vertices[0];
 
-	Vector3 normal = CrossProduct(ab, bc);
+	Vector3 normal = CrossProduct(ab, ac);
 	normal.Normalize();
 
 	// Get the distance
@@ -155,6 +163,54 @@ bool Face3::IsWindingClockwise(const Vector3& normal) const
 		Vector3 ac = c - a;
 
 		if (DotProduct(CrossProduct(ab, ac), normal) < 0.f)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool Face3::IsEquivalentTo(const Face3& face) const
+{
+	if (m_vertices.size() != face.m_vertices.size())
+	{
+		return false;
+	}
+
+	// Degenerate case
+	if (m_vertices.size() == 0)
+	{
+		return true;
+	}
+
+	// Find my first vertex in the other
+	Vector3 startVertex = m_vertices[0];
+	int startOffset = -1;
+
+	for (int otherIndex = 0; otherIndex < (int)face.m_vertices.size(); ++otherIndex)
+	{
+		if (AreMostlyEqual(startVertex, face.m_vertices[otherIndex]))
+		{
+			startOffset = otherIndex;
+			break;
+		}
+	}
+
+	// Couldn't find my first vertex, so we cannot be the same
+	if (startOffset < 0)
+	{
+		return false;
+	}
+
+	// Check each vertex after that in order, ensure all match
+	for (int myIndex = 0; myIndex < (int)m_vertices.size(); ++myIndex)
+	{
+		int otherIndex = (myIndex + startOffset) % (int)(m_vertices.size());
+
+		if (!AreMostlyEqual(m_vertices[myIndex], face.m_vertices[otherIndex]))
 		{
 			return false;
 		}

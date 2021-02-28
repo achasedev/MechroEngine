@@ -51,6 +51,7 @@ public:
 	
 	bool	IsWindingClockwise(const Vector3& normal) const;
 	bool	IsWindingCounterClockwise(const Vector3& normal) const { return !IsWindingClockwise(normal); }
+	bool	IsEquivalentTo(const Face3& face) const;
 
 
 private:

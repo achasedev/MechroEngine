@@ -45,7 +45,7 @@ public:
 	bool	ContainsPoint(const Vector3& point);
 	bool	IsPointInFront(const Vector3& point);
 	bool	IsPointBehind(const Vector3& point);
-	float	GetDistanceFromPlaneAlongNormal(const Vector3& point);
+	float	GetDistanceFromPlane(const Vector3& point);
 
 
 private:

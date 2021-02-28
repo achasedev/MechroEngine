@@ -107,7 +107,7 @@ struct Contact3D
 
 
 Vector3					GetMinkowskiDiffSupport3D(const Polygon3D* first, const Polygon3D* second, const Vector3& direction);
-void					SetupSimplex3D(const Polygon3D* first, const Polygon3D* second, std::vector <Vector3>& simplex);
+bool					SetupSimplex3D(const Polygon3D* first, const Polygon3D* second, std::vector <Vector3>& simplex);
 EvolveSimplexResult		EvolveSimplex3D(const Polygon3D* first, const Polygon3D* second, std::vector<Vector3>& evolvingSimplex);
 uint32					GetSimplexSeparation3D(const std::vector<Vector3>& simplex, CollisionSeparation3D& out_separation);
 CollisionSeparation3D	PerformEPA3D(const Polygon3D* first, const Polygon3D* second, std::vector<Vector2>& simplex);

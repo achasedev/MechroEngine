@@ -35,26 +35,26 @@
 //-------------------------------------------------------------------------------------------------
 bool Plane::ContainsPoint(const Vector3& point)
 {
-	return (GetDistanceFromPlaneAlongNormal(point) == 0.f);
+	return (AreMostlyEqual(GetDistanceFromPlane(point), 0.f));
 }
 
 
 //-------------------------------------------------------------------------------------------------
 bool Plane::IsPointInFront(const Vector3& point)
 {
-	return (GetDistanceFromPlaneAlongNormal(point) > 0.f);
+	return (GetDistanceFromPlane(point) > -DEFAULT_EPSILON);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 bool Plane::IsPointBehind(const Vector3& point)
 {
-	return (GetDistanceFromPlaneAlongNormal(point) < 0.f);
+	return (GetDistanceFromPlane(point) < DEFAULT_EPSILON);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-float Plane::GetDistanceFromPlaneAlongNormal(const Vector3& point)
+float Plane::GetDistanceFromPlane(const Vector3& point)
 {
 	return DotProduct(m_normal, point) - m_distance;
 }
