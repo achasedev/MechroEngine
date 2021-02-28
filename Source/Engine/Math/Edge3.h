@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: November 23rd, 2020
+/// Date Created: February 27th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,9 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/Plane.h"
 #include "Engine/Math/Vector3.h"
-#include <vector>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -29,30 +27,28 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Face3D
+class Edge3
 {
 public:
 	//-----Public Methods-----
 
-	Face3D() {}
-	Face3D(const Vector3& a, const Vector3& b, const Vector3& c);
-	Face3D(const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& normalDirection);
+	Edge3();
+	Edge3(const Vector3& start, const Vector3& end);
 
-	void	AddVertex(const Vector3& vertex);
+	Vector3 GetStart() const { return m_start; }
+	Vector3 GetEnd() const { return m_end; }
 
-	Vector3 GetVertex(int vertexIndex) const;
-	int		GetNumVertices() const { return (int)m_vertices.size(); }
-	Plane	GetSupportPlane() const;
-	Vector3 GetNormal() const;
+	void	SetStart(const Vector3& start) { m_start = start; }
+	void	SetEnd(const Vector3& end) { m_end = end; }
 
-	bool	IsWindingClockwise(const Vector3& normal) const;
-	bool	IsWindingCounterClockwise(const Vector3& normal) const { return !IsWindingClockwise(normal); }
+	bool	IsEquivalentTo(const Edge3& edge) const;
 
-
+	
 private:
 	//-----Private Data-----
 
-	std::vector<Vector3> m_vertices;
+	Vector3 m_start;
+	Vector3 m_end;
 
 };
 

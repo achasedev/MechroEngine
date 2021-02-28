@@ -12,7 +12,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
-#include "Engine/Math/Face3D.h"
+#include "Engine/Math/Face3.h"
 #include "Engine/Math/Polygon3D.h"
 #include "Engine/Math/Vector3.h"
 
@@ -40,7 +40,7 @@ struct CollisionSeparation3D
 struct CollisionFeatureFace3D
 {
 	Vector3 m_furthestVertex;
-	Face3D	m_face;
+	Face3	m_face;
 	Vector3 m_normal;
 	int		m_edgeId = -1;
 };

@@ -8,7 +8,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
-#include "Engine/Math/Face3D.h"
+#include "Engine/Math/Face3.h"
 #include "Engine/Math/MathUtils.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -33,7 +33,7 @@
 
 
 //-------------------------------------------------------------------------------------------------
-Face3D::Face3D(const Vector3& a, const Vector3& b, const Vector3& c)
+Face3::Face3(const Vector3& a, const Vector3& b, const Vector3& c)
 {
 	AddVertex(a);
 	AddVertex(b);
@@ -43,7 +43,7 @@ Face3D::Face3D(const Vector3& a, const Vector3& b, const Vector3& c)
 
 //-------------------------------------------------------------------------------------------------
 // Creates it such that the CrossProduct(ab, ac) points in the normalDirection
-Face3D::Face3D(const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& normalDirection)
+Face3::Face3(const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& normalDirection)
 {
 	Vector3 abcNormal = CalculateNormalForTriangle(a, b, c);
 
@@ -65,7 +65,7 @@ Face3D::Face3D(const Vector3& a, const Vector3& b, const Vector3& c, const Vecto
 
 
 //-------------------------------------------------------------------------------------------------
-void Face3D::AddVertex(const Vector3& vertex)
+void Face3::AddVertex(const Vector3& vertex)
 {
 #ifndef DISABLE_ASSERTS
 	// Check for duplicates
@@ -87,7 +87,7 @@ void Face3D::AddVertex(const Vector3& vertex)
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Face3D::GetVertex(int vertexIndex) const
+Vector3 Face3::GetVertex(int vertexIndex) const
 {
 	ASSERT_OR_DIE(vertexIndex >= 0 && vertexIndex < (int)m_vertices.size(), "Invalid vertex index!");
 
@@ -96,7 +96,20 @@ Vector3 Face3D::GetVertex(int vertexIndex) const
 
 
 //-------------------------------------------------------------------------------------------------
-Plane Face3D::GetSupportPlane() const
+Edge3 Face3::GetEdge(int edgeIndex) const
+{
+	int numVertices = (int)m_vertices.size();
+	ASSERT_OR_DIE(edgeIndex >= 0 && edgeIndex < numVertices, "Invalid edge index!");
+
+	const Vector3& firstVertex = m_vertices[edgeIndex];
+	const Vector3& secondVertex = m_vertices[(edgeIndex + 1) % numVertices];
+
+	return Edge3(firstVertex, secondVertex);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Plane Face3::GetSupportPlane() const
 {
 	ASSERT_OR_DIE(m_vertices.size() >= 3, "Cannot get the plane without at least 3 points!");
 
@@ -115,7 +128,7 @@ Plane Face3D::GetSupportPlane() const
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Face3D::GetNormal() const
+Vector3 Face3::GetNormal() const
 {
 	ASSERT_RETURN(m_vertices.size() >= 3, Vector3::ZERO, "Not enough vertices to calculate a normal!");
 
@@ -125,7 +138,7 @@ Vector3 Face3D::GetNormal() const
 
 //-------------------------------------------------------------------------------------------------
 // Modeled after the Polygon2D version that *does* work - not sure if this works...
-bool Face3D::IsWindingClockwise(const Vector3& normal) const
+bool Face3::IsWindingClockwise(const Vector3& normal) const
 {
 	uint32 numVertices = (uint32)m_vertices.size();
 

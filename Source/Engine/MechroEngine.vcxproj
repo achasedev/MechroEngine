@@ -167,6 +167,7 @@
     <ClCompile Include="Event\EventSystem.cpp" />
     <ClCompile Include="Framework\ConsoleCommand.cpp" />
     <ClCompile Include="Framework\Resource.cpp" />
+    <ClCompile Include="Math\Edge3.cpp" />
     <ClCompile Include="Render\Debug\DebugRenderObject.cpp" />
     <ClCompile Include="Framework\DevConsole.cpp" />
     <ClCompile Include="Framework\EngineCommands.cpp" />
@@ -179,7 +180,7 @@
     <ClCompile Include="Job\JobSystem.cpp" />
     <ClCompile Include="Job\JobWorkerThread.cpp" />
     <ClCompile Include="Math\AABB3.cpp" />
-    <ClCompile Include="Math\Face3D.cpp" />
+    <ClCompile Include="Math\Face3.cpp" />
     <ClCompile Include="Math\IntVector3.cpp" />
     <ClCompile Include="Math\OBB2.cpp" />
     <ClCompile Include="Math\Plane.cpp" />
@@ -262,6 +263,7 @@
     <ClInclude Include="Framework\ConsoleCommand.h" />
     <ClInclude Include="Framework\CommentSnippets.h" />
     <ClInclude Include="Framework\Resource.h" />
+    <ClInclude Include="Math\Edge3.h" />
     <ClInclude Include="Render\Debug\DebugRenderObject.h" />
     <ClInclude Include="Framework\DevConsole.h" />
     <ClInclude Include="Framework\EngineCommands.h" />
@@ -276,7 +278,7 @@
     <ClInclude Include="Job\JobSystem.h" />
     <ClInclude Include="Job\JobWorkerThread.h" />
     <ClInclude Include="Math\AABB3.h" />
-    <ClInclude Include="Math\Face3D.h" />
+    <ClInclude Include="Math\Face3.h" />
     <ClInclude Include="Math\IntVector3.h" />
     <ClInclude Include="Math\OBB2.h" />
     <ClInclude Include="Math\Plane.h" />

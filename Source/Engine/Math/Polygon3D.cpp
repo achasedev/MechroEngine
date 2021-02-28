@@ -91,12 +91,12 @@ int Polygon3D::GetIndice(int indiceIndex) const
 
 
 //-------------------------------------------------------------------------------------------------
-Face3D Polygon3D::GetFace(int faceIndex) const
+Face3 Polygon3D::GetFace(int faceIndex) const
 {
 	int startingIndex = GetStartingIndexForFaceIndex(faceIndex);
 	int numIndicesInFace = m_faceIndexCounts[faceIndex];
 
-	Face3D face;
+	Face3 face;
 	
 	for (int indiceIndex = startingIndex; indiceIndex < startingIndex + numIndicesInFace; ++indiceIndex)
 	{

@@ -407,7 +407,7 @@ void RenderContext::DrawWirePolygon3D(const Polygon3D& polygon, Material* materi
 
 	for (int faceIndex = 0; faceIndex < numFaces; ++faceIndex)
 	{
-		Face3D face = polygon.GetFace(faceIndex);
+		Face3 face = polygon.GetFace(faceIndex);
 
 		int numVertices = face.GetNumVertices();
 

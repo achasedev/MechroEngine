@@ -1,16 +1,15 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: November 23rd, 2020
+/// Date Created: February 27th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/Face3.h"
-#include "Engine/Math/Vector3.h"
-#include <vector>
+#include "Engine/Framework/EngineCommon.h"
+#include "Engine/Math/Edge3.h"
+#include "Engine/Math/MathUtils.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -19,63 +18,46 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Material;
-class Transform;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// CLASS DECLARATIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------------------------------
-class Polygon3D
-{
-public:
-	//-----Public Methods-----
-
-
-	Polygon3D() {}
-	~Polygon3D() {}
-
-	void		Clear();
-
-	int			PushVertex(const Vector3& vertex);
-	void		PushIndex(int index);
-	void		PushIndicesForTriangle(int first, int second, int third);
-	void		PushFaceIndexCount(int faceIndexCount);
-
-	int			GetNumVertices() const { return (int)m_vertices.size(); }
-	int			GetNumIndices() const { return (int)m_indices.size(); }
-	int			GetNumFaces() const { return (int)m_faceIndexCounts.size(); }
-	Vector3		GetVertex(int vertexIndex) const;
-	int			GetIndice(int indiceIndex) const;
-	Face3		GetFace(int faceIndex) const;
-	int			GetFarthestVertexInDirection(const Vector3& direction, Vector3& out_vertex) const;
-	Vector3		GetCenter() const;
-	void		GetTransformed(const Matrix44& transformMatrix, Polygon3D& out_polygonWs) const;
-
-	void		DebugRender(Transform* transform, Material* material, const Rgba& color);
-
-
-private:
-	//-----Private Methods-----
-
-	int			GetStartingIndexForFaceIndex(int faceIndex) const;
-
-
-private:
-	//-----Private Data-----
-
-	std::vector<Vector3>	m_vertices;
-	std::vector<int>		m_indices;
-	std::vector<int>		m_faceIndexCounts;
-
-};
-
-
-///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// CLASS IMPLEMENTATIONS
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+//-------------------------------------------------------------------------------------------------
+Edge3::Edge3()
+{
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Edge3::Edge3(const Vector3& start, const Vector3& end)
+	: m_start(start)
+	, m_end(end)
+{
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Returns true if the two edges share the same end points, in any order
+bool Edge3::IsEquivalentTo(const Edge3& edge) const
+{
+	if (AreMostlyEqual(m_start, edge.m_start))
+	{
+		return AreMostlyEqual(m_end, edge.m_end);	
+	}
+	else if (AreMostlyEqual(m_start, edge.m_end))
+	{
+		return AreMostlyEqual(m_end, edge.m_start);
+	}
+
+	return false;
+}

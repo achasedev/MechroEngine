@@ -168,14 +168,14 @@ EvolveSimplexResult EvolveSimplex3D(const Polygon3D* first, const Polygon3D* sec
 
 //-------------------------------------------------------------------------------------------------
 // Calculates the minimum distance from any face on the simplex to the origin
-uint32 GetSimplexSeparation3D(const std::vector<Face3D>& simplex, CollisionSeparation3D& out_separation)
+uint32 GetSimplexSeparation3D(const std::vector<Face3>& simplex, CollisionSeparation3D& out_separation)
 {
 	uint32 numFaces = (uint32)simplex.size();
 	uint32 closestIndex = 0;
 
 	for (uint32 faceIndex = 0; faceIndex < numFaces; ++faceIndex)
 	{
-		const Face3D& face = simplex[faceIndex];
+		const Face3& face = simplex[faceIndex];
 
 		// Get the outward facing normal
 		Vector3 normal = face.GetNormal();
@@ -197,92 +197,101 @@ uint32 GetSimplexSeparation3D(const std::vector<Face3D>& simplex, CollisionSepar
 
 
 //-------------------------------------------------------------------------------------------------
+void AddOrRemoveLooseEdge(const Edge3& edge, std::vector<Edge3>& looseEdges)
+{
+	int numLooseEdges = (int)looseEdges.size();
+
+	for (int edgeIndex = 0; edgeIndex < numLooseEdges; ++edgeIndex)
+	{
+		if (edge.IsEquivalentTo(looseEdges[edgeIndex]))
+		{
+			looseEdges.erase(looseEdges.begin() + edgeIndex);
+			return;
+		}
+	}
+
+	// This edge doesn't already exist in the list, so re-add it
+	looseEdges.push_back(edge);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 CollisionSeparation3D PerformEPA3D(const Polygon3D* first, const Polygon3D* second, const std::vector<Vector3>& vertexSimplex)
 {
-	{
-		// Create a list of faces to work with instead of vertices
+	// Create a list of faces to work with instead of vertices
 	// Ensure all normals point outward
-		std::vector<Face3D> faceSimplex;
-		faceSimplex.push_back(Face3D(vertexSimplex[0], vertexSimplex[1], vertexSimplex[2], vertexSimplex[0]));
-		faceSimplex.push_back(Face3D(vertexSimplex[0], vertexSimplex[1], vertexSimplex[3], vertexSimplex[0]));
-		faceSimplex.push_back(Face3D(vertexSimplex[0], vertexSimplex[2], vertexSimplex[3], vertexSimplex[0]));
-		faceSimplex.push_back(Face3D(vertexSimplex[1], vertexSimplex[2], vertexSimplex[3], vertexSimplex[1]));
+	std::vector<Face3> faceSimplex;
+	faceSimplex.push_back(Face3(vertexSimplex[0], vertexSimplex[1], vertexSimplex[2], vertexSimplex[0]));
+	faceSimplex.push_back(Face3(vertexSimplex[0], vertexSimplex[1], vertexSimplex[3], vertexSimplex[0]));
+	faceSimplex.push_back(Face3(vertexSimplex[0], vertexSimplex[2], vertexSimplex[3], vertexSimplex[0]));
+	faceSimplex.push_back(Face3(vertexSimplex[1], vertexSimplex[2], vertexSimplex[3], vertexSimplex[1]));
 
-		for (uint32 iteration = 0; iteration < NUM_EPA_ITERATIONS; ++iteration)
+	for (uint32 iteration = 0; iteration < NUM_EPA_ITERATIONS; ++iteration)
+	{
+		CollisionSeparation3D simplexSeparation;
+		simplexSeparation.m_collisionFound = true;
+		GetSimplexSeparation3D(faceSimplex, simplexSeparation);
+
+		Vector3 expandedMinkowskiPoint = GetMinkowskiDiffSupport3D(first, second, simplexSeparation.m_dirFromFirst);
+		float distanceToMinkowskiEdge = DotProduct(simplexSeparation.m_dirFromFirst, expandedMinkowskiPoint);
+		ASSERT_OR_DIE(distanceToMinkowskiEdge >= 0, "This should always be positive!");
+
+		float diff = Abs(simplexSeparation.m_separation - distanceToMinkowskiEdge);
+		if (diff < DEFAULT_EPSILON)
 		{
-			CollisionSeparation3D simplexSeparation;
-			simplexSeparation.m_collisionFound = true;
-			uint32 closestFaceIndex = GetSimplexSeparation3D(faceSimplex, simplexSeparation);
+			// Difference is close enough, this is the right edge
+			return simplexSeparation;
+		}
+		else
+		{
+			// Remove all faces the point "sees"
+			int numFaces = faceSimplex.size();
+			std::vector<Edge3> looseEdges;
 
-			Vector3 expandedMinkowskiPoint = GetMinkowskiDiffSupport3D(first, second, simplexSeparation.m_dirFromFirst);
-			float distanceToMinkowskiEdge = DotProduct(simplexSeparation.m_dirFromFirst, expandedMinkowskiPoint);
-			ASSERT_OR_DIE(distanceToMinkowskiEdge >= 0, "This should always be positive!");
-
-			float diff = Abs(simplexSeparation.m_separation - distanceToMinkowskiEdge);
-			if (diff < DEFAULT_EPSILON)
+			for (int faceIndex = numFaces - 1; faceIndex >= 0; --faceIndex)
 			{
-				// Difference is close enough, this is the right edge
-				return simplexSeparation;
-			}
-			else
-			{
-				// Our simplex face is inside the Minkowski difference shape, not on the edge
-				// So remove the bad face and add 3 new faces simulating adding this point
-				Face3D closestFace = faceSimplex[closestFaceIndex];
-				faceSimplex.erase(faceSimplex.begin() + closestFaceIndex);
+				Face3 face = faceSimplex[faceIndex];
 
-				faceSimplex.push_back(Face3D(closestFace.GetVertex(0), closestFace.GetVertex(1), expandedMinkowskiPoint, closestFace.GetVertex(0)));
-				faceSimplex.push_back(Face3D(closestFace.GetVertex(0), closestFace.GetVertex(2), expandedMinkowskiPoint, closestFace.GetVertex(0)));
-				faceSimplex.push_back(Face3D(closestFace.GetVertex(1), closestFace.GetVertex(2), expandedMinkowskiPoint, closestFace.GetVertex(1)));
+				Vector3 normal = face.GetNormal();
+				Vector3 pointToFace = face.GetVertex(0) - expandedMinkowskiPoint;
+				float dot = DotProduct(normal, pointToFace);
+				if (dot < 0.f)
+				{
+					// Face is facing towards from the point, so remove it
+					faceSimplex.erase(faceSimplex.begin() + faceIndex);
+
+					// Keep track of any edges that this face leaves "loose"
+					// When adding the new point in we'll connect it to these edges
+					int numEdges = face.GetNumEdges();
+					for (int edgeIndex = 0; edgeIndex < numEdges; ++edgeIndex)
+					{
+						AddOrRemoveLooseEdge(face.GetEdge(edgeIndex), looseEdges);
+					}
+				}
 			}
+
+			// Reconstruct the simplex adding in this new closest point
+			int numLooseEdges = looseEdges.size();
+			if (numLooseEdges > 0)
+			{
+				for (int edgeIndex = 0; edgeIndex < numLooseEdges; ++edgeIndex)
+				{
+					const Edge3& currEdge = looseEdges[edgeIndex];
+					faceSimplex.push_back(Face3(currEdge.GetStart(), currEdge.GetEnd(), expandedMinkowskiPoint, currEdge.GetStart()));
+				}
+			}
+
+			// Our simplex face is inside the Minkowski difference shape, not on the edge
+			// So remove the bad face and add 3 new faces simulating adding this point
+			//Face3 closestFace = faceSimplex[closestFaceIndex];
+			//faceSimplex.erase(faceSimplex.begin() + closestFaceIndex);
+			//
+			//faceSimplex.push_back(Face3(closestFace.GetVertex(0), closestFace.GetVertex(1), expandedMinkowskiPoint, closestFace.GetVertex(0)));
+			//faceSimplex.push_back(Face3(closestFace.GetVertex(0), closestFace.GetVertex(2), expandedMinkowskiPoint, closestFace.GetVertex(0)));
+			//faceSimplex.push_back(Face3(closestFace.GetVertex(1), closestFace.GetVertex(2), expandedMinkowskiPoint, closestFace.GetVertex(1)));
 		}
 	}
 	
-
-	{
-		// Create a list of faces to work with instead of vertices
-	// Ensure all normals point outward
-		std::vector<Face3D> faceSimplex;
-		faceSimplex.push_back(Face3D(vertexSimplex[0], vertexSimplex[1], vertexSimplex[2], vertexSimplex[0]));
-		faceSimplex.push_back(Face3D(vertexSimplex[0], vertexSimplex[1], vertexSimplex[3], vertexSimplex[0]));
-		faceSimplex.push_back(Face3D(vertexSimplex[0], vertexSimplex[2], vertexSimplex[3], vertexSimplex[0]));
-		faceSimplex.push_back(Face3D(vertexSimplex[1], vertexSimplex[2], vertexSimplex[3], vertexSimplex[1]));
-
-		std::vector<Vector3> testSimplex;
-
-		// Set up initial vertices
-		SetupSimplex3D(first, second, testSimplex);
-
-		for (uint32 iteration = 0; iteration < NUM_EPA_ITERATIONS; ++iteration)
-		{
-			CollisionSeparation3D simplexSeparation;
-			simplexSeparation.m_collisionFound = true;
-			uint32 closestFaceIndex = GetSimplexSeparation3D(faceSimplex, simplexSeparation);
-
-			Vector3 expandedMinkowskiPoint = GetMinkowskiDiffSupport3D(first, second, simplexSeparation.m_dirFromFirst);
-			float distanceToMinkowskiEdge = DotProduct(simplexSeparation.m_dirFromFirst, expandedMinkowskiPoint);
-			ASSERT_OR_DIE(distanceToMinkowskiEdge >= 0, "This should always be positive!");
-
-			float diff = Abs(simplexSeparation.m_separation - distanceToMinkowskiEdge);
-			if (diff < DEFAULT_EPSILON)
-			{
-				// Difference is close enough, this is the right edge
-				return simplexSeparation;
-			}
-			else
-			{
-				// Our simplex face is inside the Minkowski difference shape, not on the edge
-				// So remove the bad face and add 3 new faces simulating adding this point
-				Face3D closestFace = faceSimplex[closestFaceIndex];
-				faceSimplex.erase(faceSimplex.begin() + closestFaceIndex);
-
-				faceSimplex.push_back(Face3D(closestFace.GetVertex(0), closestFace.GetVertex(1), expandedMinkowskiPoint, closestFace.GetVertex(0)));
-				faceSimplex.push_back(Face3D(closestFace.GetVertex(0), closestFace.GetVertex(2), expandedMinkowskiPoint, closestFace.GetVertex(0)));
-				faceSimplex.push_back(Face3D(closestFace.GetVertex(1), closestFace.GetVertex(2), expandedMinkowskiPoint, closestFace.GetVertex(1)));
-			}
-		}
-	}
-
 	ERROR_RECOVERABLE("Couldn't find the Minkowski face?");
 	return CollisionSeparation3D(false);
 }
