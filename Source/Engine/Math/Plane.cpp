@@ -33,28 +33,36 @@
 
 
 //-------------------------------------------------------------------------------------------------
-bool Plane::ContainsPoint(const Vector3& point)
+bool Plane::ContainsPoint(const Vector3& point) const
 {
 	return (AreMostlyEqual(GetDistanceFromPlane(point), 0.f));
 }
 
 
 //-------------------------------------------------------------------------------------------------
-bool Plane::IsPointInFront(const Vector3& point)
+bool Plane::IsPointInFront(const Vector3& point) const
 {
 	return (GetDistanceFromPlane(point) > -DEFAULT_EPSILON);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-bool Plane::IsPointBehind(const Vector3& point)
+bool Plane::IsPointBehind(const Vector3& point) const
 {
 	return (GetDistanceFromPlane(point) < DEFAULT_EPSILON);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-float Plane::GetDistanceFromPlane(const Vector3& point)
+float Plane::GetDistanceFromPlane(const Vector3& point) const
 {
 	return DotProduct(m_normal, point) - m_distance;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector3 Plane::GetProjectedPointOntoPlane(const Vector3& point) const
+{
+	float distance = GetDistanceFromPlane(point);
+	return point - (m_normal * distance);
 }

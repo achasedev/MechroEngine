@@ -81,24 +81,25 @@ public:
 	void					ApplyImpulse();
 
 	// Accessors
-	uint32					GetNumContacts() const { return m_numContacts; }
+	int						GetNumContacts() const { return m_numContacts; }
 	const Contact3D*		GetContacts() const { return m_contacts; }
 	float					GetFriction() const { return m_friction; }
-	CollisionSeparation3D	GetSeparation() const { return m_separation; }
+	CollisionSeparation3d	GetSeparation() const { return m_separation; }
 
 private:
 	//-----Private Methods-----
 
-	void					CalculateContactPoints(const Polygon3D* poly1, const Polygon3D* poly2, const CollisionSeparation3D& separation);
+	void					CalculateContactPoints(const Polygon3D* poly1, const Polygon3D* poly2, const CollisionSeparation3d& separation);
 
 
 private:
 	//-----Private Static Data-----
 
-	static const float	ALLOWED_PENETRATION;
-	static const float	BIAS_FACTOR;
-	static const bool	ACCUMULATE_IMPULSES;
-	static const bool	WARM_START_ACCUMULATIONS;
+	static const float		ALLOWED_PENETRATION;
+	static const float		BIAS_FACTOR;
+	static const bool		ACCUMULATE_IMPULSES;
+	static const bool		WARM_START_ACCUMULATIONS;
+	static constexpr int	MAX_CONTACTS = 8;
 
 
 private:
@@ -106,10 +107,10 @@ private:
 
 	RigidBody3D*			m_body1 = nullptr;
 	RigidBody3D*			m_body2 = nullptr;
-	CollisionSeparation3D	m_separation;
+	CollisionSeparation3d	m_separation;
 
-	Contact3D				m_contacts[8]; // TODO: Set max contact points
-	uint32					m_numContacts = 0;
+	Contact3D				m_contacts[MAX_CONTACTS];
+	int						m_numContacts = 0;
 	float					m_friction = -1.0f; // Combined Frictions
 
 };

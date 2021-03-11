@@ -178,6 +178,51 @@ void Polygon3D::GetTransformed(const Matrix44& transformMatrix, Polygon3D& out_p
 
 
 //-------------------------------------------------------------------------------------------------
+void Polygon3D::GetAllFacesAdjacentTo(int faceIndex, std::vector<Face3>& out_faces) const
+{
+	// Get the indices in this face
+	out_faces.clear();
+	int numIndicesInBaseFace = m_faceIndexCounts[faceIndex];
+	int baseIndexOffset = GetStartingIndexForFaceIndex(faceIndex);
+	int numFaces = GetNumFaces();
+
+	for (int currFaceIndex = 0; currFaceIndex < numFaces; ++currFaceIndex)
+	{
+		if (currFaceIndex == faceIndex)
+		{
+			continue;
+		}
+
+		int numIndicesInCurrFace = m_faceIndexCounts[currFaceIndex];
+		int currIndexOffset = GetStartingIndexForFaceIndex(currFaceIndex);
+
+		bool faceAdded = false;
+		for (int currIndexIndex = currIndexOffset; currIndexIndex <  currIndexOffset + numIndicesInCurrFace; ++currIndexIndex)
+		{
+			int currVertexIndex = m_indices[currIndexIndex];
+
+			for (int baseIndexIndex = baseIndexOffset; baseIndexIndex < baseIndexOffset + numIndicesInBaseFace; ++baseIndexIndex)
+			{
+				int baseVertexIndex = m_indices[baseIndexIndex];
+
+				if (baseVertexIndex == currVertexIndex)
+				{
+					out_faces.push_back(GetFace(currFaceIndex));
+					faceAdded = true;
+					break;
+				}
+			}
+
+			if (faceAdded)
+			{
+				break;
+			}
+		}
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void Polygon3D::DebugRender(Transform* transform, Material* material, const Rgba& color)
 {
 	Matrix44 model = Matrix44::IDENTITY;

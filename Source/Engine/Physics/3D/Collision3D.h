@@ -25,10 +25,10 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-struct CollisionSeparation3D
+struct CollisionSeparation3d
 {
-	CollisionSeparation3D() {}
-	CollisionSeparation3D(bool collisionFound)
+	CollisionSeparation3d() {}
+	CollisionSeparation3d(bool collisionFound)
 		: m_collisionFound(collisionFound) {}
 
 	bool	m_collisionFound = false;
@@ -36,37 +36,79 @@ struct CollisionSeparation3D
 	float	m_separation = FLT_MAX;
 };
 
+
 //-------------------------------------------------------------------------------------------------
-struct CollisionFeatureFace3D
+struct CollisionFace3d
 {
 	Vector3 m_furthestVertex;
 	Face3	m_face;
 	Vector3 m_normal;
-	int		m_edgeId = -1;
+	int		m_faceIndex = -1;
 };
 
+
 //-------------------------------------------------------------------------------------------------
-struct FacePairID3D
+struct RefClip
 {
-	union
+	bool operator==(const RefClip& other) const
 	{
-		struct
-		{
-			int8 m_incidentFaceIn;
-			int8 m_incidentFaceOut;
-			int8 m_minRefFaceClipped;
-			int8 m_maxRefFaceClipped;
-		};
-		int m_value = 0;
-	};
+		return (m_referenceFaceIndex == other.m_referenceFaceIndex) && (m_indexOfVertexInReferenceFace == other.m_indexOfVertexInReferenceFace);
+	}
+
+	bool operator!=(const RefClip& other) const
+	{
+		return (m_referenceFaceIndex != other.m_referenceFaceIndex) || (m_indexOfVertexInReferenceFace != other.m_indexOfVertexInReferenceFace);
+	}
+
+	bool IsValid() const { return m_referenceFaceIndex >= 0; }
+
+	int m_referenceFaceIndex = -1;
+	int m_indexOfVertexInReferenceFace = -1;
 };
 
+
 //-------------------------------------------------------------------------------------------------
-struct ClipVertex3D
+class ClipVertexId
+{
+public:
+	//-----Public Methods-----
+
+	ClipVertexId() {}
+	ClipVertexId(void* poly, int incidentFaceIndex, int indexOfVertexInIncidentFace)
+		: m_poly(poly), m_faceIndex(incidentFaceIndex), m_vertexIndex(indexOfVertexInIncidentFace) {}
+
+	static constexpr int MAX_CLIPS = 8;
+
+	bool operator==(const ClipVertexId& other) const
+	{
+		if (m_poly != other.m_poly || m_faceIndex != other.m_faceIndex || m_vertexIndex != other.m_vertexIndex)
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	bool IsValid() const { return m_poly != nullptr; }
+
+
+private:
+	//-----Private Data-----
+
+	void*	m_poly = nullptr;
+	int		m_faceIndex = -1;
+	int		m_vertexIndex = -1;
+
+};
+
+
+//-------------------------------------------------------------------------------------------------
+struct ClipVertex3
 {
 	Vector3			m_position;
-	FacePairID3D	m_id;
+	ClipVertexId	m_id;
 };
+
 
 //-------------------------------------------------------------------------------------------------
 struct Contact3D
@@ -80,18 +122,19 @@ struct Contact3D
 	Vector3 m_r2 = Vector3::ZERO;	// From the center of mass of body 2 to the contact
 
 	float m_separation = 0.f;
-	float m_accNormalImpulse = 0.f;	// accumulated normal impulse
+	float m_accNormalImpulse = 0.f;		// accumulated normal impulse
 	float m_accTangentImpulse = 0.f;	// accumulated tangent impulse
 	float m_normalBiasImpulse = 0.f;	// accumulated normal impulse for position bias
 	float m_massNormal = 0.f;
 	float m_massTangent = 0.f;
 	float m_bias = 0.f;
 
-	CollisionFeatureFace3D m_referenceFace;
-	CollisionFeatureFace3D m_incidentFace;
+	CollisionFace3d m_referenceFace;
+	CollisionFace3d m_incidentFace;
 
-	FacePairID3D m_id;
+	ClipVertexId m_id;
 };
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -109,10 +152,10 @@ struct Contact3D
 Vector3					GetMinkowskiDiffSupport3D(const Polygon3D* first, const Polygon3D* second, const Vector3& direction);
 bool					SetupSimplex3D(const Polygon3D* first, const Polygon3D* second, std::vector <Vector3>& simplex);
 EvolveSimplexResult		EvolveSimplex3D(const Polygon3D* first, const Polygon3D* second, std::vector<Vector3>& evolvingSimplex);
-uint32					GetSimplexSeparation3D(const std::vector<Vector3>& simplex, CollisionSeparation3D& out_separation);
-CollisionSeparation3D	PerformEPA3D(const Polygon3D* first, const Polygon3D* second, std::vector<Vector2>& simplex);
-CollisionSeparation3D	CalculateSeparation3D(const Polygon3D* first, const Polygon3D* second);
-CollisionFeatureFace3D	GetFeatureFace3D(const Polygon3D* polygon, const Vector3& outwardSeparationNormal);
-void					ClipIncidentFaceToReferenceFace(const std::vector<ClipVertex3D>& incidentVertices, const Vector2& refEdgeDirection, float offset, std::vector<ClipVertex2D>& clippedPoints);
+uint32					GetSimplexSeparation3D(const std::vector<Vector3>& simplex, CollisionSeparation3d& out_separation);
+CollisionSeparation3d	PerformEPA3D(const Polygon3D* first, const Polygon3D* second, std::vector<Vector2>& simplex);
+CollisionSeparation3d	CalculateSeparation3D(const Polygon3D* first, const Polygon3D* second);
+CollisionFace3d	GetFeatureFace3D(const Polygon3D* polygon, const Vector3& outwardSeparationNormal);
+void					ClipIncidentFaceToReferenceFace(const std::vector<ClipVertex3>& incidentVertices, const Vector2& refEdgeDirection, float offset, std::vector<ClipVertex2D>& clippedPoints);
 
 #pragma warning(default : 4201)

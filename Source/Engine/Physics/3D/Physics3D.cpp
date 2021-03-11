@@ -130,24 +130,23 @@ void PhysicsScene3D::PerformBroadphase()
 
 			ArbiterKey3D key(body1, body2);
 
-			m_arbiters[key] = newArb;
-			//if (newArb.GetNumContacts() > 0)
-			//{
-			//	// Check if an arbiter already exists for this collision, and if so update
-			//	Arb3DIter iter = m_arbiters.find(key);
-			//	if (iter == m_arbiters.end())
-			//	{
-			//		m_arbiters[key] = newArb;
-			//	}
-			//	else
-			//	{
-			//		iter->second.Update(newArb.GetContacts(), newArb.GetNumContacts());
-			//	}
-			//}
-			//else
-			//{
-			//	m_arbiters.erase(key);
-			//}
+			if (newArb.GetNumContacts() > 0)
+			{
+				// Check if an arbiter already exists for this collision, and if so update
+				//Arb3DIter iter = m_arbiters.find(key);
+				//if (iter == m_arbiters.end())
+				//{
+					m_arbiters[key] = newArb;
+				//}
+				//else
+				//{
+				//	iter->second.Update(newArb.GetContacts(), newArb.GetNumContacts());
+				//}
+			}
+			else
+			{
+				m_arbiters.erase(key);
+			}
 		}
 	}
 }

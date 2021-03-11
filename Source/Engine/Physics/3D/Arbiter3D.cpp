@@ -60,61 +60,62 @@ Arbiter3D::Arbiter3D(RigidBody3D* body1, RigidBody3D* body2)
 //-------------------------------------------------------------------------------------------------
 void Arbiter3D::Update(const Contact3D* newContacts, uint32 numNewContacts)
 {
-	// Where the final result will be stored temporarily
-	Contact3D mergedContacts[2];
+	UNIMPLEMENTED();
+	//// Where the final result will be stored temporarily
+	//Contact3D mergedContacts[2];
 
-	for (uint32 newContactIndex = 0U; newContactIndex < numNewContacts; ++newContactIndex)
-	{
-		const Contact3D* newContact = newContacts + newContactIndex;
+	//for (uint32 newContactIndex = 0U; newContactIndex < numNewContacts; ++newContactIndex)
+	//{
+	//	const Contact3D* newContact = newContacts + newContactIndex;
 
-		// Search to see if we already have info for this contact stored from last frames result
-		Contact3D* matchingOldContact = nullptr;
-		for (uint32 oldContactIndex = 0; oldContactIndex < m_numContacts; ++oldContactIndex)
-		{
-			Contact3D* oldContact = m_contacts + oldContactIndex;
+	//	// Search to see if we already have info for this contact stored from last frames result
+	//	Contact3D* matchingOldContact = nullptr;
+	//	for (int oldContactIndex = 0; oldContactIndex < m_numContacts; ++oldContactIndex)
+	//	{
+	//		Contact3D* oldContact = m_contacts + oldContactIndex;
 
-			if (newContact->m_id.m_value == oldContact->m_id.m_value)
-			{
-				matchingOldContact = oldContact;
-				break;
-			}
-		}
+	//		if (newContact->m_id.m_value == oldContact->m_id.m_value)
+	//		{
+	//			matchingOldContact = oldContact;
+	//			break;
+	//		}
+	//	}
 
-		if (matchingOldContact != nullptr)
-		{
-			// Overwrite our old contact info with the new stuff
-			Contact3D* mergeContact = mergedContacts + newContactIndex;
-			*mergeContact = *newContact;
+	//	if (matchingOldContact != nullptr)
+	//	{
+	//		// Overwrite our old contact info with the new stuff
+	//		Contact3D* mergeContact = mergedContacts + newContactIndex;
+	//		*mergeContact = *newContact;
 
-			// If we want to reuse the last accumulation state of the contact, copy it now
-			if (WARM_START_ACCUMULATIONS)
-			{
-				mergeContact->m_accNormalImpulse = matchingOldContact->m_accNormalImpulse;
-				mergeContact->m_accTangentImpulse = matchingOldContact->m_accTangentImpulse;
-				mergeContact->m_normalBiasImpulse = matchingOldContact->m_normalBiasImpulse;
-			}
-			else
-			{
-				mergeContact->m_accNormalImpulse = 0.f;
-				mergeContact->m_accTangentImpulse = 0.f;
-				mergeContact->m_normalBiasImpulse = 0.f;
-			}
-		}
-		else
-		{
-			// Brand new contact, just add it to merged contacts
-			mergedContacts[newContactIndex] = newContacts[newContactIndex];
-		}
+	//		// If we want to reuse the last accumulation state of the contact, copy it now
+	//		if (WARM_START_ACCUMULATIONS)
+	//		{
+	//			mergeContact->m_accNormalImpulse = matchingOldContact->m_accNormalImpulse;
+	//			mergeContact->m_accTangentImpulse = matchingOldContact->m_accTangentImpulse;
+	//			mergeContact->m_normalBiasImpulse = matchingOldContact->m_normalBiasImpulse;
+	//		}
+	//		else
+	//		{
+	//			mergeContact->m_accNormalImpulse = 0.f;
+	//			mergeContact->m_accTangentImpulse = 0.f;
+	//			mergeContact->m_normalBiasImpulse = 0.f;
+	//		}
+	//	}
+	//	else
+	//	{
+	//		// Brand new contact, just add it to merged contacts
+	//		mergedContacts[newContactIndex] = newContacts[newContactIndex];
+	//	}
 
-	}
+	//}
 
-	// Done merging, update the arbiter's contact data
-	for (uint32 newContactIndex = 0U; newContactIndex < numNewContacts; ++newContactIndex)
-	{
-		m_contacts[newContactIndex] = mergedContacts[newContactIndex];
-	}
+	//// Done merging, update the arbiter's contact data
+	//for (uint32 newContactIndex = 0U; newContactIndex < numNewContacts; ++newContactIndex)
+	//{
+	//	m_contacts[newContactIndex] = mergedContacts[newContactIndex];
+	//}
 
-	m_numContacts = numNewContacts;
+	//m_numContacts = numNewContacts;
 }
 
 
@@ -130,7 +131,7 @@ void Arbiter3D::DetectCollision()
 	m_numContacts = 0;
 
 	// TODO Remove this
-	if (false)
+	if (m_separation.m_collisionFound)
 	{
 		// Find the contact points of the collision
 		// http://www.dyn4j.org/2011/11/contact-points-using-clipping/ for reference
@@ -281,128 +282,102 @@ void Arbiter3D::ApplyImpulse()
 
 
 //-------------------------------------------------------------------------------------------------
-void Arbiter3D::CalculateContactPoints(const Polygon3D* poly1, const Polygon3D* poly2, const CollisionSeparation3D& separation)
+void Arbiter3D::CalculateContactPoints(const Polygon3D* poly1, const Polygon3D* poly2, const CollisionSeparation3d& separation)
 {
 	// Find the best edges for each polygon (normal is from A)
-	CollisionFeatureFace3D face1 = GetFeatureFace3D(poly1, separation.m_dirFromFirst);
-	CollisionFeatureFace3D face2 = GetFeatureFace3D(poly2, -1.0f * separation.m_dirFromFirst);
+	CollisionFace3d face1 = GetFeatureFace3D(poly1, separation.m_dirFromFirst);
+	CollisionFace3d face2 = GetFeatureFace3D(poly2, -1.0f * separation.m_dirFromFirst);
 	
 	// Determine which is the reference edge and which is the incident edge
-	// Reference edge is the one more closely perpendicular to the separation direction
+	// Reference edge is the one whose normal is more parallel to the separation direction
 	float dot1 = DotProduct(face1.m_normal, separation.m_dirFromFirst);
 	float dot2 = DotProduct(face2.m_normal, separation.m_dirFromFirst);
 
-	const CollisionFeatureFace3D* referenceEdge = nullptr;
-	const CollisionFeatureFace3D* incidentEdge = nullptr;
+	const CollisionFace3d* referenceFace = nullptr;
+	const CollisionFace3d* incidentFace = nullptr;
 	const Polygon3D* incidentPoly = nullptr;
+	const Polygon3D* referencePoly = nullptr;
 
 	if (Abs(dot1) > Abs(dot2))
 	{
 		// poly1 is our reference
-		referenceEdge = &face1;
-		incidentEdge = &face2;
+		referenceFace = &face1;
+		incidentFace = &face2;
 		incidentPoly = poly2;
+		referencePoly = poly1;
 	}
 	else
 	{
 		// poly2 is our reference
-		referenceEdge = &face2;
-		incidentEdge = &face1;
+		referenceFace = &face2;
+		incidentFace = &face1;
 		incidentPoly = poly1;
+		referencePoly = poly2;
 	}
 
-	UNIMPLEMENTED();
+	// 3D point clipping
+	// We clip all the points in the incident face by the planes created by
+	// all adjacent faces to the reference face in the reference polygon
+	std::vector<Face3> adjacentFaces;
+	referencePoly->GetAllFacesAdjacentTo(referenceFace->m_faceIndex, adjacentFaces);
+	int numAdjacentFaces = (int)adjacentFaces.size();
 
-	//Vector2 refEdgeDirection = referenceEdge->m_vertex2 - referenceEdge->m_vertex1;
-	//refEdgeDirection.Normalize();
-	//
-	//// Keep all our results from each clip for debugging purposes
-	//std::vector<ClipVertex2D> clippedPoints1;
+	std::vector<Vector3> incidentVerts = incidentFace->m_face.GetVertices();
+	std::vector<ClipVertex3> clipPoints;
 
-	//// Clip the incident edge to the start of the reference edge
-	//// First determine the min value the dot would need to be in order to be inside the clipping edge
+	for (int incidentVertexIndex = 0; incidentVertexIndex < (int)incidentVerts.size(); ++incidentVertexIndex)
+	{
+		ClipVertex3 newClip;
+		newClip.m_position = incidentVerts[incidentVertexIndex];
+		newClip.m_id = ClipVertexId((void*)incidentPoly, incidentFace->m_faceIndex, incidentVertexIndex);
 
-	//// Also set up our initial vertices to be clipped
+		clipPoints.push_back(newClip);
+	}
+	
+	// For each incident point...
+	for (int clipIndex = 0; clipIndex < (int)clipPoints.size(); ++clipIndex)
+	{
+		ClipVertex3& point = clipPoints[clipIndex];
 
-	//// Incident edge start vertex
-	//ClipVertex2D initialStartVertex;
-	//initialStartVertex.m_position = incidentEdge->m_vertex1;
+		// For each face adjacent to the reference face...
+		for (int adjFaceIndex = 0; adjFaceIndex < numAdjacentFaces; ++adjFaceIndex)
+		{
+			Plane plane = adjacentFaces[adjFaceIndex].GetSupportPlane();
 
-	//int prevVertexIndex = incidentPoly->GetPreviousValidIndex(incidentEdge->m_edgeId);
-	//ASSERT_OR_DIE(prevVertexIndex < 256, "We can't support Polygons with more than 256 side here :(");
+			// If the point is outside this plane, "snap" it to the plane
+			if (plane.IsPointInFront(point.m_position))
+			{
+				point.m_position = plane.GetProjectedPointOntoPlane(point.m_position);
+			}
+		}
+	}
 
-	//int prevEdgeId = (prevVertexIndex != 0 ? prevVertexIndex : incidentPoly->GetNumVertices()); // Edges are labeled by the index of the start vertex + 1 (in other words, by the index of their end vertex, with the last edge not using 0)
+	// Final clip - if the point is outside the reference face, remove it outright
+	std::vector<float> penDepths;
+	float maxDepth = DotProduct(referenceFace->m_normal, referenceFace->m_furthestVertex);
 
-	//initialStartVertex.m_id.m_incidentEdgeIn = (int8)prevEdgeId;
-	//initialStartVertex.m_id.m_incidentEdgeOut = (int8)incidentEdge->m_edgeId;
+	for (int clipIndex = 0; clipIndex < (int)clipPoints.size(); ++clipIndex)
+	{
+		// If any of these points are "deeper" than the max depth then they are in the collision manifold
+		float penDepth = DotProduct(referenceFace->m_normal, clipPoints[clipIndex].m_position) - maxDepth;
+		penDepths.push_back(penDepth);
+	}
 
-	//// Incident edge end vertex
-	//ClipVertex2D initialEndVertex;
-	//initialEndVertex.m_position = incidentEdge->m_vertex2;
-	//initialEndVertex.m_id.m_incidentEdgeIn = (int8)incidentEdge->m_edgeId;
-	//
-	//int nextVertexIndex = incidentPoly->GetNextValidIndex(incidentEdge->m_edgeId);
-	//ASSERT_OR_DIE(nextVertexIndex < 256, "We can't support Polygons with more than 256 side here :(");
+	for (int clipIndex = 0; clipIndex < (int)clipPoints.size(); ++clipIndex)
+	{
+		ASSERT_OR_DIE(m_numContacts < MAX_CONTACTS, "Ran out of room for contacts!");
 
-	//int nextEdgeId = (nextVertexIndex != 0 ? nextVertexIndex : incidentPoly->GetNumVertices());// Edges are labeled by the index of the start vertex + 1 (in other words, by the index of their end vertex, with the last edge not using 0)
-	//initialEndVertex.m_id.m_incidentEdgeOut = (int8)nextEdgeId;
-
-	//float startDot = DotProduct(refEdgeDirection, referenceEdge->m_vertex1);
-	//ClipIncidentEdgeToReferenceEdge(initialStartVertex, initialEndVertex, refEdgeDirection, startDot, clippedPoints1);
-	//
-	//if (clippedPoints1.size() < 2)
-	//{
-	//	return;
-	//}
-
-	//// Now clip the incident edge to the end of the reference edge
-	//// So clip in the opposite direction, flip some signs
-	//float endDot = DotProduct(refEdgeDirection, referenceEdge->m_vertex2);
-
-	//std::vector<ClipVertex2D> clippedPoints2;
-	//ClipIncidentEdgeToReferenceEdge(clippedPoints1[0], clippedPoints1[1], -1.0f * refEdgeDirection, -1.0f * endDot, clippedPoints2);
-
-	//if (clippedPoints2.size() < 2)
-	//{
-	//	return;
-	//}
-
-	//// Finally, clip all contacts that are outside the reference edge
-	//// It's ok to not have 2 contact points after this step!
-	//Vector2 refNormalForClipping = referenceEdge->m_normal;
-
-	//// Get the largest depth a contact can have
-	//float maxDepth = DotProduct(refNormalForClipping, referenceEdge->m_furthestVertex);
-
-	//// If any of these points are "deeper" than the max depth then they are in the collision manifold
-	//float penDepth1 = DotProduct(refNormalForClipping, clippedPoints2[0].m_position) - maxDepth;
-	//float penDepth2 = DotProduct(refNormalForClipping, clippedPoints2[1].m_position) - maxDepth;
-
-	//if (penDepth1 < 0.f)
-	//{
-	//	m_contacts[m_numContacts].m_position = clippedPoints2[0].m_position;
-	//	m_contacts[m_numContacts].m_normal = (poly1 == incidentPoly ? -1.0f * refNormalForClipping : refNormalForClipping);
-	//	m_contacts[m_numContacts].m_r1 = clippedPoints2[0].m_position - m_body1->GetCenterOfMassWs();
-	//	m_contacts[m_numContacts].m_r2 = clippedPoints2[0].m_position - m_body2->GetCenterOfMassWs();
-	//	m_contacts[m_numContacts].m_separation = penDepth1;
-	//	m_contacts[m_numContacts].m_referenceEdge = *referenceEdge;
-	//	m_contacts[m_numContacts].m_incidentEdge = *incidentEdge;
-	//	m_contacts[m_numContacts].m_id = clippedPoints2[0].m_id;
-	//	m_numContacts++;
-	//}
-
-	//if (penDepth2 < 0.f)
-	//{
-	//	m_contacts[m_numContacts].m_position = clippedPoints2[1].m_position;
-	//	m_contacts[m_numContacts].m_normal = (poly1 == incidentPoly ? -1.0f * refNormalForClipping : refNormalForClipping);
-	//	m_contacts[m_numContacts].m_r1 = clippedPoints2[1].m_position - m_body1->GetCenterOfMassWs();
-	//	m_contacts[m_numContacts].m_r2 = clippedPoints2[1].m_position - m_body2->GetCenterOfMassWs();
-	//	m_contacts[m_numContacts].m_separation = penDepth2;
-	//	m_contacts[m_numContacts].m_referenceEdge = *referenceEdge;
-	//	m_contacts[m_numContacts].m_incidentEdge = *incidentEdge;
-	//	m_contacts[m_numContacts].m_id = clippedPoints2[1].m_id;
-	//	m_numContacts++;
-	//}
-
-	//ASSERT_OR_DIE(m_numContacts <= 2, "Bad number of contacts!");
+		if (penDepths[clipIndex] < DEFAULT_EPSILON)
+		{
+			m_contacts[m_numContacts].m_position = clipPoints[clipIndex].m_position;
+			m_contacts[m_numContacts].m_normal = (poly1 == incidentPoly ? -1.0f * referenceFace->m_normal : referenceFace->m_normal);
+			//m_contacts[m_numContacts].m_r1 = clipPoints[clipIndex].m_position - m_body1->GetCenterOfMassWs();
+			//m_contacts[m_numContacts].m_r2 = clipPoints[clipIndex].m_position - m_body2->GetCenterOfMassWs();
+			m_contacts[m_numContacts].m_separation = penDepths[clipIndex];
+			m_contacts[m_numContacts].m_referenceFace = *referenceFace;
+			m_contacts[m_numContacts].m_incidentFace = *incidentFace;
+			m_contacts[m_numContacts].m_id = clipPoints[clipIndex].m_id;
+			m_numContacts++;
+		}
+	}
 }

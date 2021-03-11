@@ -92,7 +92,9 @@ public:
 	void								Draw(const DrawCall& drawCall);
 	
 	void								DrawPoint2D(const Vector2& position, float radius, Material* material, const Rgba& color = Rgba::WHITE);
+	void								DrawPoint3D(const Vector3& position, float radius, Material* material, const Rgba& color = Rgba::WHITE);
 	void								DrawLine2D(const Vector2& start, const Vector2& end, Material* material, const Rgba& color = Rgba::WHITE);
+	void								DrawLine3D(const Vector3& start, const Vector3& end, Material* material, const Rgba& color = Rgba::WHITE);
 	void								DrawWirePolygon2D(const Polygon2D& polygon, Material* material, const Rgba& color = Rgba::WHITE);
 	void								DrawWirePolygon3D(const Polygon3D& polygon, Material* material, const Rgba& color = Rgba::WHITE);
 	void								DrawWireOBB2D(const OBB2& obb, Material* material, const Rgba& color = Rgba::WHITE);

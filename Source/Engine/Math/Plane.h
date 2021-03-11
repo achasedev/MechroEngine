@@ -42,10 +42,11 @@ public:
 	Vector3 GetNormal() const { return m_normal; }
 	Vector3 GetDistance() const { return m_distance; }
 
-	bool	ContainsPoint(const Vector3& point);
-	bool	IsPointInFront(const Vector3& point);
-	bool	IsPointBehind(const Vector3& point);
-	float	GetDistanceFromPlane(const Vector3& point);
+	bool	ContainsPoint(const Vector3& point) const;
+	bool	IsPointInFront(const Vector3& point) const;
+	bool	IsPointBehind(const Vector3& point) const;
+	float	GetDistanceFromPlane(const Vector3& point) const;
+	Vector3	GetProjectedPointOntoPlane(const Vector3& point) const;
 
 
 private:

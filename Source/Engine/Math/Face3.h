@@ -39,19 +39,20 @@ public:
 	Face3(const Vector3& a, const Vector3& b, const Vector3& c);
 	Face3(const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& normalDirection);
 
-	void	AddVertex(const Vector3& vertex);
+	void					AddVertex(const Vector3& vertex);
 
-	Vector3 GetVertex(int vertexIndex) const;
-	int		GetNumVertices() const { return (int)m_vertices.size(); }
-	Edge3	GetEdge(int edgeIndex) const;
+	Vector3					GetVertex(int vertexIndex) const;
+	std::vector<Vector3>	GetVertices() const { return m_vertices; }
+	int						GetNumVertices() const { return (int)m_vertices.size(); }
+	Edge3					GetEdge(int edgeIndex) const;
 
-	int		GetNumEdges() const { return (int)m_vertices.size(); }
-	Plane	GetSupportPlane() const;
-	Vector3 GetNormal() const;
+	int						GetNumEdges() const { return (int)m_vertices.size(); }
+	Plane					GetSupportPlane() const;
+	Vector3					GetNormal() const;
 	
-	bool	IsWindingClockwise(const Vector3& normal) const;
-	bool	IsWindingCounterClockwise(const Vector3& normal) const { return !IsWindingClockwise(normal); }
-	bool	IsEquivalentTo(const Face3& face) const;
+	bool					IsWindingClockwise(const Vector3& normal) const;
+	bool					IsWindingCounterClockwise(const Vector3& normal) const { return !IsWindingClockwise(normal); }
+	bool					IsEquivalentTo(const Face3& face) const;
 
 
 private:

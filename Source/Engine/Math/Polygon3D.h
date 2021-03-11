@@ -56,6 +56,7 @@ public:
 	int			GetFarthestVertexInDirection(const Vector3& direction, Vector3& out_vertex) const;
 	Vector3		GetCenter() const;
 	void		GetTransformed(const Matrix44& transformMatrix, Polygon3D& out_polygonWs) const;
+	void		GetAllFacesAdjacentTo(int faceIndex, std::vector<Face3>& out_faces) const;
 
 	void		DebugRender(Transform* transform, Material* material, const Rgba& color);
 

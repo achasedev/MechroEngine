@@ -359,6 +359,31 @@ void RenderContext::DrawPoint2D(const Vector2& position, float radius, Material*
 
 
 //-------------------------------------------------------------------------------------------------
+void RenderContext::DrawPoint3D(const Vector3& position, float radius, Material* material, const Rgba& color /*= Rgba::WHITE*/)
+{
+	std::vector<Vertex3D_PCU> vertices;
+
+	Vector3 up = position + (Vector3::Y_AXIS * radius);
+	Vector3 down = position - (Vector3::Y_AXIS * radius);
+	Vector3 right = position + (Vector3::X_AXIS * radius);
+	Vector3 left = position - (Vector3::X_AXIS * radius);
+	Vector3 front = position + (Vector3::Z_AXIS * radius);
+	Vector3 back = position - (Vector3::Z_AXIS * radius);
+
+	vertices.push_back(Vertex3D_PCU(up, color, Vector2::ZERO));
+	vertices.push_back(Vertex3D_PCU(down, color, Vector2::ZERO));
+	vertices.push_back(Vertex3D_PCU(left, color, Vector2::ZERO));
+	vertices.push_back(Vertex3D_PCU(right, color, Vector2::ZERO));
+	vertices.push_back(Vertex3D_PCU(front, color, Vector2::ZERO));
+	vertices.push_back(Vertex3D_PCU(back, color, Vector2::ZERO));
+
+	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+	DrawVertexArray(vertices.data(), (uint32)vertices.size(), nullptr, 0U, material);
+	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void RenderContext::DrawLine2D(const Vector2& start, const Vector2& end, Material* material, const Rgba& color /*= Rgba::WHITE*/)
 {
 	std::vector<Vertex3D_PCU> vertices;
@@ -368,6 +393,20 @@ void RenderContext::DrawLine2D(const Vector2& start, const Vector2& end, Materia
 
 	vertices.push_back(Vertex3D_PCU(start3D, color, Vector2::ZERO));
 	vertices.push_back(Vertex3D_PCU(end3D, color, Vector2::ZERO));
+
+	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+	DrawVertexArray(vertices.data(), (uint32)vertices.size(), nullptr, 0U, material);
+	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RenderContext::DrawLine3D(const Vector3& start, const Vector3& end, Material* material, const Rgba& color /*= Rgba::WHITE*/)
+{
+	std::vector<Vertex3D_PCU> vertices;
+
+	vertices.push_back(Vertex3D_PCU(start, color, Vector2::ZERO));
+	vertices.push_back(Vertex3D_PCU(end, color, Vector2::ZERO));
 
 	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 	DrawVertexArray(vertices.data(), (uint32)vertices.size(), nullptr, 0U, material);
