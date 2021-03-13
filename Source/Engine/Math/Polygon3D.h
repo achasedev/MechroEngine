@@ -51,7 +51,7 @@ public:
 	int			GetNumIndices() const { return (int)m_indices.size(); }
 	int			GetNumFaces() const { return (int)m_faceIndexCounts.size(); }
 	Vector3		GetVertex(int vertexIndex) const;
-	int			GetIndice(int indiceIndex) const;
+	int			GetIndex(int indexIndex) const;
 	Face3		GetFace(int faceIndex) const;
 	int			GetFarthestVertexInDirection(const Vector3& direction, Vector3& out_vertex) const;
 	Vector3		GetCenter() const;

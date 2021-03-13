@@ -186,10 +186,13 @@ bool	DoAABB2sOverlap(const AABB2& boxOne, const AABB2& boxTwo);
 Vector2 RotatePointAboutPoint2D(const Vector2& pointToRotate, const Vector2& pointOfRotation, float angleDegrees);
 Vector2 RotatePointAboutPoint2D(const Vector2& pointToRotate, const Vector2& pointOfRotation, float cosAngle, float sinAngle);
 
+// All uses GJK
 float	GetShortestDistanceToLineSegment2D(const Vector2& lineStart, const Vector2& lineEnd, const Vector2& point);
 float	GetShortestDistanceToTriangle2D(const Vector2& a, const Vector2& b, const Vector2& c, const Vector2& point);
 float	GetShortestDistanceToPolygon2D(const Polygon2D& polygon, const Vector2& point);
 float	GetShortestDistanceBetweenPolygons2D(const Polygon2D& polygonA, const Polygon2D& polygonB);
+
+float	CalculateVolumeOfTetrahedron(const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& d);
 
 
 //-------------------------------------------------------------------------------------------------

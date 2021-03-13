@@ -45,8 +45,7 @@ RigidBody3D::RigidBody3D(PhysicsScene3D* scene, GameObject* owningObj)
 	ASSERT_RECOVERABLE(m_gameObj != nullptr, "RigidBody3D's object is nullptr!");
 	ASSERT_RECOVERABLE(m_shapeLs != nullptr, "RigidBody3D's shape is nullptr!");
 
-	// TODO
-	//CalculateCenterOfMass(); // Purely positional, assumes uniform mass density
+	CalculateCenterOfMass(); // Purely positional, assumes uniform mass density
 }
 
 
@@ -59,27 +58,34 @@ RigidBody3D::~RigidBody3D()
 //-------------------------------------------------------------------------------------------------
 void RigidBody3D::CalculateCenterOfMass()
 {
-	UNIMPLEMENTED();
-	//float area = 0.f;
-	//Vector2 center = Vector2::ZERO;
+	float volume = 0.f;
+	Vector3 center = Vector3::ZERO;
 
-	//uint32 numVertices = m_shapeLs->GetNumVertices();
-	//for (uint32 currIndex = 0; currIndex < numVertices; ++currIndex)
-	//{
-	//	uint32 nextIndex = (currIndex == numVertices - 1 ? 0 : currIndex + 1);
+	int numFaces = m_shapeLs->GetNumFaces();
+	for (int faceIndex = 0; faceIndex < numFaces; ++faceIndex)
+	{
+		// Iterate across all the vertices of the face
+		Face3 face = m_shapeLs->GetFace(faceIndex);
+		int numVerticesInFace = face.GetNumVertices();
 
-	//	Vector3 a = m_shapeLs->GetVertex(currIndex);
-	//	Vector3 b = m_shapeLs->GetVertex(nextIndex);
+		Vector3 origin = Vector3::ZERO;
+		Vector3 a = face.GetVertex(0);
 
-	//	float currArea = 0.5f * CrossProduct(a, b);
-	//	Vector2 currCenter = 0.33333f * (a + b); // No need to add origin = (0,0) here
+		for (int vertexIndex = 1; vertexIndex < numVerticesInFace - 1; ++vertexIndex)
+		{
+			Vector3 b = face.GetVertex(vertexIndex);
+			Vector3 c = face.GetVertex(vertexIndex + 1);
 
-	//	// Update running totals
-	//	center = (center * area + currCenter * currArea) / (area + currArea); // Move center weighted by areas
-	//	area += currArea;
-	//}
+			float currVolume = CalculateVolumeOfTetrahedron(a, b, c, origin);
+			Vector3 currCenter = 0.25f * (a + b + c + origin);
 
-	//m_centerOfMassLs = center;
+			// Update running totals
+			center = (center * volume + currCenter * currVolume) / (volume + currVolume); // Move center weighted by volumes
+			volume += currVolume;
+		}
+	}
+
+	m_centerOfMassLs = center;
 }
 
 

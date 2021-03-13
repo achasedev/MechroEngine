@@ -73,7 +73,7 @@ void RigidBody2D::CalculateCenterOfMass()
 		Vector2 b = m_shapeLs->GetVertexAtIndex(nextIndex);
 
 		float currArea = 0.5f * CrossProduct(a, b);
-		Vector2 currCenter = 0.33333f * (a + b); // No need to add origin = (0,0) here
+		Vector2 currCenter = 0.33333f * (a + b); // Find center as (a + b + c) / 3, but c is the origin here
 
 		// Update running totals
 		center = (center * area + currCenter * currArea) / (area + currArea); // Move center weighted by areas

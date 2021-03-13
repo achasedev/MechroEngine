@@ -1052,6 +1052,13 @@ Vector2 RotatePointAboutPoint2D(const Vector2& pointToRotate, const Vector2& poi
 }
 
 
+//-------------------------------------------------------------------------------------------------
+float CalculateVolumeOfTetrahedron(const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& d)
+{
+	return (1.f / 6.f) * Abs(DotProduct(CrossProduct(b - a, c - a), d - a));
+}
+
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

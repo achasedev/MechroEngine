@@ -84,9 +84,9 @@ Vector3 Polygon3D::GetVertex(int vertexIndex) const
 
 
 //-------------------------------------------------------------------------------------------------
-int Polygon3D::GetIndice(int indiceIndex) const
+int Polygon3D::GetIndex(int indexIndex) const
 {
-	return m_indices[indiceIndex];
+	return m_indices[indexIndex];
 }
 
 

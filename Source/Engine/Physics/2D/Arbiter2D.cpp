@@ -138,20 +138,26 @@ void Arbiter2D::DetectCollision()
 }
 
 
+//-------------------------------------------------------------------------------------------------
 inline float Cross(const Vector2& a, const Vector2& b)
 {
 	return a.x * b.y - a.y * b.x;
 }
 
+
+//-------------------------------------------------------------------------------------------------
 inline Vector2 Cross(const Vector2& a, float s)
 {
 	return Vector2(s * a.y, -s * a.x);
 }
 
+
+//-------------------------------------------------------------------------------------------------
 inline Vector2 Cross(float s, const Vector2& a)
 {
 	return Vector2(-s * a.y, s * a.x);
 }
+
 
 //-------------------------------------------------------------------------------------------------
 void Arbiter2D::PreStep(float deltaSeconds)

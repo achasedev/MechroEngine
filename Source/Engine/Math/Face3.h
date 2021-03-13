@@ -49,7 +49,8 @@ public:
 	int						GetNumEdges() const { return (int)m_vertices.size(); }
 	Plane					GetSupportPlane() const;
 	Vector3					GetNormal() const;
-	
+	float					CalculateArea() const; 
+
 	bool					IsWindingClockwise(const Vector3& normal) const;
 	bool					IsWindingCounterClockwise(const Vector3& normal) const { return !IsWindingClockwise(normal); }
 	bool					IsEquivalentTo(const Face3& face) const;

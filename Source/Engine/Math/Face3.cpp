@@ -145,6 +145,33 @@ Vector3 Face3::GetNormal() const
 
 
 //-------------------------------------------------------------------------------------------------
+float Face3::CalculateArea() const
+{
+	int numVertices = (int)m_vertices.size();
+	ASSERT_RETURN(m_vertices.size() > 2, 0.f, "Not enough vertices to make an area!");
+
+	Vector3 a = m_vertices[0];
+	float area = 0.f;
+
+	for (int vertexIndex = 1; vertexIndex < numVertices - 1; ++vertexIndex)
+	{
+		Vector3 b = m_vertices[vertexIndex];
+		Vector3 c = m_vertices[vertexIndex + 1];
+
+		Vector3 ab = b - a;
+		Vector3 ac = c - a;
+
+		Vector3 cross = CrossProduct(ab, ac);
+		float currArea = 0.5f * cross.GetLength();
+
+		area += currArea;
+	}
+
+	return area;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 // Modeled after the Polygon2D version that *does* work - not sure if this works...
 bool Face3::IsWindingClockwise(const Vector3& normal) const
 {

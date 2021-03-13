@@ -371,8 +371,8 @@ void Arbiter3D::CalculateContactPoints(const Polygon3D* poly1, const Polygon3D* 
 		{
 			m_contacts[m_numContacts].m_position = clipPoints[clipIndex].m_position;
 			m_contacts[m_numContacts].m_normal = (poly1 == incidentPoly ? -1.0f * referenceFace->m_normal : referenceFace->m_normal);
-			//m_contacts[m_numContacts].m_r1 = clipPoints[clipIndex].m_position - m_body1->GetCenterOfMassWs();
-			//m_contacts[m_numContacts].m_r2 = clipPoints[clipIndex].m_position - m_body2->GetCenterOfMassWs();
+			m_contacts[m_numContacts].m_r1 = clipPoints[clipIndex].m_position - m_body1->GetCenterOfMassWs();
+			m_contacts[m_numContacts].m_r2 = clipPoints[clipIndex].m_position - m_body2->GetCenterOfMassWs();
 			m_contacts[m_numContacts].m_separation = penDepths[clipIndex];
 			m_contacts[m_numContacts].m_referenceFace = *referenceFace;
 			m_contacts[m_numContacts].m_incidentFace = *incidentFace;
