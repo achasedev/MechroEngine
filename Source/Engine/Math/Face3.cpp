@@ -104,6 +104,26 @@ Vector3 Face3::GetVertex(int vertexIndex) const
 
 
 //-------------------------------------------------------------------------------------------------
+Vector3 Face3::GetVertexBefore(int vertexIndex) const
+{
+	ASSERT_OR_DIE(vertexIndex >= 0 && vertexIndex < (int)m_vertices.size(), "Invalid vertex index!");
+
+	int prevIndex = (vertexIndex > 0 ? vertexIndex - 1 : (int)m_vertices.size() - 1);
+	return m_vertices[prevIndex];
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector3 Face3::GetVertexAfter(int vertexIndex) const
+{
+	ASSERT_OR_DIE(vertexIndex >= 0 && vertexIndex < (int)m_vertices.size(), "Invalid vertex index!");
+
+	int nextIndex = (vertexIndex + 1) % (int)m_vertices.size();
+	return m_vertices[nextIndex];
+}
+
+
+//-------------------------------------------------------------------------------------------------
 Edge3 Face3::GetEdge(int edgeIndex) const
 {
 	int numVertices = (int)m_vertices.size();

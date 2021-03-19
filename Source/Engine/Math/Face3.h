@@ -42,6 +42,8 @@ public:
 	void					AddVertex(const Vector3& vertex);
 
 	Vector3					GetVertex(int vertexIndex) const;
+	Vector3					GetVertexBefore(int vertexIndex) const;
+	Vector3					GetVertexAfter(int vertexIndex) const;
 	std::vector<Vector3>	GetVertices() const { return m_vertices; }
 	int						GetNumVertices() const { return (int)m_vertices.size(); }
 	Edge3					GetEdge(int edgeIndex) const;

@@ -168,6 +168,7 @@
     <ClCompile Include="Framework\ConsoleCommand.cpp" />
     <ClCompile Include="Framework\Resource.cpp" />
     <ClCompile Include="Math\Edge3.cpp" />
+    <ClCompile Include="Math\Line3.cpp" />
     <ClCompile Include="Render\Debug\DebugRenderObject.cpp" />
     <ClCompile Include="Framework\DevConsole.cpp" />
     <ClCompile Include="Framework\EngineCommands.cpp" />
@@ -264,6 +265,7 @@
     <ClInclude Include="Framework\CommentSnippets.h" />
     <ClInclude Include="Framework\Resource.h" />
     <ClInclude Include="Math\Edge3.h" />
+    <ClInclude Include="Math\Line3.h" />
     <ClInclude Include="Render\Debug\DebugRenderObject.h" />
     <ClInclude Include="Framework\DevConsole.h" />
     <ClInclude Include="Framework\EngineCommands.h" />

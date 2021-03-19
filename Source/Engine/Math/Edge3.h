@@ -37,6 +37,8 @@ public:
 
 	Vector3 GetStart() const { return m_start; }
 	Vector3 GetEnd() const { return m_end; }
+	Vector3 GetDirection() const { return m_end - m_start; }
+	Vector3 GetDirectionNormalized() const { return (m_end - m_start).GetNormalized(); }
 
 	void	SetStart(const Vector3& start) { m_start = start; }
 	void	SetEnd(const Vector3& end) { m_end = end; }

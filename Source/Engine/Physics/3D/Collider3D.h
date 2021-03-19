@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: November 23rd, 2020
+/// Date Created: March 18th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,7 +8,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/Vector3.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -27,35 +26,45 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Plane
+class Collider3D
 {
 public:
 	//-----Public Methods-----
 
-	Plane() {}
-	Plane(const Vector3& normal, float distance)
-	 : m_distance(distance), m_normal(normal) {}
-	
-	void	SetNormal(const Vector3& normal) { m_normal = normal; }
-	void	SetDistance(float distance) { m_distance = distance; }
-	
-	Vector3 GetNormal() const { return m_normal; }
-	float	GetDistance() const { return m_distance; }
-
-	bool	ContainsPoint(const Vector3& point) const;
-	bool	IsPointInFront(const Vector3& point) const;
-	bool	IsPointBehind(const Vector3& point) const;
-	float	GetDistanceFromPlane(const Vector3& point) const;
-	Vector3	GetProjectedPointOntoPlane(const Vector3& point) const;
-
-
 private:
 	//-----Private Data-----
 
-	Vector3 m_normal = Vector3::ZERO;
-	float m_distance = 0.f; // Distance along normal from origin to closest point on plane
 
 };
+
+
+//-------------------------------------------------------------------------------------------------
+class BoxCollider3D : public Collider3D
+{
+
+};
+
+
+//-------------------------------------------------------------------------------------------------
+class SphereCollider3D : public Collider3D
+{
+
+};
+
+
+//-------------------------------------------------------------------------------------------------
+class CapsuleCollider3D : public Collider3D
+{
+
+};
+
+
+//-------------------------------------------------------------------------------------------------
+class PolytopeCollider3D : public Collider3D 
+{
+
+};
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS

@@ -1059,6 +1059,67 @@ float CalculateVolumeOfTetrahedron(const Vector3& a, const Vector3& b, const Vec
 }
 
 
+//-------------------------------------------------------------------------------------------------
+Vector3 SolveLinePlaneIntersection(const Line3& line, const Plane& plane)
+{
+	const Vector3 p = line.GetPoint();
+	const Vector3 dir = line.GetDirection();
+	const Vector3 n = plane.GetNormal();
+	const float d = plane.GetDistance();
+
+	// Check for no solution
+	float dot = DotProduct(dir, n);
+
+	if (AreMostlyEqual(dot, 0.f))
+	{
+		if (plane.ContainsPoint(p))
+		{
+			ERROR_RETURN(p, "Line falls in the plane, infinite solutions!");
+		}
+
+		ERROR_RETURN(Vector3::ZERO, "No solution!");
+	}
+
+	// We need to find a p0 such that:
+	//  dot(p0, n) = d
+	//  p0 = p + dir * t for some t
+	// Substitute p0 into the first,
+	//  dot(p + dir * t, n) = d
+	// => dot(p, n) + dot(dir * t, n) = d, since dot(v1 + v2, v3) = dot(v1, v3) + dot(v2, v3)
+	// => dot(p, n) + t * dot(dir, n) = d, since dot(a * v1, v2) = a * dot(v1, v2)
+	// => t = (d - dot(p, n) / dot(dir, n)), and we already know dot(dir, n) is nonzero from the check above
+
+	float t = (d - DotProduct(p, n)) / dot;
+	return line.FindPointAtT(t);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float GetClosestPointOnLineSegment(const Vector3& start, const Vector3& end, const Vector3& point, Vector3& out_closestPoint)
+{
+	Vector3 direction = end - start;
+	float d = direction.Normalize();
+
+	float dot = DotProduct(point - start, direction);
+	float t = dot / d;
+
+	if (t < 0.f)
+	{
+		out_closestPoint = start;
+	}
+	else if (t > 1.f)
+	{
+		out_closestPoint = end;
+	}
+	else
+	{
+		out_closestPoint = start + t * direction;
+	}
+
+	return (out_closestPoint - point).GetLength();
+}
+
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

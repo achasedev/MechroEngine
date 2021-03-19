@@ -11,7 +11,9 @@
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Math/AABB2.h"
 #include "Engine/Math/IntVector2.h"
+#include "Engine/Math/Line3.h"
 #include "Engine/Math/Matrix44.h"
+#include "Engine/Math/Plane.h"
 #include "Engine/Math/Polygon2D.h"
 #include "Engine/Math/Quaternion.h"
 #include "Engine/Math/Vector2.h"
@@ -193,6 +195,8 @@ float	GetShortestDistanceToPolygon2D(const Polygon2D& polygon, const Vector2& po
 float	GetShortestDistanceBetweenPolygons2D(const Polygon2D& polygonA, const Polygon2D& polygonB);
 
 float	CalculateVolumeOfTetrahedron(const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& d);
+Vector3 SolveLinePlaneIntersection(const Line3& line, const Plane& plane);
+float	GetClosestPointOnLineSegment(const Vector3& start, const Vector3& end, const Vector3& point, Vector3& out_closestPoint);
 
 
 //-------------------------------------------------------------------------------------------------

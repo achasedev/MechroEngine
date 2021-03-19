@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: November 23rd, 2020
+/// Date Created: March 13th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -27,35 +27,30 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Plane
+class Line3
 {
 public:
 	//-----Public Methods-----
 
-	Plane() {}
-	Plane(const Vector3& normal, float distance)
-	 : m_distance(distance), m_normal(normal) {}
-	
-	void	SetNormal(const Vector3& normal) { m_normal = normal; }
-	void	SetDistance(float distance) { m_distance = distance; }
-	
-	Vector3 GetNormal() const { return m_normal; }
-	float	GetDistance() const { return m_distance; }
+	Line3() {}
+	Line3(const Vector3& point, const Vector3& direction)
+		: m_point(point), m_direction(direction) {}
 
-	bool	ContainsPoint(const Vector3& point) const;
-	bool	IsPointInFront(const Vector3& point) const;
-	bool	IsPointBehind(const Vector3& point) const;
-	float	GetDistanceFromPlane(const Vector3& point) const;
-	Vector3	GetProjectedPointOntoPlane(const Vector3& point) const;
+	bool	IsValid() const { return m_direction != Vector3::ZERO; }
+	Vector3 GetPoint() const { return m_point; }
+	Vector3 GetDirection() const { return m_direction; }
+
+	Vector3 FindPointAtT(float t) const;
 
 
 private:
 	//-----Private Data-----
 
-	Vector3 m_normal = Vector3::ZERO;
-	float m_distance = 0.f; // Distance along normal from origin to closest point on plane
+	Vector3 m_point = Vector3::ZERO;
+	Vector3 m_direction = Vector3::ZERO;
 
 };
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS

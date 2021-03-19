@@ -315,68 +315,182 @@ void Arbiter3D::CalculateContactPoints(const Polygon3D* poly1, const Polygon3D* 
 		referencePoly = poly2;
 	}
 
-	// 3D point clipping
-	// We clip all the points in the incident face by the planes created by
-	// all adjacent faces to the reference face in the reference polygon
-	std::vector<Face3> adjacentFaces;
-	referencePoly->GetAllFacesAdjacentTo(referenceFace->m_faceIndex, adjacentFaces);
-	int numAdjacentFaces = (int)adjacentFaces.size();
+	// Construct planes for the edges of the reference face
+	std::vector<Plane> refEdgePlanes;
 
+	for (int edgeIndex = 0; edgeIndex < referenceFace->m_face.GetNumEdges(); ++edgeIndex)
+	{
+		Edge3 edge = referenceFace->m_face.GetEdge(edgeIndex);
+		Vector3 edgeVector = edge.GetDirection();
+
+		Vector3 refEdgeNormal = CrossProduct(edgeVector, referenceFace->m_normal); // Outward pointing normal
+		refEdgeNormal.Normalize();
+
+		float d = DotProduct(refEdgeNormal, edge.GetStart());
+		refEdgePlanes.push_back(Plane(refEdgeNormal, d));
+	}
+
+	// Create our list of incident points to clip
+	std::vector<Vector3> collisionManifold = incidentFace->m_face.GetVertices();
+	std::vector<Vector3> input;
+
+	for (int refEdgeIndex = 0; refEdgeIndex < (int)refEdgePlanes.size(); ++refEdgeIndex)
+	{
+		Plane& plane = refEdgePlanes[refEdgeIndex];
+
+		input = collisionManifold;
+		collisionManifold.clear();
+
+		for (int clipIndex = 0; clipIndex < (int)input.size(); ++clipIndex)
+		{
+			Vector3 start = input[clipIndex];
+			Vector3 end = input[(clipIndex + 1) % input.size()];
+
+			bool startInside = plane.IsPointBehind(start);
+			bool endInside = plane.IsPointBehind(end);
+
+			// Only need to clip if the point is outside the collision space
+			if (startInside)
+			{
+				if (endInside)
+				{
+					collisionManifold.push_back(end);
+				}
+				else
+				{
+					// Intersect
+					Line3 line(start, end - start);
+
+					Vector3 intersection = SolveLinePlaneIntersection(line, plane);
+					collisionManifold.push_back(intersection);
+				}
+			}
+			else if (endInside)
+			{
+				// Intersect
+				Line3 line(start, end - start);
+
+				Vector3 intersection = SolveLinePlaneIntersection(line, plane);
+				collisionManifold.push_back(intersection);
+				collisionManifold.push_back(end);
+			}
+		}
+	}
+
+	std::vector<ClipVertex3> clipVertices;
 	std::vector<Vector3> incidentVerts = incidentFace->m_face.GetVertices();
-	std::vector<ClipVertex3> clipPoints;
 
 	for (int incidentVertexIndex = 0; incidentVertexIndex < (int)incidentVerts.size(); ++incidentVertexIndex)
 	{
 		ClipVertex3 newClip;
 		newClip.m_position = incidentVerts[incidentVertexIndex];
+		newClip.m_originalPosition = newClip.m_position;
 		newClip.m_id = ClipVertexId((void*)incidentPoly, incidentFace->m_faceIndex, incidentVertexIndex);
 
-		clipPoints.push_back(newClip);
+		clipVertices.push_back(newClip);
 	}
-	
-	// For each incident point...
-	for (int clipIndex = 0; clipIndex < (int)clipPoints.size(); ++clipIndex)
+
+	//// For each incident point...
+	for (int clipIndex = 0; clipIndex < (int)clipVertices.size(); ++clipIndex)
 	{
-		ClipVertex3& point = clipPoints[clipIndex];
+		ClipVertex3& point = clipVertices[clipIndex];
 
 		// For each face adjacent to the reference face...
-		for (int adjFaceIndex = 0; adjFaceIndex < numAdjacentFaces; ++adjFaceIndex)
+		for (int refEdgeIndex = 0; refEdgeIndex < (int)refEdgePlanes.size(); ++refEdgeIndex)
 		{
-			Plane plane = adjacentFaces[adjFaceIndex].GetSupportPlane();
+			Plane& plane = refEdgePlanes[refEdgeIndex];
 
-			// If the point is outside this plane, "snap" it to the plane
+			// If the point is outside any plane, it needs to be clipped
 			if (plane.IsPointInFront(point.m_position))
 			{
-				point.m_position = plane.GetProjectedPointOntoPlane(point.m_position);
+				float closestDistance = -1.0f;
+				Vector3 closestPoint;
+
+				for (int collisionPointIndex = 0; collisionPointIndex < (int)collisionManifold.size(); ++collisionPointIndex)
+				{
+					int nextIndex = (collisionPointIndex + 1) % (int)collisionManifold.size();
+
+					Vector3 currVertex = collisionManifold[collisionPointIndex];
+					Vector3 nextVertex = collisionManifold[nextIndex];
+
+					Vector3 currPoint;
+					float currDistance = GetClosestPointOnLineSegment(currVertex, nextVertex, point.m_position, currPoint);
+					if (collisionPointIndex == 0 || currDistance < closestDistance)
+					{
+						closestDistance = currDistance;
+						closestPoint = currPoint;
+					}
+				}
+
+				point.m_position = closestPoint;
+				break;
 			}
 		}
 	}
+
+	//// 3D point clipping
+	//// We clip all the points in the incident face by the planes created by
+	//// all adjacent faces to the reference face in the reference polygon
+	//std::vector<Face3> adjacentFaces;
+	//referencePoly->GetAllFacesAdjacentTo(referenceFace->m_faceIndex, adjacentFaces);
+	//int numAdjacentFaces = (int)adjacentFaces.size();
+
+	//std::vector<Vector3> incidentVerts = incidentFace->m_face.GetVertices();
+	//std::vector<ClipVertex3> clipPoints;
+
+	//for (int incidentVertexIndex = 0; incidentVertexIndex < (int)incidentVerts.size(); ++incidentVertexIndex)
+	//{
+	//	ClipVertex3 newClip;
+	//	newClip.m_position = incidentVerts[incidentVertexIndex];
+	//	newClip.m_id = ClipVertexId((void*)incidentPoly, incidentFace->m_faceIndex, incidentVertexIndex);
+
+	//	clipPoints.push_back(newClip);
+	//}
+	//
+	//// For each incident point...
+	//for (int clipIndex = 0; clipIndex < (int)clipPoints.size(); ++clipIndex)
+	//{
+	//	ClipVertex3& point = clipPoints[clipIndex];
+
+	//	// For each face adjacent to the reference face...
+	//	for (int adjFaceIndex = 0; adjFaceIndex < numAdjacentFaces; ++adjFaceIndex)
+	//	{
+	//		Plane plane = adjacentFaces[adjFaceIndex].GetSupportPlane();
+
+	//		// If the point is outside this plane, "snap" it to the plane
+	//		if (plane.IsPointInFront(point.m_position))
+	//		{
+	//			point.m_position = plane.GetProjectedPointOntoPlane(point.m_position);
+	//		}
+	//	}
+	//}
 
 	// Final clip - if the point is outside the reference face, remove it outright
 	std::vector<float> penDepths;
 	float maxDepth = DotProduct(referenceFace->m_normal, referenceFace->m_furthestVertex);
 
-	for (int clipIndex = 0; clipIndex < (int)clipPoints.size(); ++clipIndex)
+	for (int clipIndex = 0; clipIndex < (int)clipVertices.size(); ++clipIndex)
 	{
 		// If any of these points are "deeper" than the max depth then they are in the collision manifold
-		float penDepth = DotProduct(referenceFace->m_normal, clipPoints[clipIndex].m_position) - maxDepth;
+		float penDepth = DotProduct(referenceFace->m_normal, clipVertices[clipIndex].m_position) - maxDepth;
 		penDepths.push_back(penDepth);
 	}
 
-	for (int clipIndex = 0; clipIndex < (int)clipPoints.size(); ++clipIndex)
+	for (int clipIndex = 0; clipIndex < (int)clipVertices.size(); ++clipIndex)
 	{
 		ASSERT_OR_DIE(m_numContacts < MAX_CONTACTS, "Ran out of room for contacts!");
 
 		if (penDepths[clipIndex] < DEFAULT_EPSILON)
 		{
-			m_contacts[m_numContacts].m_position = clipPoints[clipIndex].m_position;
-			m_contacts[m_numContacts].m_normal = (poly1 == incidentPoly ? -1.0f * referenceFace->m_normal : referenceFace->m_normal);
-			m_contacts[m_numContacts].m_r1 = clipPoints[clipIndex].m_position - m_body1->GetCenterOfMassWs();
-			m_contacts[m_numContacts].m_r2 = clipPoints[clipIndex].m_position - m_body2->GetCenterOfMassWs();
+			m_contacts[m_numContacts].m_originalPosition = clipVertices[clipIndex].m_originalPosition;
+			m_contacts[m_numContacts].m_position = clipVertices[clipIndex].m_position;
+			m_contacts[m_numContacts].m_normal = referenceFace->m_normal;// (poly1 == incidentPoly ? -1.0f * referenceFace->m_normal : referenceFace->m_normal);
+			m_contacts[m_numContacts].m_r1 = clipVertices[clipIndex].m_position - m_body1->GetCenterOfMassWs();
+			m_contacts[m_numContacts].m_r2 = clipVertices[clipIndex].m_position - m_body2->GetCenterOfMassWs();
 			m_contacts[m_numContacts].m_separation = penDepths[clipIndex];
 			m_contacts[m_numContacts].m_referenceFace = *referenceFace;
 			m_contacts[m_numContacts].m_incidentFace = *incidentFace;
-			m_contacts[m_numContacts].m_id = clipPoints[clipIndex].m_id;
+			m_contacts[m_numContacts].m_id = clipVertices[clipIndex].m_id;
 			m_numContacts++;
 		}
 	}

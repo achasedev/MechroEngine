@@ -105,6 +105,7 @@ private:
 //-------------------------------------------------------------------------------------------------
 struct ClipVertex3
 {
+	Vector3			m_originalPosition;
 	Vector3			m_position;
 	ClipVertexId	m_id;
 };
@@ -115,6 +116,7 @@ struct Contact3D
 {
 	Contact3D() {}
 
+	Vector3 m_originalPosition = Vector3::ZERO; // For debugging clipping
 	Vector3 m_position = Vector3::ZERO;
 	Vector3 m_normal = Vector3::ZERO;
 
