@@ -61,7 +61,7 @@ const TYPE* GetAsType() const													\
 																				\
 	ASSERT_RECOVERABLE(false, "GetAsType() failed!");							\
 	return nullptr;																\
-}																				\
+} 																				\
 																				\
 
 #define RTTI_DERIVED_CLASS(CLASS)												\

@@ -327,28 +327,3 @@ AABB2 AABB2::operator-(const Vector2& translation) const
 	return antiTranslatedBox;
 }
 
-
-//-------------------------------------------------------------------------------------------------
-bool DoAABB2sOverlap(const AABB2& a, const AABB2& b)
-{
-	bool doOverlap = true;
-
-	if (a.maxs.x <= b.mins.x) // a is completely to the left of b
-	{
-		doOverlap = false;
-	}
-	else if (a.mins.x >= b.maxs.x) // a is completely to the right of b
-	{
-		doOverlap = false;
-	}
-	else if (a.mins.y >= b.maxs.y) // a is completely above b
-	{
-		doOverlap = false;
-	}
-	else if (a.maxs.y <= b.mins.y) // a is completely below b
-	{
-		doOverlap = false;
-	}
-
-	return doOverlap;
-}

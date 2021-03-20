@@ -1033,6 +1033,73 @@ bool AreMostlyEqual(const Quaternion& a, const Quaternion& b, float epsilon /*= 
 
 
 //-------------------------------------------------------------------------------------------------
+bool DoAABB2sOverlap(const AABB2& a, const AABB2& b)
+{
+	bool doOverlap = true;
+
+	if (a.maxs.x <= b.mins.x) // a is completely to the left of b
+	{
+		doOverlap = false;
+	}
+	else if (a.mins.x >= b.maxs.x) // a is completely to the right of b
+	{
+		doOverlap = false;
+	}
+	else if (a.mins.y >= b.maxs.y) // a is completely above b
+	{
+		doOverlap = false;
+	}
+	else if (a.maxs.y <= b.mins.y) // a is completely below b
+	{
+		doOverlap = false;
+	}
+
+	return doOverlap;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool DoAABB3sOverlap(const AABB3& a, const AABB3& b)
+{
+	bool doOverlap = true;
+
+	if (a.maxs.x <= b.mins.x) // a is completely to the left of b
+	{
+		doOverlap = false;
+	}
+	else if (a.mins.x >= b.maxs.x) // a is completely to the right of b
+	{
+		doOverlap = false;
+	}
+	else if (a.mins.y >= b.maxs.y) // a is completely above b
+	{
+		doOverlap = false;
+	}
+	else if (a.maxs.y <= b.mins.y) // a is completely below b
+	{
+		doOverlap = false;
+	}
+	else if (a.mins.z >= b.maxs.z) // a is completely in front b
+	{
+		doOverlap = false;
+	}
+	else if (a.maxs.z <= b.mins.z) // a is completely behind b
+	{
+		doOverlap = false;
+	}
+
+	return doOverlap;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool DoSpheresOverlap(const Sphere3d& a, const Sphere3d& b)
+{
+
+}
+
+
+//-------------------------------------------------------------------------------------------------
 Vector2 RotatePointAboutPoint2D(const Vector2& pointToRotate, const Vector2& pointOfRotation, float angleDegrees)
 {
 	float c = CosDegrees(angleDegrees);

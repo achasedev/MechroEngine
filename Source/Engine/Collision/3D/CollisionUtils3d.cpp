@@ -1,15 +1,15 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: November 23rd, 2020
+/// Date Created: March 20th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Framework/EngineCommon.h"
+#include "Engine/Collision/3D/CollisionUtils3d.h"
 #include "Engine/Math/MathUtils.h"
-#include "Engine/Math/Plane.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -24,60 +24,86 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// CLASS DECLARATIONS
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// CLASS IMPLEMENTATIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-Plane::Plane(const Vector3& normal, float distance)
-	: m_normal(normal), m_distance(distance)
+BroadphaseResult3d CollisionUtils3d::Collide(SphereCollider3d* colA, SphereCollider3d* colB)
 {
+	Sphere3d sphereA = colA->GetWorldBounds();
+	Sphere3d sphereB = colB->GetWorldBounds();
+
+	Vector3 aToB = sphereB.center - sphereA.center;
+	float distanceSquared = (sphereB.center - sphereA.center).GetLengthSquared();
+	float radiusSquared = (sphereB.radius + sphereA.radius) * (sphereB.radius + sphereA.radius);
+
+	BroadphaseResult3d result;
+
+	if (distanceSquared < radiusSquared)
+	{
+		result.m_collisionFound = true;
+		result.m_magnitude = aToB.Normalize();
+		result.m_direction = aToB;
+	}
+
+	return result;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+BroadphaseResult3d CollisionUtils3d::Collide(BoxCollider3d* colA, BoxCollider3d* colB)
+{
+	OBB3 boundsA = colA->GetWorldBounds();
+	OBB3 boundsB = colB->GetWorldBounds();
+
 
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Plane::Plane(const Vector3& normal, const Vector3& pointOnPlane)
-	: m_normal(normal)
+BroadphaseResult3d CollisionUtils3d::Collide(BoxCollider3d* colA, SphereCollider3d* colB)
 {
-	m_distance = DotProduct(normal, pointOnPlane);
+	BroadphaseResult3d result = CollisionUtils3d::Collide(colB, colA);
+	result.m_direction *= -1.0f;
+
+	return result;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-bool Plane::ContainsPoint(const Vector3& point) const
+BroadphaseResult3d CollisionUtils3d::Collide(SphereCollider3d* colA, BoxCollider3d* colB)
 {
-	return (AreMostlyEqual(GetDistanceFromPlane(point), 0.f));
-}
+	Sphere3d sphereA = colA->GetWorldBounds();
+	OBB3 boxB = colB->GetWorldBounds();
 
+	std::vector<Plane> planesB;
+	boxB.GetFaceSupportPlanes(planesB);
+	int numPlanes = (int)planesB.size();
 
-//-------------------------------------------------------------------------------------------------
-bool Plane::IsPointInFront(const Vector3& point) const
-{
-	return (GetDistanceFromPlane(point) > -DEFAULT_EPSILON);
-}
+	BroadphaseResult3d result;
 
+	for (int i = 0; i < numPlanes; ++i)
+	{
+		const Plane& plane = planesB[i];
 
-//-------------------------------------------------------------------------------------------------
-bool Plane::IsPointBehind(const Vector3& point) const
-{
-	return (GetDistanceFromPlane(point) < DEFAULT_EPSILON);
-}
+		float distanceFromPlane = plane.GetDistanceFromPlane(sphereA.center) - sphereA.radius;
+		if (distanceFromPlane < 0.f)
+		{
+			result.m_collisionFound = true;
 
+			float penetration = Abs(distanceFromPlane);
+			if (penetration < result.m_magnitude)
+			{
+				result.m_magnitude = penetration;
+				result.m_direction = -1.0f * plane.GetNormal(); // Direction is always from A
+			}
+		}
+	}
 
-//-------------------------------------------------------------------------------------------------
-float Plane::GetDistanceFromPlane(const Vector3& point) const
-{
-	return DotProduct(m_normal, point) - m_distance;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-Vector3 Plane::GetProjectedPointOntoPlane(const Vector3& point) const
-{
-	float distance = GetDistanceFromPlane(point);
-	return point - (m_normal * distance);
+	return result;
 }

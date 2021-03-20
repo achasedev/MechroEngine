@@ -81,6 +81,8 @@ public:
 	Vector3 GetWorldRotation();
 	Vector3 GetWorldScale();
 
+	Vector3 TransformPositionLocalToWorld(const Vector3& point);
+
 
 private:
 	//-----Private Methods-----

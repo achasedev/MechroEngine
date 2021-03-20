@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: November 23rd, 2020
+/// Date Created: March 18th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -8,8 +8,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
-#include "Engine/Math/MathUtils.h"
-#include "Engine/Math/Plane.h"
+#include "Engine/Collision/3D/CollisionSystem3d.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -31,53 +30,69 @@
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
-//-------------------------------------------------------------------------------------------------
-Plane::Plane(const Vector3& normal, float distance)
-	: m_normal(normal), m_distance(distance)
-{
 
+//-------------------------------------------------------------------------------------------------
+void CollisionSystem3d::AddCollider(Collider3d* collider)
+{
+#ifndef DISABLE_ASSERTS
+	// Check for duplicates
+	int numColliders = (int)m_colliders.size();
+	for (int colliderIndex = 0; colliderIndex < numColliders; ++colliderIndex)
+	{
+		ASSERT_RETURN(m_colliders[colliderIndex] != collider, NO_RETURN_VAL, "Duplicate collider!");
+	}
+#endif
+
+	m_colliders.push_back(collider);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Plane::Plane(const Vector3& normal, const Vector3& pointOnPlane)
-	: m_normal(normal)
+void CollisionSystem3d::RemoveCollider(Collider3d* collider)
 {
-	m_distance = DotProduct(normal, pointOnPlane);
+	bool colliderFound = false;
+	int numColliders = (int)m_colliders.size();
+
+	for (int colliderIndex = 0; colliderIndex < numColliders; ++colliderIndex)
+	{
+		if (m_colliders[colliderIndex] == collider)
+		{
+			m_colliders.erase(m_colliders.begin() + colliderIndex);
+			colliderFound = true;
+		}
+	}
+
+	ASSERT_RECOVERABLE(colliderFound, "Collider not found!");
 }
 
 
 //-------------------------------------------------------------------------------------------------
-bool Plane::ContainsPoint(const Vector3& point) const
+void CollisionSystem3d::PerformBroadPhase()
 {
-	return (AreMostlyEqual(GetDistanceFromPlane(point), 0.f));
-}
+	// O(n^2) broad-phase
+	// TODO: Make this less garbage
+	int numColliders = (int)m_colliders.size();
+	for (int i = 0; i < m_colliders.size() - 1; ++i)
+	{
+		Collider3d* colA = m_colliders[i];
 
+		for (int j = i + 1; j < (int)m_colliders.size(); ++j)
+		{
+			Collider3d* colB = m_colliders[j];
 
-//-------------------------------------------------------------------------------------------------
-bool Plane::IsPointInFront(const Vector3& point) const
-{
-	return (GetDistanceFromPlane(point) > -DEFAULT_EPSILON);
-}
+			ContactManifold3d manifold = ContactManifold3d(colA, colB);
+			manifold.Collide();
 
+			ManifoldKey3D key(colA, colB);
 
-//-------------------------------------------------------------------------------------------------
-bool Plane::IsPointBehind(const Vector3& point) const
-{
-	return (GetDistanceFromPlane(point) < DEFAULT_EPSILON);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-float Plane::GetDistanceFromPlane(const Vector3& point) const
-{
-	return DotProduct(m_normal, point) - m_distance;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-Vector3 Plane::GetProjectedPointOntoPlane(const Vector3& point) const
-{
-	float distance = GetDistanceFromPlane(point);
-	return point - (m_normal * distance);
+			if (manifold.HasCollision())
+			{
+				m_manifolds[key] = manifold;
+			}
+			else
+			{
+				m_manifolds.erase(key);
+			}
+		}
+	}
 }

@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: November 23rd, 2020
+/// Date Created: March 20th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -8,8 +8,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
-#include "Engine/Math/MathUtils.h"
-#include "Engine/Math/Plane.h"
+#include "Engine/Math/Sphere3d.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -32,52 +31,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-Plane::Plane(const Vector3& normal, float distance)
-	: m_normal(normal), m_distance(distance)
+AABB3 Sphere3d::GetBoundingBox() const
 {
-
-}
-
-
-//-------------------------------------------------------------------------------------------------
-Plane::Plane(const Vector3& normal, const Vector3& pointOnPlane)
-	: m_normal(normal)
-{
-	m_distance = DotProduct(normal, pointOnPlane);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-bool Plane::ContainsPoint(const Vector3& point) const
-{
-	return (AreMostlyEqual(GetDistanceFromPlane(point), 0.f));
-}
-
-
-//-------------------------------------------------------------------------------------------------
-bool Plane::IsPointInFront(const Vector3& point) const
-{
-	return (GetDistanceFromPlane(point) > -DEFAULT_EPSILON);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-bool Plane::IsPointBehind(const Vector3& point) const
-{
-	return (GetDistanceFromPlane(point) < DEFAULT_EPSILON);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-float Plane::GetDistanceFromPlane(const Vector3& point) const
-{
-	return DotProduct(m_normal, point) - m_distance;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-Vector3 Plane::GetProjectedPointOntoPlane(const Vector3& point) const
-{
-	float distance = GetDistanceFromPlane(point);
-	return point - (m_normal * distance);
+	return AABB3(center, radius, radius, radius);
 }

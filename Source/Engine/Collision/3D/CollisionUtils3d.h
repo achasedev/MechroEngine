@@ -1,15 +1,14 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: November 23rd, 2020
-/// Description: 
+/// Date Created: March 18th, 2021
+/// Description: Library of functions for 3D collision detection
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Framework/EngineCommon.h"
-#include "Engine/Math/MathUtils.h"
-#include "Engine/Math/Plane.h"
+#include "Engine/Collision/3D/Collider3d.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -19,65 +18,66 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
+//-------------------------------------------------------------------------------------------------
+struct BroadphaseResult3d
+{
+	BroadphaseResult3d() {}
+	BroadphaseResult3d(bool collisionFound)
+		: m_collisionFound(collisionFound) {}
+
+	bool	m_collisionFound = false;
+	Vector3 m_direction = Vector3::ZERO;
+	float	m_magnitude = FLT_MAX;
+};
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// CLASS DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// CLASS IMPLEMENTATIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-
 //-------------------------------------------------------------------------------------------------
-Plane::Plane(const Vector3& normal, float distance)
-	: m_normal(normal), m_distance(distance)
+namespace CollisionUtils3d
 {
+	// Sphere/Sphere
+	BroadphaseResult3d Collide(SphereCollider3d* colA, SphereCollider3d* colB);
 
-}
+	// Box/Box
+	BroadphaseResult3d Collide(BoxCollider3d* colA, BoxCollider3d* colB);
 
+	// Capsule/Capsule
+	BroadphaseResult3d Collide(CapsuleCollider3d* colA, CapsuleCollider3d* colB);
 
-//-------------------------------------------------------------------------------------------------
-Plane::Plane(const Vector3& normal, const Vector3& pointOnPlane)
-	: m_normal(normal)
-{
-	m_distance = DotProduct(normal, pointOnPlane);
-}
+	// Polytope/Polytope
+	BroadphaseResult3d Collide(PolytopeCollider3d* colA, PolytopeCollider3d* colB);
 
+	// Sphere/Box
+	BroadphaseResult3d Collide(SphereCollider3d* colA, BoxCollider3d* colB);
+	BroadphaseResult3d Collide(BoxCollider3d* colA, SphereCollider3d* colB);
 
-//-------------------------------------------------------------------------------------------------
-bool Plane::ContainsPoint(const Vector3& point) const
-{
-	return (AreMostlyEqual(GetDistanceFromPlane(point), 0.f));
-}
+	// Sphere/Capsule
+	BroadphaseResult3d Collide(SphereCollider3d* colA, CapsuleCollider3d* colB);
+	BroadphaseResult3d Collide(CapsuleCollider3d* colA, SphereCollider3d* colB);
 
+	// Sphere/Polytope
+	BroadphaseResult3d Collide(SphereCollider3d* colA, PolytopeCollider3d* colB);
+	BroadphaseResult3d Collide(PolytopeCollider3d* colA, SphereCollider3d* colB);
 
-//-------------------------------------------------------------------------------------------------
-bool Plane::IsPointInFront(const Vector3& point) const
-{
-	return (GetDistanceFromPlane(point) > -DEFAULT_EPSILON);
-}
+	// Box/Capsule
+	BroadphaseResult3d Collide(BoxCollider3d* colA, CapsuleCollider3d* colB);
+	BroadphaseResult3d Collide(CapsuleCollider3d* colA, BoxCollider3d* colB);
 
+	// Box/Polytope
+	BroadphaseResult3d Collide(BoxCollider3d* colA, PolytopeCollider3d* colB);
+	BroadphaseResult3d Collide(PolytopeCollider3d* colA, BoxCollider3d* colB);
 
-//-------------------------------------------------------------------------------------------------
-bool Plane::IsPointBehind(const Vector3& point) const
-{
-	return (GetDistanceFromPlane(point) < DEFAULT_EPSILON);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-float Plane::GetDistanceFromPlane(const Vector3& point) const
-{
-	return DotProduct(m_normal, point) - m_distance;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-Vector3 Plane::GetProjectedPointOntoPlane(const Vector3& point) const
-{
-	float distance = GetDistanceFromPlane(point);
-	return point - (m_normal * distance);
+	// Capsule/Polytope
+	BroadphaseResult3d Collide(CapsuleCollider3d* colA, PolytopeCollider3d* colB);
+	BroadphaseResult3d Collide(PolytopeCollider3d* colA, CapsuleCollider3d* colB);
 }

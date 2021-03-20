@@ -1,15 +1,18 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: November 23rd, 2020
+/// Date Created: March 18th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
-#include "Engine/Math/MathUtils.h"
-#include "Engine/Math/Plane.h"
+#include "Engine/Math/Capsule3d.h"
+#include "Engine/Math/OBB3.h"
+#include "Engine/Math/Sphere3d.h"
+#include "Engine/Utility/StringId.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -18,66 +21,113 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class Polygon3D;
+class Transform;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// CLASS DECLARATIONS
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------
+class Collider3d
+{
+public:
+	//-----Public Methods-----
+	RTTI_BASE_CLASS(Collider3d);
+
+	Collider3d(Transform* transform = nullptr)
+		: m_transform(transform) {}
+
+
+protected:
+	//-----Protected Data-----
+
+	Transform* m_transform = nullptr; // If nullptr, treat all positions as world space
+
+};
+
+
+//-------------------------------------------------------------------------------------------------
+class BoxCollider3d : public Collider3d
+{
+public:
+	//-----Public Methods-----
+	RTTI_DERIVED_CLASS(BoxCollider3d);
+
+	BoxCollider3d() {}
+	BoxCollider3d(const OBB3& localBounds);
+
+	void SetLocalBounds(const OBB3& localBounds);
+
+	OBB3 GetWorldBounds() const;
+
+
+private:
+	//-----Private Data-----
+
+	OBB3 m_bounds;
+
+};
+
+
+//-------------------------------------------------------------------------------------------------
+class SphereCollider3d : public Collider3d
+{
+public:
+	//-----Public Methods-----
+	RTTI_DERIVED_CLASS(SphereCollider3d);
+
+	Sphere3d GetWorldBounds() const;
+
+
+private:
+	//-----Private Data-----
+
+	Sphere3d m_bounds;
+
+};
+
+
+//-------------------------------------------------------------------------------------------------
+class CapsuleCollider3d : public Collider3d
+{
+public:
+	//-----Public Methods-----
+	RTTI_DERIVED_CLASS(CapsuleCollider3d);
+
+	Capsule3d GetWorldBounds() const;
+
+
+private:
+	//-----Private Data-----
+
+	Capsule3d m_bounds;
+
+};
+
+
+//-------------------------------------------------------------------------------------------------
+class PolytopeCollider3d : public Collider3d 
+{
+public:
+	//-----Public Methods-----
+	RTTI_DERIVED_CLASS(PolytopeCollider3d);
+
+	Polygon3D* GetWorldBounds() const;
+
+
+private:
+	//-----Private Data-----
+
+	Polygon3D* m_bounds = nullptr;
+
+};
+
+
+///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// CLASS IMPLEMENTATIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------------------------------
-Plane::Plane(const Vector3& normal, float distance)
-	: m_normal(normal), m_distance(distance)
-{
-
-}
-
-
-//-------------------------------------------------------------------------------------------------
-Plane::Plane(const Vector3& normal, const Vector3& pointOnPlane)
-	: m_normal(normal)
-{
-	m_distance = DotProduct(normal, pointOnPlane);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-bool Plane::ContainsPoint(const Vector3& point) const
-{
-	return (AreMostlyEqual(GetDistanceFromPlane(point), 0.f));
-}
-
-
-//-------------------------------------------------------------------------------------------------
-bool Plane::IsPointInFront(const Vector3& point) const
-{
-	return (GetDistanceFromPlane(point) > -DEFAULT_EPSILON);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-bool Plane::IsPointBehind(const Vector3& point) const
-{
-	return (GetDistanceFromPlane(point) < DEFAULT_EPSILON);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-float Plane::GetDistanceFromPlane(const Vector3& point) const
-{
-	return DotProduct(m_normal, point) - m_distance;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-Vector3 Plane::GetProjectedPointOntoPlane(const Vector3& point) const
-{
-	float distance = GetDistanceFromPlane(point);
-	return point - (m_normal * distance);
-}

@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: March 17th, 2021
+/// Date Created: March 20th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,6 +8,10 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Math/AABB3.h"
+#include "Engine/Math/Plane.h"
+#include "Engine/Math/Transform.h"
+#include <vector>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -26,15 +30,32 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class CollisionSystem
+class OBB3
 {
 public:
 	//-----Public Methods-----
+
+	OBB3() {}
+	OBB3(const Vector3& center, const Vector3& extents, const Vector3& rotation);
+	OBB3(const Matrix44& matrixRepresentation);
+
+	Vector3		GetCenter() const { return m_transform.GetWorldPosition(); }
+	Vector3		GetExtents() const { return m_transform.GetWorldScale(); }
+	Vector3		GetRotation() const { return m_transform.GetWorldRotation(); }
+	Matrix44	GetMatrixRepresentation() const { m_transform.GetLocalToWorldMatrix(); }
+	Vector3		GetRightVector() const;
+	Vector3		GetUpVector() const;
+	Vector3		GetForwardVector() const;
+
+	void		GetFaceSupportPlanes(std::vector<Plane>& out_planes) const;
 
 
 private:
 	//-----Private Data-----
 
+	// The center, dimensions, and rotation are all baked into the transform, with (-1, -1, -1) being the "mins" and (1, 1, 1) the "maxs"
+	// The center is then (0, 0, 0)
+	mutable Transform m_transform;
 
 };
 

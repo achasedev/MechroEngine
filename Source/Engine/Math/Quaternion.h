@@ -60,7 +60,8 @@ public:
 
 	void				Normalize();
 	void				ConvertToUnitNorm();
-
+	
+	Vector3				RotatePoint(const Vector3& point) const;
 
 	static float		GetAngleBetweenDegrees(const Quaternion& a, const Quaternion& b);
 	static Quaternion	FromEuler(const Vector3& eulerAnglesDegrees);

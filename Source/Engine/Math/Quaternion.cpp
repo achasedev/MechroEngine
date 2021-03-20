@@ -242,6 +242,20 @@ void Quaternion::ConvertToUnitNorm()
 
 
 //-------------------------------------------------------------------------------------------------
+Vector3 Quaternion::RotatePoint(const Vector3& point) const
+{
+	Quaternion pointAsQuat = Quaternion(0.f, point);
+	
+	Quaternion inverse = GetInverse();
+	Quaternion rotatedResult = inverse * pointAsQuat * (*this);
+
+	ASSERT_OR_DIE(AreMostlyEqual(rotatedResult.s, 0.f), "This should be zero!");
+
+	return rotatedResult.v;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 float Quaternion::GetAngleBetweenDegrees(const Quaternion& a, const Quaternion& b)
 {
 	float newReal = a.s * b.s - DotProduct(-1.0f * a.v, b.v);

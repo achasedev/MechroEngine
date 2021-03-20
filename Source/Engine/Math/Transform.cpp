@@ -298,6 +298,16 @@ Vector3 Transform::GetWorldScale()
 
 
 //-------------------------------------------------------------------------------------------------
+Vector3 Transform::TransformPositionLocalToWorld(const Vector3& point)
+{
+	Matrix44 localToWorld = GetLocalToWorldMatrix();
+	Vector4 result = localToWorld.TransformPoint(point);
+
+	return result.xyz();
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void Transform::UpdateLocalMatrix(bool forceUpdate /*= false*/)
 {
 	// Check if it needs to be updated first

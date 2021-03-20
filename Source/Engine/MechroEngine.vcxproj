@@ -163,12 +163,18 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\ThirdParty\tinyxml2\tinyxml2.cpp" />
+    <ClCompile Include="Collision\3D\Collider3d.cpp" />
+    <ClCompile Include="Collision\3D\CollisionUtils3d.cpp" />
+    <ClCompile Include="Collision\3D\ContactManifold3d.cpp" />
+    <ClCompile Include="Collision\3D\CollisionSystem3d.cpp" />
     <ClCompile Include="Event\EventSubscription.cpp" />
     <ClCompile Include="Event\EventSystem.cpp" />
     <ClCompile Include="Framework\ConsoleCommand.cpp" />
     <ClCompile Include="Framework\Resource.cpp" />
     <ClCompile Include="Math\Edge3.cpp" />
     <ClCompile Include="Math\Line3.cpp" />
+    <ClCompile Include="Math\OBB3.cpp" />
+    <ClCompile Include="Math\Sphere3d.cpp" />
     <ClCompile Include="Render\Debug\DebugRenderObject.cpp" />
     <ClCompile Include="Framework\DevConsole.cpp" />
     <ClCompile Include="Framework\EngineCommands.cpp" />
@@ -257,6 +263,7 @@
     <ClInclude Include="..\ThirdParty\stb\stb_image.h" />
     <ClInclude Include="..\ThirdParty\stb\stb_image_write.h" />
     <ClInclude Include="..\ThirdParty\tinyxml2\tinyxml2.h" />
+    <ClInclude Include="Collision\3D\CollisionUtils3d.h" />
     <ClInclude Include="DataStructures\ColoredText.h" />
     <ClInclude Include="DataStructures\ThreadSafeQueue.h" />
     <ClInclude Include="Event\EventSubscription.h" />
@@ -264,8 +271,14 @@
     <ClInclude Include="Framework\ConsoleCommand.h" />
     <ClInclude Include="Framework\CommentSnippets.h" />
     <ClInclude Include="Framework\Resource.h" />
+    <ClInclude Include="Math\Capsule3d.h" />
     <ClInclude Include="Math\Edge3.h" />
     <ClInclude Include="Math\Line3.h" />
+    <ClInclude Include="Collision\3D\Collider3d.h" />
+    <ClInclude Include="Collision\3D\ContactManifold3d.h" />
+    <ClInclude Include="Collision\3D\CollisionSystem3d.h" />
+    <ClInclude Include="Math\OBB3.h" />
+    <ClInclude Include="Math\Sphere3d.h" />
     <ClInclude Include="Render\Debug\DebugRenderObject.h" />
     <ClInclude Include="Framework\DevConsole.h" />
     <ClInclude Include="Framework\EngineCommands.h" />

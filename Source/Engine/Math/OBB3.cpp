@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: November 23rd, 2020
+/// Date Created: March 20th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -8,8 +8,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
-#include "Engine/Math/MathUtils.h"
-#include "Engine/Math/Plane.h"
+#include "Engine/Math/OBB3.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -32,52 +31,55 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-Plane::Plane(const Vector3& normal, float distance)
-	: m_normal(normal), m_distance(distance)
+OBB3::OBB3(const Vector3& center, const Vector3& extents, const Vector3& rotation)
+{
+	m_transform = Transform(center, rotation, extents);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+OBB3::OBB3(const Matrix44& matrixRepresentation)
+{
+	m_transform.SetLocalMatrix(matrixRepresentation);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector3 OBB3::GetRightVector() const
+{
+	return m_transform.GetIVector();
+}
+
+
+Vector3 OBB3::GetUpVector() const
+{
+
+}
+
+
+Vector3 OBB3::GetForwardVector() const
 {
 
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Plane::Plane(const Vector3& normal, const Vector3& pointOnPlane)
-	: m_normal(normal)
+void OBB3::GetFaceSupportPlanes(std::vector<Plane>& out_planes) const
 {
-	m_distance = DotProduct(normal, pointOnPlane);
-}
+	// Find the local space extremes in world space
+	Vector3 minsWs = m_transform.TransformPositionLocalToWorld(Vector3(-1.f, -1.f, -1.f));
+	Vector3 maxsWs = m_transform.TransformPositionLocalToWorld(Vector3(1.f, 1.f, 1.f));
 
+	// Normals to the faces will be along these 3 directions
+	Vector3 right = m_transform.GetIVector().Normalize();
+	Vector3 up = m_transform.GetJVector().Normalize();
+	Vector3 forward = m_transform.GetKVector().Normalize();
 
-//-------------------------------------------------------------------------------------------------
-bool Plane::ContainsPoint(const Vector3& point) const
-{
-	return (AreMostlyEqual(GetDistanceFromPlane(point), 0.f));
-}
-
-
-//-------------------------------------------------------------------------------------------------
-bool Plane::IsPointInFront(const Vector3& point) const
-{
-	return (GetDistanceFromPlane(point) > -DEFAULT_EPSILON);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-bool Plane::IsPointBehind(const Vector3& point) const
-{
-	return (GetDistanceFromPlane(point) < DEFAULT_EPSILON);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-float Plane::GetDistanceFromPlane(const Vector3& point) const
-{
-	return DotProduct(m_normal, point) - m_distance;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-Vector3 Plane::GetProjectedPointOntoPlane(const Vector3& point) const
-{
-	float distance = GetDistanceFromPlane(point);
-	return point - (m_normal * distance);
+	out_planes.clear();
+	out_planes.push_back(Plane(-1.f * right, minsWs));
+	out_planes.push_back(Plane(right, maxsWs));
+	out_planes.push_back(Plane(-1.f * up, minsWs));
+	out_planes.push_back(Plane(up, maxsWs));
+	out_planes.push_back(Plane(-1.f * forward, minsWs));
+	out_planes.push_back(Plane(forward, maxsWs));
 }
