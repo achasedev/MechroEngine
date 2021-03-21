@@ -123,3 +123,18 @@ void CollisionSystem3d::PerformBroadPhase()
 		}
 	}
 }
+
+
+//-------------------------------------------------------------------------------------------------
+const ContactManifold3d* CollisionSystem3d::GetManifoldForColliders(Collider3d* a, Collider3d* b) const
+{
+	ManifoldKey3D key(a, b);
+	bool manifoldExists = m_manifolds.find(key) != m_manifolds.end();
+
+	if (manifoldExists)
+	{
+		return &m_manifolds.at(key);
+	}
+
+	return nullptr;
+}

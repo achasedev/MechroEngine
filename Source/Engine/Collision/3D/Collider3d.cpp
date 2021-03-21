@@ -63,7 +63,7 @@ void BoxCollider3d::DebugRender(Material* material)
 	MeshBuilder mb;
 	mb.BeginBuilding(true);
 
-	mb.PushCube(Vector3::ZERO, Vector3::ONES);
+	mb.PushCube(Vector3::ZERO, m_shape.GetExtents());
 	mb.FinishBuilding();
 
 	Mesh mesh;

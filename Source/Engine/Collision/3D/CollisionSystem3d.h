@@ -44,6 +44,8 @@ public:
 	void PerformBroadPhase();	// GJK + EPA, find separation normal + magnitude
 	void PerformNarrowPhase();	// Contact point generation
 
+	const ContactManifold3d* GetManifoldForColliders(Collider3d* a, Collider3d* b) const;
+
 
 private:
 	//-----Private Methods-----

@@ -58,11 +58,7 @@ public:
 
 	// The center, dimensions, and rotation are all baked into the transform, with (-1, -1, -1) being the "mins" and (1, 1, 1) the "maxs"
 	// The center is then (0, 0, 0)
-	//Transform m_transform;
-
-	Vector3 center;
-	Vector3 extents;
-	Vector3 rotationDegrees;
+	Transform m_transform;
 
 };
 

@@ -31,6 +31,7 @@ class Range
 public:
 	//-----Public Methods-----
 
+	Range() {}
 	Range(float min, float max);
 
 	bool	IsValid() const { return min < max; }

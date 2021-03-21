@@ -189,8 +189,8 @@ BroadphaseResult3d CollisionUtils3d::Collide(BoxCollider3d* colA, BoxCollider3d*
 	{
 		const Vector3& axis = axes[axisIndex];
 
-		Range projRangeA(FLT_MAX, FLT_MIN);
-		Range projRangeB(FLT_MAX, FLT_MIN);
+		Range projRangeA;
+		Range projRangeB;
 
 		for (int pointIndex = 0; pointIndex < 8; ++pointIndex)
 		{
@@ -200,10 +200,20 @@ BroadphaseResult3d CollisionUtils3d::Collide(BoxCollider3d* colA, BoxCollider3d*
 			float dotA = DotProduct(pointA, axis);
 			float dotB = DotProduct(pointB, axis);
 
-			projRangeA.min = Min(projRangeA.min, dotA);
-			projRangeA.max = Max(projRangeA.max, dotA);
-			projRangeB.min = Min(projRangeB.min, dotB);
-			projRangeB.max = Max(projRangeB.max, dotB);
+			if (pointIndex == 0)
+			{
+				projRangeA.min = dotA;
+				projRangeA.max = dotA;
+				projRangeB.min = dotB;
+				projRangeB.max = dotB;
+			}
+			else
+			{
+				projRangeA.min = Min(projRangeA.min, dotA);
+				projRangeA.max = Max(projRangeA.max, dotA);
+				projRangeB.min = Min(projRangeB.min, dotB);
+				projRangeB.max = Max(projRangeB.max, dotB);
+			}
 		}
 
 		if (!DoRangesOverlap(projRangeA, projRangeB))
