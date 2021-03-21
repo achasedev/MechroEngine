@@ -41,8 +41,8 @@ public:
 	//-----Public Methods-----
 
 	Vector3() {}
-	Vector3(float value);
 	Vector3(const Vector3& copyFrom);
+	explicit Vector3(float value);
 	explicit Vector3(float initialX, float initialY, float initialZ);
 	explicit Vector3(int initialX, int initialY, int initialZ);
 	explicit Vector3(const Vector2& xyVector, float initialZ);

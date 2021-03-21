@@ -35,110 +35,120 @@
 //-------------------------------------------------------------------------------------------------
 ContactManifold3d::ContactManifold3d(Collider3d* a, Collider3d* b)
 {
-
+	// Establish an ordering on manifolds when searching for them
+	if (a < b)
+	{
+		m_colA = a;
+		m_colB = b;
+	}
+	else
+	{
+		m_colA = b;
+		m_colB = a;
+	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void ContactManifold3d::Collide()
 {
-	if (m_colliderA->IsOfType<SphereCollider3d>())
+	if (m_colA->IsOfType<SphereCollider3d>())
 	{
-		SphereCollider3d* colA = m_colliderA->GetAsType<SphereCollider3d>();
+		SphereCollider3d* colA = m_colA->GetAsType<SphereCollider3d>();
 
-		if (m_colliderB->IsOfType<SphereCollider3d>())
+		if (m_colB->IsOfType<SphereCollider3d>())
 		{
-			SphereCollider3d* colB = m_colliderB->GetAsType<SphereCollider3d>();
+			SphereCollider3d* colB = m_colB->GetAsType<SphereCollider3d>();
 			m_broadphaseResult = CollisionUtils3d::Collide(colA, colB);
 		}
-		else if (m_colliderB->IsOfType<BoxCollider3d>())
+		else if (m_colB->IsOfType<BoxCollider3d>())
 		{
-			BoxCollider3d* colB = m_colliderB->GetAsType<BoxCollider3d>();
+			BoxCollider3d* colB = m_colB->GetAsType<BoxCollider3d>();
 			m_broadphaseResult = CollisionUtils3d::Collide(colA, colB);
 		}
-		else if (m_colliderB->IsOfType<CapsuleCollider3d>())
+		else if (m_colB->IsOfType<CapsuleCollider3d>())
 		{
-			CapsuleCollider3d* colB = m_colliderB->GetAsType<CapsuleCollider3d>();
+			CapsuleCollider3d* colB = m_colB->GetAsType<CapsuleCollider3d>();
 			m_broadphaseResult = CollisionUtils3d::Collide(colA, colB);
 		}
-		else if (m_colliderB->IsOfType<PolytopeCollider3d>())
+		else if (m_colB->IsOfType<PolytopeCollider3d>())
 		{
-			PolytopeCollider3d* colB = m_colliderB->GetAsType<PolytopeCollider3d>();
+			PolytopeCollider3d* colB = m_colB->GetAsType<PolytopeCollider3d>();
 			m_broadphaseResult = CollisionUtils3d::Collide(colA, colB);
 		}
 	}
-	else if (m_colliderA->IsOfType<BoxCollider3d>())
+	else if (m_colA->IsOfType<BoxCollider3d>())
 	{
-		BoxCollider3d* colA = m_colliderA->GetAsType<BoxCollider3d>();
+		BoxCollider3d* colA = m_colA->GetAsType<BoxCollider3d>();
 
-		if (m_colliderB->IsOfType<SphereCollider3d>())
+		if (m_colB->IsOfType<SphereCollider3d>())
 		{
-			SphereCollider3d* colB = m_colliderB->GetAsType<SphereCollider3d>();
+			SphereCollider3d* colB = m_colB->GetAsType<SphereCollider3d>();
 			m_broadphaseResult = CollisionUtils3d::Collide(colA, colB);
 		}
-		else if (m_colliderB->IsOfType<BoxCollider3d>())
+		else if (m_colB->IsOfType<BoxCollider3d>())
 		{
-			BoxCollider3d* colB = m_colliderB->GetAsType<BoxCollider3d>();
+			BoxCollider3d* colB = m_colB->GetAsType<BoxCollider3d>();
 			m_broadphaseResult = CollisionUtils3d::Collide(colA, colB);
 		}
-		else if (m_colliderB->IsOfType<CapsuleCollider3d>())
+		else if (m_colB->IsOfType<CapsuleCollider3d>())
 		{
-			CapsuleCollider3d* colB = m_colliderB->GetAsType<CapsuleCollider3d>();
+			CapsuleCollider3d* colB = m_colB->GetAsType<CapsuleCollider3d>();
 			m_broadphaseResult = CollisionUtils3d::Collide(colA, colB);
 		}
-		else if (m_colliderB->IsOfType<PolytopeCollider3d>())
+		else if (m_colB->IsOfType<PolytopeCollider3d>())
 		{
-			PolytopeCollider3d* colB = m_colliderB->GetAsType<PolytopeCollider3d>();
+			PolytopeCollider3d* colB = m_colB->GetAsType<PolytopeCollider3d>();
 			m_broadphaseResult = CollisionUtils3d::Collide(colA, colB);
 		}
 	}
-	else if (m_colliderA->IsOfType<CapsuleCollider3d>())
+	else if (m_colA->IsOfType<CapsuleCollider3d>())
 	{
-		CapsuleCollider3d* colA = m_colliderA->GetAsType<CapsuleCollider3d>();
+		CapsuleCollider3d* colA = m_colA->GetAsType<CapsuleCollider3d>();
 
-		if (m_colliderB->IsOfType<SphereCollider3d>())
+		if (m_colB->IsOfType<SphereCollider3d>())
 		{
-			SphereCollider3d* colB = m_colliderB->GetAsType<SphereCollider3d>();
+			SphereCollider3d* colB = m_colB->GetAsType<SphereCollider3d>();
 			m_broadphaseResult = CollisionUtils3d::Collide(colA, colB);
 		}
-		else if (m_colliderB->IsOfType<BoxCollider3d>())
+		else if (m_colB->IsOfType<BoxCollider3d>())
 		{
-			BoxCollider3d* colB = m_colliderB->GetAsType<BoxCollider3d>();
+			BoxCollider3d* colB = m_colB->GetAsType<BoxCollider3d>();
 			m_broadphaseResult = CollisionUtils3d::Collide(colB, colA);
 		}
-		else if (m_colliderB->IsOfType<CapsuleCollider3d>())
+		else if (m_colB->IsOfType<CapsuleCollider3d>())
 		{
-			CapsuleCollider3d* colB = m_colliderB->GetAsType<CapsuleCollider3d>();
+			CapsuleCollider3d* colB = m_colB->GetAsType<CapsuleCollider3d>();
 			m_broadphaseResult = CollisionUtils3d::Collide(colA, colB);
 		}
-		else if (m_colliderB->IsOfType<PolytopeCollider3d>())
+		else if (m_colB->IsOfType<PolytopeCollider3d>())
 		{
-			PolytopeCollider3d* colB = m_colliderB->GetAsType<PolytopeCollider3d>();
+			PolytopeCollider3d* colB = m_colB->GetAsType<PolytopeCollider3d>();
 			m_broadphaseResult = CollisionUtils3d::Collide(colA, colB);
 		}
 	}
-	else if (m_colliderA->IsOfType<PolytopeCollider3d>())
+	else if (m_colA->IsOfType<PolytopeCollider3d>())
 	{
-		PolytopeCollider3d* colA = m_colliderA->GetAsType<PolytopeCollider3d>();
+		PolytopeCollider3d* colA = m_colA->GetAsType<PolytopeCollider3d>();
 
-		if (m_colliderB->IsOfType<SphereCollider3d>())
+		if (m_colB->IsOfType<SphereCollider3d>())
 		{
-			SphereCollider3d* colB = m_colliderB->GetAsType<SphereCollider3d>();
+			SphereCollider3d* colB = m_colB->GetAsType<SphereCollider3d>();
 			m_broadphaseResult = CollisionUtils3d::Collide(colB, colA);
 		}
-		else if (m_colliderB->IsOfType<BoxCollider3d>())
+		else if (m_colB->IsOfType<BoxCollider3d>())
 		{
-			BoxCollider3d* colB = m_colliderB->GetAsType<BoxCollider3d>();
+			BoxCollider3d* colB = m_colB->GetAsType<BoxCollider3d>();
 			m_broadphaseResult = CollisionUtils3d::Collide(colB, colA);
 		}
-		else if (m_colliderB->IsOfType<CapsuleCollider3d>())
+		else if (m_colB->IsOfType<CapsuleCollider3d>())
 		{
-			CapsuleCollider3d* colB = m_colliderB->GetAsType<CapsuleCollider3d>();
+			CapsuleCollider3d* colB = m_colB->GetAsType<CapsuleCollider3d>();
 			m_broadphaseResult = CollisionUtils3d::Collide(colB, colA);
 		}
-		else if (m_colliderB->IsOfType<PolytopeCollider3d>())
+		else if (m_colB->IsOfType<PolytopeCollider3d>())
 		{
-			PolytopeCollider3d* colB = m_colliderB->GetAsType<PolytopeCollider3d>();
+			PolytopeCollider3d* colB = m_colB->GetAsType<PolytopeCollider3d>();
 			m_broadphaseResult = CollisionUtils3d::Collide(colA, colB);
 		}
 	}

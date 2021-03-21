@@ -8,6 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Collision/3D/CollisionUtils3d.h"
 #include "Engine/Math/Vector3.h"
 #include <map>
 
@@ -97,8 +98,8 @@ private:
 private:
 	//-----Private Member Data-----
 
-	Collider3d*				m_colliderA = nullptr;
-	Collider3d*				m_colliderB = nullptr;
+	Collider3d*				m_colA = nullptr;
+	Collider3d*				m_colB = nullptr;
 	BroadphaseResult3d		m_broadphaseResult;
 
 	ContactPoint3D			m_contacts[MAX_CONTACTS];

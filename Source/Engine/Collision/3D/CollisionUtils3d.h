@@ -27,7 +27,7 @@ struct BroadphaseResult3d
 
 	bool	m_collisionFound = false;
 	Vector3 m_direction = Vector3::ZERO;
-	float	m_magnitude = FLT_MAX;
+	float	m_penetration = FLT_MAX;
 };
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

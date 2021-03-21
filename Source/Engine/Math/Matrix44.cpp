@@ -777,20 +777,24 @@ Vector3 Matrix44::ExtractRotationDegrees(const Matrix44& rotationMatrix)
 	float yDegrees;
 	float zDegrees;
 
-	float sineX = -1.0f * rotationMatrix.Ky;
+	float iScalar = (1.f / rotationMatrix.GetIVector().GetLength());
+	float jScalar = (1.f / rotationMatrix.GetJVector().GetLength());
+	float kScalar = (1.f / rotationMatrix.GetKVector().GetLength());
+
+	float sineX = -1.0f * kScalar * rotationMatrix.Ky;
 	xDegrees = ASinDegrees(sineX);
 
 	float cosX = CosDegrees(xDegrees);
 	if (cosX != 0.f)
 	{
-		yDegrees = Atan2Degrees(rotationMatrix.Kx, rotationMatrix.Kz);
-		zDegrees = Atan2Degrees(rotationMatrix.Iy, rotationMatrix.Jy);
+		yDegrees = Atan2Degrees(kScalar * rotationMatrix.Kx, kScalar * rotationMatrix.Kz);
+		zDegrees = Atan2Degrees(iScalar * rotationMatrix.Iy, jScalar * rotationMatrix.Jy);
 	}
 	else
 	{
 		// Gimble lock, lose roll but keep yaw
 		zDegrees = 0.f;
-		yDegrees = Atan2Degrees(-rotationMatrix.Iz, rotationMatrix.Ix);
+		yDegrees = Atan2Degrees(-iScalar * rotationMatrix.Iz, iScalar * rotationMatrix.Ix);
 	}
 
 	return Vector3(xDegrees, yDegrees, zDegrees);

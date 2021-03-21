@@ -1033,6 +1033,13 @@ bool AreMostlyEqual(const Quaternion& a, const Quaternion& b, float epsilon /*= 
 
 
 //-------------------------------------------------------------------------------------------------
+bool DoRangesOverlap(const Range& a, const Range& b)
+{
+	return a.GetOverlap(b) > 0.f;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 bool DoAABB2sOverlap(const AABB2& a, const AABB2& b)
 {
 	bool doOverlap = true;
@@ -1089,13 +1096,6 @@ bool DoAABB3sOverlap(const AABB3& a, const AABB3& b)
 	}
 
 	return doOverlap;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-bool DoSpheresOverlap(const Sphere3d& a, const Sphere3d& b)
-{
-
 }
 
 

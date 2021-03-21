@@ -10,6 +10,7 @@
 #include "Engine/Collision/3D/Collider3d.h"
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Math/Transform.h"
+#include "Engine/Render/Core/RenderContext.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -23,6 +24,7 @@ RTTI_TYPE_DEFINE(PolytopeCollider3d);
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class Material;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -38,15 +40,11 @@ RTTI_TYPE_DEFINE(PolytopeCollider3d);
 
 
 //-------------------------------------------------------------------------------------------------
-Sphere3d SphereCollider3d::GetWorldBounds() const
+Sphere3d SphereCollider3d::GetWorldBounds()
 {
 	Vector3 positionWs = m_bounds.center;
-
-	if (m_transform != nullptr)
-	{
-		positionWs = m_transform->TransformPositionLocalToWorld(positionWs);
-	}
-
+	positionWs = m_transform.TransformPositionLocalToWorld(positionWs);
+	
 	return Sphere3d(positionWs, m_bounds.radius);
 }
 
@@ -54,28 +52,43 @@ Sphere3d SphereCollider3d::GetWorldBounds() const
 //-------------------------------------------------------------------------------------------------
 BoxCollider3d::BoxCollider3d(const OBB3& localBounds)
 {
-	SetLocalBounds(localBounds);
+	SetShapeWs(localBounds);
+}
+
+#include "Engine/Render/Core/Renderable.h"
+#include "Engine/Render/Mesh/MeshBuilder.h"
+//-------------------------------------------------------------------------------------------------
+void BoxCollider3d::DebugRender(Material* material)
+{
+	MeshBuilder mb;
+	mb.BeginBuilding(true);
+
+	mb.PushCube(Vector3::ZERO, Vector3::ONES);
+	mb.FinishBuilding();
+
+	Mesh mesh;
+	mb.UpdateMesh<Vertex3D_PCU>(mesh);
+
+	Matrix44 model = m_shape.m_transform.GetLocalToWorldMatrix();
+
+	Renderable rend;
+	rend.SetRenderableMatrix(model);
+	rend.AddDraw(&mesh, material);
+
+	g_renderContext->DrawRenderable(rend);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void BoxCollider3d::SetLocalBounds(const OBB3& localBounds)
+void BoxCollider3d::SetShapeWs(const OBB3& localBounds)
 {
-	m_bounds = localBounds;
+	m_shape = localBounds;
+	m_shape.m_transform.SetParentTransform(&m_transform, true);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-OBB3 BoxCollider3d::GetWorldBounds() const
+OBB3 BoxCollider3d::GetShapeWs()
 {
-	if (m_transform == nullptr)
-	{
-		return m_bounds;
-	}
-
-	Matrix44 colliderMat = m_transform->GetLocalToWorldMatrix();
-	Matrix44 boundsAsMat = m_bounds.GetMatrixRepresentation();
-	Matrix44 finalMat = colliderMat * boundsAsMat;
-
-	return OBB3(finalMat);
+	return m_shape;
 }

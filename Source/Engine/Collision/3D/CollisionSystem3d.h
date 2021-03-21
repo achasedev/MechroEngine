@@ -19,7 +19,10 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class BoxCollider3d;
 class Collider3d;
+class Entity;
+class OBB3;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -35,11 +38,18 @@ class CollisionSystem3d
 public:
 	//-----Public Methods-----
 
-	void AddCollider(Collider3d* collider);
-	void RemoveCollider(Collider3d* collider);
+	const BoxCollider3d*	AddEntity(Entity* entity, const OBB3& colliderBounds);
+	void					RemoveEntity(Entity* entity);
 
 	void PerformBroadPhase();	// GJK + EPA, find separation normal + magnitude
 	void PerformNarrowPhase();	// Contact point generation
+
+
+private:
+	//-----Private Methods-----
+
+	void					AddCollider(Collider3d* collider);
+	void					RemoveCollider(const Collider3d* collider);
 
 
 private:

@@ -21,6 +21,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class Entity;
+class Material;
 class Polygon3D;
 class Transform;
 
@@ -35,18 +37,22 @@ class Transform;
 //-------------------------------------------------------------------------------------------------
 class Collider3d
 {
+	friend class CollisionSystem3d;
+
 public:
 	//-----Public Methods-----
 	RTTI_BASE_CLASS(Collider3d);
 
-	Collider3d(Transform* transform = nullptr)
-		: m_transform(transform) {}
+	Collider3d() {}
+
+	virtual void DebugRender(Material* material) = 0;
 
 
 protected:
 	//-----Protected Data-----
 
-	Transform* m_transform = nullptr; // If nullptr, treat all positions as world space
+	Entity*		m_owner = nullptr;
+	Transform	m_transform;
 
 };
 
@@ -61,15 +67,16 @@ public:
 	BoxCollider3d() {}
 	BoxCollider3d(const OBB3& localBounds);
 
-	void SetLocalBounds(const OBB3& localBounds);
+	virtual void DebugRender(Material* material) override;
 
-	OBB3 GetWorldBounds() const;
+	void SetShapeWs(const OBB3& localBounds);
+	OBB3 GetShapeWs();
 
 
 private:
 	//-----Private Data-----
 
-	OBB3 m_bounds;
+	OBB3 m_shape;
 
 };
 
@@ -81,7 +88,9 @@ public:
 	//-----Public Methods-----
 	RTTI_DERIVED_CLASS(SphereCollider3d);
 
-	Sphere3d GetWorldBounds() const;
+	virtual void DebugRender(Material* material) override;
+
+	Sphere3d GetWorldBounds();
 
 
 private:
@@ -99,7 +108,9 @@ public:
 	//-----Public Methods-----
 	RTTI_DERIVED_CLASS(CapsuleCollider3d);
 
-	Capsule3d GetWorldBounds() const;
+	virtual void DebugRender(Material* material) override;
+
+	Capsule3d GetWorldBounds();
 
 
 private:
@@ -117,7 +128,9 @@ public:
 	//-----Public Methods-----
 	RTTI_DERIVED_CLASS(PolytopeCollider3d);
 
-	Polygon3D* GetWorldBounds() const;
+	virtual void DebugRender(Material* material) override;
+
+	Polygon3D* GetWorldBounds();
 
 
 private:

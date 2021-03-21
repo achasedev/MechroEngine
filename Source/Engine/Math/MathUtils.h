@@ -16,6 +16,7 @@
 #include "Engine/Math/Plane.h"
 #include "Engine/Math/Polygon2D.h"
 #include "Engine/Math/Quaternion.h"
+#include "Engine/Math/Range.h"
 #include "Engine/Math/Sphere3d.h"
 #include "Engine/Math/Vector2.h"
 #include "Engine/Math/Vector3.h"
@@ -185,6 +186,7 @@ bool AreMostlyEqual(const Quaternion& a, const Quaternion& b, float epsilon = DE
 
 //-------------------------------------------------------------------------------------------------
 // Geometry
+bool	DoRangesOverlap(const Range& a, const Range& b);
 bool	DoAABB2sOverlap(const AABB2& boxOne, const AABB2& boxTwo);
 bool	DoAABB3sOverlap(const AABB3& a, const AABB3& b);
 bool	DoSpheresOverlap(const Sphere3d& a, const Sphere3d& b);

@@ -38,42 +38,65 @@ OBB3::OBB3(const Vector3& center, const Vector3& extents, const Vector3& rotatio
 
 
 //-------------------------------------------------------------------------------------------------
-OBB3::OBB3(const Matrix44& matrixRepresentation)
+void OBB3::GetPoints(Vector3 out_points[8])
 {
-	m_transform.SetLocalMatrix(matrixRepresentation);
+	out_points[0] = m_transform.TransformPositionLocalToWorld(Vector3(-1.f, -1.f, -1.f)); // Left, Bottom, Back
+	out_points[1] = m_transform.TransformPositionLocalToWorld(Vector3(-1.f, 1.f, -1.f));  // Left, Top, Back
+	out_points[2] = m_transform.TransformPositionLocalToWorld(Vector3(1.f, 1.f, -1.f));	  // Right, Top, Back 
+	out_points[3] = m_transform.TransformPositionLocalToWorld(Vector3(1.f, -1.f, -1.f));  // Right, Bottom, Back
+	out_points[4] = m_transform.TransformPositionLocalToWorld(Vector3(1.f, -1.f, 1.f));	  // Right, Bottom, Front
+	out_points[5] = m_transform.TransformPositionLocalToWorld(Vector3(1.f, 1.f, 1.f));	  // Right, Top, Front
+	out_points[6] = m_transform.TransformPositionLocalToWorld(Vector3(-1.f, 1.f, 1.f));	  // Left, Top, Front
+	out_points[7] = m_transform.TransformPositionLocalToWorld(Vector3(-1.f, -1.f, 1.f));  // Left, Bottom, Front
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 OBB3::GetRightVector() const
+Vector3 OBB3::GetMinsWs()
+{
+	return m_transform.TransformPositionLocalToWorld(Vector3(-1.f));
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector3 OBB3::GetMaxsWs()
+{
+	return m_transform.TransformPositionLocalToWorld(Vector3(1.f));
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector3 OBB3::GetRightVector()
 {
 	return m_transform.GetIVector();
 }
 
 
-Vector3 OBB3::GetUpVector() const
+//-------------------------------------------------------------------------------------------------
+Vector3 OBB3::GetUpVector()
 {
-
-}
-
-
-Vector3 OBB3::GetForwardVector() const
-{
-
+	return m_transform.GetJVector();
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void OBB3::GetFaceSupportPlanes(std::vector<Plane>& out_planes) const
+Vector3 OBB3::GetForwardVector()
+{
+	return m_transform.GetKVector();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void OBB3::GetFaceSupportPlanes(std::vector<Plane>& out_planes)
 {
 	// Find the local space extremes in world space
-	Vector3 minsWs = m_transform.TransformPositionLocalToWorld(Vector3(-1.f, -1.f, -1.f));
-	Vector3 maxsWs = m_transform.TransformPositionLocalToWorld(Vector3(1.f, 1.f, 1.f));
+	Vector3 minsWs = GetMinsWs();
+	Vector3 maxsWs = GetMaxsWs();
 
 	// Normals to the faces will be along these 3 directions
-	Vector3 right = m_transform.GetIVector().Normalize();
-	Vector3 up = m_transform.GetJVector().Normalize();
-	Vector3 forward = m_transform.GetKVector().Normalize();
+	Vector3 right = m_transform.GetIVector().GetNormalized();
+	Vector3 up = m_transform.GetJVector().GetNormalized();
+	Vector3 forward = m_transform.GetKVector().GetNormalized();
 
 	out_planes.clear();
 	out_planes.push_back(Plane(-1.f * right, minsWs));

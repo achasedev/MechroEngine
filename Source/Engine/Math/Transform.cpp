@@ -278,7 +278,7 @@ Vector3 Transform::GetWorldPosition()
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Transform::GetWorldRotation()
+Vector3 Transform::GetWorldRotationDegrees()
 {
 	UpdateLocalMatrix();
 
@@ -328,5 +328,9 @@ void Transform::UpdateLocalMatrix(bool forceUpdate /*= false*/)
 		m_oldPosition = position;
 		m_oldRotation = rotation;
 		m_oldScale = scale;
+
+		Vector3 rotation = Matrix44::ExtractRotationDegrees(rotationMatrix);
+		Vector3 rotationWrong = Matrix44::ExtractRotationDegrees(m_localMatrix);
+		int x = 4;
 	}
 }

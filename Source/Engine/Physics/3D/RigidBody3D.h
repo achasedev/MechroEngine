@@ -44,9 +44,9 @@ public:
 
 	// Mutators
 	void				SetPosition(const Vector3& position) { m_transform->position = position; }
-	void				SetRotationDegrees(float rotationDegrees) { m_transform->SetRotation(rotationDegrees); }
+	void				SetRotationDegrees(float rotationDegrees) { m_transform->SetRotation(Vector3(rotationDegrees)); }
 	void				SetVelocity(const Vector3& velocity) { m_velocityWs = velocity; }
-	void				SetAngularVelocity(float angularVelocityDegrees) { m_angularVelocityDegrees = angularVelocityDegrees; }
+	void				SetAngularVelocity(float angularVelocityDegrees) { m_angularVelocityDegrees = Vector3(angularVelocityDegrees); }
 	void				SetMassProperties(float mass);
 	void				SetFriction(float friction) { m_friction = friction; }
 	void				SetAffectedByGravity(bool affected) { m_affectedByGravity = affected; }
@@ -97,7 +97,7 @@ private:
 
 	// Velocity
 	Vector3				m_velocityWs				= Vector3::ZERO;
-	Vector3				m_angularVelocityDegrees	= 0.f;
+	Vector3				m_angularVelocityDegrees	= Vector3::ZERO;
 
 	// Mass + friction
 	float				m_friction					= 0.2f;

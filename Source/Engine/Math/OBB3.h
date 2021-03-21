@@ -37,25 +37,32 @@ public:
 
 	OBB3() {}
 	OBB3(const Vector3& center, const Vector3& extents, const Vector3& rotation);
-	OBB3(const Matrix44& matrixRepresentation);
 
-	Vector3		GetCenter() const { return m_transform.GetWorldPosition(); }
-	Vector3		GetExtents() const { return m_transform.GetWorldScale(); }
-	Vector3		GetRotation() const { return m_transform.GetWorldRotation(); }
-	Matrix44	GetMatrixRepresentation() const { m_transform.GetLocalToWorldMatrix(); }
-	Vector3		GetRightVector() const;
-	Vector3		GetUpVector() const;
-	Vector3		GetForwardVector() const;
+	Vector3		GetCenter() { return m_transform.GetWorldPosition(); }
+	Vector3		GetExtents() { return m_transform.GetWorldScale(); }
+	Vector3		GetRotationDegrees() { return m_transform.GetWorldRotationDegrees(); }
 
-	void		GetFaceSupportPlanes(std::vector<Plane>& out_planes) const;
+	Vector3		GetMinsWs();
+	Vector3		GetMaxsWs();
+	void		GetPoints(Vector3 out_points[8]);
+
+	Vector3		GetRightVector();
+	Vector3		GetUpVector();
+	Vector3		GetForwardVector();
+
+	void		GetFaceSupportPlanes(std::vector<Plane>& out_planes);
 
 
-private:
-	//-----Private Data-----
+public:
+	//-----Public Data-----
 
 	// The center, dimensions, and rotation are all baked into the transform, with (-1, -1, -1) being the "mins" and (1, 1, 1) the "maxs"
 	// The center is then (0, 0, 0)
-	mutable Transform m_transform;
+	//Transform m_transform;
+
+	Vector3 center;
+	Vector3 extents;
+	Vector3 rotationDegrees;
 
 };
 
