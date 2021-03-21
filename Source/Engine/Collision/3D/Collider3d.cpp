@@ -63,19 +63,31 @@ void BoxCollider3d::DebugRender(Material* material)
 	MeshBuilder mb;
 	mb.BeginBuilding(true);
 
-	mb.PushCube(Vector3::ZERO, m_shape.GetExtents());
+	mb.PushCube(Vector3::ZERO, 2.f * Vector3::ONES);
 	mb.FinishBuilding();
 
 	Mesh mesh;
 	mb.UpdateMesh<Vertex3D_PCU>(mesh);
 
-	Matrix44 model = m_shape.m_transform.GetLocalToWorldMatrix();
+	Matrix44 toWorld = m_transform.GetLocalToWorldMatrix();
+	Matrix44 shapeAsMatrix = m_shape.GetModelMatrix();
+	Matrix44 model = toWorld * shapeAsMatrix;
 
 	Renderable rend;
 	rend.SetRenderableMatrix(model);
 	rend.AddDraw(&mesh, material);
 
-	g_renderContext->DrawRenderable(rend);
+	g_renderContext->DrawRenderable(rend);	
+
+	OBB3 bounds = GetShapeWs();
+
+	Vector3 points[8];
+	bounds.GetPoints(points);
+
+	for (int i = 0; i < 8; ++i)
+	{
+		g_renderContext->DrawPoint3D(points[i], 0.25f, material, Rgba::MAGENTA);
+	}
 }
 
 
@@ -83,12 +95,20 @@ void BoxCollider3d::DebugRender(Material* material)
 void BoxCollider3d::SetShapeWs(const OBB3& localBounds)
 {
 	m_shape = localBounds;
-	m_shape.m_transform.SetParentTransform(&m_transform, true);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 OBB3 BoxCollider3d::GetShapeWs()
 {
-	return m_shape;
+	Matrix44 toWorld = m_transform.GetLocalToWorldMatrix();
+	Vector3 centerWs = toWorld.TransformPoint(m_shape.center).xyz();
+	Quaternion rotation = m_transform.GetWorldRotation() * m_shape.rotation;
+
+	Vector3 scale = m_transform.GetWorldScale();
+	scale.x *= m_shape.extents.x;
+	scale.y *= m_shape.extents.y;
+	scale.z *= m_shape.extents.z;
+
+	return OBB3(centerWs, scale, rotation);
 }

@@ -37,10 +37,11 @@ public:
 
 	OBB3() {}
 	OBB3(const Vector3& center, const Vector3& extents, const Vector3& rotation);
+	OBB3(const Vector3& center, const Vector3& extents, const Quaternion& rotation);
 
-	Vector3		GetCenter() { return m_transform.GetWorldPosition(); }
-	Vector3		GetExtents() { return m_transform.GetWorldScale(); }
-	Vector3		GetRotationDegrees() { return m_transform.GetWorldRotationDegrees(); }
+	Vector3		GetCenter() { return center; }
+	Vector3		GetExtents() { return extents; }
+	Vector3		GetRotationDegrees() { return rotation.GetAsEulerAngles(); }
 
 	Vector3		GetMinsWs();
 	Vector3		GetMaxsWs();
@@ -49,6 +50,7 @@ public:
 	Vector3		GetRightVector();
 	Vector3		GetUpVector();
 	Vector3		GetForwardVector();
+	Matrix44	GetModelMatrix();
 
 	void		GetFaceSupportPlanes(std::vector<Plane>& out_planes);
 
@@ -58,7 +60,9 @@ public:
 
 	// The center, dimensions, and rotation are all baked into the transform, with (-1, -1, -1) being the "mins" and (1, 1, 1) the "maxs"
 	// The center is then (0, 0, 0)
-	Transform m_transform;
+	Vector3 center;
+	Vector3 extents;
+	Quaternion rotation;
 
 };
 

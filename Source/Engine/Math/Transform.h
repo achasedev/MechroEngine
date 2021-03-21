@@ -79,6 +79,7 @@ public:
 
 	Vector3 GetWorldPosition();
 	Vector3 GetWorldRotationDegrees();
+	Quaternion GetWorldRotation();
 	Vector3 GetWorldScale();
 
 	Vector3 TransformPositionLocalToWorld(const Vector3& point);

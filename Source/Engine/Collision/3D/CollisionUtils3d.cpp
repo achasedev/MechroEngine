@@ -167,27 +167,28 @@ BroadphaseResult3d CollisionUtils3d::Collide(CapsuleCollider3d* colA, CapsuleCol
 // Separating axis theorem!
 BroadphaseResult3d CollisionUtils3d::Collide(BoxCollider3d* colA, BoxCollider3d* colB)
 {
-	OBB3 boundsA = colA->GetShapeWs();
-	OBB3 boundsB = colB->GetShapeWs();
+	OBB3 shapeA = colA->GetShapeWs();
+	OBB3 shapeB = colB->GetShapeWs();
 
 	Vector3 pointsA[8];
 	Vector3 pointsB[8];
-	boundsA.GetPoints(pointsA);
-	boundsB.GetPoints(pointsB);
+	shapeA.GetPoints(pointsA);
+	shapeB.GetPoints(pointsB);
 
 	Vector3 axes[6];
-	axes[0] = boundsA.GetRightVector().GetNormalized();
-	axes[1] = boundsA.GetUpVector().GetNormalized();
-	axes[2] = boundsA.GetForwardVector().GetNormalized();
-	axes[3] = boundsB.GetRightVector().GetNormalized();
-	axes[4] = boundsB.GetUpVector().GetNormalized();
-	axes[5] = boundsB.GetForwardVector().GetNormalized();
+	axes[0] = shapeA.GetRightVector().GetNormalized();
+	axes[1] = shapeA.GetUpVector().GetNormalized();
+	axes[2] = shapeA.GetForwardVector().GetNormalized();
+	axes[3] = shapeB.GetRightVector().GetNormalized();
+	axes[4] = shapeB.GetUpVector().GetNormalized();
+	axes[5] = shapeB.GetForwardVector().GetNormalized();
 
 	BroadphaseResult3d result;
 
 	for (int axisIndex = 0; axisIndex < 6; ++axisIndex)
 	{
 		const Vector3& axis = axes[axisIndex];
+		bool isAAxis = (axisIndex < 3);
 
 		Range projRangeA;
 		Range projRangeB;
@@ -228,15 +229,13 @@ BroadphaseResult3d CollisionUtils3d::Collide(BoxCollider3d* colA, BoxCollider3d*
 		if (minPen < result.m_penetration)
 		{
 			result.m_penetration = minPen;
+			result.m_direction = axis;
 
-			if (minPen == pen1)
+			if ((isAAxis && minPen == pen1) || (!isAAxis && minPen == pen2))
 			{
-				result.m_direction = -1.f * axis;
+				result.m_direction *= -1.0f;
 			}
-			else
-			{
-				result.m_direction = axis;
-			}
+
 		}
 	}
 

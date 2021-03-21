@@ -288,6 +288,14 @@ Vector3 Transform::GetWorldRotationDegrees()
 
 
 //-------------------------------------------------------------------------------------------------
+Quaternion Transform::GetWorldRotation()
+{
+	Vector3 worldDegrees = GetWorldRotationDegrees();
+	return Quaternion::FromEuler(worldDegrees);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 Vector3 Transform::GetWorldScale()
 {
 	UpdateLocalMatrix();

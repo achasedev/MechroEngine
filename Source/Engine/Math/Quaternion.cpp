@@ -245,9 +245,10 @@ void Quaternion::ConvertToUnitNorm()
 Vector3 Quaternion::RotatePoint(const Vector3& point) const
 {
 	Quaternion pointAsQuat = Quaternion(0.f, point);
-	
+
 	Quaternion inverse = GetInverse();
-	Quaternion rotatedResult = inverse * pointAsQuat * (*this);
+	//Quaternion rotatedResult = inverse * pointAsQuat * (*this);
+	Quaternion rotatedResult = (*this) * pointAsQuat * inverse;
 
 	ASSERT_OR_DIE(AreMostlyEqual(rotatedResult.s, 0.f), "This should be zero!");
 
