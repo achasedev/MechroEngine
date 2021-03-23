@@ -45,7 +45,8 @@ public:
 
 	Collider3d() {}
 
-	virtual void DebugRender(Material* material) = 0;
+	virtual void	DebugRender(Material* material) = 0;
+	Entity*			GetOwningEntity() const { return m_owner; }
 
 
 protected:

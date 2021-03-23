@@ -231,11 +231,12 @@ BroadphaseResult3d CollisionUtils3d::Collide(BoxCollider3d* colA, BoxCollider3d*
 			result.m_penetration = minPen;
 			result.m_direction = axis;
 
-			if ((isAAxis && minPen == pen1) || (!isAAxis && minPen == pen2))
+			// Ensure we point all normals from A to B
+			Vector3 aToB = shapeB.center - shapeA.center;
+			if (DotProduct(aToB, result.m_direction) < 0.f)
 			{
 				result.m_direction *= -1.0f;
 			}
-
 		}
 	}
 

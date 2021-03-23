@@ -90,11 +90,6 @@ void ContactManifold3d::Collide()
 		{
 			BoxCollider3d* colB = m_colB->GetAsType<BoxCollider3d>();
 			m_broadphaseResult = CollisionUtils3d::Collide(colA, colB);
-
-			if (m_broadphaseResult.m_collisionFound && DotProduct(m_broadphaseResult.m_direction, Vector3::MINUS_Y_AXIS) > 0.5f)
-			{
-				m_broadphaseResult = CollisionUtils3d::Collide(colA, colB);
-			}
 		}
 		else if (m_colB->IsOfType<CapsuleCollider3d>())
 		{

@@ -87,6 +87,10 @@ public:
 	int						GetNumContacts() const { return m_numContacts; }
 	const ContactPoint3D*	GetContacts() const { return m_contacts; }
 	BroadphaseResult3d		GetBroadphaseResult() const { return m_broadphaseResult; }
+	const Collider3d*		GetColliderA() const { return m_colA; }
+	const Collider3d*		GetColliderB() const { return m_colB; }
+	Entity*					GetEntityA() const { return m_colA->GetOwningEntity(); }
+	Entity*					GetEntityB() const { return m_colB->GetOwningEntity(); }
 
 
 private:
