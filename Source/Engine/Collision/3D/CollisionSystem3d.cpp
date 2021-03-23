@@ -126,6 +126,17 @@ void CollisionSystem3d::PerformBroadPhase()
 
 
 //-------------------------------------------------------------------------------------------------
+void CollisionSystem3d::PerformNarrowPhase()
+{
+	Manifold3dIter itr = m_manifolds.begin();
+	for (itr; itr != m_manifolds.end(); itr++)
+	{
+		itr->second.GenerateContacts();
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
 const ContactManifold3d* CollisionSystem3d::GetManifoldForColliders(Collider3d* a, Collider3d* b) const
 {
 	ManifoldKey3D key(a, b);

@@ -82,6 +82,7 @@ public:
 	ContactManifold3d(Collider3d* a, Collider3d* b);
 
 	void					Collide();
+	void					GenerateContacts();
 
 	bool					HasCollision() const { return m_broadphaseResult.m_collisionFound; }
 	int						GetNumContacts() const { return m_numContacts; }
@@ -111,7 +112,7 @@ private:
 
 };
 
-typedef std::map<ManifoldKey3D, ContactManifold3d>::iterator Manifold3DIter;
+typedef std::map<ManifoldKey3D, ContactManifold3d>::iterator Manifold3dIter;
 
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

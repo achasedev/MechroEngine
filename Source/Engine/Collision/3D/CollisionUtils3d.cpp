@@ -56,6 +56,166 @@ BroadphaseResult3d CollisionUtils3d::Collide(SphereCollider3d* colA, SphereColli
 
 
 //-------------------------------------------------------------------------------------------------
+int CollisionUtils3d::CalculateContacts(BoxCollider3d* colA, BoxCollider3d* colB, ContactPoint3D* out_contacts)
+{
+	UNIMPLEMENTED();
+	UNUSED(colA);
+	UNUSED(colB);
+	UNUSED(out_contacts);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionUtils3d::CalculateContacts(PolytopeCollider3d* colA, CapsuleCollider3d* colB, ContactPoint3D* out_contacts)
+{
+	UNIMPLEMENTED();
+	UNUSED(colA);
+	UNUSED(colB);
+	UNUSED(out_contacts);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionUtils3d::CalculateContacts(CapsuleCollider3d* colA, PolytopeCollider3d* colB, ContactPoint3D* out_contacts)
+{
+	UNIMPLEMENTED();
+	UNUSED(colA);
+	UNUSED(colB);
+	UNUSED(out_contacts);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionUtils3d::CalculateContacts(PolytopeCollider3d* colA, BoxCollider3d* colB, ContactPoint3D* out_contacts)
+{
+	UNIMPLEMENTED();
+	UNUSED(colA);
+	UNUSED(colB);
+	UNUSED(out_contacts);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionUtils3d::CalculateContacts(BoxCollider3d* colA, PolytopeCollider3d* colB, ContactPoint3D* out_contacts)
+{
+	UNIMPLEMENTED();
+	UNUSED(colA);
+	UNUSED(colB);
+	UNUSED(out_contacts);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionUtils3d::CalculateContacts(CapsuleCollider3d* colA, BoxCollider3d* colB, ContactPoint3D* out_contacts)
+{
+	UNIMPLEMENTED();
+	UNUSED(colA);
+	UNUSED(colB);
+	UNUSED(out_contacts);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionUtils3d::CalculateContacts(BoxCollider3d* colA, CapsuleCollider3d* colB, ContactPoint3D* out_contacts)
+{
+	UNIMPLEMENTED();
+	UNUSED(colA);
+	UNUSED(colB);
+	UNUSED(out_contacts);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionUtils3d::CalculateContacts(PolytopeCollider3d* colA, SphereCollider3d* colB, ContactPoint3D* out_contacts)
+{
+	UNIMPLEMENTED();
+	UNUSED(colA);
+	UNUSED(colB);
+	UNUSED(out_contacts);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionUtils3d::CalculateContacts(SphereCollider3d* colA, PolytopeCollider3d* colB, ContactPoint3D* out_contacts)
+{
+	UNIMPLEMENTED();
+	UNUSED(colA);
+	UNUSED(colB);
+	UNUSED(out_contacts);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionUtils3d::CalculateContacts(CapsuleCollider3d* colA, SphereCollider3d* colB, ContactPoint3D* out_contacts)
+{
+	UNIMPLEMENTED();
+	UNUSED(colA);
+	UNUSED(colB);
+	UNUSED(out_contacts);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionUtils3d::CalculateContacts(SphereCollider3d* colA, CapsuleCollider3d* colB, ContactPoint3D* out_contacts)
+{
+	UNIMPLEMENTED();
+	UNUSED(colA);
+	UNUSED(colB);
+	UNUSED(out_contacts);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionUtils3d::CalculateContacts(BoxCollider3d* colA, SphereCollider3d* colB, ContactPoint3D* out_contacts)
+{
+	UNIMPLEMENTED();
+	UNUSED(colA);
+	UNUSED(colB);
+	UNUSED(out_contacts);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionUtils3d::CalculateContacts(SphereCollider3d* colA, BoxCollider3d* colB, ContactPoint3D* out_contacts)
+{
+	UNIMPLEMENTED();
+	UNUSED(colA);
+	UNUSED(colB);
+	UNUSED(out_contacts);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionUtils3d::CalculateContacts(PolytopeCollider3d* colA, PolytopeCollider3d* colB, ContactPoint3D* out_contacts)
+{
+	UNIMPLEMENTED();
+	UNUSED(colA);
+	UNUSED(colB);
+	UNUSED(out_contacts);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionUtils3d::CalculateContacts(CapsuleCollider3d* colA, CapsuleCollider3d* colB, ContactPoint3D* out_contacts)
+{
+	UNIMPLEMENTED();
+	UNUSED(colA);
+	UNUSED(colB);
+	UNUSED(out_contacts);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionUtils3d::CalculateContacts(SphereCollider3d* colA, SphereCollider3d* colB, ContactPoint3D* out_contacts)
+{
+	UNIMPLEMENTED();
+	UNUSED(colA);
+	UNUSED(colB);
+	UNUSED(out_contacts);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 BroadphaseResult3d CollisionUtils3d::Collide(PolytopeCollider3d* colA, CapsuleCollider3d* colB)
 {
 	UNIMPLEMENTED();
@@ -188,7 +348,6 @@ BroadphaseResult3d CollisionUtils3d::Collide(BoxCollider3d* colA, BoxCollider3d*
 	for (int axisIndex = 0; axisIndex < 6; ++axisIndex)
 	{
 		const Vector3& axis = axes[axisIndex];
-		bool isAAxis = (axisIndex < 3);
 
 		Range projRangeA;
 		Range projRangeB;
