@@ -40,12 +40,12 @@ class Material;
 
 
 //-------------------------------------------------------------------------------------------------
-Sphere3d SphereCollider3d::GetWorldBounds()
+Sphere3d SphereCollider3d::GetWorldShape()
 {
-	Vector3 positionWs = m_bounds.center;
+	Vector3 positionWs = m_bounds.m_center;
 	positionWs = m_transform.TransformPositionLocalToWorld(positionWs);
 	
-	return Sphere3d(positionWs, m_bounds.radius);
+	return Sphere3d(positionWs, m_bounds.m_radius);
 }
 
 
@@ -79,7 +79,7 @@ void BoxCollider3d::DebugRender(Material* material)
 
 	g_renderContext->DrawRenderable(rend);	
 
-	OBB3 bounds = GetShapeWs();
+	OBB3 bounds = GetWorldShape();
 
 	Vector3 points[8];
 	bounds.GetPoints(points);
@@ -99,7 +99,7 @@ void BoxCollider3d::SetShapeWs(const OBB3& localBounds)
 
 
 //-------------------------------------------------------------------------------------------------
-OBB3 BoxCollider3d::GetShapeWs()
+OBB3 BoxCollider3d::GetWorldShape()
 {
 	Matrix44 toWorld = m_transform.GetLocalToWorldMatrix();
 	Vector3 centerWs = toWorld.TransformPoint(m_shape.center).xyz();

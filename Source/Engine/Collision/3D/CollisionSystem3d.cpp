@@ -131,7 +131,10 @@ void CollisionSystem3d::PerformNarrowPhase()
 	Manifold3dIter itr = m_manifolds.begin();
 	for (itr; itr != m_manifolds.end(); itr++)
 	{
-		itr->second.GenerateContacts();
+		if (itr->second.GetBroadphaseResult().m_collisionFound)
+		{
+			itr->second.GenerateContacts();
+		}
 	}
 }
 

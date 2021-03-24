@@ -58,8 +58,9 @@ struct ManifoldKey3D
 struct ContactPoint3D
 {
 	ContactPoint3D() {}
+	ContactPoint3D(const Vector3& pos, const Vector3& norm)
+		: m_position(pos), m_normal(norm) {}
 
-	Vector3 m_originalPosition = Vector3::ZERO; // For debugging clipping
 	Vector3 m_position = Vector3::ZERO;
 	Vector3 m_normal = Vector3::ZERO;
 };

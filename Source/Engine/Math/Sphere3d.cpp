@@ -33,5 +33,5 @@
 //-------------------------------------------------------------------------------------------------
 AABB3 Sphere3d::GetBoundingBox() const
 {
-	return AABB3(center, radius, radius, radius);
+	return AABB3(m_center, m_radius, m_radius, m_radius);
 }

@@ -35,7 +35,7 @@ public:
 
 	Sphere3d() {}
 	Sphere3d(const Vector3& center, float radius)
-		: center(center), radius(radius) {}
+		: m_center(center), m_radius(radius) {}
 
 	AABB3 GetBoundingBox() const;
 
@@ -43,8 +43,8 @@ public:
 public:
 	//-----Public Data-----
 
-	Vector3 center;
-	float	radius;
+	Vector3 m_center;
+	float	m_radius;
 
 };
 

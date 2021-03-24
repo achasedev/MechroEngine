@@ -71,7 +71,7 @@ public:
 	virtual void DebugRender(Material* material) override;
 
 	void SetShapeWs(const OBB3& localBounds);
-	OBB3 GetShapeWs();
+	OBB3 GetWorldShape();
 
 
 private:
@@ -91,7 +91,7 @@ public:
 
 	virtual void DebugRender(Material* material) override;
 
-	Sphere3d GetWorldBounds();
+	Sphere3d GetWorldShape();
 
 
 private:
