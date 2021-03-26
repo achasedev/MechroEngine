@@ -16,7 +16,7 @@
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Math/OBB2.h"
 #include "Engine/Math/Polygon2D.h"
-#include "Engine/Math/Polygon3D.h"
+#include "Engine/Math/Polygon3d.h"
 #include "Engine/Render/Buffer/UniformBuffer.h"
 #include "Engine/Render/Buffer/VertexBuffer.h"
 #include "Engine/Render/Camera/Camera.h"
@@ -437,7 +437,7 @@ void RenderContext::DrawWirePolygon2D(const Polygon2D& polygon, Material* materi
 
 
 //-------------------------------------------------------------------------------------------------
-void RenderContext::DrawWirePolygon3D(const Polygon3D& polygon, Material* material, const Rgba& color /*= Rgba::WHITE*/)
+void RenderContext::DrawWirePolygon3D(const Polygon3d& polygon, Material* material, const Rgba& color /*= Rgba::WHITE*/)
 {
 	int numFaces = polygon.GetNumFaces();
 	ASSERT_RETURN(numFaces > 0, NO_RETURN_VAL, "No Faces!");
@@ -446,16 +446,16 @@ void RenderContext::DrawWirePolygon3D(const Polygon3D& polygon, Material* materi
 
 	for (int faceIndex = 0; faceIndex < numFaces; ++faceIndex)
 	{
-		Face3 face = polygon.GetFace(faceIndex);
+		const PolygonFace3d* face = polygon.GetFace(faceIndex);
 
-		int numVertices = face.GetNumVertices();
+		int numVertices = face->GetNumVertices();
 
 		for (int vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 		{
 			int nextVertexIndex = (vertexIndex + 1) % numVertices;
 
-			vertices.push_back(Vertex3D_PCU(face.GetVertex(vertexIndex), color, Vector2::ZERO));
-			vertices.push_back(Vertex3D_PCU(face.GetVertex(nextVertexIndex), color, Vector2::ZERO));
+			vertices.push_back(Vertex3D_PCU(face->GetVertex(vertexIndex), color, Vector2::ZERO));
+			vertices.push_back(Vertex3D_PCU(face->GetVertex(nextVertexIndex), color, Vector2::ZERO));
 		}
 	}
 

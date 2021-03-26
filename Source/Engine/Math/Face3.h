@@ -9,7 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Math/Edge3.h"
-#include "Engine/Math/Plane.h"
+#include "Engine/Math/Plane3.h"
 #include "Engine/Math/Vector3.h"
 #include <vector>
 
@@ -49,7 +49,7 @@ public:
 	Edge3					GetEdge(int edgeIndex) const;
 
 	int						GetNumEdges() const { return (int)m_vertices.size(); }
-	Plane					GetSupportPlane() const;
+	Plane3					GetSupportPlane() const;
 	Vector3					GetNormal() const;
 	float					CalculateArea() const; 
 

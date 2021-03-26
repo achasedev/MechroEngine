@@ -10,7 +10,7 @@
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Framework/GameObject.h"
 #include "Engine/Math/MathUtils.h"
-#include "Engine/Math/Polygon3D.h"
+#include "Engine/Math/Polygon3d.h"
 #include "Engine/Physics/3D/RigidBody3D.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -65,16 +65,16 @@ void RigidBody3D::CalculateCenterOfMass()
 	for (int faceIndex = 0; faceIndex < numFaces; ++faceIndex)
 	{
 		// Iterate across all the vertices of the face
-		Face3 face = m_shapeLs->GetFace(faceIndex);
-		int numVerticesInFace = face.GetNumVertices();
+		const PolygonFace3d* face = m_shapeLs->GetFace(faceIndex);
+		int numVerticesInFace = face->GetNumVertices();
 
 		Vector3 origin = Vector3::ZERO;
-		Vector3 a = face.GetVertex(0);
+		Vector3 a = face->GetVertex(0);
 
 		for (int vertexIndex = 1; vertexIndex < numVerticesInFace - 1; ++vertexIndex)
 		{
-			Vector3 b = face.GetVertex(vertexIndex);
-			Vector3 c = face.GetVertex(vertexIndex + 1);
+			Vector3 b = face->GetVertex(vertexIndex);
+			Vector3 c = face->GetVertex(vertexIndex + 1);
 
 			float currVolume = CalculateVolumeOfTetrahedron(a, b, c, origin);
 			Vector3 currCenter = 0.25f * (a + b + c + origin);
@@ -90,10 +90,10 @@ void RigidBody3D::CalculateCenterOfMass()
 
 
 //-------------------------------------------------------------------------------------------------
-void RigidBody3D::GetWorldShape(Polygon3D& out_polygonWs) const
+void RigidBody3D::GetWorldShape(Polygon3d& out_polygonWs) const
 {
 	Matrix44 toWorldMat = m_transform->GetLocalToWorldMatrix();
-	m_shapeLs->GetTransformed(toWorldMat, out_polygonWs);
+	//m_shapeLs->GetTransformed(toWorldMat, out_polygonWs);
 }
 
 

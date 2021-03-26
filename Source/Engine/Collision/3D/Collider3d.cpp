@@ -17,7 +17,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 RTTI_TYPE_DEFINE(Collider3d);
 RTTI_TYPE_DEFINE(SphereCollider3d);
-RTTI_TYPE_DEFINE(BoxCollider3d);
 RTTI_TYPE_DEFINE(CapsuleCollider3d);
 RTTI_TYPE_DEFINE(PolytopeCollider3d);
 
@@ -43,72 +42,37 @@ class Material;
 Sphere3d SphereCollider3d::GetWorldShape()
 {
 	Vector3 positionWs = m_bounds.m_center;
-	positionWs = m_transform.TransformPositionLocalToWorld(positionWs);
+	positionWs = m_transform.TransformPoint(positionWs);
 	
 	return Sphere3d(positionWs, m_bounds.m_radius);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-BoxCollider3d::BoxCollider3d(const OBB3& localBounds)
+PolytopeCollider3d::PolytopeCollider3d(const OBB3& boxShape)
 {
-	SetShapeWs(localBounds);
-}
-
-#include "Engine/Render/Core/Renderable.h"
-#include "Engine/Render/Mesh/MeshBuilder.h"
-//-------------------------------------------------------------------------------------------------
-void BoxCollider3d::DebugRender(Material* material)
-{
-	MeshBuilder mb;
-	mb.BeginBuilding(true);
-
-	mb.PushCube(Vector3::ZERO, 2.f * Vector3::ONES);
-	mb.FinishBuilding();
-
-	Mesh mesh;
-	mb.UpdateMesh<Vertex3D_PCU>(mesh);
-
-	Matrix44 toWorld = m_transform.GetLocalToWorldMatrix();
-	Matrix44 shapeAsMatrix = m_shape.GetModelMatrix();
-	Matrix44 model = toWorld * shapeAsMatrix;
-
-	Renderable rend;
-	rend.SetRenderableMatrix(model);
-	rend.AddDraw(&mesh, material);
-
-	g_renderContext->DrawRenderable(rend);	
-
-	OBB3 bounds = GetWorldShape();
-
-	Vector3 points[8];
-	bounds.GetPoints(points);
-
-	for (int i = 0; i < 8; ++i)
-	{
-		g_renderContext->DrawPoint3D(points[i], 0.25f, material, Rgba::MAGENTA);
-	}
+	m_shape = new Polygon3d(boxShape);
+	m_shape->m_transform.SetParentTransform(&m_transform);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void BoxCollider3d::SetShapeWs(const OBB3& localBounds)
+void PolytopeCollider3d::DebugRender(Material* material)
 {
-	m_shape = localBounds;
+	g_renderContext->DrawWirePolygon3D(*m_shape, material);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-OBB3 BoxCollider3d::GetWorldShape()
+void PolytopeCollider3d::SetShape(Polygon3d* shape)
 {
-	Matrix44 toWorld = m_transform.GetLocalToWorldMatrix();
-	Vector3 centerWs = toWorld.TransformPoint(m_shape.center).xyz();
-	Quaternion rotation = m_transform.GetWorldRotation() * m_shape.rotation;
+	m_shape = shape;
+	m_shape->m_transform.SetParentTransform(&m_transform);
+}
 
-	Vector3 scale = m_transform.GetWorldScale();
-	scale.x *= m_shape.extents.x;
-	scale.y *= m_shape.extents.y;
-	scale.z *= m_shape.extents.z;
 
-	return OBB3(centerWs, scale, rotation);
+//-------------------------------------------------------------------------------------------------
+const Polygon3d* PolytopeCollider3d::GetShape() const
+{
+	return m_shape;
 }

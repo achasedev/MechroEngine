@@ -70,9 +70,9 @@ void CollisionSystem3d::RemoveCollider(const Collider3d* collider)
 
 
 //-------------------------------------------------------------------------------------------------
-const BoxCollider3d* CollisionSystem3d::AddEntity(Entity* entity, const OBB3& colliderBounds)
+const PolytopeCollider3d* CollisionSystem3d::AddEntity(Entity* entity, const OBB3& colliderBounds)
 {
-	BoxCollider3d* boxCol = new BoxCollider3d(colliderBounds);
+	PolytopeCollider3d* boxCol = new PolytopeCollider3d(colliderBounds);
 	boxCol->m_owner = entity;
 	boxCol->m_transform.SetParentTransform(&entity->transform);
 	entity->m_collider = boxCol;

@@ -30,7 +30,7 @@ class Matrix44;
 class Mesh;
 class OBB2;
 class Polygon2D;
-class Polygon3D;
+class Polygon3d;
 class Renderable;
 class Sampler;
 class Shader;
@@ -96,7 +96,7 @@ public:
 	void								DrawLine2D(const Vector2& start, const Vector2& end, Material* material, const Rgba& color = Rgba::WHITE);
 	void								DrawLine3D(const Vector3& start, const Vector3& end, Material* material, const Rgba& color = Rgba::WHITE);
 	void								DrawWirePolygon2D(const Polygon2D& polygon, Material* material, const Rgba& color = Rgba::WHITE);
-	void								DrawWirePolygon3D(const Polygon3D& polygon, Material* material, const Rgba& color = Rgba::WHITE);
+	void								DrawWirePolygon3D(const Polygon3d& polygon, Material* material, const Rgba& color = Rgba::WHITE);
 	void								DrawWireOBB2D(const OBB2& obb, Material* material, const Rgba& color = Rgba::WHITE);
 
 	void								SaveTextureToImage(Texture2D* texture, const char* filepath);

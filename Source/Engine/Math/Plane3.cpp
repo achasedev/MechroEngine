@@ -9,7 +9,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Math/MathUtils.h"
-#include "Engine/Math/Plane.h"
+#include "Engine/Math/Plane3.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -32,7 +32,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-Plane::Plane(const Vector3& normal, float distance)
+Plane3::Plane3(const Vector3& normal, float distance)
 	: m_normal(normal), m_distance(distance)
 {
 
@@ -40,7 +40,7 @@ Plane::Plane(const Vector3& normal, float distance)
 
 
 //-------------------------------------------------------------------------------------------------
-Plane::Plane(const Vector3& normal, const Vector3& pointOnPlane)
+Plane3::Plane3(const Vector3& normal, const Vector3& pointOnPlane)
 	: m_normal(normal)
 {
 	m_distance = DotProduct(normal, pointOnPlane);
@@ -48,35 +48,35 @@ Plane::Plane(const Vector3& normal, const Vector3& pointOnPlane)
 
 
 //-------------------------------------------------------------------------------------------------
-bool Plane::ContainsPoint(const Vector3& point) const
+bool Plane3::ContainsPoint(const Vector3& point) const
 {
 	return (AreMostlyEqual(GetDistanceFromPlane(point), 0.f));
 }
 
 
 //-------------------------------------------------------------------------------------------------
-bool Plane::IsPointInFront(const Vector3& point) const
+bool Plane3::IsPointInFront(const Vector3& point) const
 {
 	return (GetDistanceFromPlane(point) > -DEFAULT_EPSILON);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-bool Plane::IsPointBehind(const Vector3& point) const
+bool Plane3::IsPointBehind(const Vector3& point) const
 {
 	return (GetDistanceFromPlane(point) < DEFAULT_EPSILON);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-float Plane::GetDistanceFromPlane(const Vector3& point) const
+float Plane3::GetDistanceFromPlane(const Vector3& point) const
 {
 	return DotProduct(m_normal, point) - m_distance;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Plane::GetProjectedPointOntoPlane(const Vector3& point) const
+Vector3 Plane3::GetProjectedPointOntoPlane(const Vector3& point) const
 {
 	float distance = GetDistanceFromPlane(point);
 	return point - (m_normal * distance);

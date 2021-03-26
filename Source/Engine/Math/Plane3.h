@@ -27,14 +27,14 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Plane
+class Plane3
 {
 public:
 	//-----Public Methods-----
 
-	Plane() {}
-	Plane(const Vector3& normal, float distance);
-	Plane(const Vector3& normal, const Vector3& pointOnPlane);
+	Plane3() {}
+	Plane3(const Vector3& normal, float distance);
+	Plane3(const Vector3& normal, const Vector3& pointOnPlane);
 
 	void	SetNormal(const Vector3& normal) { m_normal = normal; }
 	void	SetDistance(float distance) { m_distance = distance; }
@@ -53,7 +53,7 @@ private:
 	//-----Private Data-----
 
 	Vector3 m_normal = Vector3::ZERO;
-	float m_distance = 0.f; // Distance along normal from origin to closest point on plane
+	float	m_distance = 0.f; // Distance along normal from origin to closest point on plane
 
 };
 

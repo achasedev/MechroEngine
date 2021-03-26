@@ -9,7 +9,9 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Math/Face3.h"
+#include "Engine/Math/Transform.h"
 #include "Engine/Math/Vector3.h"
+#include <map>
 #include <vector>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -20,7 +22,35 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Material;
+class OBB3;
+class Polygon3d;
+class PolygonFace3d;
 class Transform;
+struct PolygonVertex3d;
+
+
+//-------------------------------------------------------------------------------------------------
+struct HalfEdge
+{
+	HalfEdge*			m_mirrorEdge = nullptr;
+	HalfEdge*			m_nextEdge = nullptr;
+	HalfEdge*			m_prevEdge = nullptr;
+	PolygonVertex3d*	m_vertex = nullptr;
+	PolygonFace3d*		m_face = nullptr;
+};
+typedef std::pair<int, int> HalfEdgeKey;
+
+
+//-------------------------------------------------------------------------------------------------
+struct PolygonVertex3d
+{
+	PolygonVertex3d() {}
+	explicit PolygonVertex3d(const Vector3& position)
+		: m_position(position) {}
+
+	Vector3		m_position;
+	HalfEdge*	m_outgoingHalfEdge = nullptr;
+};
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -31,48 +61,76 @@ class Transform;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Polygon3D
+class PolygonFace3d
+{
+public:
+	//-----Public Methods-----
+
+	PolygonFace3d() {}
+	PolygonFace3d(const std::vector<int> indices, const Polygon3d* owningPolygon);
+
+	void	AddIndex(int vertexIndex);
+
+	Vector3 GetVertex(int vertexIndex) const;
+	Vector3 GetNormal() const;
+	Plane3	GetSupportPlane() const;
+	int		GetNumVertices() const { return (int)m_indices.size(); }
+
+
+public:
+	//-----Public Data-----
+
+	std::vector<int>	m_indices;
+	const Polygon3d*	m_owningPolygon = nullptr;
+	HalfEdge*			m_halfEdge = nullptr;
+
+};
+
+//-------------------------------------------------------------------------------------------------
+class Polygon3d
 {
 public:
 	//-----Public Methods-----
 
 
-	Polygon3D() {}
-	~Polygon3D() {}
+	Polygon3d() {}
+	~Polygon3d() {}
+	Polygon3d(const OBB3& box);
 
-	void		Clear();
+	void					Clear();
+	void					GenerateHalfEdgeStructure();
 
-	int			PushVertex(const Vector3& vertex);
-	void		PushIndex(int index);
-	void		PushIndicesForTriangle(int first, int second, int third);
-	void		PushFaceIndexCount(int faceIndexCount);
+	int						AddVertex(const Vector3& vertex);
+	int						AddFace(const PolygonFace3d& face);
 
-	int			GetNumVertices() const { return (int)m_vertices.size(); }
-	int			GetNumIndices() const { return (int)m_indices.size(); }
-	int			GetNumFaces() const { return (int)m_faceIndexCounts.size(); }
-	Vector3		GetVertex(int vertexIndex) const;
-	int			GetIndex(int indexIndex) const;
-	Face3		GetFace(int faceIndex) const;
-	int			GetFarthestVertexInDirection(const Vector3& direction, Vector3& out_vertex) const;
-	Vector3		GetCenter() const;
-	void		GetTransformed(const Matrix44& transformMatrix, Polygon3D& out_polygonWs) const;
-	void		GetAllFacesAdjacentTo(int faceIndex, std::vector<Face3>& out_faces) const;
-
-	void		DebugRender(Transform* transform, Material* material, const Rgba& color);
+	int						GetNumVertices() const { return (int)m_verticesLs.size(); }
+	int						GetNumFaces() const { return (int)m_faces.size(); }
+	bool					HasGeneratedHalfEdges() const { return m_edges.size() > 0; }
+	Vector3					GetLocalVertex(int vertexIndex) const;
+	Vector3					GetWorldVertex(int vertexIndex) const;
+	const PolygonFace3d*	GetFace(int faceIndex) const;
+	Face3					GetLocalFaceInstance(int faceIndex) const;
+	Face3					GetWorldFaceInstance(int faceIndex) const;
+	int						GetFarthestLocalVertexInDirection(const Vector3& direction, Vector3& out_vertex) const;
+	int						GetFarthestWorldVertexInDirection(const Vector3& direction, Vector3& out_vertex) const;
+	Vector3					GetCenter() const;
+	void					GetAllFacesAdjacentTo(int faceIndex, std::vector<const PolygonFace3d*>& out_faces) const;
 
 
-private:
-	//-----Private Methods-----
+public:
+	//-----Public Data-----
 
-	int			GetStartingIndexForFaceIndex(int faceIndex) const;
+	mutable Transform				m_transform;
 
 
 private:
 	//-----Private Data-----
 
-	std::vector<Vector3>	m_vertices;
-	std::vector<int>		m_indices;
-	std::vector<int>		m_faceIndexCounts;
+	std::vector<PolygonVertex3d>	m_verticesLs;
+	std::vector<PolygonFace3d>		m_faces;
+
+	// Additional formatting on the "soup" data above for better traversal
+	std::map<HalfEdgeKey, HalfEdge>	m_edges;
 
 };
 

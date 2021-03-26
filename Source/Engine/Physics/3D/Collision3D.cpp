@@ -10,7 +10,7 @@
 #include "Engine/Framework/DevConsole.h"
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Math/MathUtils.h"
-#include "Engine/Math/Polygon3D.h"
+#include "Engine/Math/Polygon3d.h"
 #include "Engine/Physics/3D/Collision3D.h"
 #include "Engine/Physics/3D/Arbiter3D.h"
 #include "Engine/Physics/3D/RigidBody3D.h"
@@ -34,18 +34,18 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-Vector3 GetMinkowskiDiffSupport3D(const Polygon3D* first, const Polygon3D* second, const Vector3& direction)
+Vector3 GetMinkowskiDiffSupport3D(const Polygon3d* first, const Polygon3d* second, const Vector3& direction)
 {
 	Vector3 firstVertex, secondVertex;
-	first->GetFarthestVertexInDirection(direction + Vector3(DEFAULT_EPSILON), firstVertex);
-	second->GetFarthestVertexInDirection(-1.0f * direction - Vector3(DEFAULT_EPSILON), secondVertex);
+	first->GetFarthestWorldVertexInDirection(direction + Vector3(DEFAULT_EPSILON), firstVertex);
+	second->GetFarthestWorldVertexInDirection(-1.0f * direction - Vector3(DEFAULT_EPSILON), secondVertex);
 
 	return firstVertex - secondVertex;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-bool SetupSimplex3D(const Polygon3D* first, const Polygon3D* second, std::vector <Vector3>& simplex)
+bool SetupSimplex3D(const Polygon3d* first, const Polygon3d* second, std::vector <Vector3>& simplex)
 {
 	// A vertex
 	Vector3 direction = second->GetCenter() - first->GetCenter();
@@ -119,7 +119,7 @@ bool SetupSimplex3D(const Polygon3D* first, const Polygon3D* second, std::vector
 
 
 //-------------------------------------------------------------------------------------------------
-EvolveSimplexResult EvolveSimplex3D(const Polygon3D* first, const Polygon3D* second, std::vector<Vector3>& evolvingSimplex)
+EvolveSimplexResult EvolveSimplex3D(const Polygon3d* first, const Polygon3d* second, std::vector<Vector3>& evolvingSimplex)
 {
 	ASSERT_OR_DIE(evolvingSimplex.size() == 4, "Wrong number of verts for 3D simplex!");
 
@@ -237,7 +237,7 @@ void AddOrRemoveLooseEdge(const Edge3& edge, std::vector<Edge3>& looseEdges)
 
 
 //-------------------------------------------------------------------------------------------------
-CollisionSeparation3d PerformEPA3D(const Polygon3D* first, const Polygon3D* second, const std::vector<Vector3>& vertexSimplex)
+CollisionSeparation3d PerformEPA3D(const Polygon3d* first, const Polygon3d* second, const std::vector<Vector3>& vertexSimplex)
 {
 	// Create a list of faces to work with instead of vertices
 	// Ensure all normals point outward
@@ -321,7 +321,7 @@ CollisionSeparation3d PerformEPA3D(const Polygon3D* first, const Polygon3D* seco
 
 
 //-------------------------------------------------------------------------------------------------
-CollisionSeparation3d CalculateSeparation3D(const Polygon3D* first, const Polygon3D* second)
+CollisionSeparation3d CalculateSeparation3D(const Polygon3d* first, const Polygon3d* second)
 {
 	EvolveSimplexResult result = SIMPLEX_STILL_EVOLVING;
 	std::vector<Vector3> simplex;
@@ -352,7 +352,7 @@ CollisionSeparation3d CalculateSeparation3D(const Polygon3D* first, const Polygo
 
 
 //-------------------------------------------------------------------------------------------------
-CollisionFace3d GetFeatureFace3D(const Polygon3D* polygon, const Vector3& outwardSeparationNormal)
+CollisionFace3d GetFeatureFace3D(const Polygon3d* polygon, const Vector3& outwardSeparationNormal)
 {
 	// Get the face who's outward normal is mostly in this direction
 	CollisionFace3d featureFace;
@@ -362,8 +362,8 @@ CollisionFace3d GetFeatureFace3D(const Polygon3D* polygon, const Vector3& outwar
 
 	for (int faceIndex = 0; faceIndex < numFaces; ++faceIndex)
 	{
-		Face3 face = polygon->GetFace(faceIndex);
-		Vector3 faceNormal = face.GetNormal();
+		const PolygonFace3d* face = polygon->GetFace(faceIndex);
+		Vector3 faceNormal = face->GetNormal();
 		float dot = DotProduct(faceNormal, outwardSeparationNormal);
 
 		if (faceIndex == 0 || dot > bestDot)
@@ -376,12 +376,12 @@ CollisionFace3d GetFeatureFace3D(const Polygon3D* polygon, const Vector3& outwar
 	}
 
 	// Get the furthest point along the separation normal
-	int numVerts = featureFace.m_face.GetNumVertices();
+	int numVerts = featureFace.m_face->GetNumVertices();
 	bestDot = -1.0f;
 
 	for (int vertexIndex = 0; vertexIndex < numVerts; ++vertexIndex)
 	{
-		Vector3 vertex = featureFace.m_face.GetVertex(vertexIndex);
+		Vector3 vertex = featureFace.m_face->GetVertex(vertexIndex);
 		float dot = DotProduct(vertex, outwardSeparationNormal);
 
 		if (vertexIndex == 0 || dot > bestDot)

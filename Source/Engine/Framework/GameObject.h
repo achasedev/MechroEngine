@@ -18,7 +18,7 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Polygon2D;
-class Polygon3D;
+class Polygon3d;
 class RigidBody2D;
 class RigidBody3D;
 
@@ -42,14 +42,12 @@ public:
 	// Mutators
 	void			SetShape2D(Polygon2D* shape) { m_shape2D = shape; }
 	void			SetRigidBody2D(RigidBody2D* body)  { m_rigidBody2D = body; }
-	void			SetShape3D(Polygon3D* shape) { m_shape3D = shape; }
-	void			SetRigidBody3D(RigidBody3D* body) { m_rigidBody3D = body; }
+	void			SetShape3D(Polygon3d* shape) { m_shape3D = shape; }
 
 	// Accessors
 	Polygon2D*		GetShape2D() const { return m_shape2D; }
 	RigidBody2D*	GetRigidBody2D() const { return m_rigidBody2D; }
-	Polygon3D*		GetShape3D() const { return m_shape3D; }
-	RigidBody3D*	GetRigidBody3D() const { return m_rigidBody3D; }
+	Polygon3d*		GetShape3D() const { return m_shape3D; }
 
 	// Producers
 	bool			HasPhysics() const { return m_rigidBody2D != nullptr; }
@@ -67,8 +65,7 @@ private:
 	Polygon2D*				m_shape2D = nullptr;
 	RigidBody2D*			m_rigidBody2D = nullptr;
 
-	Polygon3D*				m_shape3D = nullptr;
-	RigidBody3D*			m_rigidBody3D = nullptr;
+	Polygon3d*				m_shape3D = nullptr;
 };
 
 

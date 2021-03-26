@@ -77,7 +77,7 @@ void Face3::AddVertex(const Vector3& vertex)
 	// Faces need to exist in a plane, so check for that
 	if (m_vertices.size() >= 3)
 	{
-		Plane supportPlane = GetSupportPlane();
+		Plane3 supportPlane = GetSupportPlane();
 		bool containsPoint = supportPlane.ContainsPoint(vertex);
 
 		if (!containsPoint)
@@ -137,7 +137,7 @@ Edge3 Face3::GetEdge(int edgeIndex) const
 
 
 //-------------------------------------------------------------------------------------------------
-Plane Face3::GetSupportPlane() const
+Plane3 Face3::GetSupportPlane() const
 {
 	ASSERT_OR_DIE(m_vertices.size() >= 3, "Cannot get the plane without at least 3 points!");
 
@@ -151,7 +151,7 @@ Plane Face3::GetSupportPlane() const
 	// Get the distance
 	float d = DotProduct(normal, m_vertices[0]);
 
-	return Plane(normal, d);
+	return Plane3(normal, d);
 }
 
 

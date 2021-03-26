@@ -13,8 +13,9 @@
 #include "Engine/Math/IntVector2.h"
 #include "Engine/Math/Line3.h"
 #include "Engine/Math/Matrix44.h"
-#include "Engine/Math/Plane.h"
+#include "Engine/Math/Plane3.h"
 #include "Engine/Math/Polygon2D.h"
+#include "Engine/Math/Polygon3d.h"
 #include "Engine/Math/Quaternion.h"
 #include "Engine/Math/Range.h"
 #include "Engine/Math/Sphere3d.h"
@@ -193,14 +194,8 @@ bool	DoSpheresOverlap(const Sphere3d& a, const Sphere3d& b);
 Vector2 RotatePointAboutPoint2D(const Vector2& pointToRotate, const Vector2& pointOfRotation, float angleDegrees);
 Vector2 RotatePointAboutPoint2D(const Vector2& pointToRotate, const Vector2& pointOfRotation, float cosAngle, float sinAngle);
 
-// All uses GJK
-float	GetShortestDistanceToLineSegment2D(const Vector2& lineStart, const Vector2& lineEnd, const Vector2& point);
-float	GetShortestDistanceToTriangle2D(const Vector2& a, const Vector2& b, const Vector2& c, const Vector2& point);
-float	GetShortestDistanceToPolygon2D(const Polygon2D& polygon, const Vector2& point);
-float	GetShortestDistanceBetweenPolygons2D(const Polygon2D& polygonA, const Polygon2D& polygonB);
-
 float	CalculateVolumeOfTetrahedron(const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& d);
-Vector3 SolveLinePlaneIntersection(const Line3& line, const Plane& plane);
+Vector3 SolveLinePlaneIntersection(const Line3& line, const Plane3& plane);
 float	GetClosestPointOnLineSegment(const Vector3& start, const Vector3& end, const Vector3& point, Vector3& out_closestPoint);
 
 

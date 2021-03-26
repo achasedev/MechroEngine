@@ -72,6 +72,7 @@ public:
 	Matrix44 GetParentToWorldMatrix();
 	Matrix44 GetWorldToParentMatrix();
 	Matrix44 GetLocalToWorldMatrix();
+	Matrix44 GetWorldToLocalMatrix();
 
 	Vector3 GetIVector();
 	Vector3 GetJVector();
@@ -82,7 +83,10 @@ public:
 	Quaternion GetWorldRotation();
 	Vector3 GetWorldScale();
 
-	Vector3 TransformPositionLocalToWorld(const Vector3& point);
+	Vector3 TransformPoint(const Vector3& point);
+	Vector3 InverseTransformPoint(const Vector3& point);
+	Vector3 TransformDirection(const Vector3& direction);
+	Vector3 InverseTransformDirection(const Vector3& direction);
 
 
 private:

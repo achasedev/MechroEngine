@@ -13,7 +13,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Math/Face3.h"
-#include "Engine/Math/Polygon3D.h"
+#include "Engine/Math/Polygon3d.h"
 #include "Engine/Math/Vector3.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -40,10 +40,10 @@ struct CollisionSeparation3d
 //-------------------------------------------------------------------------------------------------
 struct CollisionFace3d
 {
-	Vector3 m_furthestVertex;
-	Face3	m_face;
-	Vector3 m_normal;
-	int		m_faceIndex = -1;
+	Vector3					m_furthestVertex;
+	const PolygonFace3d*	m_face = nullptr;
+	Vector3					m_normal;
+	int						m_faceIndex = -1;
 };
 
 
@@ -151,13 +151,13 @@ struct Contact3D
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-Vector3					GetMinkowskiDiffSupport3D(const Polygon3D* first, const Polygon3D* second, const Vector3& direction);
-bool					SetupSimplex3D(const Polygon3D* first, const Polygon3D* second, std::vector <Vector3>& simplex);
-EvolveSimplexResult		EvolveSimplex3D(const Polygon3D* first, const Polygon3D* second, std::vector<Vector3>& evolvingSimplex);
+Vector3					GetMinkowskiDiffSupport3D(const Polygon3d* first, const Polygon3d* second, const Vector3& direction);
+bool					SetupSimplex3D(const Polygon3d* first, const Polygon3d* second, std::vector <Vector3>& simplex);
+EvolveSimplexResult		EvolveSimplex3D(const Polygon3d* first, const Polygon3d* second, std::vector<Vector3>& evolvingSimplex);
 uint32					GetSimplexSeparation3D(const std::vector<Vector3>& simplex, CollisionSeparation3d& out_separation);
-CollisionSeparation3d	PerformEPA3D(const Polygon3D* first, const Polygon3D* second, std::vector<Vector2>& simplex);
-CollisionSeparation3d	CalculateSeparation3D(const Polygon3D* first, const Polygon3D* second);
-CollisionFace3d	GetFeatureFace3D(const Polygon3D* polygon, const Vector3& outwardSeparationNormal);
+CollisionSeparation3d	PerformEPA3D(const Polygon3d* first, const Polygon3d* second, std::vector<Vector2>& simplex);
+CollisionSeparation3d	CalculateSeparation3D(const Polygon3d* first, const Polygon3d* second);
+CollisionFace3d	GetFeatureFace3D(const Polygon3d* polygon, const Vector3& outwardSeparationNormal);
 void					ClipIncidentFaceToReferenceFace(const std::vector<ClipVertex3>& incidentVertices, const Vector2& refEdgeDirection, float offset, std::vector<ClipVertex2D>& clippedPoints);
 
 #pragma warning(default : 4201)

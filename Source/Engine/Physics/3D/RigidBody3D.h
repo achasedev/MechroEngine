@@ -22,7 +22,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class GameObject;
 class PhysicsScene3D;
-class Polygon3D;
+class Polygon3d;
 class Transform;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -65,8 +65,8 @@ public:
 	float				GetDensity() const { return m_density; }
 	Vector3				GetForce() const { return m_forceWs; }
 	float				GetTorque() const { return m_torque; }
-	const Polygon3D*	GetLocalShape() const { return m_shapeLs; } // Const because you shouldn't be changing this >.>
-	void				GetWorldShape(Polygon3D& out_polygon) const;
+	const Polygon3d*	GetLocalShape() const { return m_shapeLs; } // Const because you shouldn't be changing this >.>
+	void				GetWorldShape(Polygon3d& out_polygon) const;
 	bool				IsAffectedByGravity() const { return m_affectedByGravity; }
 
 	// Producers
@@ -113,7 +113,7 @@ private:
 	bool				m_affectedByGravity			= true;
 
 	// Shape
-	const Polygon3D*	m_shapeLs					= nullptr;
+	const Polygon3d*	m_shapeLs					= nullptr;
 
 };
 

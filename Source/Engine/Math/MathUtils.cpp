@@ -1127,7 +1127,7 @@ float CalculateVolumeOfTetrahedron(const Vector3& a, const Vector3& b, const Vec
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 SolveLinePlaneIntersection(const Line3& line, const Plane& plane)
+Vector3 SolveLinePlaneIntersection(const Line3& line, const Plane3& plane)
 {
 	const Vector3 p = line.GetPoint();
 	const Vector3 dir = line.GetDirection();

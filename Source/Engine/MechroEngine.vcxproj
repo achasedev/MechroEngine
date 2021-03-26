@@ -191,9 +191,9 @@
     <ClCompile Include="Math\Face3.cpp" />
     <ClCompile Include="Math\IntVector3.cpp" />
     <ClCompile Include="Math\OBB2.cpp" />
-    <ClCompile Include="Math\Plane.cpp" />
+    <ClCompile Include="Math\Plane3.cpp" />
     <ClCompile Include="Math\Polygon2D.cpp" />
-    <ClCompile Include="Math\Polygon3D.cpp" />
+    <ClCompile Include="Math\Polygon3d.cpp" />
     <ClCompile Include="Physics\2D\Arbiter2D.cpp" />
     <ClCompile Include="Physics\2D\Collision2D.cpp" />
     <ClCompile Include="Physics\2D\Physics2D.cpp" />
@@ -298,9 +298,9 @@
     <ClInclude Include="Math\Face3.h" />
     <ClInclude Include="Math\IntVector3.h" />
     <ClInclude Include="Math\OBB2.h" />
-    <ClInclude Include="Math\Plane.h" />
+    <ClInclude Include="Math\Plane3.h" />
     <ClInclude Include="Math\Polygon2D.h" />
-    <ClInclude Include="Math\Polygon3D.h" />
+    <ClInclude Include="Math\Polygon3d.h" />
     <ClInclude Include="Physics\2D\Arbiter2D.h" />
     <ClInclude Include="Physics\2D\Collsion2D.h" />
     <ClInclude Include="Physics\2D\Physics2D.h" />

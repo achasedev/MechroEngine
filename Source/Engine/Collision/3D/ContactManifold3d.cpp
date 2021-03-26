@@ -61,36 +61,6 @@ void ContactManifold3d::Collide()
 			SphereCollider3d* colB = m_colB->GetAsType<SphereCollider3d>();
 			m_broadphaseResult = CollisionUtils3d::Collide(colA, colB);
 		}
-		else if (m_colB->IsOfType<BoxCollider3d>())
-		{
-			BoxCollider3d* colB = m_colB->GetAsType<BoxCollider3d>();
-			m_broadphaseResult = CollisionUtils3d::Collide(colA, colB);
-		}
-		else if (m_colB->IsOfType<CapsuleCollider3d>())
-		{
-			CapsuleCollider3d* colB = m_colB->GetAsType<CapsuleCollider3d>();
-			m_broadphaseResult = CollisionUtils3d::Collide(colA, colB);
-		}
-		else if (m_colB->IsOfType<PolytopeCollider3d>())
-		{
-			PolytopeCollider3d* colB = m_colB->GetAsType<PolytopeCollider3d>();
-			m_broadphaseResult = CollisionUtils3d::Collide(colA, colB);
-		}
-	}
-	else if (m_colA->IsOfType<BoxCollider3d>())
-	{
-		BoxCollider3d* colA = m_colA->GetAsType<BoxCollider3d>();
-
-		if (m_colB->IsOfType<SphereCollider3d>())
-		{
-			SphereCollider3d* colB = m_colB->GetAsType<SphereCollider3d>();
-			m_broadphaseResult = CollisionUtils3d::Collide(colA, colB);
-		}
-		else if (m_colB->IsOfType<BoxCollider3d>())
-		{
-			BoxCollider3d* colB = m_colB->GetAsType<BoxCollider3d>();
-			m_broadphaseResult = CollisionUtils3d::Collide(colA, colB);
-		}
 		else if (m_colB->IsOfType<CapsuleCollider3d>())
 		{
 			CapsuleCollider3d* colB = m_colB->GetAsType<CapsuleCollider3d>();
@@ -111,11 +81,6 @@ void ContactManifold3d::Collide()
 			SphereCollider3d* colB = m_colB->GetAsType<SphereCollider3d>();
 			m_broadphaseResult = CollisionUtils3d::Collide(colA, colB);
 		}
-		else if (m_colB->IsOfType<BoxCollider3d>())
-		{
-			BoxCollider3d* colB = m_colB->GetAsType<BoxCollider3d>();
-			m_broadphaseResult = CollisionUtils3d::Collide(colB, colA);
-		}
 		else if (m_colB->IsOfType<CapsuleCollider3d>())
 		{
 			CapsuleCollider3d* colB = m_colB->GetAsType<CapsuleCollider3d>();
@@ -134,11 +99,6 @@ void ContactManifold3d::Collide()
 		if (m_colB->IsOfType<SphereCollider3d>())
 		{
 			SphereCollider3d* colB = m_colB->GetAsType<SphereCollider3d>();
-			m_broadphaseResult = CollisionUtils3d::Collide(colB, colA);
-		}
-		else if (m_colB->IsOfType<BoxCollider3d>())
-		{
-			BoxCollider3d* colB = m_colB->GetAsType<BoxCollider3d>();
 			m_broadphaseResult = CollisionUtils3d::Collide(colB, colA);
 		}
 		else if (m_colB->IsOfType<CapsuleCollider3d>())
@@ -169,36 +129,6 @@ void ContactManifold3d::GenerateContacts()
 			SphereCollider3d* colB = m_colB->GetAsType<SphereCollider3d>();
 			m_numContacts = CollisionUtils3d::CalculateContacts(colA, colB, m_broadphaseResult, m_contacts);
 		}
-		else if (m_colB->IsOfType<BoxCollider3d>())
-		{
-			BoxCollider3d* colB = m_colB->GetAsType<BoxCollider3d>();
-			m_numContacts = CollisionUtils3d::CalculateContacts(colA, colB, m_broadphaseResult, m_contacts);
-		}
-		else if (m_colB->IsOfType<CapsuleCollider3d>())
-		{
-			CapsuleCollider3d* colB = m_colB->GetAsType<CapsuleCollider3d>();
-			m_numContacts = CollisionUtils3d::CalculateContacts(colA, colB, m_broadphaseResult, m_contacts);
-		}
-		else if (m_colB->IsOfType<PolytopeCollider3d>())
-		{
-			PolytopeCollider3d* colB = m_colB->GetAsType<PolytopeCollider3d>();
-			m_numContacts = CollisionUtils3d::CalculateContacts(colA, colB, m_broadphaseResult, m_contacts);
-		}
-	}
-	else if (m_colA->IsOfType<BoxCollider3d>())
-	{
-		BoxCollider3d* colA = m_colA->GetAsType<BoxCollider3d>();
-
-		if (m_colB->IsOfType<SphereCollider3d>())
-		{
-			SphereCollider3d* colB = m_colB->GetAsType<SphereCollider3d>();
-			m_numContacts = CollisionUtils3d::CalculateContacts(colA, colB, m_broadphaseResult, m_contacts);
-		}
-		else if (m_colB->IsOfType<BoxCollider3d>())
-		{
-			BoxCollider3d* colB = m_colB->GetAsType<BoxCollider3d>();
-			m_numContacts = CollisionUtils3d::CalculateContacts(colA, colB, m_broadphaseResult, m_contacts);
-		}
 		else if (m_colB->IsOfType<CapsuleCollider3d>())
 		{
 			CapsuleCollider3d* colB = m_colB->GetAsType<CapsuleCollider3d>();
@@ -219,11 +149,6 @@ void ContactManifold3d::GenerateContacts()
 			SphereCollider3d* colB = m_colB->GetAsType<SphereCollider3d>();
 			m_numContacts = CollisionUtils3d::CalculateContacts(colA, colB, m_broadphaseResult, m_contacts);
 		}
-		else if (m_colB->IsOfType<BoxCollider3d>())
-		{
-			BoxCollider3d* colB = m_colB->GetAsType<BoxCollider3d>();
-			m_numContacts = CollisionUtils3d::CalculateContacts(colA, colB, m_broadphaseResult, m_contacts);
-		}
 		else if (m_colB->IsOfType<CapsuleCollider3d>())
 		{
 			CapsuleCollider3d* colB = m_colB->GetAsType<CapsuleCollider3d>();
@@ -242,11 +167,6 @@ void ContactManifold3d::GenerateContacts()
 		if (m_colB->IsOfType<SphereCollider3d>())
 		{
 			SphereCollider3d* colB = m_colB->GetAsType<SphereCollider3d>();
-			m_numContacts = CollisionUtils3d::CalculateContacts(colA, colB, m_broadphaseResult, m_contacts);
-		}
-		else if (m_colB->IsOfType<BoxCollider3d>())
-		{
-			BoxCollider3d* colB = m_colB->GetAsType<BoxCollider3d>();
 			m_numContacts = CollisionUtils3d::CalculateContacts(colA, colB, m_broadphaseResult, m_contacts);
 		}
 		else if (m_colB->IsOfType<CapsuleCollider3d>())

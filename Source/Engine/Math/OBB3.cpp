@@ -8,6 +8,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
+#include "Engine/Math/MathUtils.h"
 #include "Engine/Math/OBB3.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -45,7 +46,7 @@ OBB3::OBB3(const Vector3& center, const Vector3& extents, const Quaternion& rota
 
 
 //-------------------------------------------------------------------------------------------------
-void OBB3::GetPoints(Vector3 out_points[8])
+void OBB3::GetPoints(Vector3 out_points[8]) const
 {
 	//out_points[0] = rotation.RotatePoint(center) + Vector3(-extents.x, -extents.y, -extents.z); // Left, Bottom, Back
 	//out_points[1] = rotation.RotatePoint(center) + Vector3(-extents.x, extents.y, -extents.z);	// Left, Top, Back
@@ -68,21 +69,21 @@ void OBB3::GetPoints(Vector3 out_points[8])
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 OBB3::GetMinsWs()
+Vector3 OBB3::GetMinsWs() const
 {
 	return rotation.RotatePoint(center - extents);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 OBB3::GetMaxsWs()
+Vector3 OBB3::GetMaxsWs() const
 {
 	return rotation.RotatePoint(center + extents);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 OBB3::GetRightVector()
+Vector3 OBB3::GetRightVector() const
 {
 	Matrix44 rotAsMatrix = Matrix44::MakeRotation(rotation);
 	return rotAsMatrix.GetIVector().xyz();
@@ -90,7 +91,7 @@ Vector3 OBB3::GetRightVector()
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 OBB3::GetUpVector()
+Vector3 OBB3::GetUpVector() const
 {
 	Matrix44 rotAsMatrix = Matrix44::MakeRotation(rotation);
 	return rotAsMatrix.GetJVector().xyz();
@@ -98,7 +99,7 @@ Vector3 OBB3::GetUpVector()
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 OBB3::GetForwardVector()
+Vector3 OBB3::GetForwardVector() const
 {
 	Matrix44 rotAsMatrix = Matrix44::MakeRotation(rotation);
 	return rotAsMatrix.GetKVector().xyz();
@@ -106,14 +107,87 @@ Vector3 OBB3::GetForwardVector()
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44 OBB3::GetModelMatrix()
+Matrix44 OBB3::GetModelMatrix() const
 {
 	return Matrix44::MakeModelMatrix(center, rotation.GetAsEulerAngles(), extents);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void OBB3::GetFaceSupportPlanes(std::vector<Plane>& out_planes)
+Face3 OBB3::GetFaceInDirection(const Vector3& direction) const
+{
+	Vector3 right	= GetRightVector();
+	Vector3 left	= -1.0f * right;
+	Vector3 up		= GetUpVector();
+	Vector3 down	= -1.0f * up;
+	Vector3 forward = GetForwardVector();
+	Vector3 back	= -1.0f * forward;
+	
+	float rightDot		= DotProduct(right, direction);
+	float leftDot		= DotProduct(left, direction);
+	float upDot			= DotProduct(up, direction);
+	float downDot		= DotProduct(down, direction);
+	float forwardDot	= DotProduct(forward, direction);
+	float backDot		= DotProduct(back, direction);
+
+	float maxDot = Max(rightDot, leftDot, upDot, downDot, forwardDot, backDot);
+	Vector3 p0, p1, p2, p3;
+
+	if (maxDot == rightDot)
+	{
+		p0 = Vector3(center.x + extents.x, center.y - extents.y, center.z - extents.z);
+		p1 = Vector3(center.x + extents.x, center.y + extents.y, center.z - extents.z);
+		p2 = Vector3(center.x + extents.x, center.y + extents.y, center.z + extents.z);
+		p3 = Vector3(center.x + extents.x, center.y - extents.y, center.z + extents.z);
+	}
+	else if (maxDot == leftDot)
+	{
+		p0 = Vector3(center.x - extents.x, center.y - extents.y, center.z + extents.z);
+		p1 = Vector3(center.x - extents.x, center.y + extents.y, center.z + extents.z);
+		p2 = Vector3(center.x - extents.x, center.y + extents.y, center.z - extents.z);
+		p3 = Vector3(center.x - extents.x, center.y - extents.y, center.z - extents.z);
+	}
+	else if (maxDot == forwardDot)
+	{
+		p0 = Vector3(center.x + extents.x, center.y - extents.y, center.z + extents.z);
+		p1 = Vector3(center.x + extents.x, center.y + extents.y, center.z + extents.z);
+		p2 = Vector3(center.x - extents.x, center.y + extents.y, center.z + extents.z);
+		p3 = Vector3(center.x - extents.x, center.y - extents.y, center.z + extents.z);
+	}
+	else if (maxDot == backDot)
+	{
+		p0 = Vector3(center.x - extents.x, center.y - extents.y, center.z - extents.z);
+		p1 = Vector3(center.x - extents.x, center.y + extents.y, center.z - extents.z);
+		p2 = Vector3(center.x + extents.x, center.y + extents.y, center.z - extents.z);
+		p3 = Vector3(center.x + extents.x, center.y - extents.y, center.z - extents.z);
+	}
+	else if (maxDot == upDot)
+	{
+		p0 = Vector3(center.x - extents.x, center.y + extents.y, center.z - extents.z);
+		p1 = Vector3(center.x - extents.x, center.y + extents.y, center.z + extents.z);
+		p2 = Vector3(center.x + extents.x, center.y + extents.y, center.z + extents.z);
+		p3 = Vector3(center.x + extents.x, center.y + extents.y, center.z - extents.z);
+	}
+	else
+	{
+		p0 = Vector3(center.x - extents.x, center.y - extents.y, center.z + extents.z);
+		p1 = Vector3(center.x - extents.x, center.y - extents.y, center.z - extents.z);
+		p2 = Vector3(center.x + extents.x, center.y - extents.y, center.z - extents.z);
+		p3 = Vector3(center.x + extents.x, center.y - extents.y, center.z + extents.z);
+	}
+
+	Face3 face;
+	face.AddVertex(p0);
+	face.AddVertex(p1);
+	face.AddVertex(p2);
+	face.AddVertex(p3);
+
+	return face;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void OBB3::GetFaceSupportPlanes(std::vector<Plane3>& out_planes) const
 {
 	// Find the local space extremes in world space
 	Vector3 minsWs = GetMinsWs();
@@ -125,10 +199,10 @@ void OBB3::GetFaceSupportPlanes(std::vector<Plane>& out_planes)
 	Vector3 forward = GetForwardVector().GetNormalized();
 
 	out_planes.clear();
-	out_planes.push_back(Plane(-1.f * right, minsWs));
-	out_planes.push_back(Plane(right, maxsWs));
-	out_planes.push_back(Plane(-1.f * up, minsWs));
-	out_planes.push_back(Plane(up, maxsWs));
-	out_planes.push_back(Plane(-1.f * forward, minsWs));
-	out_planes.push_back(Plane(forward, maxsWs));
+	out_planes.push_back(Plane3(-1.f * right, minsWs));
+	out_planes.push_back(Plane3(right, maxsWs));
+	out_planes.push_back(Plane3(-1.f * up, minsWs));
+	out_planes.push_back(Plane3(up, maxsWs));
+	out_planes.push_back(Plane3(-1.f * forward, minsWs));
+	out_planes.push_back(Plane3(forward, maxsWs));
 }

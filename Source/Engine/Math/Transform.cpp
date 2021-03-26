@@ -246,6 +246,13 @@ Matrix44 Transform::GetLocalToWorldMatrix()
 
 
 //-------------------------------------------------------------------------------------------------
+Matrix44 Transform::GetWorldToLocalMatrix()
+{
+	return Matrix44::GetInverse(GetLocalToWorldMatrix());
+}
+
+
+//-------------------------------------------------------------------------------------------------
 Vector3 Transform::GetIVector()
 {
 	UpdateLocalMatrix();
@@ -306,10 +313,20 @@ Vector3 Transform::GetWorldScale()
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Transform::TransformPositionLocalToWorld(const Vector3& point)
+Vector3 Transform::TransformPoint(const Vector3& point)
 {
 	Matrix44 localToWorld = GetLocalToWorldMatrix();
 	Vector4 result = localToWorld.TransformPoint(point);
+
+	return result.xyz();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector3 Transform::InverseTransformDirection(const Vector3& direction)
+{
+	Matrix44 worldToLocal = GetWorldToLocalMatrix();
+	Vector4 result = worldToLocal.TransformVector(direction);
 
 	return result.xyz();
 }

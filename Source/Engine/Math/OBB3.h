@@ -9,7 +9,8 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Math/AABB3.h"
-#include "Engine/Math/Plane.h"
+#include "Engine/Math/Face3.h"
+#include "Engine/Math/Plane3.h"
 #include "Engine/Math/Transform.h"
 #include <vector>
 
@@ -39,20 +40,21 @@ public:
 	OBB3(const Vector3& center, const Vector3& extents, const Vector3& rotation);
 	OBB3(const Vector3& center, const Vector3& extents, const Quaternion& rotation);
 
-	Vector3		GetCenter() { return center; }
-	Vector3		GetExtents() { return extents; }
-	Vector3		GetRotationDegrees() { return rotation.GetAsEulerAngles(); }
+	Vector3		GetCenter() const { return center; }
+	Vector3		GetExtents() const { return extents; }
+	Vector3		GetRotationDegrees() const { return rotation.GetAsEulerAngles(); }
 
-	Vector3		GetMinsWs();
-	Vector3		GetMaxsWs();
-	void		GetPoints(Vector3 out_points[8]);
+	Vector3		GetMinsWs() const;
+	Vector3		GetMaxsWs() const;
+	void		GetPoints(Vector3 out_points[8]) const;
 
-	Vector3		GetRightVector();
-	Vector3		GetUpVector();
-	Vector3		GetForwardVector();
-	Matrix44	GetModelMatrix();
+	Vector3		GetRightVector() const;
+	Vector3		GetUpVector() const;
+	Vector3		GetForwardVector() const;
+	Matrix44	GetModelMatrix() const;
+	Face3		GetFaceInDirection(const Vector3& direction) const;
 
-	void		GetFaceSupportPlanes(std::vector<Plane>& out_planes);
+	void		GetFaceSupportPlanes(std::vector<Plane3>& out_planes) const;
 
 
 public:

@@ -36,17 +36,4 @@
 //-------------------------------------------------------------------------------------------------
 GameObject::~GameObject()
 {
-	if (m_rigidBody2D != nullptr)
-	{
-		PhysicsScene2D* physicsScene = m_rigidBody2D->GetScene();
-		physicsScene->RemoveGameObject(this);
-	}
-
-	if (m_rigidBody3D != nullptr)
-	{
-		PhysicsScene3D* physicsScene = m_rigidBody3D->GetScene();
-		physicsScene->RemoveGameObject(this);
-	}
-
-	// GameObjects don't own their shape for now
 }

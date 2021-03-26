@@ -19,7 +19,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class BoxCollider3d;
 class Collider3d;
 class Entity;
 class OBB3;
@@ -38,8 +37,8 @@ class CollisionSystem3d
 public:
 	//-----Public Methods-----
 
-	const BoxCollider3d*	AddEntity(Entity* entity, const OBB3& colliderBounds);
-	void					RemoveEntity(Entity* entity);
+	const PolytopeCollider3d*	AddEntity(Entity* entity, const OBB3& colliderBounds);
+	void						RemoveEntity(Entity* entity);
 
 	void PerformBroadPhase();	// GJK + EPA, find separation normal + magnitude
 	void PerformNarrowPhase();	// Contact point generation
