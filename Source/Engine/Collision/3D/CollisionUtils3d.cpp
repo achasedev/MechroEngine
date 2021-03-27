@@ -11,6 +11,7 @@
 #include "Engine/Collision/3D/CollisionUtils3d.h"
 #include "Engine/Collision/3D/ContactManifold3d.h"
 #include "Engine/Math/MathUtils.h"
+#include "Engine/Math/Polygon3d.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -227,7 +228,7 @@ BroadphaseResult3d CollisionUtils3d::Collide(SphereCollider3d* colA, CapsuleColl
 //-------------------------------------------------------------------------------------------------
 // Finds the max value b penetrates onto each of a's normals, and returns the max of all projections
 // A value greater than zero implies there's a gap -> no overlap
-float SolvePartialSAT(const Polygon3d* a, const Polygon3d* b)
+float SolvePartialSAT(const Polygon3d* a, const Polygon3d* b, int& out_faceIndex)
 {
 	int numFaces = a->GetNumFaces();
 	float maxDistance = 0.f;
@@ -244,7 +245,8 @@ float SolvePartialSAT(const Polygon3d* a, const Polygon3d* b)
 		float distance = plane.GetDistanceFromPlane(supportPoint);
 		if (faceIndex == 0 || distance > maxDistance)
 		{
-			distance = maxDistance;
+			maxDistance = distance;
+			out_faceIndex = faceIndex;
 		}
 	}
 
@@ -258,16 +260,49 @@ BroadphaseResult3d CollisionUtils3d::Collide(PolytopeCollider3d* colA, PolytopeC
 	const Polygon3d* shapeA = colA->GetShape();
 	const Polygon3d* shapeB = colB->GetShape();
 
-	BroadphaseResult3d result;
-	float aToBDistance = SolvePartialSAT(shapeA, shapeB);
-	float bToADistance = SolvePartialSAT(shapeB, shapeA);
+	int bestAFaceIndex = -1;
+	int bestBFaceIndex = -1;
 
-	if (aToBDistance < 0.f && bToADistance < 0.f)
+	float aOntoBDistance = SolvePartialSAT(shapeA, shapeB, bestAFaceIndex);
+	float bOntoADistance = SolvePartialSAT(shapeB, shapeA, bestBFaceIndex);
+
+	BroadphaseResult3d result;
+	if (aOntoBDistance < 0.f && bOntoADistance < 0.f)
 	{
 		result.m_collisionFound = true;
+
+		float penOnAAxis = Abs(aOntoBDistance);
+		float penOnBAxis = Abs(bOntoADistance);
+
+		if (penOnAAxis < penOnBAxis)
+		{
+			result.m_penetration = penOnAAxis;
+			result.m_direction = shapeA->GetFace(bestAFaceIndex)->GetNormal();
+		}
+		else
+		{
+			result.m_penetration = penOnBAxis;
+			result.m_direction = -1.0f * shapeB->GetFace(bestBFaceIndex)->GetNormal(); // Flip the axis so it points from A to B
+		}
+	
+		return result;
 	}
 
-	// There's no vertices penetrating faces, but edges could still be overlapping...
+	// TODO: Edges
+	UniqueHalfEdgeIterator edgeAIter(*shapeA);
+
+	const HalfEdge* currEdgeA = edgeAIter.GetNext();
+
+	while (currEdgeA != nullptr)
+	{
+		UniqueHalfEdgeIterator edgeBIter(*shapeB);
+		const HalfEdge* currEdgeB = edgeBIter.GetNext();
+
+
+
+		currEdgeA = edgeAIter.GetNext();
+	}
+
 	return result;
 }
 

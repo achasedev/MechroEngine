@@ -85,6 +85,8 @@ public:
 	void					Collide();
 	void					GenerateContacts();
 
+	void					DebugRender(Material* material) const;
+
 	bool					HasCollision() const { return m_broadphaseResult.m_collisionFound; }
 	int						GetNumContacts() const { return m_numContacts; }
 	const ContactPoint3D*	GetContacts() const { return m_contacts; }

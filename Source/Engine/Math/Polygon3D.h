@@ -89,6 +89,8 @@ public:
 //-------------------------------------------------------------------------------------------------
 class Polygon3d
 {
+	friend class UniqueHalfEdgeIterator;
+
 public:
 	//-----Public Methods-----
 
@@ -134,6 +136,25 @@ private:
 
 };
 
+
+class UniqueHalfEdgeIterator
+{
+public:
+	//-----Public Methods-----
+
+	explicit UniqueHalfEdgeIterator(const Polygon3d& polygon);
+
+	const HalfEdge* GetNext();
+
+
+private:
+	//-----Private Data-----
+
+	const Polygon3d&								m_polygon;
+	std::map<HalfEdgeKey, HalfEdge>::const_iterator m_edgeIter;
+	std::vector<const HalfEdge*>					m_visitedList;
+
+};
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS

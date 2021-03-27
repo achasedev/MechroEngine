@@ -50,11 +50,8 @@ Rgba::Rgba()
 
 //-------------------------------------------------------------------------------------------------
 Rgba::Rgba(float red, float green, float blue, float alpha)
-	: r(NormalizedFloatToByte(red))
-	, g(NormalizedFloatToByte(green))
-	, b(NormalizedFloatToByte(blue))
-	, a(NormalizedFloatToByte(alpha))
 {
+	SetFromFloats(red, green, blue, alpha);
 }
 
 
@@ -75,6 +72,30 @@ Rgba::Rgba(const Rgba& copy)
 	, b(copy.b)
 	, a(copy.a)
 {
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Rgba::Rgba(const Vector4& colors)
+{
+	SetFromFloats(colors);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Rgba::SetFromFloats(float red, float green, float blue, float alpha)
+{
+	r = NormalizedFloatToByte(red);
+	g = NormalizedFloatToByte(green);
+	b = NormalizedFloatToByte(blue);
+	a = NormalizedFloatToByte(alpha);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Rgba::SetFromFloats(const Vector4& colors)
+{
+	SetFromFloats(colors.x, colors.y, colors.z, colors.w);
 }
 
 
@@ -110,6 +131,17 @@ float Rgba::GetAlphaFloat() const
 Vector4 Rgba::GetAsFloats() const
 {
 	return Vector4(Normalize(r), Normalize(g), Normalize(b), Normalize(a));
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Will clamp between 0 and 255
+Rgba Rgba::operator*(float uniformScaler) const
+{
+	Vector4 asFloats = GetAsFloats();
+	asFloats *= uniformScaler;
+
+	return Rgba(asFloats);
 }
 
 

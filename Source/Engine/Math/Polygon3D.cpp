@@ -426,3 +426,40 @@ Vector3 PolygonFace3d::GetNormal() const
 
 	return CalculateNormalForTriangle(a, b, c);
 }
+
+
+//-------------------------------------------------------------------------------------------------
+UniqueHalfEdgeIterator::UniqueHalfEdgeIterator(const Polygon3d& polygon)
+	: m_polygon(polygon)
+{
+	m_edgeIter = m_polygon.m_edges.begin();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+const HalfEdge* UniqueHalfEdgeIterator::GetNext()
+{
+	while (m_visitedList.size() < m_polygon.m_edges.size())
+	{
+		// Get the next edge
+		const HalfEdge* currEdge = &m_edgeIter->second;
+		m_edgeIter++;
+
+		// Check if this edge has already been visited...which should never happen, half edges should uniquely exist
+#ifndef DISABLE_ASSERTS
+		ASSERT_OR_DIE(std::find(m_visitedList.begin(), m_visitedList.end(), currEdge) != m_visitedList.end(), "Duplicate edge!");
+#endif
+
+		// Check if this edge's mirror has been visited already
+		bool mirrorVisited = std::find(m_visitedList.begin(), m_visitedList.end(), currEdge->m_mirrorEdge) != m_visitedList.end();
+
+		if (!mirrorVisited)
+		{
+			m_visitedList.push_back(currEdge);
+			m_visitedList.push_back(currEdge->m_mirrorEdge);
+			return currEdge;
+		}
+	}
+
+	return nullptr;
+}

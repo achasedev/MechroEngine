@@ -37,13 +37,18 @@ public:
 	Rgba();
 	explicit Rgba(int red, int green, int blue, int alpha);
 	explicit Rgba(float red, float green, float blue, float alpha);
+	explicit Rgba(const Vector4& colors);
 	Rgba(const Rgba& copy);
+
+	void		SetFromFloats(float red, float green, float blue, float alpha);
+	void		SetFromFloats(const Vector4& colors);
 
 	float		GetRedFloat() const;
 	float		GetBlueFloat() const;
 	float		GetGreenFloat() const;
 	float		GetAlphaFloat() const;
 	Vector4		GetAsFloats() const;
+	Rgba		operator*(float uniformScaler) const;
 
 	static Rgba GetRandomColor();
 

@@ -11,6 +11,7 @@
 #include "Engine/Collision/3D/ContactManifold3d.h"
 #include "Engine/Collision/3D/CollisionUtils3d.h"
 #include "Engine/Framework/EngineCommon.h"
+#include "Engine/Framework/Rgba.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -180,4 +181,14 @@ void ContactManifold3d::GenerateContacts()
 			m_numContacts = CollisionUtils3d::CalculateContacts(colA, colB, m_broadphaseResult, m_contacts);
 		}
 	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void ContactManifold3d::DebugRender(Material* material) const
+{
+	Rgba color = (m_broadphaseResult.m_collisionFound ? Rgba::RED : Rgba::WHITE);
+
+	m_colA->DebugRender(material, color);
+	m_colB->DebugRender(material, color * 0.5f);
 }

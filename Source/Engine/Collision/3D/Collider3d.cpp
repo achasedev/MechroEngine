@@ -57,9 +57,9 @@ PolytopeCollider3d::PolytopeCollider3d(const OBB3& boxShape)
 
 
 //-------------------------------------------------------------------------------------------------
-void PolytopeCollider3d::DebugRender(Material* material)
+void PolytopeCollider3d::DebugRender(Material* material, const Rgba& color)
 {
-	g_renderContext->DrawWirePolygon3D(*m_shape, material);
+	g_renderContext->DrawWirePolygon3D(*m_shape, material, color);
 }
 
 
