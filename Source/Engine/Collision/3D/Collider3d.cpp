@@ -51,28 +51,43 @@ Sphere3d SphereCollider3d::GetWorldShape()
 //-------------------------------------------------------------------------------------------------
 PolytopeCollider3d::PolytopeCollider3d(const OBB3& boxShape)
 {
-	m_shape = new Polygon3d(boxShape);
-	m_shape->m_transform.SetParentTransform(&m_transform);
+	// TODO: Put shapes into the collision system
+	m_shapeLs = new Polygon3d(boxShape);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void PolytopeCollider3d::DebugRender(Material* material, const Rgba& color)
 {
-	g_renderContext->DrawWirePolygon3D(*m_shape, material, color);
+	// Debug render in world space
+	g_renderContext->DrawWirePolygon3D(m_shapeWs, material, color);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void PolytopeCollider3d::SetShape(Polygon3d* shape)
 {
-	m_shape = shape;
-	m_shape->m_transform.SetParentTransform(&m_transform);
+	m_shapeLs = shape;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-const Polygon3d* PolytopeCollider3d::GetShape() const
+const Polygon3d* PolytopeCollider3d::GetLocalShape() const
 {
-	return m_shape;
+	return m_shapeLs;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+const Polygon3d* PolytopeCollider3d::GetWorldShape()
+{
+	return &m_shapeWs;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void PolytopeCollider3d::GenerateWorldShape()
+{
+	Matrix44 worldMat = m_transform.GetLocalToWorldMatrix();
+	m_shapeLs->GetTransformed(worldMat, m_shapeWs);
 }

@@ -37,8 +37,8 @@
 Vector3 GetMinkowskiDiffSupport3D(const Polygon3d* first, const Polygon3d* second, const Vector3& direction)
 {
 	Vector3 firstVertex, secondVertex;
-	first->GetFarthestWorldVertexInDirection(direction + Vector3(DEFAULT_EPSILON), firstVertex);
-	second->GetFarthestWorldVertexInDirection(-1.0f * direction - Vector3(DEFAULT_EPSILON), secondVertex);
+	first->GetSupportPoint(direction + Vector3(DEFAULT_EPSILON), firstVertex);
+	second->GetSupportPoint(-1.0f * direction - Vector3(DEFAULT_EPSILON), secondVertex);
 
 	return firstVertex - secondVertex;
 }

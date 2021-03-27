@@ -21,25 +21,14 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class HalfEdge;
 class Material;
 class OBB3;
 class Polygon3d;
 class PolygonFace3d;
 class Transform;
 struct PolygonVertex3d;
-
-
-//-------------------------------------------------------------------------------------------------
-struct HalfEdge
-{
-	HalfEdge*			m_mirrorEdge = nullptr;
-	HalfEdge*			m_nextEdge = nullptr;
-	HalfEdge*			m_prevEdge = nullptr;
-	PolygonVertex3d*	m_vertex = nullptr;
-	PolygonFace3d*		m_face = nullptr;
-};
 typedef std::pair<int, int> HalfEdgeKey;
-
 
 //-------------------------------------------------------------------------------------------------
 struct PolygonVertex3d
@@ -66,10 +55,11 @@ class PolygonFace3d
 public:
 	//-----Public Methods-----
 
-	PolygonFace3d() {}
-	PolygonFace3d(const std::vector<int> indices, const Polygon3d* owningPolygon);
+	PolygonFace3d(const Polygon3d& polygon);
+	PolygonFace3d(const Polygon3d& polygon, const std::vector<int> indices);
 
 	void	AddIndex(int vertexIndex);
+	void	SetIndices(const std::vector<int>& indices);
 
 	Vector3 GetVertex(int vertexIndex) const;
 	Vector3 GetNormal() const;
@@ -81,7 +71,7 @@ public:
 	//-----Public Data-----
 
 	std::vector<int>	m_indices;
-	const Polygon3d*	m_owningPolygon = nullptr;
+	const Polygon3d&	m_owningPolygon;
 	HalfEdge*			m_halfEdge = nullptr;
 
 };
@@ -103,46 +93,80 @@ public:
 	void					GenerateHalfEdgeStructure();
 
 	int						AddVertex(const Vector3& vertex);
-	int						AddFace(const PolygonFace3d& face);
+	int						AddFace(const std::vector<int>& indices);
 
-	int						GetNumVertices() const { return (int)m_verticesLs.size(); }
+	const PolygonVertex3d*	GetVertex(int vertexIndex) const;
+	const PolygonFace3d*	GetFace(int faceIndex) const;
+	const HalfEdge*			GetEdge(const HalfEdgeKey& edgeKey) const;
+	Vector3					GetVertexPosition(int vertexIndex) const;
+
+	void					GetTransformed(const Matrix44& matrix, Polygon3d& out_polygon) const;
+	int						GetNumVertices() const { return (int)m_vertices.size(); }
 	int						GetNumFaces() const { return (int)m_faces.size(); }
 	bool					HasGeneratedHalfEdges() const { return m_edges.size() > 0; }
-	Vector3					GetLocalVertex(int vertexIndex) const;
-	Vector3					GetWorldVertex(int vertexIndex) const;
-	const PolygonFace3d*	GetFace(int faceIndex) const;
-	Face3					GetLocalFaceInstance(int faceIndex) const;
-	Face3					GetWorldFaceInstance(int faceIndex) const;
-	int						GetFarthestLocalVertexInDirection(const Vector3& direction, Vector3& out_vertex) const;
-	int						GetFarthestWorldVertexInDirection(const Vector3& direction, Vector3& out_vertex) const;
+	int						GetSupportPoint(const Vector3& direction, Vector3& out_vertex) const;
 	Vector3					GetCenter() const;
 	void					GetAllFacesAdjacentTo(int faceIndex, std::vector<const PolygonFace3d*>& out_faces) const;
-
-
-public:
-	//-----Public Data-----
-
-	mutable Transform				m_transform;
 
 
 private:
 	//-----Private Data-----
 
-	std::vector<PolygonVertex3d>	m_verticesLs;
+	std::vector<PolygonVertex3d>	m_vertices;
 	std::vector<PolygonFace3d>		m_faces;
 
 	// Additional formatting on the "soup" data above for better traversal
 	std::map<HalfEdgeKey, HalfEdge>	m_edges;
 
+	static const HalfEdgeKey INVALID_HALFEDGE_KEY;
+
 };
 
 
+//-------------------------------------------------------------------------------------------------
+class HalfEdge
+{
+	friend class Polygon3d;
+
+public:
+	//-----Public Methods-----
+
+	HalfEdge() {}
+	HalfEdge(const Polygon3d* owningPolygon)
+		: m_owningPolygon(owningPolygon) {}
+
+	const HalfEdge*			GetMirrorEdge() const { return m_owningPolygon->GetEdge(m_mirrorEdgeKey); }
+	const HalfEdge*			GetNextEdge() const { return m_owningPolygon->GetEdge(m_nextEdgeKey); }
+	const HalfEdge*			GetPrevEdge() const { return m_owningPolygon->GetEdge(m_prevEdgeKey); }
+	const PolygonFace3d*	GetFace() const { return m_owningPolygon->GetFace(m_faceIndex); }
+	const PolygonVertex3d*	GetPolyVertex() const { return m_owningPolygon->GetVertex(m_vertexIndex); }
+
+	Vector3 GetStartPosition() const;
+	Vector3 GetEndPosition() const;
+	Vector3 GetAsVector() const;
+	Vector3 GetAsNormalizedVector() const;
+
+
+private:
+	//-----Private Data-----
+
+	HalfEdgeKey				m_mirrorEdgeKey;
+	HalfEdgeKey				m_nextEdgeKey;
+	HalfEdgeKey				m_prevEdgeKey;
+	int						m_vertexIndex = -1;
+	int						m_faceIndex = -1;
+	const Polygon3d*		m_owningPolygon = nullptr;
+
+};
+
+
+//-------------------------------------------------------------------------------------------------
 class UniqueHalfEdgeIterator
 {
 public:
 	//-----Public Methods-----
 
-	explicit UniqueHalfEdgeIterator(const Polygon3d& polygon);
+	UniqueHalfEdgeIterator(const Polygon3d& polygon);
 
 	const HalfEdge* GetNext();
 

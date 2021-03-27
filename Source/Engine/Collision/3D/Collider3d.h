@@ -52,6 +52,12 @@ public:
 
 
 protected:
+	//-----Protected Methods-----
+
+	virtual void GenerateWorldShape() = 0;
+
+
+protected:
 	//-----Protected Data-----
 
 	Entity*		m_owner = nullptr;
@@ -70,6 +76,12 @@ public:
 	virtual void DebugRender(Material* material, const Rgba& color) override;
 
 	Sphere3d GetWorldShape();
+
+
+protected:
+	//-----Protected Methods-----
+
+	virtual void GenerateWorldShape() override;
 
 
 private:
@@ -92,6 +104,12 @@ public:
 	Capsule3d GetWorldBounds();
 
 
+protected:
+	//-----Protected Methods-----
+
+	virtual void GenerateWorldShape() override;
+
+
 private:
 	//-----Private Data-----
 
@@ -111,13 +129,21 @@ public:
 	virtual void		DebugRender(Material* material, const Rgba& color) override;
 
 	void				SetShape(Polygon3d* shape);
-	const Polygon3d*	GetShape() const;
+	const Polygon3d*	GetLocalShape() const;
+	const Polygon3d*	GetWorldShape();
+
+
+protected:
+	//-----Protected Methods-----
+
+	virtual void		GenerateWorldShape() override;
 
 
 protected:
 	//-----Protected Data-----
 
-	Polygon3d* m_shape = nullptr;;
+	Polygon3d*	m_shapeLs = nullptr;
+	Polygon3d	m_shapeWs; // Generated, will eventually be dirtied?
 
 };
 

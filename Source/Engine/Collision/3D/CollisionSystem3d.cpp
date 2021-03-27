@@ -107,6 +107,9 @@ void CollisionSystem3d::PerformBroadPhase()
 		{
 			Collider3d* colB = m_colliders[j];
 
+			colA->GenerateWorldShape();
+			colB->GenerateWorldShape();
+
 			ContactManifold3d manifold = ContactManifold3d(colA, colB);
 			manifold.Collide();
 

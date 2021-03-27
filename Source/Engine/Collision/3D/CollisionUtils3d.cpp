@@ -240,7 +240,7 @@ float SolvePartialSAT(const Polygon3d* a, const Polygon3d* b, int& out_faceIndex
 
 		Vector3 supportDir = -1.0f * plane.GetNormal();
 		Vector3 supportPoint;
-		b->GetFarthestWorldVertexInDirection(supportDir, supportPoint);
+		b->GetSupportPoint(supportDir, supportPoint);
 
 		float distance = plane.GetDistanceFromPlane(supportPoint);
 		if (faceIndex == 0 || distance > maxDistance)
@@ -257,14 +257,14 @@ float SolvePartialSAT(const Polygon3d* a, const Polygon3d* b, int& out_faceIndex
 //-------------------------------------------------------------------------------------------------
 BroadphaseResult3d CollisionUtils3d::Collide(PolytopeCollider3d* colA, PolytopeCollider3d* colB)
 {
-	const Polygon3d* shapeA = colA->GetShape();
-	const Polygon3d* shapeB = colB->GetShape();
+	const Polygon3d* worldShapeA = colA->GetWorldShape();
+	const Polygon3d* worldShapeB = colB->GetWorldShape();
 
 	int bestAFaceIndex = -1;
 	int bestBFaceIndex = -1;
 
-	float aOntoBDistance = SolvePartialSAT(shapeA, shapeB, bestAFaceIndex);
-	float bOntoADistance = SolvePartialSAT(shapeB, shapeA, bestBFaceIndex);
+	float aOntoBDistance = SolvePartialSAT(worldShapeA, worldShapeB, bestAFaceIndex);
+	float bOntoADistance = SolvePartialSAT(worldShapeB, worldShapeA, bestBFaceIndex);
 
 	BroadphaseResult3d result;
 	if (aOntoBDistance < 0.f && bOntoADistance < 0.f)
@@ -277,31 +277,39 @@ BroadphaseResult3d CollisionUtils3d::Collide(PolytopeCollider3d* colA, PolytopeC
 		if (penOnAAxis < penOnBAxis)
 		{
 			result.m_penetration = penOnAAxis;
-			result.m_direction = shapeA->GetFace(bestAFaceIndex)->GetNormal();
+			result.m_direction = worldShapeA->GetFace(bestAFaceIndex)->GetNormal();
 		}
 		else
 		{
 			result.m_penetration = penOnBAxis;
-			result.m_direction = -1.0f * shapeB->GetFace(bestBFaceIndex)->GetNormal(); // Flip the axis so it points from A to B
+			result.m_direction = -1.0f * worldShapeB->GetFace(bestBFaceIndex)->GetNormal(); // Flip the axis so it points from A to B
 		}
 	
 		return result;
 	}
 
 	// TODO: Edges
-	UniqueHalfEdgeIterator edgeAIter(*shapeA);
+	//UniqueHalfEdgeIterator edgeAIter(*worldShapeA);
 
-	const HalfEdge* currEdgeA = edgeAIter.GetNext();
+	//const HalfEdge* currEdgeA = edgeAIter.GetNext();
 
-	while (currEdgeA != nullptr)
-	{
-		UniqueHalfEdgeIterator edgeBIter(*shapeB);
-		const HalfEdge* currEdgeB = edgeBIter.GetNext();
+	//while (currEdgeA != nullptr)
+	//{
+	//	UniqueHalfEdgeIterator edgeBIter(*worldShapeB);
+	//	const HalfEdge* currEdgeB = edgeBIter.GetNext();
+
+	//	while (currEdgeB != nullptr)
+	//	{
+	//		Vector3 normal = CrossProduct(currEdgeA->GetAsVector(), currEdgeB->GetAsVector).GetNormalized();
+	//		Plane3 plane(normal, currEdgeA->m_vertex->m_position);
 
 
 
-		currEdgeA = edgeAIter.GetNext();
-	}
+	//		currEdgeB = edgeBIter.GetNext();
+	//	}
+
+	//	currEdgeA = edgeAIter.GetNext();
+	//}
 
 	return result;
 }
