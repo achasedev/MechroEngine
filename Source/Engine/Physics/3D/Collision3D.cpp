@@ -362,32 +362,33 @@ CollisionFace3d GetFeatureFace3D(const Polygon3d* polygon, const Vector3& outwar
 
 	for (int faceIndex = 0; faceIndex < numFaces; ++faceIndex)
 	{
-		const PolygonFace3d* face = polygon->GetFace(faceIndex);
-		Vector3 faceNormal = face->GetNormal();
+		Vector3 faceNormal = polygon->GetFaceNormal(faceIndex);
 		float dot = DotProduct(faceNormal, outwardSeparationNormal);
 
 		if (faceIndex == 0 || dot > bestDot)
 		{
 			bestDot = dot;
-			featureFace.m_face = face;
 			featureFace.m_normal = faceNormal;
 			featureFace.m_faceIndex = faceIndex;
 		}
 	}
 
 	// Get the furthest point along the separation normal
-	int numVerts = featureFace.m_face->GetNumVertices();
+	const PolygonFace3d* face = polygon->GetFace(featureFace.m_faceIndex);
+	int numVertsInFace = (int)face->m_indices.size();
+
 	bestDot = -1.0f;
 
-	for (int vertexIndex = 0; vertexIndex < numVerts; ++vertexIndex)
+	for (int faceVertexIndex = 0; faceVertexIndex < numVertsInFace; ++faceVertexIndex)
 	{
-		Vector3 vertex = featureFace.m_face->GetVertex(vertexIndex);
-		float dot = DotProduct(vertex, outwardSeparationNormal);
+		Vector3 vertPosition = polygon->GetVertexPosition(face->m_indices[faceVertexIndex]);
 
-		if (vertexIndex == 0 || dot > bestDot)
+		float dot = DotProduct(vertPosition, outwardSeparationNormal);
+
+		if (faceVertexIndex == 0 || dot > bestDot)
 		{
 			bestDot = dot;
-			featureFace.m_furthestVertex = vertex;
+			featureFace.m_furthestVertex = vertPosition;
 		}
 	}
 

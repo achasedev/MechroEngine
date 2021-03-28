@@ -235,8 +235,7 @@ float SolvePartialSAT(const Polygon3d* a, const Polygon3d* b, int& out_faceIndex
 
 	for (int faceIndex = 0; faceIndex < numFaces; ++faceIndex)
 	{
-		const PolygonFace3d* face = a->GetFace(faceIndex);
-		Plane3 plane = face->GetSupportPlane();
+		Plane3 plane = a->GetFaceSupportPlane(faceIndex);
 
 		Vector3 supportDir = -1.0f * plane.GetNormal();
 		Vector3 supportPoint;
@@ -277,12 +276,12 @@ BroadphaseResult3d CollisionUtils3d::Collide(PolytopeCollider3d* colA, PolytopeC
 		if (penOnAAxis < penOnBAxis)
 		{
 			result.m_penetration = penOnAAxis;
-			result.m_direction = worldShapeA->GetFace(bestAFaceIndex)->GetNormal();
+			result.m_direction = worldShapeA->GetFaceNormal(bestAFaceIndex);
 		}
 		else
 		{
 			result.m_penetration = penOnBAxis;
-			result.m_direction = -1.0f * worldShapeB->GetFace(bestBFaceIndex)->GetNormal(); // Flip the axis so it points from A to B
+			result.m_direction = -1.0f * worldShapeB->GetFaceNormal(bestBFaceIndex); // Flip the axis so it points from A to B
 		}
 	
 		return result;

@@ -41,7 +41,6 @@ struct CollisionSeparation3d
 struct CollisionFace3d
 {
 	Vector3					m_furthestVertex;
-	const PolygonFace3d*	m_face = nullptr;
 	Vector3					m_normal;
 	int						m_faceIndex = -1;
 };

@@ -22,11 +22,11 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+typedef std::pair<int, int> HalfEdgeKey;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-const HalfEdgeKey Polygon3d::INVALID_HALFEDGE_KEY = HalfEdgeKey(-1, -1);
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
@@ -49,7 +49,7 @@ Polygon3d::Polygon3d(const OBB3& box)
 	}
 
 	// Back
-	PolygonFace3d back(*this);
+	PolygonFace3d back;
 	back.m_indices.push_back(0);
 	back.m_indices.push_back(1);
 	back.m_indices.push_back(2);
@@ -57,7 +57,7 @@ Polygon3d::Polygon3d(const OBB3& box)
 	m_faces.push_back(back);
 
 	// Front
-	PolygonFace3d front(*this);
+	PolygonFace3d front;
 	front.m_indices.push_back(4);
 	front.m_indices.push_back(5);
 	front.m_indices.push_back(6);
@@ -65,7 +65,7 @@ Polygon3d::Polygon3d(const OBB3& box)
 	m_faces.push_back(front);
 
 	// Left
-	PolygonFace3d left(*this);
+	PolygonFace3d left;
 	left.m_indices.push_back(7);
 	left.m_indices.push_back(6);
 	left.m_indices.push_back(1);
@@ -73,7 +73,7 @@ Polygon3d::Polygon3d(const OBB3& box)
 	m_faces.push_back(left);
 
 	// Right
-	PolygonFace3d right(*this);
+	PolygonFace3d right;
 	right.m_indices.push_back(3);
 	right.m_indices.push_back(2);
 	right.m_indices.push_back(5);
@@ -81,7 +81,7 @@ Polygon3d::Polygon3d(const OBB3& box)
 	m_faces.push_back(right);
 
 	// Bottom
-	PolygonFace3d bottom(*this);
+	PolygonFace3d bottom;
 	bottom.m_indices.push_back(7);
 	bottom.m_indices.push_back(0);
 	bottom.m_indices.push_back(3);
@@ -89,7 +89,7 @@ Polygon3d::Polygon3d(const OBB3& box)
 	m_faces.push_back(bottom);
 
 	// Top
-	PolygonFace3d top(*this);
+	PolygonFace3d top;
 	top.m_indices.push_back(1);
 	top.m_indices.push_back(6);
 	top.m_indices.push_back(5);
@@ -119,6 +119,9 @@ void Polygon3d::GenerateHalfEdgeStructure()
 	ASSERT_OR_DIE(numFaces > 0, "No faces!");
 	ASSERT_OR_DIE(!HasGeneratedHalfEdges(), "Edges already generated!");
 
+	// Create all the edges
+	// Keep a local map for now to help hook up references later
+	std::map<HalfEdgeKey, int> edgeIndexMap;
 	for (int faceIndex = 0; faceIndex < numFaces; ++faceIndex)
 	{
 		PolygonFace3d& face = m_faces[faceIndex];
@@ -132,15 +135,19 @@ void Polygon3d::GenerateHalfEdgeStructure()
 			int vertexIndex1 = face.m_indices[i];
 			int vertexIndex2 = face.m_indices[j];
 
-
-			HalfEdge halfEdge(this);
+			HalfEdge halfEdge;
 			halfEdge.m_faceIndex = faceIndex;
 			halfEdge.m_vertexIndex = vertexIndex1;
 
+			m_edges.push_back(halfEdge);
+
 			HalfEdgeKey edgeKey(vertexIndex1, vertexIndex2);
-			m_edges[edgeKey] = halfEdge;
+			edgeIndexMap[edgeKey] = (int)m_edges.size() - 1;
 		}
 	}
+
+	// Check if this holds true...
+	ASSERT_OR_DIE((int)m_edges.size() == 2 * (numVertices + numFaces - 2), "Euler's Formula failed!");
 
 	// Now that all possible half edges are created, we can begin linking them
 	// Otherwise the map may shift elements around, invalidating all pointers
@@ -149,69 +156,69 @@ void Polygon3d::GenerateHalfEdgeStructure()
 		PolygonFace3d& face = m_faces[faceIndex];
 		int numIndices = (int)face.m_indices.size();
 
-		// Connect the half edges to their mirrored edges
 		for (int i = 0; i < numIndices; ++i)
 		{
 			int j = (i + 1) % numIndices;
 
-			int currIndex = face.m_indices[i];
-			int nextIndex = face.m_indices[j];
+			int vertexIndexI = face.m_indices[i];
+			int vertexIndexJ = face.m_indices[j];
 
-			// Connect the half edges to their mirrors
-			HalfEdgeKey currEdgeKey(currIndex, nextIndex);
-
-			HalfEdge* currHalfEdge = &m_edges[currEdgeKey];
-
-			if (i == 0)
-			{
-				// Connect this face to the first half edge
-				face.m_halfEdge = currHalfEdge;
-			}
-
-			// Connect this vertex to any half edge going out of it
-			// Since multiple faces share this edge, it will get set multiple times, which is fine, so long as it's set
-			m_vertices[currIndex].m_outgoingHalfEdge = currHalfEdge;
+			HalfEdgeKey currEdgeKey(vertexIndexI, vertexIndexJ);
+			int currEdgeIndex = edgeIndexMap.at(currEdgeKey);
+			HalfEdge& currHalfEdge = m_edges[currEdgeIndex];
 
 			// Connect the next/prev edges
-			// Get the next edge
-			int k = (j + 1) % numIndices;
-			int nextNextIndex = face.m_indices[k];
-			HalfEdgeKey nextEdgeKey(nextIndex, nextNextIndex);
-			HalfEdge* nextHalfEdge = &m_edges[nextEdgeKey];
+			{
+				int k = (j + 1) % numIndices;
+				int vertexIndexK = face.m_indices[k];
 
-			// Connect them
-			currHalfEdge->m_nextEdgeKey = nextEdgeKey;
-			nextHalfEdge->m_prevEdgeKey = currEdgeKey;
+				HalfEdgeKey nextEdgeKey(vertexIndexJ, vertexIndexK);
+				int nextEdgeIndex = edgeIndexMap[nextEdgeKey];
+				HalfEdge& nextHalfEdge = m_edges[nextEdgeIndex];
+
+				currHalfEdge.m_nextEdgeIndex = nextEdgeIndex;
+				nextHalfEdge.m_prevEdgeIndex = currEdgeIndex;
+			}
 
 			// Connect mirror edges
-			HalfEdgeKey mirrorEdgeKey(nextIndex, currIndex); // Flipped indices, since it's the mirror of this edge
-			HalfEdge* mirrorHalfEdge = (m_edges.find(mirrorEdgeKey) != m_edges.end() ? &m_edges[mirrorEdgeKey] : nullptr);
-			ASSERT_OR_DIE(mirrorHalfEdge != nullptr, "Mirror edge doesn't exist!");
+			{
+				HalfEdgeKey mirrorEdgeKey(vertexIndexJ, vertexIndexI); // Flipped indices, since it's the mirror of this edge
+				int mirrorEdgeIndex = edgeIndexMap[mirrorEdgeKey];
+				HalfEdge& mirrorHalfEdge = m_edges[mirrorEdgeIndex];
+				currHalfEdge.m_mirrorEdgeIndex = mirrorEdgeIndex;
+				mirrorHalfEdge.m_mirrorEdgeIndex = currEdgeIndex;
+			}
+			
 
-			currHalfEdge->m_mirrorEdgeKey = mirrorEdgeKey;
-			mirrorHalfEdge->m_mirrorEdgeKey = currEdgeKey;
+			// Connect this face to any half edge inside it
+			face.m_halfEdgeIndex = currEdgeIndex;
+
+			// Connect this vertex to any half edge going out of it
+			m_vertices[vertexIndexI].m_halfEdgeIndex = currEdgeIndex;
 		}
 	}
 
 	// Safety checks
-	std::map<HalfEdgeKey, HalfEdge>::const_iterator itr = m_edges.begin();
-	for (itr; itr != m_edges.end(); itr++)
+	int numEdges = (int)m_edges.size();
+	for (int edgeIndex = 0; edgeIndex < numEdges; ++edgeIndex)
 	{
-		ASSERT_OR_DIE(itr->second.m_mirrorEdgeKey != INVALID_HALFEDGE_KEY, "Invalid mirror edge!");
-		ASSERT_OR_DIE(itr->second.m_nextEdgeKey != INVALID_HALFEDGE_KEY, "Invalid next edge!");
-		ASSERT_OR_DIE(itr->second.m_prevEdgeKey != INVALID_HALFEDGE_KEY, "Invalid prev edge!");
-		ASSERT_OR_DIE(itr->second.m_vertexIndex != -1, "Invalid vertex!");
-		ASSERT_OR_DIE(itr->second.m_faceIndex != -1, "Invalid face!");
+		const HalfEdge& currEdge = m_edges[edgeIndex];
+
+		ASSERT_OR_DIE(currEdge.m_mirrorEdgeIndex != -1, "Invalid mirror edge!");
+		ASSERT_OR_DIE(currEdge.m_nextEdgeIndex != -1, "Invalid next edge!");
+		ASSERT_OR_DIE(currEdge.m_prevEdgeIndex != -1, "Invalid prev edge!");
+		ASSERT_OR_DIE(currEdge.m_vertexIndex != -1, "Invalid vertex!");
+		ASSERT_OR_DIE(currEdge.m_faceIndex != -1, "Invalid face!");
 	}
 
 	for (int faceIndex = 0; faceIndex < numFaces; ++faceIndex)
 	{
-		ASSERT_OR_DIE(m_faces[faceIndex].m_halfEdge != nullptr, "Null half edge!");
+		ASSERT_OR_DIE(m_faces[faceIndex].m_halfEdgeIndex != -1, "Invalid half edge!");
 	}
 
 	for (int vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 	{
-		ASSERT_OR_DIE(m_vertices[vertexIndex].m_outgoingHalfEdge != nullptr, "Null half edge!");
+		ASSERT_OR_DIE(m_vertices[vertexIndex].m_halfEdgeIndex != -1, "Invalid half edge!");
 	}
 }
 
@@ -233,7 +240,7 @@ int Polygon3d::AddFace(const std::vector<int>& indices)
 {
 	ASSERT_OR_DIE(!HasGeneratedHalfEdges(), "Cannot edit a Polygon3d after half edges are generated!");
 
-	m_faces.push_back(PolygonFace3d(*this, indices));
+	m_faces.push_back(PolygonFace3d(indices));
 	return (int)(m_faces.size() - 1);
 }
 
@@ -257,16 +264,8 @@ void Polygon3d::GetTransformed(const Matrix44& matrix, Polygon3d& out_polygon) c
 		out_polygon.m_vertices.push_back(PolygonVertex3d(position));
 	}
 
-	int numFaces = (int)m_faces.size();
-	for (int faceIndex = 0; faceIndex < numFaces; ++faceIndex)
-	{
-		out_polygon.m_faces.push_back(PolygonFace3d(out_polygon, m_faces[faceIndex].m_indices));
-	}
-
-	if (HasGeneratedHalfEdges())
-	{
-		out_polygon.GenerateHalfEdgeStructure();
-	}
+	out_polygon.m_faces = m_faces;
+	out_polygon.m_edges = m_edges;
 }
 
 
@@ -285,14 +284,58 @@ const PolygonFace3d* Polygon3d::GetFace(int faceIndex) const
 
 
 //-------------------------------------------------------------------------------------------------
-const HalfEdge* Polygon3d::GetEdge(const HalfEdgeKey& edgeKey) const
+Vector3 Polygon3d::GetFaceNormal(int faceIndex) const
+{
+	const PolygonFace3d* face = GetFace(faceIndex);
+	ASSERT_OR_DIE(face->m_indices.size() > 2, "Not enough vertices!");
+
+	// Get the positions
+	Vector3 a = GetVertexPosition(face->m_indices[0]);
+	Vector3 b = GetVertexPosition(face->m_indices[1]);
+	Vector3 c = GetVertexPosition(face->m_indices[2]);
+
+	return CalculateNormalForTriangle(a, b, c);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Plane3 Polygon3d::GetFaceSupportPlane(int faceIndex) const
+{
+	Vector3 normal = GetFaceNormal(faceIndex);
+
+	// Get a position on the plane
+	const PolygonFace3d* face = GetFace(faceIndex);
+	Vector3 p = GetVertexPosition(face->m_indices[0]);
+
+	// Get the distance between origin and plane
+	float distance = DotProduct(normal, p);
+
+	return Plane3(normal, distance);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+const HalfEdge* Polygon3d::GetEdge(int edgeIndex) const
 {
 	ASSERT_OR_DIE(HasGeneratedHalfEdges(), "No edges!");
+	return &m_edges[edgeIndex];
+}
 
-	bool edgeExists = m_edges.find(edgeKey) != m_edges.end();
-	ASSERT_OR_DIE(edgeExists, "Cannot find edge!");
 
-	return &m_edges.at(edgeKey);
+//-------------------------------------------------------------------------------------------------
+Vector3 Polygon3d::GetEdgeDirection(int edgeIndex) const
+{
+	const HalfEdge* edge = GetEdge(edgeIndex);
+	const HalfEdge* nextEdge = GetEdge(edge->m_nextEdgeIndex);
+
+	return GetVertexPosition(nextEdge->m_vertexIndex) - GetVertexPosition(edge->m_vertexIndex);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector3 Polygon3d::GetEdgeDirectionNormalized(int edgeIndex) const
+{
+	return GetEdgeDirection(edgeIndex).GetNormalized();
 }
 
 
@@ -352,13 +395,15 @@ void Polygon3d::GetAllFacesAdjacentTo(int faceIndex, std::vector<const PolygonFa
 {
 	const PolygonFace3d& face = m_faces[faceIndex];
 
-	const HalfEdge* startingEdge = face.m_halfEdge;
+	const HalfEdge* startingEdge = GetEdge(face.m_halfEdgeIndex);
 	const HalfEdge* currEdge = startingEdge;
 
 	do 
 	{
 		// Get my mirror, then the face my mirror points to
-		const PolygonFace3d* currFace = currEdge->GetMirrorEdge()->GetFace();
+		const HalfEdge* mirrorEdge = GetEdge(currEdge->m_mirrorEdgeIndex);
+		const PolygonFace3d* currFace = GetFace(mirrorEdge->m_faceIndex);
+
 		bool alreadyIncluded = std::find(out_faces.begin(), out_faces.end(), currFace) != out_faces.end();
 
 		if (!alreadyIncluded)
@@ -366,77 +411,9 @@ void Polygon3d::GetAllFacesAdjacentTo(int faceIndex, std::vector<const PolygonFa
 			out_faces.push_back(currFace);
 		}
 		
-		currEdge = currEdge->GetNextEdge();
+		currEdge = GetEdge(currEdge->m_nextEdgeIndex);
 	} 
 	while (currEdge != startingEdge);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-PolygonFace3d::PolygonFace3d(const Polygon3d& polygon)
-	: m_owningPolygon(polygon)
-{
-}
-
-
-//-------------------------------------------------------------------------------------------------
-PolygonFace3d::PolygonFace3d(const Polygon3d& polygon, const std::vector<int> indices)
-	: m_owningPolygon(polygon)
-	, m_indices(indices)
-{
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void PolygonFace3d::AddIndex(int vertexIndex)
-{
-	bool alreadyExists = std::find(m_indices.begin(), m_indices.end(), vertexIndex) != m_indices.end();
-	ASSERT_OR_DIE(!alreadyExists, "Duplicate index!");
-	
-	m_indices.push_back(vertexIndex);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void PolygonFace3d::SetIndices(const std::vector<int>& indices)
-{
-	m_indices = indices;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-Vector3 PolygonFace3d::GetVertex(int vertexIndex) const
-{
-	return m_owningPolygon.GetVertexPosition(m_indices[vertexIndex]);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-Plane3 PolygonFace3d::GetSupportPlane() const
-{
-	Vector3 normal = GetNormal();
-
-	// Get a position on the plane
-	Vector3 a = m_owningPolygon.GetVertexPosition(m_indices[0]);
-
-	// Get the distance between origin and plane
-	float distance = DotProduct(normal, a);
-
-	return Plane3(normal, distance);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-Vector3 PolygonFace3d::GetNormal() const
-{
-	ASSERT_OR_DIE(m_indices.size() >= 3, "Cannot get the plane without at least 3 points!");
-
-	// Get the positions
-	Vector3 a = GetVertex(0);
-	Vector3 b = GetVertex(1);
-	Vector3 c = GetVertex(2);
-
-	return CalculateNormalForTriangle(a, b, c);
 }
 
 
@@ -444,63 +421,29 @@ Vector3 PolygonFace3d::GetNormal() const
 UniqueHalfEdgeIterator::UniqueHalfEdgeIterator(const Polygon3d& polygon)
 	: m_polygon(polygon)
 {
-	m_edgeIter = m_polygon.m_edges.begin();
 }
 
 
 //-------------------------------------------------------------------------------------------------
 const HalfEdge* UniqueHalfEdgeIterator::GetNext()
 {
-	while (m_visitedList.size() < m_polygon.m_edges.size())
+	for (m_currIndex; m_currIndex < m_polygon.GetNumEdges(); ++m_currIndex)
 	{
 		// Get the next edge
-		const HalfEdge* currEdge = &m_edgeIter->second;
-		m_edgeIter++;
-
-		// Check if this edge has already been visited...which should never happen, half edges should uniquely exist
-#ifndef DISABLE_ASSERTS
-		ASSERT_OR_DIE(std::find(m_visitedList.begin(), m_visitedList.end(), currEdge) != m_visitedList.end(), "Duplicate edge!");
-#endif
+		const HalfEdge* currEdge = m_polygon.GetEdge(m_currIndex);
 
 		// Check if this edge's mirror has been visited already
-		bool mirrorVisited = std::find(m_visitedList.begin(), m_visitedList.end(), currEdge->GetMirrorEdge()) != m_visitedList.end();
+		bool mirrorVisited = std::find(m_visitedList.begin(), m_visitedList.end(), currEdge->m_mirrorEdgeIndex) != m_visitedList.end();
 
 		if (!mirrorVisited)
 		{
-			m_visitedList.push_back(currEdge);
-			m_visitedList.push_back(currEdge->GetMirrorEdge());
+			m_visitedList.push_back(m_currIndex);
+			m_visitedList.push_back(currEdge->m_mirrorEdgeIndex);
+			++m_currIndex;
+
 			return currEdge;
 		}
 	}
 
 	return nullptr;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-Vector3 HalfEdge::GetStartPosition() const
-{
-	return m_owningPolygon->GetVertexPosition(m_vertexIndex);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-Vector3 HalfEdge::GetEndPosition() const
-{
-	const HalfEdge* nextEdge = m_owningPolygon->GetEdge(m_nextEdgeKey);
-	return nextEdge->GetStartPosition();
-}
-
-
-//-------------------------------------------------------------------------------------------------
-Vector3 HalfEdge::GetAsVector() const
-{
-	return (GetEndPosition() - GetStartPosition());
-}
-
-
-//-------------------------------------------------------------------------------------------------
-Vector3 HalfEdge::GetAsNormalizedVector() const
-{
-	return GetAsVector().GetNormalized();
 }

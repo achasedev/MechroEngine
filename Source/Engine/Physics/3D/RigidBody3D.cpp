@@ -66,15 +66,15 @@ void RigidBody3D::CalculateCenterOfMass()
 	{
 		// Iterate across all the vertices of the face
 		const PolygonFace3d* face = m_shapeLs->GetFace(faceIndex);
-		int numVerticesInFace = face->GetNumVertices();
+		int numVerticesInFace = (int)face->m_indices.size();
 
 		Vector3 origin = Vector3::ZERO;
-		Vector3 a = face->GetVertex(0);
+		Vector3 a = m_shapeLs->GetVertex(face->m_indices[0])->m_position;
 
-		for (int vertexIndex = 1; vertexIndex < numVerticesInFace - 1; ++vertexIndex)
+		for (int faceVertexIndex = 1; faceVertexIndex < numVerticesInFace - 1; ++faceVertexIndex)
 		{
-			Vector3 b = face->GetVertex(vertexIndex);
-			Vector3 c = face->GetVertex(vertexIndex + 1);
+			Vector3 b = m_shapeLs->GetVertexPosition(face->m_indices[faceVertexIndex]);
+			Vector3 c = m_shapeLs->GetVertexPosition(face->m_indices[faceVertexIndex + 1]);
 
 			float currVolume = CalculateVolumeOfTetrahedron(a, b, c, origin);
 			Vector3 currCenter = 0.25f * (a + b + c + origin);

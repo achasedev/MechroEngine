@@ -448,14 +448,17 @@ void RenderContext::DrawWirePolygon3D(const Polygon3d& polygon, Material* materi
 	{
 		const PolygonFace3d* face = polygon.GetFace(faceIndex);
 
-		int numVertices = face->GetNumVertices();
+		int numVertsInFace = (int)face->m_indices.size();
 
-		for (int vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
+		for (int faceVertexIndex = 0; faceVertexIndex < numVertsInFace; ++faceVertexIndex)
 		{
-			int nextVertexIndex = (vertexIndex + 1) % numVertices;
+			int nextVertexIndex = (faceVertexIndex + 1) % numVertsInFace;
 
-			vertices.push_back(Vertex3D_PCU(face->GetVertex(vertexIndex), color, Vector2::ZERO));
-			vertices.push_back(Vertex3D_PCU(face->GetVertex(nextVertexIndex), color, Vector2::ZERO));
+			Vector3 pos1 = polygon.GetVertexPosition(face->m_indices[faceVertexIndex]);
+			Vector3 pos2 = polygon.GetVertexPosition(face->m_indices[nextVertexIndex]);
+
+			vertices.push_back(Vertex3D_PCU(pos1, color, Vector2::ZERO));
+			vertices.push_back(Vertex3D_PCU(pos2, color, Vector2::ZERO));
 		}
 	}
 
