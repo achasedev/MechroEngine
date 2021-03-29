@@ -326,9 +326,18 @@ const HalfEdge* Polygon3d::GetEdge(int edgeIndex) const
 Vector3 Polygon3d::GetEdgeDirection(int edgeIndex) const
 {
 	const HalfEdge* edge = GetEdge(edgeIndex);
-	const HalfEdge* nextEdge = GetEdge(edge->m_nextEdgeIndex);
+	return GetEdgeDirection(edge);
+}
 
-	return GetVertexPosition(nextEdge->m_vertexIndex) - GetVertexPosition(edge->m_vertexIndex);
+
+//-------------------------------------------------------------------------------------------------
+Vector3 Polygon3d::GetEdgeDirection(const HalfEdge* edge) const
+{
+	Vector3 start = GetVertexPosition(edge->m_vertexIndex);
+	const HalfEdge* nextEdge = GetEdge(edge->m_nextEdgeIndex);
+	Vector3 end = GetVertexPosition(nextEdge->m_vertexIndex);
+
+	return (end - start);
 }
 
 

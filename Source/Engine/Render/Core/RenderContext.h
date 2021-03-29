@@ -29,6 +29,7 @@ class Material;
 class Matrix44;
 class Mesh;
 class OBB2;
+class Plane3;
 class Polygon2D;
 class Polygon3d;
 class Renderable;
@@ -98,6 +99,7 @@ public:
 	void								DrawWirePolygon2D(const Polygon2D& polygon, Material* material, const Rgba& color = Rgba::WHITE);
 	void								DrawWirePolygon3D(const Polygon3d& polygon, Material* material, const Rgba& color = Rgba::WHITE);
 	void								DrawWireOBB2D(const OBB2& obb, Material* material, const Rgba& color = Rgba::WHITE);
+	void								DrawPlane3(const Plane3& plane, Material* material, const Rgba& color = Rgba::WHITE);
 
 	void								SaveTextureToImage(Texture2D* texture, const char* filepath);
 

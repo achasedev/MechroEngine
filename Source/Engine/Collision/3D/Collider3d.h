@@ -132,11 +132,11 @@ public:
 	const Polygon3d*	GetLocalShape() const;
 	const Polygon3d*	GetWorldShape();
 
+	virtual void		GenerateWorldShape() override;
 
 protected:
 	//-----Protected Methods-----
 
-	virtual void		GenerateWorldShape() override;
 
 
 protected:

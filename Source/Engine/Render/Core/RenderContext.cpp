@@ -26,6 +26,7 @@
 #include "Engine/Render/Core/RenderContext.h"
 #include "Engine/Render/Material.h"
 #include "Engine/Render/Mesh/Mesh.h"
+#include "Engine/Render/Mesh/MeshBuilder.h"
 #include "Engine/Render/Mesh/Vertex.h"
 #include "Engine/Render/Sampler.h"
 #include "Engine/Render/Shader.h"
@@ -490,6 +491,28 @@ void RenderContext::DrawWireOBB2D(const OBB2& obb, Material* material, const Rgb
 	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 	DrawVertexArray(vertices.data(), (uint32)vertices.size(), nullptr, 0U, material);
 	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RenderContext::DrawPlane3(const Plane3& plane, Material* material, const Rgba& color /*= Rgba::WHITE*/)
+{
+	MeshBuilder mb;
+	mb.BeginBuilding(true);
+
+	Vector3 position = plane.GetNormal() * plane.GetDistance();
+	Vector3 right = CrossProduct(Vector3::Y_AXIS, plane.GetNormal());
+	Vector3 up = CrossProduct(plane.GetNormal(), right);
+
+	mb.PushQuad3D(position, Vector2(5.f), AABB2::ZERO_TO_ONE, color, right, up);
+	mb.PushQuad3D(position, Vector2(5.f), AABB2::ZERO_TO_ONE, color, -1.0f * right, up);
+	mb.FinishBuilding();
+
+	mb.UpdateMesh<Vertex3D_PCU>(m_immediateMesh);
+	DrawMeshWithMaterial(m_immediateMesh, material);
+
+	// Draw the normal
+	DrawLine3D(position, position + plane.GetNormal(), material, Rgba::GREEN);
 }
 
 

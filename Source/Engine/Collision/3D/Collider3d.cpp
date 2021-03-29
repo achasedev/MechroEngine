@@ -61,6 +61,7 @@ void PolytopeCollider3d::DebugRender(Material* material, const Rgba& color)
 {
 	// Debug render in world space
 	g_renderContext->DrawWirePolygon3D(m_shapeWs, material, color);
+	g_renderContext->DrawPoint3D(m_shapeWs.GetCenter(), 0.1f, material, Rgba::YELLOW);
 }
 
 

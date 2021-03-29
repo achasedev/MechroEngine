@@ -252,6 +252,92 @@ float SolvePartialSAT(const Polygon3d* a, const Polygon3d* b, int& out_faceIndex
 	return maxDistance;
 }
 
+//-------------------------------------------------------------------------------------------------
+float SolveEdgeSAT(const Polygon3d* a, const Polygon3d* b, Plane3& out_bestPlane)
+{
+	UniqueHalfEdgeIterator edgeAIter(*a);
+	const HalfEdge* edgeA = edgeAIter.GetNext();
+
+	float maxDistance = 0.f;
+	bool firstIteration = true;
+
+	while (edgeA != nullptr)
+	{
+		Vector3 directionA = a->GetEdgeDirection(edgeA);
+		Vector3 outwardDirA = a->GetVertexPosition(edgeA->m_vertexIndex) - a->GetCenter();
+
+		UniqueHalfEdgeIterator edgeBIter(*b);
+		const HalfEdge* edgeB = edgeBIter.GetNext();
+
+		while (edgeB != nullptr)
+		{
+			Vector3 aStart = a->GetVertexPosition(edgeA->m_vertexIndex);
+			Vector3 aEnd = a->GetVertexPosition(a->GetEdge(edgeA->m_nextEdgeIndex)->m_vertexIndex);
+			Vector3 bStart = b->GetVertexPosition(edgeB->m_vertexIndex);
+			Vector3 bEnd = b->GetVertexPosition(b->GetEdge(edgeB->m_nextEdgeIndex)->m_vertexIndex);
+
+			Vector3 aDir = aEnd - aStart;
+			Vector3 bDir = bEnd - bStart;
+
+			Vector3 directionB = b->GetEdgeDirection(edgeB);
+
+			Vector3 normal = CrossProduct(directionA, directionB);
+
+			if (AreMostlyEqual(normal.GetLengthSquared(), 0.f))
+			{
+				edgeB = edgeBIter.GetNext();
+				continue;
+			}
+			else
+			{
+				normal.Normalize();
+			}
+
+			// Ensure the normal points away from A
+			if (AreMostlyEqual(DotProduct(normal, outwardDirA), 0.f))
+			{
+				edgeB = edgeBIter.GetNext();
+				continue;
+			}
+			else if (DotProduct(normal, outwardDirA) < 0.f)
+			{
+				normal *= -1.0f;
+			}
+
+			// Make a plane on the edge of A facing outward from A
+			Plane3 plane(normal, a->GetVertexPosition(edgeA->m_vertexIndex));
+
+			Vector3 supportA;
+			a->GetSupportPoint(normal, supportA);
+			float distanceA = plane.GetDistanceFromPlane(supportA);
+
+			if (distanceA > 0.f)
+			{
+				edgeB = edgeBIter.GetNext();
+				continue;
+			}
+
+			// Get the vertex in B that would be furthest against the normal (if anything will be behind this plane, it would be that point)
+			Vector3 supportB;
+			b->GetSupportPoint(-1.0f * normal, supportB);
+			float distance = plane.GetDistanceFromPlane(supportB);
+
+			if (firstIteration || distance > maxDistance)
+			{
+				maxDistance = distance;
+				out_bestPlane = plane;
+				firstIteration = false;
+			}
+
+			edgeB = edgeBIter.GetNext();
+		}
+
+		edgeA = edgeAIter.GetNext();
+	}
+
+	return maxDistance;
+}
+
 
 //-------------------------------------------------------------------------------------------------
 BroadphaseResult3d CollisionUtils3d::Collide(PolytopeCollider3d* colA, PolytopeCollider3d* colB)
@@ -263,53 +349,44 @@ BroadphaseResult3d CollisionUtils3d::Collide(PolytopeCollider3d* colA, PolytopeC
 	int bestBFaceIndex = -1;
 
 	float aOntoBDistance = SolvePartialSAT(worldShapeA, worldShapeB, bestAFaceIndex);
+
+	if (aOntoBDistance > 0.f)
+		return BroadphaseResult3d(false);
+
 	float bOntoADistance = SolvePartialSAT(worldShapeB, worldShapeA, bestBFaceIndex);
 
-	BroadphaseResult3d result;
-	if (aOntoBDistance < 0.f && bOntoADistance < 0.f)
+	if (bOntoADistance > 0.f)
+		return BroadphaseResult3d(false);
+
+	Plane3 bestPlane;
+	float edgeDistance = SolveEdgeSAT(worldShapeA, worldShapeB, bestPlane);
+
+	if (edgeDistance > 0.f)
+		return BroadphaseResult3d(false);
+
+	// No gaps exist on face normals or edges, so the min distance will be our min pen
+	BroadphaseResult3d result(true);
+	float penOnFaceA = Abs(aOntoBDistance);
+	float penOnFaceB = Abs(bOntoADistance);
+	float penOnEdge = Abs(edgeDistance);
+	result.m_penetration = Min(penOnFaceA, penOnFaceB, penOnEdge);
+
+	if (result.m_penetration == penOnFaceA)
 	{
-		result.m_collisionFound = true;
-
-		float penOnAAxis = Abs(aOntoBDistance);
-		float penOnBAxis = Abs(bOntoADistance);
-
-		if (penOnAAxis < penOnBAxis)
-		{
-			result.m_penetration = penOnAAxis;
-			result.m_direction = worldShapeA->GetFaceNormal(bestAFaceIndex);
-		}
-		else
-		{
-			result.m_penetration = penOnBAxis;
-			result.m_direction = -1.0f * worldShapeB->GetFaceNormal(bestBFaceIndex); // Flip the axis so it points from A to B
-		}
-	
-		return result;
+		result.m_direction = worldShapeA->GetFaceNormal(bestAFaceIndex);
+		result.m_position = worldShapeA->GetFaceSupportPlane(bestAFaceIndex).GetDistance() * worldShapeA->GetFaceSupportPlane(bestAFaceIndex).GetNormal();
 	}
-
-	// TODO: Edges
-	//UniqueHalfEdgeIterator edgeAIter(*worldShapeA);
-
-	//const HalfEdge* currEdgeA = edgeAIter.GetNext();
-
-	//while (currEdgeA != nullptr)
-	//{
-	//	UniqueHalfEdgeIterator edgeBIter(*worldShapeB);
-	//	const HalfEdge* currEdgeB = edgeBIter.GetNext();
-
-	//	while (currEdgeB != nullptr)
-	//	{
-	//		Vector3 normal = CrossProduct(currEdgeA->GetAsVector(), currEdgeB->GetAsVector).GetNormalized();
-	//		Plane3 plane(normal, currEdgeA->m_vertex->m_position);
-
-
-
-	//		currEdgeB = edgeBIter.GetNext();
-	//	}
-
-	//	currEdgeA = edgeAIter.GetNext();
-	//}
-
+	else if (result.m_penetration == penOnFaceB)
+	{
+		result.m_direction = -1.0f * worldShapeB->GetFaceNormal(bestBFaceIndex); // Flip the axis so it points from A to B
+		result.m_position = worldShapeB->GetFaceSupportPlane(bestBFaceIndex).GetDistance() * worldShapeB->GetFaceSupportPlane(bestBFaceIndex).GetNormal();
+	}
+	else
+	{
+		result.m_direction = bestPlane.GetNormal();
+		result.m_position = bestPlane.GetDistance() * bestPlane.GetNormal();
+	}
+	
 	return result;
 }
 

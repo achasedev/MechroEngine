@@ -21,9 +21,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Material;
 class OBB3;
-class Transform;
 
 //-------------------------------------------------------------------------------------------------
 struct PolygonVertex3d
@@ -87,31 +85,28 @@ public:
 	int						AddFace(const std::vector<int>& indices);
 
 	// Vertices
+	int						GetNumVertices() const { return (int)m_vertices.size(); }
 	const PolygonVertex3d*	GetVertex(int vertexIndex) const;
 	Vector3					GetVertexPosition(int vertexIndex) const;
+	int						GetSupportPoint(const Vector3& direction, Vector3& out_vertex) const;
 
 	// Faces
 	int						GetNumFaces() const { return (int)m_faces.size(); }
 	const PolygonFace3d*	GetFace(int faceIndex) const;
 	Vector3					GetFaceNormal(int faceIndex) const;
 	Plane3					GetFaceSupportPlane(int faceIndex) const;
+	void					GetAllFacesAdjacentTo(int faceIndex, std::vector<const PolygonFace3d*>& out_faces) const;
 
 	// Edges
 	int						GetNumEdges() const { return (int)m_edges.size(); }
 	const HalfEdge*			GetEdge(int edgeIndex) const;
 	Vector3					GetEdgeDirection(int edgeIndex) const;
+	Vector3					GetEdgeDirection(const HalfEdge* edge) const;
 	Vector3					GetEdgeDirectionNormalized(int edgeIndex) const;
-
 	bool					HasGeneratedHalfEdges() const { return m_edges.size() > 0; }
+
 	void					GetTransformed(const Matrix44& matrix, Polygon3d& out_polygon) const;
 	Vector3					GetCenter() const;
-	int						GetNumVertices() const { return (int)m_vertices.size(); }
-	int						GetSupportPoint(const Vector3& direction, Vector3& out_vertex) const;
-	void					GetAllFacesAdjacentTo(int faceIndex, std::vector<const PolygonFace3d*>& out_faces) const;
-
-
-private:
-	//-----Private Methods-----
 
 
 private:

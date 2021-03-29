@@ -183,7 +183,7 @@ void ContactManifold3d::GenerateContacts()
 	}
 }
 
-
+#include "Engine/Render/Core/RenderContext.h"
 //-------------------------------------------------------------------------------------------------
 void ContactManifold3d::DebugRender(Material* material) const
 {
@@ -191,4 +191,7 @@ void ContactManifold3d::DebugRender(Material* material) const
 
 	m_colA->DebugRender(material, color);
 	m_colB->DebugRender(material, color * 0.5f);
+
+	Plane3 plane(m_broadphaseResult.m_direction * m_broadphaseResult.m_penetration, m_broadphaseResult.m_position);
+	g_renderContext->DrawPlane3(plane, material, Rgba(255, 255, 255, 100));
 }
