@@ -231,7 +231,18 @@ int CollisionUtils3d::CalculateContacts(PolytopeCollider3d* colA, PolytopeCollid
 	}
 	else
 	{
+		Vector3 refEdgeStart, refEdgeEnd, incEdgeStart, incEdgeEnd;
+		refShape->GetEdgeEndPoints(broadResult.m_refEdgeIndex, refEdgeStart, refEdgeEnd);
+		incShape->GetEdgeEndPoints(broadResult.m_incEdgeIndex, incEdgeStart, incEdgeEnd);
+
 		// Edge contact collision
+		Vector3 refEdgePoint;
+		Vector3 incEdgePoint;
+		float separation = FindClosestPointsOnLineSegments(refEdgeStart, refEdgeEnd, incEdgeStart, incEdgeEnd, refEdgePoint, incEdgePoint);
+		//ASSERT_OR_DIE(AreMostlyEqual(separation, broadResult.m_penetration), "These should match!");
+
+		// Choose the contact point to be in the middle of these two points
+		finalPositions.push_back(0.5f * (refEdgePoint + incEdgePoint));
 	}
 
 	ASSERT_OR_DIE(finalPositions.size() <= ContactManifold3d::MAX_CONTACTS, "Too many contacts!");
@@ -412,15 +423,27 @@ float SolveEdgeSAT(const Polygon3d* a, const Polygon3d* b, Vector3& out_directio
 			a->GetSupportPoint(normal, supportA);
 			float distanceA = plane.GetDistanceFromPlane(supportA);
 
+			// If the plane is in the middle of A, just skip it
 			if (distanceA > 0.f)
+			{
+				edgeB = edgeBIter.GetNext();
+				continue;
+			}	
+
+			// Get the vertex in B that would be furthest against the normal (if anything will be behind this plane, it would be that point)
+			Vector3 supportB;
+			b->GetSupportPoint(-1.0f * normal, supportB);
+
+			// If the plane is in the middle of B, just skip it
+			Plane3 planeInB(normal, b->GetVertexPosition(edgeB->m_vertexIndex));
+			float distanceWithinB = planeInB.GetDistanceFromPlane(supportB);
+
+			if (!AreMostlyEqual(distanceWithinB, 0.f))
 			{
 				edgeB = edgeBIter.GetNext();
 				continue;
 			}
 
-			// Get the vertex in B that would be furthest against the normal (if anything will be behind this plane, it would be that point)
-			Vector3 supportB;
-			b->GetSupportPoint(-1.0f * normal, supportB);
 			float distance = plane.GetDistanceFromPlane(supportB);
 
 			if (firstIteration || distance > maxDistance)
@@ -486,14 +509,18 @@ BroadphaseResult3d CollisionUtils3d::Collide(PolytopeCollider3d* colA, PolytopeC
 	}
 	else if (result.m_penetration == penOnFaceB)
 	{
-		result.m_direction = -1.0f * worldShapeB->GetFaceNormal(bestFaceIndexB); // Flip the axis so it points from A to B
+		result.m_direction = worldShapeB->GetFaceNormal(bestFaceIndexB); // Flip the axis so it points from A to B
 		result.m_isFaceCollision = true;
-		result.m_refFaceIndex = bestFaceIndexA;
+		result.m_refFaceIndex = bestFaceIndexB;
 		result.m_refCol = colB;
 		result.m_incCol = colA;
 	}
 	else
 	{
+		Vector3 as, ae, bs, be;
+		worldShapeA->GetEdgeEndPoints(edgeIndexA, as, ae);
+		worldShapeB->GetEdgeEndPoints(edgeIndexB, bs, be);
+
 		result.m_direction = edgeDir;
 		result.m_isFaceCollision = false;
 		result.m_refCol = colA; // Since we put the normal created from Cross(edgeA, edgeB) on edge A

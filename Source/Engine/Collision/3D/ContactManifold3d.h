@@ -95,6 +95,8 @@ public:
 	const Collider3d*		GetColliderB() const { return m_colB; }
 	Entity*					GetEntityA() const { return m_colA->GetOwningEntity(); }
 	Entity*					GetEntityB() const { return m_colB->GetOwningEntity(); }
+	Entity*					GetReferenceEntity() const;
+	Entity*					GetIncidentEntity() const;
 
 
 public:

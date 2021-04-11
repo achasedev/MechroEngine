@@ -197,7 +197,7 @@ Vector2 RotatePointAboutPoint2D(const Vector2& pointToRotate, const Vector2& poi
 float	CalculateVolumeOfTetrahedron(const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& d);
 Vector3 SolveLinePlaneIntersection(const Line3& line, const Plane3& plane);
 float	GetClosestPointOnLineSegment(const Vector3& start, const Vector3& end, const Vector3& point, Vector3& out_closestPoint);
-
+float	FindClosestPointsOnLineSegments(const Vector3& startA, const Vector3& endA, const Vector3& startB, const Vector3& endB, Vector3& out_pointOnA, Vector3& out_pointOnB);
 
 //-------------------------------------------------------------------------------------------------
 // Templates

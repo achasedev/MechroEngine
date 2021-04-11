@@ -188,9 +188,11 @@ void ContactManifold3d::GenerateContacts()
 void ContactManifold3d::DebugRender(Material* material) const
 {
 	Rgba color = (m_broadphaseResult.m_collisionFound ? Rgba::RED : Rgba::WHITE);
+	float aColorScale = (m_colA == m_broadphaseResult.m_refCol ? 1.0f : 0.5f);
+	float bColorScale = (m_colB == m_broadphaseResult.m_refCol ? 1.0f : 0.5f);
 
-	m_colA->DebugRender(material, color);
-	m_colB->DebugRender(material, color * 0.5f);
+	m_colA->DebugRender(material, color * aColorScale);
+	m_colB->DebugRender(material, color * bColorScale);
 
 	if (m_numContacts > 0)
 	{
@@ -200,4 +202,24 @@ void ContactManifold3d::DebugRender(Material* material) const
 			g_renderContext->DrawLine3D(m_contacts[contactIndex].m_position, m_contacts[contactIndex].m_position + 0.25f * m_contacts[contactIndex].m_normal, material, Rgba::GREEN);
 		}
 	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Entity* ContactManifold3d::GetReferenceEntity() const
+{
+	if (!m_broadphaseResult.m_collisionFound)
+		return nullptr;
+	
+	return m_broadphaseResult.m_refCol->GetOwningEntity();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Entity* ContactManifold3d::GetIncidentEntity() const
+{
+	if (!m_broadphaseResult.m_collisionFound)
+		return nullptr;
+
+	return m_broadphaseResult.m_incCol->GetOwningEntity();
 }

@@ -1187,6 +1187,38 @@ float GetClosestPointOnLineSegment(const Vector3& start, const Vector3& end, con
 }
 
 
+//-------------------------------------------------------------------------------------------------
+float FindClosestPointsOnLineSegments(const Vector3& startA, const Vector3& endA, const Vector3& startB, const Vector3& endB, Vector3& out_pointOnA, Vector3& out_pointOnB)
+{
+	// Make a plane on startB with normal of B
+	Vector3 normal = (endB - startB).GetNormalized();
+	Plane3 plane(normal, startB);
+
+	// Project A's endpoints onto the plane
+	Vector3 inPlaneStartA = plane.GetProjectedPointOntoPlane(startA);
+	Vector3 inPlaneEndA = plane.GetProjectedPointOntoPlane(endA);
+
+	// Find the T value for A's closest point - since we're in startB's plane, startB will be the closest point
+	Vector3 inPlaneA = inPlaneEndA - inPlaneStartA;
+	float tA = DotProduct(startB - inPlaneStartA, inPlaneA) / DotProduct(inPlaneA, inPlaneA);	
+	
+	// If A and B are parallel, just use t == 0
+	if (inPlaneA == Vector3::ZERO)
+	{
+		tA = 0;
+	}
+
+	// Clamp tA to the segment
+	tA = Clamp(tA, 0.f, 1.0f);
+
+	// Find the closest point on A
+	out_pointOnA = Interpolate(startA, endA, tA);
+
+	// Find the closest point on B to this point on A
+	return GetClosestPointOnLineSegment(startB, endB, out_pointOnA, out_pointOnB);
+}
+
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

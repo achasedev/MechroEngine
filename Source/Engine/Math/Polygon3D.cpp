@@ -385,6 +385,17 @@ Vector3 Polygon3d::GetEdgeDirection(const HalfEdge* edge) const
 
 
 //-------------------------------------------------------------------------------------------------
+void Polygon3d::GetEdgeEndPoints(int edgeIndex, Vector3& out_start, Vector3& out_end) const
+{
+	const HalfEdge* edge = GetEdge(edgeIndex);
+	const HalfEdge* nextEdge = GetEdge(edge->m_nextEdgeIndex);
+
+	out_start = GetVertexPosition(edge->m_vertexIndex);
+	out_end = GetVertexPosition(nextEdge->m_vertexIndex);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 Vector3 Polygon3d::GetEdgeDirectionNormalized(int edgeIndex) const
 {
 	return GetEdgeDirection(edgeIndex).GetNormalized();
