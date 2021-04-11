@@ -97,8 +97,8 @@ public:
 	Entity*					GetEntityB() const { return m_colB->GetOwningEntity(); }
 
 
-private:
-	//-----Private Static Data-----
+public:
+	//-----Public Static Data-----
 
 	static constexpr int	MAX_CONTACTS = 8;
 

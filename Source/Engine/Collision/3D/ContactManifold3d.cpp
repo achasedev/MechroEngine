@@ -192,6 +192,12 @@ void ContactManifold3d::DebugRender(Material* material) const
 	m_colA->DebugRender(material, color);
 	m_colB->DebugRender(material, color * 0.5f);
 
-	Plane3 plane(m_broadphaseResult.m_direction * m_broadphaseResult.m_penetration, m_broadphaseResult.m_position);
-	g_renderContext->DrawPlane3(plane, material, Rgba(255, 255, 255, 100));
+	if (m_numContacts > 0)
+	{
+		for (int contactIndex = 0; contactIndex < m_numContacts; ++contactIndex)
+		{
+			g_renderContext->DrawPoint3D(m_contacts[contactIndex].m_position, 0.10f, material, Rgba::YELLOW);
+			g_renderContext->DrawLine3D(m_contacts[contactIndex].m_position, m_contacts[contactIndex].m_position + 0.25f * m_contacts[contactIndex].m_normal, material, Rgba::GREEN);
+		}
+	}
 }

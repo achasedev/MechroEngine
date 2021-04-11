@@ -51,6 +51,7 @@ struct PolygonFace3d
 //-------------------------------------------------------------------------------------------------
 struct HalfEdge
 {
+	int m_edgeIndex = -1;
 	int	m_mirrorEdgeIndex = -1;
 	int	m_nextEdgeIndex = -1;
 	int	m_prevEdgeIndex = -1;
@@ -88,14 +89,17 @@ public:
 	int						GetNumVertices() const { return (int)m_vertices.size(); }
 	const PolygonVertex3d*	GetVertex(int vertexIndex) const;
 	Vector3					GetVertexPosition(int vertexIndex) const;
+	void					GetAllVerticesInFace(int faceIndex, std::vector<Vector3>& out_vertices) const;
 	int						GetSupportPoint(const Vector3& direction, Vector3& out_vertex) const;
 
 	// Faces
 	int						GetNumFaces() const { return (int)m_faces.size(); }
 	const PolygonFace3d*	GetFace(int faceIndex) const;
+	int						GetIndexOfFaceMostInDirection(const Vector3& direction) const;
 	Vector3					GetFaceNormal(int faceIndex) const;
 	Plane3					GetFaceSupportPlane(int faceIndex) const;
 	void					GetAllFacesAdjacentTo(int faceIndex, std::vector<const PolygonFace3d*>& out_faces) const;
+	void					GetAllSidePlanesForFace(int faceIndex, std::vector<Plane3>& out_planes) const;
 
 	// Edges
 	int						GetNumEdges() const { return (int)m_edges.size(); }

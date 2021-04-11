@@ -29,7 +29,16 @@ struct BroadphaseResult3d
 	bool	m_collisionFound = false;
 	Vector3 m_direction = Vector3::ZERO;
 	float	m_penetration = FLT_MAX;
-	Vector3 m_position;
+
+	// Polytope
+	bool				m_isFaceCollision = false;
+	const Collider3d*	m_refCol = nullptr;
+	const Collider3d*	m_incCol = nullptr;
+	int					m_refFaceIndex = -1;
+	int					m_incFaceIndex = -1;
+	int					m_refEdgeIndex = -1;
+	int					m_incEdgeIndex = -1;
+
 };
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

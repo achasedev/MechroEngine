@@ -136,11 +136,112 @@ int CollisionUtils3d::CalculateContacts(SphereCollider3d* colA, CapsuleCollider3
 //-------------------------------------------------------------------------------------------------
 int CollisionUtils3d::CalculateContacts(PolytopeCollider3d* colA, PolytopeCollider3d* colB, const BroadphaseResult3d& broadResult, ContactPoint3D* out_contacts)
 {
-	UNIMPLEMENTED();
-	UNUSED(colA);
-	UNUSED(colB);
-	UNUSED(broadResult);
-	UNUSED(out_contacts);
+	const PolytopeCollider3d* refCol = broadResult.m_refCol->GetAsType<PolytopeCollider3d>();
+	const PolytopeCollider3d* incCol = broadResult.m_incCol->GetAsType<PolytopeCollider3d>();
+
+	const Polygon3d* refShape = refCol->GetWorldShape();
+	const Polygon3d* incShape = incCol->GetWorldShape();
+
+	std::vector<Vector3> finalPositions;
+
+	if (broadResult.m_isFaceCollision)
+	{
+		// Get all the side planes to the reference face
+		// These are all planes that
+		// - Positioned on each edge of the reference face
+		// - Perpendicular to the reference face plane
+		// - Point outward
+		std::vector<Plane3> refSidePlanes;
+		refShape->GetAllSidePlanesForFace(broadResult.m_refFaceIndex, refSidePlanes);
+
+		// Choose the incident face
+		// The incident face is the face who's normal is mostly against the reference face's normal
+		int incFaceIndex = incShape->GetIndexOfFaceMostInDirection(-1.0f * broadResult.m_direction);
+		const PolygonFace3d* incFace = incShape->GetFace(incFaceIndex);
+
+		// Get all the vertices in the incident face to be clipped
+		incShape->GetAllVerticesInFace(incFaceIndex, finalPositions);
+
+		// Clip the incident vertices against the reference side planes using Sutherland Hodgman clipping
+		std::vector<Vector3> input; // Need a staging vector for each iteration, as we can't change points in the middle of an iteration
+
+		// Iterate over all the side planes that will clip the incident face
+		int numSidePlanes = (int) refSidePlanes.size();
+		for (int sidePlaneIndex = 0; sidePlaneIndex < (int)refSidePlanes.size(); ++sidePlaneIndex)
+		{
+			Plane3& plane = refSidePlanes[sidePlaneIndex];
+
+			input = finalPositions;
+			finalPositions.clear();
+
+			// For each "edge starting" incident face vertex, find out how to push the end vertex in...
+			for (int posIndex = 0; posIndex < (int)input.size(); ++posIndex)
+			{
+				// Get the edge as points
+				Vector3 start = input[posIndex];
+				Vector3 end = input[(posIndex + 1) % input.size()];
+
+				// Check the end points for this plane
+				bool startInside = plane.IsPointBehind(start);
+				bool endInside = plane.IsPointBehind(end);
+
+				if (startInside)
+				{
+					if (endInside)
+					{
+						// Edge is totally inside this plane, so just push the end point as is
+						finalPositions.push_back(end);
+					}
+					else
+					{
+						// Starts inside, ends outside, so clip the end point along the edge until it meets the plane
+						Line3 line(start, end - start);
+
+						Vector3 intersection = SolveLinePlaneIntersection(line, plane);
+						finalPositions.push_back(intersection);
+					}
+				}
+				else if (endInside)
+				{
+					// Starts outside, but ends inside, so we clip by moving the end point back along the edge to the plane...
+					Line3 line(start, end - start);
+
+					Vector3 intersection = SolveLinePlaneIntersection(line, plane);
+					finalPositions.push_back(intersection);
+
+					// ...and also add the end itself, since it's inside and needs to be kept
+					finalPositions.push_back(end);
+				}
+			}
+		}
+
+		// Now remove all points in front of the reference face, and those behind the face move onto the face
+		Plane3 refPlane = refShape->GetFaceSupportPlane(broadResult.m_refFaceIndex);
+		for (int clipIndex = (int)finalPositions.size() - 1; clipIndex >= 0; --clipIndex)
+		{
+			if (refPlane.IsPointInFront(finalPositions[clipIndex]))
+			{
+				finalPositions.erase(finalPositions.begin() + clipIndex);
+			}
+			else
+			{
+				finalPositions[clipIndex] = refPlane.GetProjectedPointOntoPlane(finalPositions[clipIndex]);
+			}
+		}
+	}
+	else
+	{
+		// Edge contact collision
+	}
+
+	ASSERT_OR_DIE(finalPositions.size() <= ContactManifold3d::MAX_CONTACTS, "Too many contacts!");
+
+	for (int contactIndex = 0; contactIndex < (int)finalPositions.size(); ++contactIndex)
+	{
+		out_contacts[contactIndex] = ContactPoint3D(finalPositions[contactIndex], broadResult.m_direction);
+	}
+
+	return (int)finalPositions.size();
 }
 
 
@@ -253,7 +354,7 @@ float SolvePartialSAT(const Polygon3d* a, const Polygon3d* b, int& out_faceIndex
 }
 
 //-------------------------------------------------------------------------------------------------
-float SolveEdgeSAT(const Polygon3d* a, const Polygon3d* b, Plane3& out_bestPlane)
+float SolveEdgeSAT(const Polygon3d* a, const Polygon3d* b, Vector3& out_direction, int& out_indexA, int& out_indexB)
 {
 	UniqueHalfEdgeIterator edgeAIter(*a);
 	const HalfEdge* edgeA = edgeAIter.GetNext();
@@ -325,7 +426,9 @@ float SolveEdgeSAT(const Polygon3d* a, const Polygon3d* b, Plane3& out_bestPlane
 			if (firstIteration || distance > maxDistance)
 			{
 				maxDistance = distance;
-				out_bestPlane = plane;
+				out_direction = normal;
+				out_indexA = edgeA->m_edgeIndex;
+				out_indexB = edgeB->m_edgeIndex;
 				firstIteration = false;
 			}
 
@@ -345,21 +448,23 @@ BroadphaseResult3d CollisionUtils3d::Collide(PolytopeCollider3d* colA, PolytopeC
 	const Polygon3d* worldShapeA = colA->GetWorldShape();
 	const Polygon3d* worldShapeB = colB->GetWorldShape();
 
-	int bestAFaceIndex = -1;
-	int bestBFaceIndex = -1;
+	int bestFaceIndexA = -1;
+	int bestFaceIndexB = -1;
 
-	float aOntoBDistance = SolvePartialSAT(worldShapeA, worldShapeB, bestAFaceIndex);
+	float aOntoBDistance = SolvePartialSAT(worldShapeA, worldShapeB, bestFaceIndexA);
 
 	if (aOntoBDistance > 0.f)
 		return BroadphaseResult3d(false);
 
-	float bOntoADistance = SolvePartialSAT(worldShapeB, worldShapeA, bestBFaceIndex);
+	float bOntoADistance = SolvePartialSAT(worldShapeB, worldShapeA, bestFaceIndexB);
 
 	if (bOntoADistance > 0.f)
 		return BroadphaseResult3d(false);
 
-	Plane3 bestPlane;
-	float edgeDistance = SolveEdgeSAT(worldShapeA, worldShapeB, bestPlane);
+	Vector3 edgeDir;
+	int edgeIndexA;
+	int edgeIndexB;
+	float edgeDistance = SolveEdgeSAT(worldShapeA, worldShapeB, edgeDir, edgeIndexA, edgeIndexB);
 
 	if (edgeDistance > 0.f)
 		return BroadphaseResult3d(false);
@@ -373,18 +478,28 @@ BroadphaseResult3d CollisionUtils3d::Collide(PolytopeCollider3d* colA, PolytopeC
 
 	if (result.m_penetration == penOnFaceA)
 	{
-		result.m_direction = worldShapeA->GetFaceNormal(bestAFaceIndex);
-		result.m_position = worldShapeA->GetFaceSupportPlane(bestAFaceIndex).GetDistance() * worldShapeA->GetFaceSupportPlane(bestAFaceIndex).GetNormal();
+		result.m_direction = worldShapeA->GetFaceNormal(bestFaceIndexA);
+		result.m_isFaceCollision = true;
+		result.m_refFaceIndex = bestFaceIndexA;
+		result.m_refCol = colA;
+		result.m_incCol = colB;
 	}
 	else if (result.m_penetration == penOnFaceB)
 	{
-		result.m_direction = -1.0f * worldShapeB->GetFaceNormal(bestBFaceIndex); // Flip the axis so it points from A to B
-		result.m_position = worldShapeB->GetFaceSupportPlane(bestBFaceIndex).GetDistance() * worldShapeB->GetFaceSupportPlane(bestBFaceIndex).GetNormal();
+		result.m_direction = -1.0f * worldShapeB->GetFaceNormal(bestFaceIndexB); // Flip the axis so it points from A to B
+		result.m_isFaceCollision = true;
+		result.m_refFaceIndex = bestFaceIndexA;
+		result.m_refCol = colB;
+		result.m_incCol = colA;
 	}
 	else
 	{
-		result.m_direction = bestPlane.GetNormal();
-		result.m_position = bestPlane.GetDistance() * bestPlane.GetNormal();
+		result.m_direction = edgeDir;
+		result.m_isFaceCollision = false;
+		result.m_refCol = colA; // Since we put the normal created from Cross(edgeA, edgeB) on edge A
+		result.m_incCol = colB;
+		result.m_refEdgeIndex = edgeIndexA;
+		result.m_incEdgeIndex = edgeIndexB;
 	}
 	
 	return result;

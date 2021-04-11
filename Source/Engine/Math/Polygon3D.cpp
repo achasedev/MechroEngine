@@ -138,6 +138,7 @@ void Polygon3d::GenerateHalfEdgeStructure()
 			HalfEdge halfEdge;
 			halfEdge.m_faceIndex = faceIndex;
 			halfEdge.m_vertexIndex = vertexIndex1;
+			halfEdge.m_edgeIndex = (int)m_edges.size();
 
 			m_edges.push_back(halfEdge);
 
@@ -209,6 +210,7 @@ void Polygon3d::GenerateHalfEdgeStructure()
 		ASSERT_OR_DIE(currEdge.m_prevEdgeIndex != -1, "Invalid prev edge!");
 		ASSERT_OR_DIE(currEdge.m_vertexIndex != -1, "Invalid vertex!");
 		ASSERT_OR_DIE(currEdge.m_faceIndex != -1, "Invalid face!");
+		ASSERT_OR_DIE(currEdge.m_edgeIndex == edgeIndex, "Edge index mismatch!");
 	}
 
 	for (int faceIndex = 0; faceIndex < numFaces; ++faceIndex)
@@ -277,9 +279,50 @@ Vector3 Polygon3d::GetVertexPosition(int vertexIndex) const
 
 
 //-------------------------------------------------------------------------------------------------
+void Polygon3d::GetAllVerticesInFace(int faceIndex, std::vector<Vector3>& out_vertices) const
+{
+	out_vertices.clear();
+	int startingEdge = GetFace(faceIndex)->m_halfEdgeIndex;
+	int edgeIndex = startingEdge;
+
+	do 
+	{
+		const HalfEdge* edge = GetEdge(edgeIndex);
+		out_vertices.push_back(GetVertexPosition(edge->m_vertexIndex));
+		edgeIndex = edge->m_nextEdgeIndex;
+	} 
+	while (edgeIndex != startingEdge);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 const PolygonFace3d* Polygon3d::GetFace(int faceIndex) const
 {
 	return &m_faces[faceIndex];
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Returns the face who's normal is the most in the given direction
+int Polygon3d::GetIndexOfFaceMostInDirection(const Vector3& direction) const
+{
+	float maxDot = 0.f;
+	int maxFaceIndex = -1;
+	int numIncFaces = GetNumFaces();
+
+	for (int faceIndex = 0; faceIndex < numIncFaces; ++faceIndex)
+	{
+		Vector3 faceNormal = GetFaceNormal(faceIndex);
+		float dot = DotProduct(faceNormal, direction);
+
+		if (maxFaceIndex == -1 || dot > maxDot)
+		{
+			maxDot = dot;
+			maxFaceIndex = faceIndex;
+		}
+	}
+
+	return maxFaceIndex;
 }
 
 
@@ -423,6 +466,33 @@ void Polygon3d::GetAllFacesAdjacentTo(int faceIndex, std::vector<const PolygonFa
 		currEdge = GetEdge(currEdge->m_nextEdgeIndex);
 	} 
 	while (currEdge != startingEdge);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Polygon3d::GetAllSidePlanesForFace(int faceIndex, std::vector<Plane3>& out_planes) const
+{
+	out_planes.clear();
+
+	const PolygonFace3d* refFace = GetFace(faceIndex);
+	Vector3 refFaceNormal = GetFaceNormal(faceIndex);
+
+	int startingEdgeIndex = refFace->m_halfEdgeIndex;
+	int edgeIndex = startingEdgeIndex;
+
+	do
+	{
+		Vector3 edgeDir = GetEdgeDirection(edgeIndex);
+		Vector3 refEdgeNormal = CrossProduct(edgeDir, refFaceNormal); // Outward pointing normal, assuming clockwise winding
+		refEdgeNormal.Normalize();
+
+		const HalfEdge* edge = GetEdge(edgeIndex);
+		float d = DotProduct(refEdgeNormal, GetVertexPosition(edge->m_vertexIndex));
+		out_planes.push_back(Plane3(refEdgeNormal, d));
+
+		edgeIndex = edge->m_nextEdgeIndex;
+	} 
+	while (edgeIndex != startingEdgeIndex);
 }
 
 

@@ -130,7 +130,7 @@ public:
 
 	void				SetShape(Polygon3d* shape);
 	const Polygon3d*	GetLocalShape() const;
-	const Polygon3d*	GetWorldShape();
+	const Polygon3d*	GetWorldShape() const;
 
 	virtual void		GenerateWorldShape() override;
 
