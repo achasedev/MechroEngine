@@ -263,7 +263,7 @@ void Polygon3d::GetTransformed(const Matrix44& matrix, Polygon3d& out_polygon) c
 	for (int vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 	{
 		Vector3 position = matrix.TransformPoint(m_vertices[vertexIndex].m_position).xyz();
-		out_polygon.m_vertices.push_back(PolygonVertex3d(position));
+		out_polygon.m_vertices.push_back(PolygonVertex3d(position, m_vertices[vertexIndex].m_halfEdgeIndex));
 	}
 
 	out_polygon.m_faces = m_faces;

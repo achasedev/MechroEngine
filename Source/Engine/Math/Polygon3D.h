@@ -27,8 +27,12 @@ class OBB3;
 struct PolygonVertex3d
 {
 	PolygonVertex3d() {}
+
 	PolygonVertex3d(const Vector3& position)
 		: m_position(position) {}
+
+	PolygonVertex3d(const Vector3& position, int halfEdgeIndex)
+		: m_position(position), m_halfEdgeIndex(halfEdgeIndex) {}
 
 	Vector3	m_position;
 	int 	m_halfEdgeIndex = -1;

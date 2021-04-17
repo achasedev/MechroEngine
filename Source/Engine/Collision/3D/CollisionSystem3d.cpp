@@ -123,6 +123,13 @@ void CollisionSystem3d::PerformBroadPhase()
 			colA->GenerateWorldShape();
 			colB->GenerateWorldShape();
 
+			if (isnan(colA->GetAsType<PolytopeCollider3d>()->GetWorldShape()->GetVertexPosition(0).x))
+			{
+				int x = 0;
+				x = 5;
+				colA->GenerateWorldShape();
+			}
+
 			ContactManifold3d manifold = ContactManifold3d(colA, colB);
 			manifold.Collide();
 

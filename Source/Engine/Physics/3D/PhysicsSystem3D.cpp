@@ -28,7 +28,7 @@
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 const float PhysicsSystem3D::ALLOWED_PENETRATION = 0.01f;
-const float PhysicsSystem3D::BIAS_FACTOR = 0.2f; // Always do position correction for now?
+const float PhysicsSystem3D::BIAS_FACTOR = 0.0f; // Always do position correction for now?
 const Vector3 PhysicsSystem3D::DEFAULT_GRAVITY_ACC = Vector3(0.f, -3.f, 0.f);
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -159,11 +159,15 @@ void PhysicsSystem3D::CalculateContactImpulses(float deltaSeconds, ContactManifo
 			kNormal.y += body1->m_invInertia.y * (DotProduct(contact.m_r1, contact.m_r1) - r1Normal * r1Normal) + body2->m_invInertia.y * (DotProduct(contact.m_r2, contact.m_r2) - r2Normal * r2Normal);
 			kNormal.z += body1->m_invInertia.z * (DotProduct(contact.m_r1, contact.m_r1) - r1Normal * r1Normal) + body2->m_invInertia.z * (DotProduct(contact.m_r2, contact.m_r2) - r2Normal * r2Normal);
 
-			contact.m_massNormal = (1.0f / kNormal.x) + (1.0f / kNormal.y) + (1.0f / kNormal.z);
+			ASSERT_OR_DIE(!AreMostlyEqual(kNormal.x, 0.f), "oof");
+			ASSERT_OR_DIE(!AreMostlyEqual(kNormal.y, 0.f), "oof");
+			ASSERT_OR_DIE(!AreMostlyEqual(kNormal.z, 0.f), "oof");
+			//contact.m_massNormal = (1.0f / kNormal.x) + (1.0f / kNormal.y) + (1.0f / kNormal.z);
+			contact.m_massNormal = 1.0f / (kNormal.x + kNormal.y + kNormal.z);
 		}
 
 		// Mass tangent and mass bitangent is used to calculate impulses to simulate friction
-		Vector3 crossReference = (!AreMostlyEqual(contact.m_normal, Vector3::Y_AXIS) ? Vector3::Y_AXIS : Vector3::X_AXIS);
+		Vector3 crossReference = (!AreMostlyEqual(Abs(DotProduct(contact.m_normal, Vector3::Y_AXIS)), 1.0f) ? Vector3::Y_AXIS : Vector3::X_AXIS);
 		Vector3 tangent = CrossProduct(crossReference, contact.m_normal);
 		{
 			float r1Tangent = DotProduct(contact.m_r1, tangent);
@@ -174,7 +178,12 @@ void PhysicsSystem3D::CalculateContactImpulses(float deltaSeconds, ContactManifo
 			kTangent.y += body1->m_invInertia.y * (DotProduct(contact.m_r1, contact.m_r1) - r1Tangent * r1Tangent) + body2->m_invInertia.y * (DotProduct(contact.m_r2, contact.m_r2) - r2Tangent * r2Tangent);
 			kTangent.z += body1->m_invInertia.z * (DotProduct(contact.m_r1, contact.m_r1) - r1Tangent * r1Tangent) + body2->m_invInertia.z * (DotProduct(contact.m_r2, contact.m_r2) - r2Tangent * r2Tangent);
 
-			contact.m_massTangent = (1.0f / kTangent.x) + (1.0f / kTangent.y) + (1.0f / kTangent.z);
+			ASSERT_OR_DIE(!AreMostlyEqual(kTangent.x, 0.f), "oof");
+			ASSERT_OR_DIE(!AreMostlyEqual(kTangent.y, 0.f), "oof");
+			ASSERT_OR_DIE(!AreMostlyEqual(kTangent.z, 0.f), "oof");
+
+			//contact.m_massTangent = (1.0f / kTangent.x) + (1.0f / kTangent.y) + (1.0f / kTangent.z);
+			contact.m_massTangent = 1.0f / (kTangent.x + kTangent.y + kTangent.z);
 		}
 
 		{
@@ -187,7 +196,12 @@ void PhysicsSystem3D::CalculateContactImpulses(float deltaSeconds, ContactManifo
 			kBitangent.y += body1->m_invInertia.y * (DotProduct(contact.m_r1, contact.m_r1) - r1Bitangent * r1Bitangent) + body2->m_invInertia.y * (DotProduct(contact.m_r2, contact.m_r2) - r2Bitangent * r2Bitangent);
 			kBitangent.z += body1->m_invInertia.z * (DotProduct(contact.m_r1, contact.m_r1) - r1Bitangent * r1Bitangent) + body2->m_invInertia.z * (DotProduct(contact.m_r2, contact.m_r2) - r2Bitangent * r2Bitangent);
 
-			contact.m_massBitangent = (1.0f / bitangent.x) + (1.0f / bitangent.y) + (1.0f / bitangent.z);
+			ASSERT_OR_DIE(!AreMostlyEqual(kBitangent.x, 0.f), "oof");
+			ASSERT_OR_DIE(!AreMostlyEqual(kBitangent.y, 0.f), "oof");
+			ASSERT_OR_DIE(!AreMostlyEqual(kBitangent.z, 0.f), "oof");
+
+			//contact.m_massBitangent = (1.0f / bitangent.x) + (1.0f / bitangent.y) + (1.0f / bitangent.z);
+			contact.m_massBitangent = 1.0f / (bitangent.x + bitangent.y + bitangent.z);
 		}
 
 		// To quote Erin Catto, this gives the normal impulse "some extra oomph"
@@ -247,11 +261,23 @@ void PhysicsSystem3D::ApplyContactImpulses(float deltaSeconds, ContactManifold3d
 
 		body1->m_velocityWs -= body1->m_invMass * normalImpulse;
 
+		if (isnan(body1->m_velocityWs.x))
+		{
+			int x = 7;
+			x = 4;
+		}
+
 		body1->m_angularVelocityDegrees.x -= RadiansToDegrees(body1->m_invInertia.x * DotProduct(normalImpulse, CrossProduct(contact.m_r1, Vector3::X_AXIS)));
 		body1->m_angularVelocityDegrees.y -= RadiansToDegrees(body1->m_invInertia.y * DotProduct(normalImpulse, CrossProduct(contact.m_r1, Vector3::Y_AXIS)));
 		body1->m_angularVelocityDegrees.z -= RadiansToDegrees(body1->m_invInertia.z * DotProduct(normalImpulse, CrossProduct(contact.m_r1, Vector3::Z_AXIS)));
 
 		body2->m_velocityWs += body2->m_invMass * normalImpulse;
+
+		if (isnan(body2->m_velocityWs.x))
+		{
+			int x = 7;
+			x = 4;
+		}
 
 		body2->m_angularVelocityDegrees.x += RadiansToDegrees(body2->m_invInertia.x * DotProduct(normalImpulse, CrossProduct(contact.m_r2, Vector3::X_AXIS)));
 		body2->m_angularVelocityDegrees.y += RadiansToDegrees(body2->m_invInertia.y * DotProduct(normalImpulse, CrossProduct(contact.m_r2, Vector3::Y_AXIS)));
@@ -275,7 +301,7 @@ void PhysicsSystem3D::ApplyContactImpulses(float deltaSeconds, ContactManifold3d
 
 
 		// Compute tangent impulse
-		Vector3 crossReference = (!AreMostlyEqual(contact.m_normal, Vector3::Y_AXIS) ? Vector3::Y_AXIS : Vector3::X_AXIS);
+		Vector3 crossReference = (!AreMostlyEqual(Abs(DotProduct(contact.m_normal, Vector3::Y_AXIS)), 1.0f) ? Vector3::Y_AXIS : Vector3::X_AXIS);
 		Vector3 tangent = CrossProduct(crossReference, contact.m_normal);
 		{
 			float speedAlongTangent = DotProduct(relativeVelocity, tangent);
@@ -289,11 +315,25 @@ void PhysicsSystem3D::ApplyContactImpulses(float deltaSeconds, ContactManifold3d
 			Vector3 tangentImpulse = tangentImpulseMagnitude * tangent;
 
 			body1->m_velocityWs -= body1->m_invMass * tangentImpulse;
+
+			if (isnan(body1->m_velocityWs.x))
+			{
+				int x = 7;
+				x = 4;
+			}
+
 			body1->m_angularVelocityDegrees.x -= RadiansToDegrees(body1->m_invInertia.x * DotProduct(tangentImpulse, CrossProduct(contact.m_r1, Vector3::X_AXIS)));
 			body1->m_angularVelocityDegrees.y -= RadiansToDegrees(body1->m_invInertia.y * DotProduct(tangentImpulse, CrossProduct(contact.m_r1, Vector3::Y_AXIS)));
 			body1->m_angularVelocityDegrees.z -= RadiansToDegrees(body1->m_invInertia.z * DotProduct(tangentImpulse, CrossProduct(contact.m_r1, Vector3::Z_AXIS)));
 
 			body2->m_velocityWs += body2->m_invMass * tangentImpulse;
+
+			if (isnan(body2->m_velocityWs.x))
+			{
+				int x = 7;
+				x = 4;
+			}
+
 			body2->m_angularVelocityDegrees.x += RadiansToDegrees(body2->m_invInertia.x * DotProduct(tangentImpulse, CrossProduct(contact.m_r2, Vector3::X_AXIS)));
 			body2->m_angularVelocityDegrees.y += RadiansToDegrees(body2->m_invInertia.y * DotProduct(tangentImpulse, CrossProduct(contact.m_r2, Vector3::Y_AXIS)));
 			body2->m_angularVelocityDegrees.z += RadiansToDegrees(body2->m_invInertia.z * DotProduct(tangentImpulse, CrossProduct(contact.m_r2, Vector3::Z_AXIS)));
@@ -313,11 +353,25 @@ void PhysicsSystem3D::ApplyContactImpulses(float deltaSeconds, ContactManifold3d
 			Vector3 bitangentImpulse = bitangentImpulseMagnitude * bitangent;
 
 			body1->m_velocityWs -= body1->m_invMass * bitangentImpulse;
+
+			if (isnan(body1->m_velocityWs.x))
+			{
+				int x = 7;
+				x = 4;
+			}
+
 			body1->m_angularVelocityDegrees.x -= RadiansToDegrees(body1->m_invInertia.x * DotProduct(bitangentImpulse, CrossProduct(contact.m_r1, Vector3::X_AXIS)));
 			body1->m_angularVelocityDegrees.y -= RadiansToDegrees(body1->m_invInertia.y * DotProduct(bitangentImpulse, CrossProduct(contact.m_r1, Vector3::Y_AXIS)));
 			body1->m_angularVelocityDegrees.z -= RadiansToDegrees(body1->m_invInertia.z * DotProduct(bitangentImpulse, CrossProduct(contact.m_r1, Vector3::Z_AXIS)));
 
 			body2->m_velocityWs += body2->m_invMass * bitangentImpulse;
+
+			if (isnan(body2->m_velocityWs.x))
+			{
+				int x = 7;
+				x = 4;
+			}
+
 			body2->m_angularVelocityDegrees.x += RadiansToDegrees(body2->m_invInertia.x * DotProduct(bitangentImpulse, CrossProduct(contact.m_r2, Vector3::X_AXIS)));
 			body2->m_angularVelocityDegrees.y += RadiansToDegrees(body2->m_invInertia.y * DotProduct(bitangentImpulse, CrossProduct(contact.m_r2, Vector3::Y_AXIS)));
 			body2->m_angularVelocityDegrees.z += RadiansToDegrees(body2->m_invInertia.z * DotProduct(bitangentImpulse, CrossProduct(contact.m_r2, Vector3::Z_AXIS)));
