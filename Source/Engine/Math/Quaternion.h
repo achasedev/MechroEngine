@@ -61,10 +61,10 @@ public:
 	void				Normalize();
 	void				ConvertToUnitNorm();
 	
-	Vector3				RotatePoint(const Vector3& point) const;
+	Vector3				Rotate(const Vector3& point) const;
 
 	static float		GetAngleBetweenDegrees(const Quaternion& a, const Quaternion& b);
-	static Quaternion	FromEuler(const Vector3& eulerAnglesDegrees);
+	static Quaternion	FromEulerAngles(const Vector3& eulerAnglesDegrees);
 	static Quaternion	FromMatrix(const Matrix44& rotationMatrix);
 	static Quaternion	RotateToward(const Quaternion& start, const Quaternion& end, float maxAngleDegrees);
 

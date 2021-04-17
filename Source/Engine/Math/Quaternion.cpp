@@ -242,7 +242,7 @@ void Quaternion::ConvertToUnitNorm()
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Quaternion::RotatePoint(const Vector3& point) const
+Vector3 Quaternion::Rotate(const Vector3& point) const
 {
 	Quaternion pointAsQuat = Quaternion(0.f, point);
 
@@ -267,7 +267,7 @@ float Quaternion::GetAngleBetweenDegrees(const Quaternion& a, const Quaternion& 
 
 
 //-------------------------------------------------------------------------------------------------
-Quaternion Quaternion::FromEuler(const Vector3& eulerAnglesDegrees)
+Quaternion Quaternion::FromEulerAngles(const Vector3& eulerAnglesDegrees)
 {
 	const Vector3 he = 0.5f * eulerAnglesDegrees;
 
@@ -295,7 +295,7 @@ Quaternion Quaternion::FromEuler(const Vector3& eulerAnglesDegrees)
 Quaternion Quaternion::FromMatrix(const Matrix44& rotationMatrix)
 {
 	// TODO: Faster way to do this?
-	return Quaternion::FromEuler(Matrix44::ExtractRotationDegrees(rotationMatrix));
+	return Quaternion::FromEulerAngles(Matrix44::ExtractRotationDegrees(rotationMatrix));
 }
 
 

@@ -126,6 +126,8 @@ public:
 	RTTI_DERIVED_CLASS(PolytopeCollider3d);
 
 	PolytopeCollider3d(const OBB3& boxShape);
+	PolytopeCollider3d(const Polygon3d* shape);
+
 	virtual void		DebugRender(Material* material, const Rgba& color) override;
 
 	void				SetShape(Polygon3d* shape);

@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: February 12th, 2021
+/// Date Created: April 11th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,19 +8,16 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Framework/EngineCommon.h"
-#include "Engine/Math/Transform.h"
+#include "Engine/Framework/Entity.h"
+#include <vector>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#define INVALID_ENTITY_ID -1;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-typedef int EntityID;
-class Collider3d;
 class RigidBody3D;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -32,37 +29,42 @@ class RigidBody3D;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Entity
+class PhysicsSystem3D
 {
-	friend class CollisionSystem3d;
-	friend class PhysicsSystem3D;
-
 public:
 	//-----Public Methods-----
 
-	Entity();
+	const RigidBody3D*	AddEntity(Entity* entity);
+	void				RemoveEntity(Entity* entity);
 
-	Collider3d* GetCollider() const { return m_collider; }
-	RigidBody3D* GetRigidBody() const { return m_rigidBody; }
+	void FrameStep(float deltaSeconds);
 
 
 public:
 	//-----Public Data-----
 
-	Transform transform;
+	static const Vector3 DEFAULT_GRAVITY_ACC;
+
+
+private:
+	//-----Private Methods-----
+
+	void AddBody(RigidBody3D* body);
+
+	// FrameStep()
+	void ApplyForces(float deltaSeconds);
+	void ApplyCollisionContactForces(float deltaSeconds); // Collision system
+	void UpdatePositions(float deltaSeconds);
+
 
 
 private:
 	//-----Private Data-----
 
-	const EntityID		m_id;
-	Collider3d*			m_collider = nullptr;
-	RigidBody3D*		m_rigidBody = nullptr;
-
-	static EntityID		s_nextEntityID;
+	std::vector<RigidBody3D*>	m_bodies;
+	Vector3						m_gravityAcc = DEFAULT_GRAVITY_ACC;
 
 };
-
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS

@@ -83,6 +83,19 @@ const PolytopeCollider3d* CollisionSystem3d::AddEntity(Entity* entity, const OBB
 
 
 //-------------------------------------------------------------------------------------------------
+const PolytopeCollider3d* CollisionSystem3d::AddEntity(Entity* entity, const Polygon3d* colliderBounds)
+{
+	PolytopeCollider3d* collider = new PolytopeCollider3d(colliderBounds);
+	collider->m_owner = entity;
+	collider->m_transform.SetParentTransform(&entity->transform);
+	entity->m_collider = collider;
+
+	AddCollider(collider);
+	return collider;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void CollisionSystem3d::RemoveEntity(Entity* entity)
 {
 	if (entity->m_collider != nullptr)

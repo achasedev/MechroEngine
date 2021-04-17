@@ -57,6 +57,14 @@ PolytopeCollider3d::PolytopeCollider3d(const OBB3& boxShape)
 
 
 //-------------------------------------------------------------------------------------------------
+PolytopeCollider3d::PolytopeCollider3d(const Polygon3d* shape)
+{
+	m_shapeLs = new Polygon3d();
+	*m_shapeLs = *shape;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void PolytopeCollider3d::DebugRender(Material* material, const Rgba& color)
 {
 	// Debug render in world space

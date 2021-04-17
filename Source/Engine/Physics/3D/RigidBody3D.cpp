@@ -7,11 +7,13 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Collision/3D/Collider3d.h"
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Framework/GameObject.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Math/Polygon3d.h"
 #include "Engine/Physics/3D/RigidBody3D.h"
+#include "Engine/Render/Core/RenderContext.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -35,46 +37,26 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-RigidBody3D::RigidBody3D(PhysicsScene3D* scene, GameObject* owningObj)
-	: m_scene(scene)
-	, m_gameObj(owningObj)
-	, m_transform(&owningObj->m_transform) // Convenience
-	, m_shapeLs(owningObj->GetShape3D())
-{
-	ASSERT_RECOVERABLE(m_scene != nullptr, "RigidBody3D's scene is nullptr");
-	ASSERT_RECOVERABLE(m_gameObj != nullptr, "RigidBody3D's object is nullptr!");
-	ASSERT_RECOVERABLE(m_shapeLs != nullptr, "RigidBody3D's shape is nullptr!");
-
-	CalculateCenterOfMass(); // Purely positional, assumes uniform mass density
-}
-
-
-//-------------------------------------------------------------------------------------------------
-RigidBody3D::~RigidBody3D()
-{
-}
-
-
-//-------------------------------------------------------------------------------------------------
 void RigidBody3D::CalculateCenterOfMass()
 {
 	float volume = 0.f;
 	Vector3 center = Vector3::ZERO;
 
-	int numFaces = m_shapeLs->GetNumFaces();
+	const Polygon3d* localShape = GetLocalShape();
+	int numFaces = localShape->GetNumFaces();
 	for (int faceIndex = 0; faceIndex < numFaces; ++faceIndex)
 	{
 		// Iterate across all the vertices of the face
-		const PolygonFace3d* face = m_shapeLs->GetFace(faceIndex);
+		const PolygonFace3d* face = localShape->GetFace(faceIndex);
 		int numVerticesInFace = (int)face->m_indices.size();
 
 		Vector3 origin = Vector3::ZERO;
-		Vector3 a = m_shapeLs->GetVertex(face->m_indices[0])->m_position;
+		Vector3 a = localShape->GetVertex(face->m_indices[0])->m_position;
 
 		for (int faceVertexIndex = 1; faceVertexIndex < numVerticesInFace - 1; ++faceVertexIndex)
 		{
-			Vector3 b = m_shapeLs->GetVertexPosition(face->m_indices[faceVertexIndex]);
-			Vector3 c = m_shapeLs->GetVertexPosition(face->m_indices[faceVertexIndex + 1]);
+			Vector3 b = localShape->GetVertexPosition(face->m_indices[faceVertexIndex]);
+			Vector3 c = localShape->GetVertexPosition(face->m_indices[faceVertexIndex + 1]);
 
 			float currVolume = CalculateVolumeOfTetrahedron(a, b, c, origin);
 			Vector3 currCenter = 0.25f * (a + b + c + origin);
@@ -90,10 +72,15 @@ void RigidBody3D::CalculateCenterOfMass()
 
 
 //-------------------------------------------------------------------------------------------------
-void RigidBody3D::GetWorldShape(Polygon3d& out_polygonWs) const
+const Polygon3d* RigidBody3D::GetLocalShape() const
 {
-	Matrix44 toWorldMat = m_transform->GetLocalToWorldMatrix();
-	//m_shapeLs->GetTransformed(toWorldMat, out_polygonWs);
+	if (m_collider != nullptr)
+	{
+		return m_collider->GetLocalShape();
+	}
+
+	// TODO: Return our own shape
+	return nullptr;
 }
 
 
@@ -106,62 +93,84 @@ Vector3 RigidBody3D::GetCenterOfMassWs() const
 
 
 //-------------------------------------------------------------------------------------------------
+void RigidBody3D::DebugRender(Material* material, const Rgba& color)
+{
+	// Debug render in world space
+	g_renderContext->DrawWirePolygon3D(*m_collider->GetWorldShape(), material, color);
+	g_renderContext->DrawPoint3D(GetCenterOfMassWs(), 0.25f, material, Rgba::YELLOW);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void RigidBody3D::SetMassProperties(float mass)
 {
-	UNUSED(mass);
-	UNIMPLEMENTED();
+	if (mass == FLT_MAX)
+	{
+		// Just set these to sensible defaults
+		m_mass = mass;
+		m_invMass = 0.f;
+		m_inertia = Vector3(FLT_MAX);
+		m_invInertia = Vector3::ZERO;
+		m_density = FLT_MAX;
+		return;
+	}
 
-	//if (mass == FLT_MAX)
-	//{
-	//	// Just set these to sensible defaults
-	//	m_mass = mass;
-	//	m_invMass = 0.f;
-	//	m_inertia = FLT_MAX;
-	//	m_invInertia = 0.f;
-	//	m_density = FLT_MAX;
-	//	return;
-	//}
+	ASSERT_RETURN(mass > 0.f, NO_RETURN_VAL, "Setting 0.f mass!");
 
-	//ASSERT_RETURN(mass > 0.f, NO_RETURN_VAL, "Setting 0.f mass!");
+	float volume = 0.f;
+	Vector3 inertia = Vector3::ZERO;
+	Vector3 center = Vector3::ZERO;
 
-	//float area = 0.f;
-	//Vector2 center = Vector2::ZERO;
-	//float inertia = 0.f;
+	const Polygon3d* localShape = GetLocalShape();
+	int numFaces = localShape->GetNumFaces();
+	for (int faceIndex = 0; faceIndex < numFaces; ++faceIndex)
+	{
+		// Iterate across all the vertices of the face
+		const PolygonFace3d* face = localShape->GetFace(faceIndex);
+		int numVerticesInFace = (int)face->m_indices.size();
 
-	//// THE IDEA
-	//// Determine the moment of inertia at the origin while we find the center of mass
-	//// Then use parallel axis theorem at the end to determine inertia at the center of mass
-	//uint32 numVertices = m_shapeLs->GetNumVertices();
-	//for (uint32 currIndex = 0; currIndex < numVertices; ++currIndex)
-	//{
-	//	uint32 nextIndex = (currIndex == numVertices - 1 ? 0 : currIndex + 1);
+		Vector3 origin = Vector3::ZERO;
+		Vector3 a = localShape->GetVertex(face->m_indices[0])->m_position;
 
-	//	Vector3 a = m_shapeLs->GetVertex(currIndex);
-	//	Vector3 b = m_shapeLs->GetVertex(nextIndex);
+		for (int faceVertexIndex = 1; faceVertexIndex < numVerticesInFace - 1; ++faceVertexIndex)
+		{
+			Vector3 b = localShape->GetVertexPosition(face->m_indices[faceVertexIndex]);
+			Vector3 c = localShape->GetVertexPosition(face->m_indices[faceVertexIndex + 1]);
 
-	//	float currArea = 0.5f * CrossProduct(a, b);
-	//	Vector2 currCenter = 0.33333f * (a + b); // No need to add origin = (0,0) here
-	//	float currInertia = currArea * (DotProduct(a, a) + DotProduct(b, b) + DotProduct(a, b)) * 0.16666666667f; // Divide by 6
+			float currVolume = CalculateVolumeOfTetrahedron(a, b, c, origin);
+			Vector3 currCenter = 0.25f * (a + b + c + origin);
 
-	//	// Update running totals
-	//	center = (center * area + currCenter * currArea) / (area + currArea); // Move center weighted by areas
-	//	area += currArea;
-	//	inertia += currInertia;
-	//}
+			Vector3 currInertia;
+			currInertia.x = Vector3(0.f, currCenter.y, currCenter.z).GetLengthSquared();
+			currInertia.y = Vector3(currCenter.x, 0.f, currCenter.z).GetLengthSquared();
+			currInertia.z = Vector3(currCenter.x, currCenter.y, 0.f).GetLengthSquared();
 
-	//// Factor in mass to the inertia, since intertia was calculated using areas
-	//float density = mass / area;
-	//inertia *= density;
+			currInertia *= currVolume;
 
-	//// Parallel axis theorem: I_origin = I_center_of_mass + mass * (distance from center to origin)^2
-	//inertia -= mass * DotProduct(center, center);
+			// Update running totals
+			center = (center * volume + currCenter * currVolume) / (volume + currVolume); // Move center weighted by volumes
+			volume += currVolume;
+			inertia += currInertia;
+		}
+	}
 
-	//m_mass = mass;
-	//m_invMass = (1.0f / mass);
+	m_centerOfMassLs = center;
 
-	//m_inertia = inertia;
-	//m_invInertia = (1.0f / inertia);
+	// Factor in mass to the inertia, since intertia was calculated using areas
+	float density = mass / volume;
+	inertia *= density; // I = Mr^2, so multiply by mass, and divide by volume since this is a weighted sum of all partial volumes
 
-	//m_density = density;
-	//m_centerOfMassLs = center;
+	// Parallel axis theorem: I_origin = I_center_of_mass + mass * (distance from center to origin)^2
+	inertia.x -= mass * Vector3(0.f, center.y, center.z).GetLengthSquared();
+	inertia.y -= mass * Vector3(center.x, 0.f, center.z).GetLengthSquared();
+	inertia.z -= mass * Vector3(center.x, center.y, 0.f).GetLengthSquared();
+
+	m_mass = mass;
+	m_invMass = (1.0f / mass);
+
+	m_inertia = inertia;
+	m_invInertia = Vector3(1.0f / inertia.x, 1.0f / inertia.y, 1.0f * inertia.z);
+
+	m_density = density;
+	m_centerOfMassLs = center;
 }

@@ -34,10 +34,14 @@ class OBB3;
 //-------------------------------------------------------------------------------------------------
 class CollisionSystem3d
 {
+	friend class PhysicsSystem3D;
+
 public:
 	//-----Public Methods-----
 
 	const PolytopeCollider3d*	AddEntity(Entity* entity, const OBB3& colliderBounds);
+	const PolytopeCollider3d*	AddEntity(Entity* entity, const Polygon3d* colliderBounds);
+
 	void						RemoveEntity(Entity* entity);
 
 	void PerformBroadPhase();	// GJK + EPA, find separation normal + magnitude

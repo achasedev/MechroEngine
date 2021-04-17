@@ -39,7 +39,7 @@ Transform::Transform()
 
 //-------------------------------------------------------------------------------------------------
 Transform::Transform(const Vector3& startPosition, const Vector3& startRotation, const Vector3& startScale)
-	: position(startPosition), rotation(Quaternion::FromEuler(startRotation)), scale(startScale)
+	: position(startPosition), rotation(Quaternion::FromEulerAngles(startRotation)), scale(startScale)
 {
 	UpdateLocalMatrix(true);
 }
@@ -66,7 +66,7 @@ void Transform::SetPosition(const Vector3& newPosition)
 //-------------------------------------------------------------------------------------------------
 void Transform::SetRotation(const Vector3& newRotation)
 {
-	rotation = Quaternion::FromEuler(newRotation);
+	rotation = Quaternion::FromEulerAngles(newRotation);
 }
 
 
@@ -159,7 +159,7 @@ void Transform::SetParentTransform(Transform* parent, bool keepWorldPosRotScale 
 //-------------------------------------------------------------------------------------------------
 void Transform::Rotate(const Vector3& deltaRotation)
 {
-	Rotate(Quaternion::FromEuler(deltaRotation));
+	Rotate(Quaternion::FromEulerAngles(deltaRotation));
 }
 
 
@@ -298,7 +298,7 @@ Vector3 Transform::GetWorldRotationDegrees()
 Quaternion Transform::GetWorldRotation()
 {
 	Vector3 worldDegrees = GetWorldRotationDegrees();
-	return Quaternion::FromEuler(worldDegrees);
+	return Quaternion::FromEulerAngles(worldDegrees);
 }
 
 

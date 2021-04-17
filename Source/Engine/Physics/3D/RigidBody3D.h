@@ -9,6 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
+#include "Engine/Framework/Entity.h"
 #include "Engine/Math/Vector3.h"
 #include "Engine/Math/Transform.h"
 
@@ -20,9 +21,11 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class GameObject;
-class PhysicsScene3D;
+class Entity;
+class Material;
 class Polygon3d;
+class PolytopeCollider3d;
+class Rgba;
 class Transform;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -36,15 +39,19 @@ class Transform;
 //-------------------------------------------------------------------------------------------------
 class RigidBody3D
 {
-	friend class Arbiter3D;
-	friend class PhysicsScene3D;
+	friend class PhysicsSystem3D;
 
 public:
 	//-----Public Methods-----
 
+	void				DebugRender(Material* material, const Rgba& color);
+
 	// Mutators
-	void				SetPosition(const Vector3& position) { m_transform->position = position; }
-	void				SetRotationDegrees(float rotationDegrees) { m_transform->SetRotation(Vector3(rotationDegrees)); }
+	void				AddForce(const Vector3& forceWs) { m_forceWs += forceWs; }
+	void				AddTorque(const Vector3& torque) { m_torque += torque; }
+
+	void				SetPosition(const Vector3& position) { m_owner->transform.position = position; }
+	void				SetRotationDegrees(float rotationDegrees) { m_owner->transform.SetRotation(Vector3(rotationDegrees)); }
 	void				SetVelocity(const Vector3& velocity) { m_velocityWs = velocity; }
 	void				SetAngularVelocity(float angularVelocityDegrees) { m_angularVelocityDegrees = Vector3(angularVelocityDegrees); }
 	void				SetMassProperties(float mass);
@@ -52,21 +59,20 @@ public:
 	void				SetAffectedByGravity(bool affected) { m_affectedByGravity = affected; }
 
 	// Accessors
-	GameObject*			GetGameObject() const { return m_gameObj; }
-	PhysicsScene3D*		GetScene() const { return m_scene; }
+	Entity*				GetOwningEntity() const { return m_owner; }
 	Vector3				GetCenterOfMassLs() const { return m_centerOfMassLs; }
 	Vector3				GetVelocity() const { return m_velocityWs; }
 	Vector3				GetAngularVelocity() const { return m_angularVelocityDegrees; }
 	float				GetFriction() const { return m_friction; }
 	float				GetMass() const { return m_mass; }
 	float				GetInverseMass() const { return m_invMass; }
-	float				GetInertia() const { return m_inertia; }
-	float				GetInverseInertia() const { return m_invInertia; }
+	Vector3				GetInertia() const { return m_inertia; }
+	Vector3				GetInverseInertia() const { return m_invInertia; }
 	float				GetDensity() const { return m_density; }
 	Vector3				GetForce() const { return m_forceWs; }
-	float				GetTorque() const { return m_torque; }
-	const Polygon3d*	GetLocalShape() const { return m_shapeLs; } // Const because you shouldn't be changing this >.>
-	void				GetWorldShape(Polygon3d& out_polygon) const;
+	Vector3				GetTorque() const { return m_torque; }
+	const Polygon3d*	GetLocalShape() const;
+	const Polygon3d*	GetWorldShape(Polygon3d& out_polygon) const;
 	bool				IsAffectedByGravity() const { return m_affectedByGravity; }
 
 	// Producers
@@ -77,9 +83,9 @@ public:
 private:
 	//-----Private Methods-----
 
-	// Only PhysicsScene2D can create/destroy these
-	RigidBody3D(PhysicsScene3D* owner, GameObject* gameObject);
-	~RigidBody3D();
+	// Only PhysicsSystem3D can create/destroy these
+	RigidBody3D() {}
+	~RigidBody3D() {}
 
 	void				CalculateCenterOfMass();
 
@@ -88,11 +94,9 @@ private:
 	//-----Private Data-----
 	
 	// Misc
-	GameObject*			m_gameObj					= nullptr;
-	PhysicsScene3D*		m_scene						= nullptr;
-
+	Entity*				m_owner						= nullptr;
+	Transform*			m_transform					= nullptr; // Owner's transform, just for convenience
 	// Positional
-	Transform*			m_transform;
 	Vector3				m_centerOfMassLs			= Vector3::ZERO;
 
 	// Velocity
@@ -103,17 +107,17 @@ private:
 	float				m_friction					= 0.2f;
 	float				m_mass						= FLT_MAX;
 	float				m_invMass					= 0.f; // For static bodies, invMass == 0
-	float				m_inertia					= FLT_MAX;
-	float				m_invInertia				= 0.f; // For static bodies, invI == 0
+	Vector3				m_inertia					= Vector3(FLT_MAX);
+	Vector3				m_invInertia				= Vector3(0.f); // For static bodies, invI == 0
 	float				m_density					= FLT_MAX;
 
 	// Forces
 	Vector3				m_forceWs					= Vector3::ZERO;
-	float				m_torque					= 0.f;
+	Vector3				m_torque					= Vector3::ZERO;
 	bool				m_affectedByGravity			= true;
 
-	// Shape
-	const Polygon3d*	m_shapeLs					= nullptr;
+	// Shape - to be replaced with possibly a shape instead
+	const PolytopeCollider3d*	m_collider					= nullptr;
 
 };
 

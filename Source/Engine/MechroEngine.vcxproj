@@ -167,6 +167,7 @@
     <ClCompile Include="Collision\3D\CollisionUtils3d.cpp" />
     <ClCompile Include="Collision\3D\ContactManifold3d.cpp" />
     <ClCompile Include="Collision\3D\CollisionSystem3d.cpp" />
+    <ClCompile Include="Physics\3D\PhysicsSystem3D.cpp" />
     <ClCompile Include="Event\EventSubscription.cpp" />
     <ClCompile Include="Event\EventSystem.cpp" />
     <ClCompile Include="Framework\ConsoleCommand.cpp" />
@@ -281,6 +282,7 @@
     <ClInclude Include="Math\OBB3.h" />
     <ClInclude Include="Math\Range.h" />
     <ClInclude Include="Math\Sphere3d.h" />
+    <ClInclude Include="Physics\3D\PhysicsSystem3D.h" />
     <ClInclude Include="Render\Debug\DebugRenderObject.h" />
     <ClInclude Include="Framework\DevConsole.h" />
     <ClInclude Include="Framework\EngineCommands.h" />

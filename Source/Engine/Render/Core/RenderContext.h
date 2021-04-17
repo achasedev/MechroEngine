@@ -37,6 +37,7 @@ class Sampler;
 class Shader;
 class ShaderResourceView;
 class Texture2D;
+class Transform;
 class UniformBuffer;
 class VertexBuffer;
 class VertexLayout;
@@ -100,6 +101,7 @@ public:
 	void								DrawWirePolygon3D(const Polygon3d& polygon, Material* material, const Rgba& color = Rgba::WHITE);
 	void								DrawWireOBB2D(const OBB2& obb, Material* material, const Rgba& color = Rgba::WHITE);
 	void								DrawPlane3(const Plane3& plane, Material* material, const Rgba& color = Rgba::WHITE);
+	void								DrawTransform(Transform& transform, Material* material, float scale);
 
 	void								SaveTextureToImage(Texture2D* texture, const char* filepath);
 

@@ -517,6 +517,29 @@ void RenderContext::DrawPlane3(const Plane3& plane, Material* material, const Rg
 
 
 //-------------------------------------------------------------------------------------------------
+void RenderContext::DrawTransform(Transform& transform, Material* material, float scale)
+{
+	std::vector<Vertex3D_PCU> vertices;
+
+	Vector3 position = transform.position;
+	Vector3 right = transform.GetIVector();
+	Vector3 up = transform.GetJVector();
+	Vector3 forward = transform.GetKVector();
+
+	vertices.push_back(Vertex3D_PCU(position, Rgba::RED, Vector2::ZERO));
+	vertices.push_back(Vertex3D_PCU(position + right * scale, Rgba::RED, Vector2::ZERO));
+	vertices.push_back(Vertex3D_PCU(position, Rgba::GREEN, Vector2::ZERO));
+	vertices.push_back(Vertex3D_PCU(position + up * scale, Rgba::GREEN, Vector2::ZERO));
+	vertices.push_back(Vertex3D_PCU(position, Rgba::BLUE, Vector2::ZERO));
+	vertices.push_back(Vertex3D_PCU(position + forward * scale, Rgba::BLUE, Vector2::ZERO));
+
+	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+	DrawVertexArray(vertices.data(), vertices.size(), nullptr, 0, material);
+	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void RenderContext::SaveTextureToImage(Texture2D* texture, const char* filepath)
 {
 	ASSERT_RETURN(texture != nullptr, NO_RETURN_VAL, "Attempted to save a null texture!");
