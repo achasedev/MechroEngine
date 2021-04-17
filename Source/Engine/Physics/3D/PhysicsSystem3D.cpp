@@ -151,13 +151,11 @@ void PhysicsSystem3D::CalculateContactImpulses(float deltaSeconds, ContactManifo
 		// Precompute normal mass, tangent mass, and bias
 		// Mass normal is used to calculate impulse necessary to prevent penetration
 		{
-			float r1Normal = DotProduct(contact.m_r1, contact.m_normal);
-			float r2Normal = DotProduct(contact.m_r2, contact.m_normal);
-
+			// me = invM1 + invM2 + dot(r1 x n, invI1 * (r1 x n)) + dot(r2 x n, invI2 * (r2 x n))
 			Vector3 kNormal = Vector3(body1->m_invMass + body2->m_invMass);
-			kNormal.x += body1->m_invInertia.x * (DotProduct(contact.m_r1, contact.m_r1) - r1Normal * r1Normal) + body2->m_invInertia.x * (DotProduct(contact.m_r2, contact.m_r2) - r2Normal * r2Normal);
-			kNormal.y += body1->m_invInertia.y * (DotProduct(contact.m_r1, contact.m_r1) - r1Normal * r1Normal) + body2->m_invInertia.y * (DotProduct(contact.m_r2, contact.m_r2) - r2Normal * r2Normal);
-			kNormal.z += body1->m_invInertia.z * (DotProduct(contact.m_r1, contact.m_r1) - r1Normal * r1Normal) + body2->m_invInertia.z * (DotProduct(contact.m_r2, contact.m_r2) - r2Normal * r2Normal);
+			kNormal.x += DotProduct(CrossProduct(contact.m_r1, contact.m_normal), body1->m_invInertia.x * CrossProduct(contact.m_r1, contact.m_normal)) + DotProduct(CrossProduct(contact.m_r2, contact.m_normal), body2->m_invInertia.x * CrossProduct(contact.m_r2, contact.m_normal));
+			kNormal.y += DotProduct(CrossProduct(contact.m_r1, contact.m_normal), body1->m_invInertia.y * CrossProduct(contact.m_r1, contact.m_normal)) + DotProduct(CrossProduct(contact.m_r2, contact.m_normal), body2->m_invInertia.y * CrossProduct(contact.m_r2, contact.m_normal));
+			kNormal.z += DotProduct(CrossProduct(contact.m_r1, contact.m_normal), body1->m_invInertia.z * CrossProduct(contact.m_r1, contact.m_normal)) + DotProduct(CrossProduct(contact.m_r2, contact.m_normal), body2->m_invInertia.z * CrossProduct(contact.m_r2, contact.m_normal));	
 
 			ASSERT_OR_DIE(!AreMostlyEqual(kNormal.x, 0.f), "oof");
 			ASSERT_OR_DIE(!AreMostlyEqual(kNormal.y, 0.f), "oof");
@@ -170,31 +168,28 @@ void PhysicsSystem3D::CalculateContactImpulses(float deltaSeconds, ContactManifo
 		Vector3 crossReference = (!AreMostlyEqual(Abs(DotProduct(contact.m_normal, Vector3::Y_AXIS)), 1.0f) ? Vector3::Y_AXIS : Vector3::X_AXIS);
 		Vector3 tangent = CrossProduct(crossReference, contact.m_normal);
 		{
-			float r1Tangent = DotProduct(contact.m_r1, tangent);
-			float r2Tangent = DotProduct(contact.m_r2, tangent);
-
 			Vector3 kTangent = Vector3(body1->m_invMass + body2->m_invMass);
-			kTangent.x += body1->m_invInertia.x * (DotProduct(contact.m_r1, contact.m_r1) - r1Tangent * r1Tangent) + body2->m_invInertia.x * (DotProduct(contact.m_r2, contact.m_r2) - r2Tangent * r2Tangent);
-			kTangent.y += body1->m_invInertia.y * (DotProduct(contact.m_r1, contact.m_r1) - r1Tangent * r1Tangent) + body2->m_invInertia.y * (DotProduct(contact.m_r2, contact.m_r2) - r2Tangent * r2Tangent);
-			kTangent.z += body1->m_invInertia.z * (DotProduct(contact.m_r1, contact.m_r1) - r1Tangent * r1Tangent) + body2->m_invInertia.z * (DotProduct(contact.m_r2, contact.m_r2) - r2Tangent * r2Tangent);
+
+			// me = invM1 + invM2 + dot(r1 x n, invI1 * (r1 x n)) + dot(r2 x n, invI2 * (r2 x n))
+			kTangent.x += DotProduct(CrossProduct(contact.m_r1, tangent), body1->m_invInertia.x * CrossProduct(contact.m_r1, tangent)) + DotProduct(CrossProduct(contact.m_r2, tangent), body2->m_invInertia.x * CrossProduct(contact.m_r2, tangent));
+			kTangent.y += DotProduct(CrossProduct(contact.m_r1, tangent), body1->m_invInertia.y * CrossProduct(contact.m_r1, tangent)) + DotProduct(CrossProduct(contact.m_r2, tangent), body2->m_invInertia.y * CrossProduct(contact.m_r2, tangent));
+			kTangent.z += DotProduct(CrossProduct(contact.m_r1, tangent), body1->m_invInertia.z * CrossProduct(contact.m_r1, tangent)) + DotProduct(CrossProduct(contact.m_r2, tangent), body2->m_invInertia.z * CrossProduct(contact.m_r2, tangent));
 
 			ASSERT_OR_DIE(!AreMostlyEqual(kTangent.x, 0.f), "oof");
 			ASSERT_OR_DIE(!AreMostlyEqual(kTangent.y, 0.f), "oof");
 			ASSERT_OR_DIE(!AreMostlyEqual(kTangent.z, 0.f), "oof");
 
-			//contact.m_massTangent = (1.0f / kTangent.x) + (1.0f / kTangent.y) + (1.0f / kTangent.z);
 			contact.m_massTangent = 1.0f / (kTangent.x + kTangent.y + kTangent.z);
 		}
 
 		{
 			Vector3 bitangent = CrossProduct(contact.m_normal, tangent);
-			float r1Bitangent = DotProduct(contact.m_r1, bitangent);
-			float r2Bitangent = DotProduct(contact.m_r2, bitangent);
 
 			Vector3 kBitangent = Vector3(body1->m_invMass + body2->m_invMass);
-			kBitangent.x += body1->m_invInertia.x * (DotProduct(contact.m_r1, contact.m_r1) - r1Bitangent * r1Bitangent) + body2->m_invInertia.x * (DotProduct(contact.m_r2, contact.m_r2) - r2Bitangent * r2Bitangent);
-			kBitangent.y += body1->m_invInertia.y * (DotProduct(contact.m_r1, contact.m_r1) - r1Bitangent * r1Bitangent) + body2->m_invInertia.y * (DotProduct(contact.m_r2, contact.m_r2) - r2Bitangent * r2Bitangent);
-			kBitangent.z += body1->m_invInertia.z * (DotProduct(contact.m_r1, contact.m_r1) - r1Bitangent * r1Bitangent) + body2->m_invInertia.z * (DotProduct(contact.m_r2, contact.m_r2) - r2Bitangent * r2Bitangent);
+			// me = invM1 + invM2 + dot(r1 x n, invI1 * (r1 x n)) + dot(r2 x n, invI2 * (r2 x n))
+			kBitangent.x += DotProduct(CrossProduct(contact.m_r1, bitangent), body1->m_invInertia.x * CrossProduct(contact.m_r1, bitangent)) + DotProduct(CrossProduct(contact.m_r2, bitangent), body2->m_invInertia.x * CrossProduct(contact.m_r2, bitangent));
+			kBitangent.y += DotProduct(CrossProduct(contact.m_r1, bitangent), body1->m_invInertia.y * CrossProduct(contact.m_r1, bitangent)) + DotProduct(CrossProduct(contact.m_r2, bitangent), body2->m_invInertia.y * CrossProduct(contact.m_r2, bitangent));
+			kBitangent.z += DotProduct(CrossProduct(contact.m_r1, bitangent), body1->m_invInertia.z * CrossProduct(contact.m_r1, bitangent)) + DotProduct(CrossProduct(contact.m_r2, bitangent), body2->m_invInertia.z * CrossProduct(contact.m_r2, bitangent));
 
 			ASSERT_OR_DIE(!AreMostlyEqual(kBitangent.x, 0.f), "oof");
 			ASSERT_OR_DIE(!AreMostlyEqual(kBitangent.y, 0.f), "oof");
