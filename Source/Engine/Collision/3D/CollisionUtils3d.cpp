@@ -143,6 +143,7 @@ int CollisionUtils3d::CalculateContacts(PolytopeCollider3d* colA, PolytopeCollid
 	const Polygon3d* incShape = incCol->GetWorldShape();
 
 	std::vector<Vector3> finalPositions;
+	std::vector<float> finalPens;
 
 	if (broadResult.m_isFaceCollision)
 	{
@@ -217,15 +218,19 @@ int CollisionUtils3d::CalculateContacts(PolytopeCollider3d* colA, PolytopeCollid
 
 		// Now remove all points in front of the reference face, and those behind the face move onto the face
 		Plane3 refPlane = refShape->GetFaceSupportPlane(broadResult.m_refFaceIndex);
+		finalPens.resize(finalPositions.size());
 		for (int clipIndex = (int)finalPositions.size() - 1; clipIndex >= 0; --clipIndex)
 		{
-			if (refPlane.IsPointInFront(finalPositions[clipIndex]))
+			float pen = refPlane.GetDistanceFromPlane(finalPositions[clipIndex]);
+			if (pen > 0.f)
 			{
 				finalPositions.erase(finalPositions.begin() + clipIndex);
+				finalPens.erase(finalPens.begin() + clipIndex);
 			}
 			else
 			{
 				finalPositions[clipIndex] = refPlane.GetProjectedPointOntoPlane(finalPositions[clipIndex]);
+				finalPens[clipIndex] = pen;
 			}
 		}
 	}
@@ -243,13 +248,17 @@ int CollisionUtils3d::CalculateContacts(PolytopeCollider3d* colA, PolytopeCollid
 
 		// Choose the contact point to be in the middle of these two points
 		finalPositions.push_back(0.5f * (refEdgePoint + incEdgePoint));
+		finalPens.push_back(separation);
 	}
 
 	ASSERT_OR_DIE(finalPositions.size() <= ContactManifold3d::MAX_CONTACTS, "Too many contacts!");
+	ASSERT_OR_DIE(finalPositions.size() == finalPens.size(), "Position and pen mismatch!");
 
 	for (int contactIndex = 0; contactIndex < (int)finalPositions.size(); ++contactIndex)
 	{
-		out_contacts[contactIndex] = ContactPoint3D(finalPositions[contactIndex], broadResult.m_direction);
+		out_contacts[contactIndex].m_position = finalPositions[contactIndex];
+		out_contacts[contactIndex].m_normal = broadResult.m_direction;
+		out_contacts[contactIndex].m_pen = finalPens[contactIndex];
 	}
 
 	return (int)finalPositions.size();
@@ -278,7 +287,8 @@ int CollisionUtils3d::CalculateContacts(SphereCollider3d* colA, SphereCollider3d
 	const Vector3 surfaceB = shapeB.m_center + shapeB.m_radius * -1.0f * broadResult.m_direction;
 	const Vector3 contactPos = 0.5f * (surfaceA + surfaceB);
 
-	out_contacts[0] = ContactPoint3D(contactPos, broadResult.m_direction);
+	out_contacts[0].m_position = contactPos;
+	out_contacts[0].m_normal = broadResult.m_direction;
 	return 1;
 }
 

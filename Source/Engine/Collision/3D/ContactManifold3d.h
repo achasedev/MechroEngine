@@ -58,11 +58,18 @@ struct ManifoldKey3D
 struct ContactPoint3D
 {
 	ContactPoint3D() {}
-	ContactPoint3D(const Vector3& pos, const Vector3& norm)
-		: m_position(pos), m_normal(norm) {}
 
 	Vector3 m_position = Vector3::ZERO;
 	Vector3 m_normal = Vector3::ZERO;
+
+	Vector3 m_r1 = Vector3::ZERO;	// From the center of mass of body 1 to the contact
+	Vector3 m_r2 = Vector3::ZERO;	// From the center of mass of body 2 to the contact
+
+	float m_pen = 0.f;
+	float m_massNormal = 0.f;
+	float m_massTangent = 0.f;
+	float m_massBitangent = 0.f;
+	float m_bias = 0.f;
 };
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -89,7 +96,8 @@ public:
 
 	bool					HasCollision() const { return m_broadphaseResult.m_collisionFound; }
 	int						GetNumContacts() const { return m_numContacts; }
-	const ContactPoint3D*	GetContacts() const { return m_contacts; }
+	ContactPoint3D*			GetContacts() { return m_contacts; }
+	ContactPoint3D			GetContact(int contactIndex) { return m_contacts[contactIndex]; }
 	BroadphaseResult3d		GetBroadphaseResult() const { return m_broadphaseResult; }
 	const Collider3d*		GetColliderA() const { return m_colA; }
 	const Collider3d*		GetColliderB() const { return m_colB; }

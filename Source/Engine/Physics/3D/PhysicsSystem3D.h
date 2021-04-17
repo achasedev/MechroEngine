@@ -18,6 +18,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class CollisionSystem3d;
+class ContactManifold3d;
 class RigidBody3D;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -37,12 +39,14 @@ public:
 	const RigidBody3D*	AddEntity(Entity* entity);
 	void				RemoveEntity(Entity* entity);
 
-	void FrameStep(float deltaSeconds);
+	void FrameStep(float deltaSeconds, CollisionSystem3d* collisionSystem = nullptr);
 
 
 public:
 	//-----Public Data-----
 
+	static const float	ALLOWED_PENETRATION;
+	static const float	BIAS_FACTOR;
 	static const Vector3 DEFAULT_GRAVITY_ACC;
 
 
@@ -51,11 +55,14 @@ private:
 
 	void AddBody(RigidBody3D* body);
 
-	// FrameStep()
+	// Called in FrameStep()
 	void ApplyForces(float deltaSeconds);
-	void ApplyCollisionContactForces(float deltaSeconds); // Collision system
+	void CalculateContactImpulses(float deltaSeconds, CollisionSystem3d* collisionSystem);
+	void ApplyContactImpulses(float deltaSeconds, CollisionSystem3d* collisionSystem);
 	void UpdatePositions(float deltaSeconds);
 
+	void CalculateContactImpulses(float deltaSeconds, ContactManifold3d& manifold);
+	void ApplyContactImpulses(float deltaSeconds, ContactManifold3d& manifold);
 
 
 private:
