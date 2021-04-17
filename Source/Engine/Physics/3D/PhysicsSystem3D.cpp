@@ -28,12 +28,12 @@
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 const float PhysicsSystem3D::ALLOWED_PENETRATION = 0.01f;
-const float PhysicsSystem3D::BIAS_FACTOR = 0.2f;	
+const float PhysicsSystem3D::BIAS_FACTOR = 0.15f;	
 const bool PhysicsSystem3D::ACCUMULATE_IMPULSES = true;
 const bool PhysicsSystem3D::WARM_START_ACCUMULATIONS = true;
 
 
-const Vector3 PhysicsSystem3D::DEFAULT_GRAVITY_ACC = Vector3(0.f, -9.8f, 0.f);
+const Vector3 PhysicsSystem3D::DEFAULT_GRAVITY_ACC = Vector3(0.f, -3.f, 0.f);
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
@@ -161,7 +161,7 @@ void PhysicsSystem3D::CalculateContactImpulses(float deltaSeconds, ContactManifo
 			kNormal.y += DotProduct(CrossProduct(contact.m_r1, contact.m_normal), body1->m_invInertia.y * CrossProduct(contact.m_r1, contact.m_normal)) + DotProduct(CrossProduct(contact.m_r2, contact.m_normal), body2->m_invInertia.y * CrossProduct(contact.m_r2, contact.m_normal));
 			kNormal.z += DotProduct(CrossProduct(contact.m_r1, contact.m_normal), body1->m_invInertia.z * CrossProduct(contact.m_r1, contact.m_normal)) + DotProduct(CrossProduct(contact.m_r2, contact.m_normal), body2->m_invInertia.z * CrossProduct(contact.m_r2, contact.m_normal));	
 
-			contact.m_massNormal = 1.0f / (kNormal.x + kNormal.y + kNormal.z);
+			contact.m_massNormal = 1.0f / ((kNormal.x + kNormal.y + kNormal.z));
 		}
 
 		// Mass tangent and mass bitangent is used to calculate impulses to simulate friction
@@ -187,13 +187,12 @@ void PhysicsSystem3D::CalculateContactImpulses(float deltaSeconds, ContactManifo
 			kBitangent.y += DotProduct(CrossProduct(contact.m_r1, bitangent), body1->m_invInertia.y * CrossProduct(contact.m_r1, bitangent)) + DotProduct(CrossProduct(contact.m_r2, bitangent), body2->m_invInertia.y * CrossProduct(contact.m_r2, bitangent));
 			kBitangent.z += DotProduct(CrossProduct(contact.m_r1, bitangent), body1->m_invInertia.z * CrossProduct(contact.m_r1, bitangent)) + DotProduct(CrossProduct(contact.m_r2, bitangent), body2->m_invInertia.z * CrossProduct(contact.m_r2, bitangent));
 
-			contact.m_massBitangent = 1.0f / (bitangent.x + bitangent.y + bitangent.z);
+			contact.m_massBitangent = 1.0f / (kBitangent.x + kBitangent.y + kBitangent.z);
 		}
 
 		// To quote Erin Catto, this gives the normal impulse "some extra oomph"
 		// Proportional to the penetration, so if two objects are really intersecting -> greater bias -> greater normal force -> larger correction this frame
 		// Allowed penetration means this will correct over time, not instantaneously - make it less jittery?
-		ASSERT_OR_DIE(contact.m_pen < 0.f, "Pen isn't negative?");
 		contact.m_bias = -BIAS_FACTOR * invDeltaSeconds * Min(contact.m_pen + ALLOWED_PENETRATION, 0.f); // separation is *always* negative, it's distance below the reference edge
 
 		if (ACCUMULATE_IMPULSES)
@@ -275,72 +274,64 @@ void PhysicsSystem3D::ApplyContactImpulses(float deltaSeconds, ContactManifold3d
 		// Compute tangent impulse
 		Vector3 crossReference = (!AreMostlyEqual(Abs(DotProduct(contact.m_normal, Vector3::Y_AXIS)), 1.0f) ? Vector3::Y_AXIS : Vector3::X_AXIS);
 		Vector3 tangent = CrossProduct(crossReference, contact.m_normal);
+		
+		float speedAlongTangent = DotProduct(relativeVelocity, tangent);
+		float tangentImpulseMagnitude = contact.m_massTangent * (-speedAlongTangent); // Friction opposes movement
+
+		if (ACCUMULATE_IMPULSES)
 		{
-			float speedAlongTangent = DotProduct(relativeVelocity, tangent);
-			float tangentImpulseMagnitude = contact.m_massTangent * (-speedAlongTangent); // Friction opposes movement
+			// Factor in friction coefficient
+			float maxTangentImpulseMag = friction * contact.m_accNormalImpulse; // Always >= 0.f
 
-			if (ACCUMULATE_IMPULSES)
-			{
-				// Factor in friction coefficient
-				float maxTangentImpulseMag = friction * contact.m_accNormalImpulse; // Always >= 0.f
-
-				// Clamp friction
-				float oldTangentImpulse = contact.m_accTangentImpulse;
-				contact.m_accTangentImpulse = Clamp(oldTangentImpulse + tangentImpulseMagnitude, -maxTangentImpulseMag, maxTangentImpulseMag);
-				tangentImpulseMagnitude = contact.m_accTangentImpulse - oldTangentImpulse;
-			}
-			else
-			{
-				// Factor in friction coefficient
-				float maxTangentImpulseMag = friction * normalImpulseMagnitude; // Always >= 0.f
-				tangentImpulseMagnitude = Clamp(tangentImpulseMagnitude, -maxTangentImpulseMag, maxTangentImpulseMag);
-			}
-
-			// Apply the tangent impulse
-			Vector3 tangentImpulse = tangentImpulseMagnitude * tangent;
-
-			body1->m_velocityWs -= body1->m_invMass * tangentImpulse;
-			body1->m_angularVelocityDegrees -= RadiansToDegrees(body1->m_invInertia * CrossProduct(contact.m_r1, tangentImpulse));
-
-			body2->m_velocityWs += body2->m_invMass * tangentImpulse;
-			body2->m_angularVelocityDegrees += RadiansToDegrees(body2->m_invInertia * CrossProduct(contact.m_r2, tangentImpulse));
+			// Clamp friction
+			float oldTangentImpulse = contact.m_accTangentImpulse;
+			contact.m_accTangentImpulse = Clamp(oldTangentImpulse + tangentImpulseMagnitude, -maxTangentImpulseMag, maxTangentImpulseMag);
+			tangentImpulseMagnitude = contact.m_accTangentImpulse - oldTangentImpulse;
 		}
-
-		// Recalculate the relative velocity
-		relativeVelocity = body2->m_velocityWs + CrossProduct(DegreesToRadians(body2->m_angularVelocityDegrees), contact.m_r2) - body1->m_velocityWs - CrossProduct(DegreesToRadians(body1->m_angularVelocityDegrees), contact.m_r1);
+		else
+		{
+			// Factor in friction coefficient
+			float maxTangentImpulseMag = friction * normalImpulseMagnitude; // Always >= 0.f
+			tangentImpulseMagnitude = Clamp(tangentImpulseMagnitude, -maxTangentImpulseMag, maxTangentImpulseMag);
+		}		
 
 		// Compute bitangent impulse
+		Vector3 bitangent = CrossProduct(contact.m_normal, tangent);
+		float speedAlongBitangent = DotProduct(relativeVelocity, bitangent);
+		float bitangentImpulseMagnitude = contact.m_massBitangent * (-speedAlongBitangent); // Friction opposes movement
+
+		if (ACCUMULATE_IMPULSES)
 		{
-			Vector3 bitangent = CrossProduct(contact.m_normal, tangent);
-			float speedAlongBitangent = DotProduct(relativeVelocity, bitangent);
-			float bitangentImpulseMagnitude = contact.m_massBitangent * (-speedAlongBitangent); // Friction opposes movement
+			// Factor in friction coefficient
+			float maxBitangentImpulseMag = friction * contact.m_accNormalImpulse; // Always >= 0.f
 
-			if (ACCUMULATE_IMPULSES)
-			{
-				// Factor in friction coefficient
-				float maxBitangentImpulseMag = friction * contact.m_accNormalImpulse; // Always >= 0.f
-
-				// Clamp friction
-				float oldBitangentImpulse = contact.m_accBitangentImpulse;
-				contact.m_accBitangentImpulse = Clamp(oldBitangentImpulse + bitangentImpulseMagnitude, -maxBitangentImpulseMag, maxBitangentImpulseMag);
-				bitangentImpulseMagnitude = contact.m_accBitangentImpulse - oldBitangentImpulse;
-			}
-			else
-			{
-				// Factor in friction coefficient
-				float maxBitangentImpulseMag = friction * normalImpulseMagnitude; // Always >= 0.f
-				bitangentImpulseMagnitude = Clamp(bitangentImpulseMagnitude, -maxBitangentImpulseMag, maxBitangentImpulseMag);
-			}
-
-			// Apply the bitangent impulse
-			Vector3 bitangentImpulse = bitangentImpulseMagnitude * bitangent;
-
-			body1->m_velocityWs -= body1->m_invMass * bitangentImpulse;
-			body1->m_angularVelocityDegrees -= RadiansToDegrees(body1->m_invInertia * CrossProduct(contact.m_r1, bitangentImpulse));
-
-			body2->m_velocityWs += body2->m_invMass * bitangentImpulse;
-			body2->m_angularVelocityDegrees += RadiansToDegrees(body2->m_invInertia * CrossProduct(contact.m_r2, bitangentImpulse));
+			// Clamp friction
+			float oldBitangentImpulse = contact.m_accBitangentImpulse;
+			contact.m_accBitangentImpulse = Clamp(oldBitangentImpulse + bitangentImpulseMagnitude, -maxBitangentImpulseMag, maxBitangentImpulseMag);
+			bitangentImpulseMagnitude = contact.m_accBitangentImpulse - oldBitangentImpulse;
 		}
+		else
+		{
+			// Factor in friction coefficient
+			float maxBitangentImpulseMag = friction * normalImpulseMagnitude; // Always >= 0.f
+			bitangentImpulseMagnitude = Clamp(bitangentImpulseMagnitude, -maxBitangentImpulseMag, maxBitangentImpulseMag);
+		}
+
+		// Apply the tangent impulse
+		Vector3 tangentImpulse = tangentImpulseMagnitude * tangent;
+		body1->m_velocityWs -= body1->m_invMass * tangentImpulse;
+		Vector3 deltaDegrees1 = RadiansToDegrees(body1->m_invInertia * CrossProduct(contact.m_r1, tangentImpulse));
+		body1->m_angularVelocityDegrees -= deltaDegrees1;
+		body2->m_velocityWs += body2->m_invMass * tangentImpulse;
+		Vector3 deltaDegrees2 = RadiansToDegrees(body2->m_invInertia * CrossProduct(contact.m_r2, tangentImpulse));;
+		body2->m_angularVelocityDegrees += deltaDegrees2;
+
+		// Apply the bitangent impulse
+		Vector3 bitangentImpulse = bitangentImpulseMagnitude * bitangent;
+		body1->m_velocityWs -= body1->m_invMass * bitangentImpulse;
+		body2->m_velocityWs += body2->m_invMass * bitangentImpulse;
+		body1->m_angularVelocityDegrees -= RadiansToDegrees(body1->m_invInertia * CrossProduct(contact.m_r1, bitangentImpulse));
+		body2->m_angularVelocityDegrees += RadiansToDegrees(body2->m_invInertia * CrossProduct(contact.m_r2, bitangentImpulse));
 	}
 }
 

@@ -169,7 +169,7 @@ void RigidBody3D::SetMassProperties(float mass)
 	m_invMass = (1.0f / mass);
 
 	m_inertia = inertia;
-	m_invInertia = Vector3(1.0f / inertia.x, 1.0f / inertia.y, 1.0f * inertia.z);
+	m_invInertia = Vector3(1.0f / inertia.x, 1.0f / inertia.y, 1.0f / inertia.z);
 
 	m_density = density;
 	m_centerOfMassLs = center;

@@ -244,10 +244,9 @@ int CollisionUtils3d::CalculateContacts(PolytopeCollider3d* colA, PolytopeCollid
 		Vector3 refEdgePoint;
 		Vector3 incEdgePoint;
 		float separation = FindClosestPointsOnLineSegments(refEdgeStart, refEdgeEnd, incEdgeStart, incEdgeEnd, refEdgePoint, incEdgePoint);
-		//ASSERT_OR_DIE(AreMostlyEqual(separation, broadResult.m_penetration), "These should match!");
 
 		// Choose the contact point to be in the middle of these two points
-		finalPositions.push_back(0.5f * (refEdgePoint + incEdgePoint));
+		finalPositions.push_back(-0.5f * (refEdgePoint + incEdgePoint));
 		finalPens.push_back(separation);
 	}
 
