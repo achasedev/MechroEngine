@@ -47,6 +47,8 @@ public:
 
 	static const float	ALLOWED_PENETRATION;
 	static const float	BIAS_FACTOR;
+	static const bool	ACCUMULATE_IMPULSES;
+	static const bool	WARM_START_ACCUMULATIONS;
 	static const Vector3 DEFAULT_GRAVITY_ACC;
 
 

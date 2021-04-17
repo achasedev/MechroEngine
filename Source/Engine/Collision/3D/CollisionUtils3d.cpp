@@ -539,6 +539,7 @@ BroadphaseResult3d CollisionUtils3d::Collide(PolytopeCollider3d* colA, PolytopeC
 		result.m_incEdgeIndex = edgeIndexB;
 	}
 	
+	ASSERT_OR_DIE(AreMostlyEqual(result.m_direction.GetLength(), 1.0f), "Direction not unit!");
 	return result;
 }
 

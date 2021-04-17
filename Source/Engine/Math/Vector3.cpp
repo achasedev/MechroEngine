@@ -115,6 +115,13 @@ const Vector3 Vector3::operator*(float uniformScaler) const
 
 
 //-------------------------------------------------------------------------------------------------
+const Vector3 Vector3::operator*(const Vector3& multVector) const
+{
+	return Vector3(x * multVector.x, y * multVector.y, z * multVector.z);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 const Vector3 Vector3::operator/(float uniformDivisor) const
 {
 	float multScaler = (1.f / uniformDivisor);

@@ -139,9 +139,23 @@ float RadiansToDegrees(float radians)
 
 
 //-------------------------------------------------------------------------------------------------
+Vector3 RadiansToDegrees(Vector3 radians)
+{
+	return Vector3(RadiansToDegrees(radians.x), RadiansToDegrees(radians.y), RadiansToDegrees(radians.z));
+}
+
+
+//-------------------------------------------------------------------------------------------------
 float DegreesToRadians(float degrees)
 {
 	return degrees * (PI / 180.f);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector3 DegreesToRadians(Vector3 eulerAngles)
+{
+	return Vector3(DegreesToRadians(eulerAngles.x), DegreesToRadians(eulerAngles.y), DegreesToRadians(eulerAngles.z));
 }
 
 

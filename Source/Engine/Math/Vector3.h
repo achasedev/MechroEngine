@@ -53,6 +53,7 @@ public:
 	const Vector3			operator+(const Vector3& addVector) const;
 	const Vector3			operator-(const Vector3& subVector) const;
 	const Vector3			operator*(float uniformScaler) const;
+	const Vector3			operator*(const Vector3& multVector) const;
 	const Vector3			operator/(float uniformDivisor) const;
 	void					operator+=(const Vector3& addVector);
 	void					operator-=(const Vector3& subVector);

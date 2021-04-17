@@ -61,6 +61,11 @@ PolytopeCollider3d::PolytopeCollider3d(const Polygon3d* shape)
 {
 	m_shapeLs = new Polygon3d();
 	*m_shapeLs = *shape;
+
+	if (!m_shapeLs->HasGeneratedHalfEdges())
+	{
+		m_shapeLs->GenerateHalfEdgeStructure();
+	}
 }
 
 

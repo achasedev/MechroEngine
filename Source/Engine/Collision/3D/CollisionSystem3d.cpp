@@ -123,13 +123,6 @@ void CollisionSystem3d::PerformBroadPhase()
 			colA->GenerateWorldShape();
 			colB->GenerateWorldShape();
 
-			if (isnan(colA->GetAsType<PolytopeCollider3d>()->GetWorldShape()->GetVertexPosition(0).x))
-			{
-				int x = 0;
-				x = 5;
-				colA->GenerateWorldShape();
-			}
-
 			ContactManifold3d manifold = ContactManifold3d(colA, colB);
 			manifold.Collide();
 
@@ -137,7 +130,17 @@ void CollisionSystem3d::PerformBroadPhase()
 
 			if (manifold.HasCollision())
 			{
-				m_manifolds[key] = manifold;
+				// Check if this manifold exists already, and if so update in place to maintain accumulations
+				Manifold3dIter itr = m_manifolds.find(key);
+				if (itr == m_manifolds.end())
+				{
+					// Doesn't exist, so just add it
+					m_manifolds[key] = manifold;
+				}
+				else
+				{
+					itr->second.UpdateContacts(manifold.GetContacts(), manifold.GetNumContacts());
+				}
 			}
 			else
 			{

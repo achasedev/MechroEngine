@@ -12,6 +12,7 @@
 #include "Engine/Collision/3D/CollisionUtils3d.h"
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Framework/Rgba.h"
+#include "Engine/Physics/3D/PhysicsSystem3D.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -182,6 +183,68 @@ void ContactManifold3d::GenerateContacts()
 		}
 	}
 }
+
+
+//-------------------------------------------------------------------------------------------------
+void ContactManifold3d::UpdateContacts(const ContactPoint3D* contacts, int numContacts)
+{
+	// Where the final result will be stored temporarily
+	ContactPoint3D mergedContacts[MAX_CONTACTS];
+
+	for (int newContactIndex = 0U; newContactIndex < numContacts; ++newContactIndex)
+	{
+		const ContactPoint3D* newContact = contacts + newContactIndex;
+
+		// Search to see if we already have info for this contact stored from last frames result
+		ContactPoint3D* matchingOldContact = nullptr;
+		for (int oldContactIndex = 0; oldContactIndex < m_numContacts; ++oldContactIndex)
+		{
+			ContactPoint3D* oldContact = m_contacts + oldContactIndex;
+
+			if (newContact->m_id == oldContact->m_id)
+			{
+				matchingOldContact = oldContact;
+				break;
+			}
+		}
+
+		if (matchingOldContact != nullptr)
+		{
+			// Overwrite our old contact info with the new stuff
+			ContactPoint3D* mergeContact = mergedContacts + newContactIndex;
+			*mergeContact = *newContact;
+
+			// If we want to reuse the last accumulation state of the contact, copy it now
+			if (PhysicsSystem3D::WARM_START_ACCUMULATIONS)
+			{
+				mergeContact->m_accNormalImpulse = matchingOldContact->m_accNormalImpulse;
+				mergeContact->m_accTangentImpulse = matchingOldContact->m_accTangentImpulse;
+				mergeContact->m_normalBiasImpulse = matchingOldContact->m_normalBiasImpulse;
+			}
+			else
+			{
+				mergeContact->m_accNormalImpulse = 0.f;
+				mergeContact->m_accTangentImpulse = 0.f;
+				mergeContact->m_normalBiasImpulse = 0.f;
+			}
+		}
+		else
+		{
+			// Brand new contact, just add it to merged contacts
+			mergedContacts[newContactIndex] = contacts[newContactIndex];
+		}
+
+	}
+
+	// Done merging, update the arbiter's contact data
+	for (int newContactIndex = 0U; newContactIndex < numContacts; ++newContactIndex)
+	{
+		m_contacts[newContactIndex] = mergedContacts[newContactIndex];
+	}
+
+	m_numContacts = numContacts;
+}
+
 
 #include "Engine/Render/Core/RenderContext.h"
 //-------------------------------------------------------------------------------------------------

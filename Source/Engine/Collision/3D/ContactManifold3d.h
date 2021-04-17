@@ -54,6 +54,16 @@ struct ManifoldKey3D
 	Collider3d* m_colliderB;
 };
 
+
+//-------------------------------------------------------------------------------------------------
+struct ContactPointID
+{
+	bool operator==(const ContactPointID& other) const { return m_poly == other.m_poly && m_vertexIndex == other.m_vertexIndex; }
+	const Polygon3d*	m_poly = nullptr;
+	int					m_vertexIndex = -1;
+};
+
+
 //-------------------------------------------------------------------------------------------------
 struct ContactPoint3D
 {
@@ -70,6 +80,13 @@ struct ContactPoint3D
 	float m_massTangent = 0.f;
 	float m_massBitangent = 0.f;
 	float m_bias = 0.f;
+
+	float m_accNormalImpulse = 0.f;		// accumulated normal impulse
+	float m_accTangentImpulse = 0.f;	// accumulated tangent impulse
+	float m_accBitangentImpulse = 0.f;	// accumulated bitangent impulse
+	float m_normalBiasImpulse = 0.f;	// accumulated normal impulse for position bias
+
+	ContactPointID m_id;
 };
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -91,6 +108,7 @@ public:
 
 	void					Collide();
 	void					GenerateContacts();
+	void					UpdateContacts(const ContactPoint3D* contacts, int numContacts);
 
 	void					DebugRender(Material* material) const;
 

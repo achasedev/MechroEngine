@@ -79,7 +79,9 @@ Vector3 SphericalToCartesian(float radius, float rotationDegrees, float azimuthD
 //-------------------------------------------------------------------------------------------------
 // Angles and Trigonometry
 float	RadiansToDegrees(float radians);
+Vector3	RadiansToDegrees(Vector3 radians);
 float	DegreesToRadians(float degrees);
+Vector3	DegreesToRadians(Vector3 eulerAngles);
 float	CosDegrees(float degrees);
 float   ACosDegrees(float ratio);
 float	SinDegrees(float degrees);
