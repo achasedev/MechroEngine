@@ -42,6 +42,7 @@ public:
 	static void		Shutdown();
 
 	void			ResizeWindowToWindowsRect();
+	bool			BringWindowToFront(NamedProperties& args);
 	void			RegisterMessageHandler(WindowsMessageHandler handler);
 	void			UnregisterMessageHandler(WindowsMessageHandler handler);
 

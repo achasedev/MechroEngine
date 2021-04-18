@@ -10,6 +10,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Event/EventSubscription.h"
 #include "Engine/Framework/EngineCommon.h"
+#include "Engine/Time/FrameTimer.h"
+#include "Engine/Utility/NamedProperties.h"
 #include "Engine/Utility/StringID.h"
 #include <map>
 #include <vector>
@@ -21,7 +23,12 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class NamedProperties;
+struct DelayedEvent
+{
+	StringID		m_eventSID;
+	NamedProperties m_args;
+	FrameTimer		m_timer;
+};
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -40,6 +47,8 @@ public:
 	static void										Initialize();
 	static void										Shutdown();
 
+	void											BeginFrame();
+
 	// Subscriptions
 	void											SubscribeEventCallbackFunction(const char* eventName, EventFunctionCallback callback);
 	void											UnsubscribeEventCallbackFunction(const char* eventName, EventFunctionCallback callback);
@@ -47,6 +56,7 @@ public:
 	template <typename T, typename T_Method> void	UnsubscribeEventCallbackObjectMethod(const char* eventName, T_Method callback, T& object);
 
 	bool											FireEvent(const StringID& eventSID, NamedProperties& args);
+	bool											QueueDelayedEvent(const StringID& eventSID, NamedProperties& args, float delaySeconds);
 	void											GetAllEventNames(std::vector<std::string>& out_eventNames) const;
 
 
@@ -61,6 +71,7 @@ private:
 private:
 	//-----Private Data-----
 
+	std::vector<DelayedEvent> m_delayedEvents;
 	std::map<StringID, std::vector<EventSubscription*>> m_subscriptions;
 
 };
@@ -118,3 +129,10 @@ bool FireEvent(const StringID& eventSID);
 bool FireEvent(const char* eventName, NamedProperties& args);
 bool FireEvent(const std::string& eventName, NamedProperties& args);
 bool FireEvent(const StringID& eventSID, NamedProperties& args);
+
+bool QueueDelayedEvent(const char* eventName, float delaySeconds);
+bool QueueDelayedEvent(const std::string& eventName, float delaySeconds);
+bool QueueDelayedEvent(const StringID& eventSID, float delaySeconds);
+bool QueueDelayedEvent(const char* eventName, NamedProperties& args, float delaySeconds);
+bool QueueDelayedEvent(const std::string& eventName, NamedProperties& args, float delaySeconds);
+bool QueueDelayedEvent(const StringID& eventSID, NamedProperties& args, float delaySeconds);

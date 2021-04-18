@@ -73,6 +73,51 @@ bool FireEvent(const StringID& eventSID, NamedProperties& args)
 }
 
 
+//-------------------------------------------------------------------------------------------------
+bool QueueDelayedEvent(const char* eventName, float delaySeconds)
+{
+	NamedProperties args;
+	return QueueDelayedEvent(SID(eventName), args, delaySeconds);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool QueueDelayedEvent(const std::string& eventName, float delaySeconds)
+{
+	NamedProperties args;
+	return QueueDelayedEvent(SID(eventName), args, delaySeconds);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool QueueDelayedEvent(const StringID& eventSID, float delaySeconds)
+{
+	NamedProperties args;
+	return QueueDelayedEvent(eventSID, args, delaySeconds);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool QueueDelayedEvent(const char* eventName, NamedProperties& args, float delaySeconds)
+{
+	return QueueDelayedEvent(SID(eventName), args, delaySeconds);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool QueueDelayedEvent(const std::string& eventName, NamedProperties& args, float delaySeconds)
+{
+	return QueueDelayedEvent(SID(eventName), args, delaySeconds);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool QueueDelayedEvent(const StringID& eventSID, NamedProperties& args, float delaySeconds)
+{
+	return g_eventSystem->QueueDelayedEvent(eventSID, args, delaySeconds);
+}
+
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -116,6 +161,20 @@ void EventSystem::Initialize()
 void EventSystem::Shutdown()
 {
 	SAFE_DELETE(g_eventSystem);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void EventSystem::BeginFrame()
+{
+	for (int eventIndex = (int)m_delayedEvents.size() - 1; eventIndex >= 0; --eventIndex)
+	{
+		if (m_delayedEvents[eventIndex].m_timer.HasIntervalElapsed())
+		{
+			FireEvent(m_delayedEvents[eventIndex].m_eventSID, m_delayedEvents[eventIndex].m_args);
+			m_delayedEvents.erase(m_delayedEvents.begin() + eventIndex);
+		}
+	}
 }
 
 
@@ -181,6 +240,20 @@ bool EventSystem::FireEvent(const StringID& eventSID, NamedProperties& args)
 	}
 
 	return eventHasSubscribers;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool EventSystem::QueueDelayedEvent(const StringID& eventSID, NamedProperties& args, float delaySeconds)
+{
+	DelayedEvent delayedEvent;
+	delayedEvent.m_eventSID = eventSID;
+	delayedEvent.m_args = args;
+	delayedEvent.m_timer.SetInterval(delaySeconds);
+
+	m_delayedEvents.push_back(delayedEvent);
+
+	return m_subscriptions.find(eventSID) != m_subscriptions.end();
 }
 
 

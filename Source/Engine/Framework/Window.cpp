@@ -202,12 +202,17 @@ void Window::Initialize(float aspect, const char* windowTitle)
 {
 	g_window = new Window(aspect, windowTitle);
 	g_window->RegisterMessageHandler(WindowMessageHandler);
+
+	// Hack to get around Visual Studio constantly sending the program to bottom on start up...
+	g_eventSystem->SubscribeEventCallbackObjectMethod("bring_to_front", &Window::BringWindowToFront, *g_window);
+	QueueDelayedEvent("bring_to_front", 0.5f);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void Window::Shutdown()
 {
+	g_eventSystem->UnsubscribeEventCallbackObjectMethod("bring_to_front", &Window::BringWindowToFront, *g_window);
 	g_window->UnregisterMessageHandler(WindowMessageHandler);
 	SAFE_DELETE(g_window);
 }
@@ -239,6 +244,16 @@ void Window::ResizeWindowToWindowsRect()
 	args.Set("client-height", static_cast<int>(m_clientPixelBounds.GetHeight()));
 
 	FireEvent("window-resize", args);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool Window::BringWindowToFront(NamedProperties& args)
+{
+	UNUSED(args);
+	BringWindowToTop((HWND)m_hwnd);
+
+	return true;
 }
 
 
