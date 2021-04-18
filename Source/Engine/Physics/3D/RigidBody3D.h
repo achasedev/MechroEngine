@@ -117,7 +117,7 @@ private:
 	bool				m_affectedByGravity			= true;
 
 	// Shape - to be replaced with possibly a shape instead
-	const PolytopeCollider3d*	m_collider					= nullptr;
+	const PolytopeCollider3d* m_collider			= nullptr;
 
 };
 

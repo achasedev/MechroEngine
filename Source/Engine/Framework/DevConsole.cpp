@@ -13,6 +13,7 @@
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Framework/Window.h"
 #include "Engine/IO/Image.h"
+#include "Engine/IO/InputSystem.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Render/Camera/Camera.h"
 #include "Engine/Render/Core/RenderContext.h"
@@ -391,6 +392,28 @@ void DevConsole::SetIsActive(bool isActive)
 	m_isActive = isActive;
 
 	m_canvas->SetElementInFocus(m_inputFieldText);
+
+	Mouse& mouse = InputSystem::GetMouse();
+
+	if (m_isActive)
+	{
+		// Save off the previous mouse state to restore it on exit
+		m_wasMouseShown = mouse.IsCursorShown();
+		m_wasMouseLocked = mouse.IsCursorLocked();
+		m_prevMouseCursorMode = mouse.GetCursorMode();
+
+		// Activate the mouse
+		mouse.ShowMouseCursor(true);
+		mouse.LockCursorToClient(false);
+		mouse.SetCursorMode(CURSORMODE_ABSOLUTE);
+	}
+	else
+	{
+		// Restore the mouse state
+		mouse.ShowMouseCursor(m_wasMouseShown);
+		mouse.LockCursorToClient(m_wasMouseLocked);
+		mouse.SetCursorMode(m_prevMouseCursorMode);
+	}
 }
 
 

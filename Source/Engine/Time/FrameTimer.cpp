@@ -191,6 +191,13 @@ bool FrameTimer::HasIntervalElapsed() const
 
 
 //-------------------------------------------------------------------------------------------------
+float FrameTimer::GetIntervalSeconds() const
+{
+	return static_cast<float>(TimeSystem::PerformanceCountToSeconds(m_endHPC - m_startHPC));
+}
+
+
+//-------------------------------------------------------------------------------------------------
 float FrameTimer::GetDeltaSeconds() const
 {
 	return m_referenceClock->GetDeltaSeconds();

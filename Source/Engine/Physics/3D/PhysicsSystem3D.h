@@ -9,6 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/Entity.h"
+#include "Engine/Time/FrameTimer.h"
 #include <vector>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -36,10 +37,13 @@ class PhysicsSystem3D
 public:
 	//-----Public Methods-----
 
+	PhysicsSystem3D();
+
+	void				SetTimeStep(float stepSeconds);
 	const RigidBody3D*	AddEntity(Entity* entity);
 	void				RemoveEntity(Entity* entity);
 
-	void FrameStep(float deltaSeconds, CollisionSystem3d* collisionSystem = nullptr);
+	void				Update(CollisionSystem3d* collisionSystem = nullptr);
 
 
 public:
@@ -47,6 +51,7 @@ public:
 
 	static const float	ALLOWED_PENETRATION;
 	static const float	BIAS_FACTOR;
+	static const float	DEFAULT_TIMESTEP;
 	static const bool	ACCUMULATE_IMPULSES;
 	static const bool	WARM_START_ACCUMULATIONS;
 	static const Vector3 DEFAULT_GRAVITY_ACC;
@@ -58,18 +63,20 @@ private:
 	void AddBody(RigidBody3D* body);
 
 	// Called in FrameStep()
+	void FrameStep(float deltaSeconds, CollisionSystem3d* collisionSystem = nullptr);
 	void ApplyForces(float deltaSeconds);
-	void CalculateContactImpulses(float deltaSeconds, CollisionSystem3d* collisionSystem);
+	void CalculateEffectiveMasses(float deltaSeconds, CollisionSystem3d* collisionSystem);
 	void ApplyContactImpulses(CollisionSystem3d* collisionSystem);
 	void UpdatePositions(float deltaSeconds);
 
-	void CalculateContactImpulses(float deltaSeconds, ContactManifold3d& manifold);
+	void CalculateEffectiveMasses(float deltaSeconds, ContactManifold3d& manifold);
 	void ApplyContactImpulses(ContactManifold3d& manifold);
 
 
 private:
 	//-----Private Data-----
 
+	FrameTimer					m_stepTimer;
 	std::vector<RigidBody3D*>	m_bodies;
 	Vector3						m_gravityAcc = DEFAULT_GRAVITY_ACC;
 

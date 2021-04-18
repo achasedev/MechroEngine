@@ -11,6 +11,7 @@
 #include "Engine/DataStructures/ColoredText.h"
 #include "Engine/DataStructures/ThreadSafeQueue.h"
 #include "Engine/Framework/ConsoleCommand.h"
+#include "Engine/IO/Mouse.h"
 #include "Engine/Time/FrameTimer.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -157,6 +158,11 @@ private:
 	bool								m_ctrlHeld = false;
 
 	FrameTimer							m_fpsUpdateTimer;
+
+	// Mouse State
+	bool								m_wasMouseShown = false;
+	bool								m_wasMouseLocked = false;
+	CursorMode							m_prevMouseCursorMode = CURSORMODE_ABSOLUTE;
 
 	std::map<StringID, const ConsoleCommand*>	m_commands;
 

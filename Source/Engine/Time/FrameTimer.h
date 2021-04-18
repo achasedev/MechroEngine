@@ -51,6 +51,7 @@ public:
 	float	GetElapsedTimeNormalized() const;
 	float	GetSecondsUntilIntervalEnds() const;
 	bool	HasIntervalElapsed() const;
+	float	GetIntervalSeconds() const;
 
 	float	GetDeltaSeconds() const;
 
