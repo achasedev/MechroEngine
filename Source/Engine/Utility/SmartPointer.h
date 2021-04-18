@@ -67,13 +67,16 @@ public:
 	SmartPointer(const SmartPointer<T>& copy);
 	~SmartPointer();
 
+	bool	IsValid() const { return m_pointer != nullptr; }
+
 	T&		operator*()		{ return *m_pointer; }
 	T*		operator->()	{ return m_pointer; }
 
 	void	operator=(const SmartPointer<T>& copy);
-	void	operator=(const T* pointer);
+	void	operator=(T* pointer);
 	bool	operator==(const SmartPointer<T>& compare) const;
 	bool	operator==(const T* compare) const;
+	bool	operator!=(const T* compare) const;
 
 
 private:
@@ -134,7 +137,11 @@ SmartPointer<T>::SmartPointer(const SmartPointer<T>& copy)
 
 	// Should never happen!
 	ASSERT_OR_DIE(m_refCount != nullptr, "SmartPointer had nullptr RefCount!");
-	m_refCount->AddRef();
+
+	if (m_refCount != nullptr)
+	{
+		m_refCount->AddRef();
+	}
 }
 
 
@@ -166,13 +173,17 @@ void SmartPointer<T>::operator=(const SmartPointer<T>& copy)
 
 	m_pointer = copy.m_pointer;
 	m_refCount = copy.m_refCount;
-	m_refCount->AddRef();
+
+	if (m_refCount != nullptr)
+	{
+		m_refCount->AddRef();
+	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
 template <typename T>
-void SmartPointer<T>::operator=(const T* pointer)
+void SmartPointer<T>::operator=(T* pointer)
 {
 	// Check for whether it points to the same thing
 	if (m_pointer == pointer)
@@ -187,8 +198,12 @@ void SmartPointer<T>::operator=(const T* pointer)
 	}
 	
 	m_pointer = pointer;
-	m_refCount = RefCount::CreateOrGetRefCount(pointer);
-	m_refCount->AddRef();
+
+	if (m_pointer != nullptr)
+	{
+		m_refCount = RefCount::CreateOrGetRefCount(pointer);
+		m_refCount->AddRef();
+	}
 }
 
 
@@ -197,6 +212,14 @@ template <typename T>
 bool SmartPointer<T>::operator==(const SmartPointer<T>& compare) const
 {
 	return (m_pointer == compare.m_pointer);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+template <typename T>
+bool SmartPointer<T>::operator!=(const T* compare) const
+{
+	return (m_pointer != compare.m_pointer);
 }
 
 

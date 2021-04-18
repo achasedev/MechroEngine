@@ -171,7 +171,7 @@
     <ClCompile Include="Event\EventSubscription.cpp" />
     <ClCompile Include="Event\EventSystem.cpp" />
     <ClCompile Include="Framework\ConsoleCommand.cpp" />
-    <ClCompile Include="Framework\Resource.cpp" />
+    <ClCompile Include="Resource\Resource.cpp" />
     <ClCompile Include="Math\Edge3.cpp" />
     <ClCompile Include="Math\Line3.cpp" />
     <ClCompile Include="Math\OBB3.cpp" />
@@ -238,6 +238,7 @@
     <ClCompile Include="Math\Vector3.cpp" />
     <ClCompile Include="Math\Vector4.cpp" />
     <ClCompile Include="Render\View\TextureView.cpp" />
+    <ClCompile Include="Resource\ResourceSystem.cpp" />
     <ClCompile Include="Time\Clock.cpp" />
     <ClCompile Include="Time\FrameTimer.cpp" />
     <ClCompile Include="Time\Time.cpp" />
@@ -256,7 +257,7 @@
     <ClCompile Include="Utility\NamedProperties.cpp" />
     <ClCompile Include="Utility\SmartPointer.cpp" />
     <ClCompile Include="Utility\SpritePacker.cpp" />
-    <ClCompile Include="Utility\StringId.cpp" />
+    <ClCompile Include="Utility\StringID.cpp" />
     <ClCompile Include="Utility\StringUtils.cpp" />
     <ClCompile Include="Utility\XMLUtils.cpp" />
     <ClCompile Include="Voxel\QEFLoader.cpp" />
@@ -272,7 +273,7 @@
     <ClInclude Include="Event\EventSystem.h" />
     <ClInclude Include="Framework\ConsoleCommand.h" />
     <ClInclude Include="Framework\CommentSnippets.h" />
-    <ClInclude Include="Framework\Resource.h" />
+    <ClInclude Include="Resource\Resource.h" />
     <ClInclude Include="Math\Capsule3d.h" />
     <ClInclude Include="Math\Edge3.h" />
     <ClInclude Include="Math\Line3.h" />
@@ -312,6 +313,7 @@
     <ClInclude Include="Physics\3D\Physics3D.h" />
     <ClInclude Include="Physics\3D\RigidBody3D.h" />
     <ClInclude Include="Render\Debug\DebugRenderSystem.h" />
+    <ClInclude Include="Resource\ResourceSystem.h" />
     <ClInclude Include="UI\UIButton.h" />
     <ClInclude Include="UI\UIImage.h" />
     <ClInclude Include="UI\UIScrollView.h" />
@@ -357,7 +359,6 @@
     <ClInclude Include="Math\Vector2.h" />
     <ClInclude Include="Math\Vector3.h" />
     <ClInclude Include="Math\Vector4.h" />
-    <ClInclude Include="Resource\Resource.h" />
     <ClInclude Include="Time\Clock.h" />
     <ClInclude Include="Time\FrameTimer.h" />
     <ClInclude Include="Time\Time.h" />
@@ -371,7 +372,7 @@
     <ClInclude Include="Utility\LockJanitor.h" />
     <ClInclude Include="Utility\NamedProperties.h" />
     <ClInclude Include="Utility\SmartPointer.h" />
-    <ClInclude Include="Utility\StringId.h" />
+    <ClInclude Include="Utility\StringID.h" />
     <ClInclude Include="Utility\StringUtils.h" />
     <ClInclude Include="Utility\XMLUtils.h" />
     <ClInclude Include="Voxel\QEFLoader.h" />

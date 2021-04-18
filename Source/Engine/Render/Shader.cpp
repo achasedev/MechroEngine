@@ -7,12 +7,14 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Framework/DevConsole.h"
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/IO/File.h"
 #include "Engine/Render/Core/DX11Common.h"
 #include "Engine/Render/Core/RenderContext.h"
 #include "Engine/Render/Shader.h"
 #include "Engine/Render/Mesh/Vertex.h"
+#include "Engine/Utility/XMLUtils.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -149,6 +151,33 @@ D3D11_FILL_MODE ToDXFillMode(FillMode fillMode)
 }
 
 
+//-------------------------------------------------------------------------------------------------
+BlendPreset StringToBlendPreset(const std::string& blendText)
+{
+	if		(blendText == "opaque") { return BLEND_PRESET_OPAQUE; }
+	else if (blendText == "alpha") { return BLEND_PRESET_ALPHA; }
+	else if (blendText == "additive" || blendText == "add") { return BLEND_PRESET_ADDITIVE; }
+	else
+	{
+		ConsoleErrorf("Invalid BlendPreset %s, defaulting to opaque", blendText.c_str());
+		return BLEND_PRESET_OPAQUE;
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+FillMode StringToFillMode(const std::string& fillText)
+{
+	if		(fillText == "wire" || fillText == "wireframe") { return FILL_MODE_WIREFRAME; }
+	else if (fillText == "solid") { return FILL_MODE_SOLID; }
+	else
+	{
+		ConsoleErrorf("Invalid FillMode %s, defaulting to solid", fillText.c_str());
+		return FILL_MODE_SOLID;
+	}
+}
+
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -156,8 +185,16 @@ D3D11_FILL_MODE ToDXFillMode(FillMode fillMode)
 //-------------------------------------------------------------------------------------------------
 ShaderStage::~ShaderStage()
 {
+	Clear();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void ShaderStage::Clear()
+{
 	DX_SAFE_RELEASE(m_compiledSource);
 	DX_SAFE_RELEASE(m_handle);
+	m_stageType = SHADER_STAGE_INVALID;
 }
 
 
@@ -210,14 +247,76 @@ Shader::Shader()
 //-------------------------------------------------------------------------------------------------
 Shader::~Shader()
 {
-	DX_SAFE_RELEASE(m_dxBlendState);
-	DX_SAFE_RELEASE(m_dxRasterizerState);
-	DX_SAFE_RELEASE(m_shaderInputLayout.m_dxInputLayout);
+	Clear();
 }
 
 
 //-------------------------------------------------------------------------------------------------
-bool Shader::CreateFromFile(const char* filename)
+bool Shader::Load(const char* filepath)
+{
+	if (!DoesFilePathHaveExtension(filepath, "shader"))
+	{
+		ConsoleErrorf("File \"%s\" expected extension \?%s\"", filepath, "shader");
+	}
+
+	XMLDoc doc;
+	XMLErr error = doc.LoadFile(filepath);
+
+	if (error != tinyxml2::XML_SUCCESS)
+	{
+		ConsoleErrorf("Couldn't load resource file %s", filepath);
+		return false;
+	}
+
+	const XMLElem* rootElem = doc.RootElement();
+
+	if (rootElem == nullptr)
+	{
+		Clear();
+		return false;
+	}
+
+	std::string sourceFilepath = XML::ParseAttribute(*rootElem, "source", "Data/Shader/invalid.shadersource");
+	bool success = LoadAndCompileShaderSource(sourceFilepath.c_str());
+
+	if (!success)
+	{
+		ConsoleErrorf("Couldn't load shader source file %s", sourceFilepath.c_str());
+		Clear();
+		return false;
+	}
+	
+	// Blend
+	std::string blendText = XML::ParseAttribute(*rootElem, "blend", "opaque");
+	SetBlend(StringToBlendPreset(blendText));
+
+	// Fill
+	std::string fillText = XML::ParseAttribute(*rootElem, "fill", "solid");
+	SetFillMode(StringToFillMode(fillText));
+
+	return true;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Shader::Clear()
+{
+	DX_SAFE_RELEASE(m_dxBlendState);
+	DX_SAFE_RELEASE(m_dxRasterizerState);
+	DX_SAFE_RELEASE(m_shaderInputLayout.m_dxInputLayout);
+	DX_SAFE_RELEASE(m_shaderInputLayout.m_dxInputLayout);
+
+	m_vertexShader.Clear();
+	m_fragmentShader.Clear();
+	m_shaderInputLayout.m_vertexLayoutUsed = nullptr;
+	m_blendStateDirty = true;
+	m_scissorEnabled = false;
+	m_rasterizerStateDirty = true;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool Shader::LoadAndCompileShaderSource(const char* filename)
 {
 	size_t shaderSourceSize = 0;
 	void* shaderSource = FileReadToNewBuffer(filename, shaderSourceSize);

@@ -12,6 +12,7 @@
 #include "Engine/Math/IntVector3.h"
 #include "Engine/Render/Buffer/RenderBuffer.h"
 #include "Engine/Render/View/TextureView.h"
+#include "Engine/Resource/Resource.h"
 #include <vector>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -36,7 +37,7 @@ struct ID3D11Resource;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Texture
+class Texture : public Resource
 {
 public:
 	//-----Public Methods-----

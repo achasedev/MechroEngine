@@ -158,10 +158,7 @@ private:
 
 	FrameTimer							m_fpsUpdateTimer;
 
-	std::map<StringId, const ConsoleCommand*>	m_commands;
-
-	// TODO: Resource System
-	Shader*								m_shader = nullptr;
+	std::map<StringID, const ConsoleCommand*>	m_commands;
 
 };
 

@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: February 25th, 2021
+/// Date Created: April 17th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,8 +8,9 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Utility/SmartPointer.h"
-#include "Engine/Utility/StringId.h"
+#include "Engine/Render/Buffer/RenderBuffer.h"
+#include "Engine/Render/View/TextureView.h"
+#include "Engine/Utility/StringID.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -18,6 +19,11 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class Image;
+class Material;
+class Mesh;
+class Shader;
+class Texture2D;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -28,98 +34,46 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-template <typename T>
-class Resource
+class ResourceSystem
 {
 public:
-	//----Public Methods-----
+	//-----Public Methods-----
 
-	virtual void	Load(const char* filepath) = 0;
-	virtual void	Refresh() = 0;
-	virtual R<T>	Copy() = 0;
-	virtual void	Clear() = 0;
+	static void	Initialize();
+	static void	Shutdown();
 
-	StringId		GetStringID() const { return m_id; }
-	const char*		GetNameOrFilepath() const { return m_id.ToString(); }
-	
-	static R<T>		GetResource(const char* filepathOrName);
-	static R<T>		GetResource(const StringId& id);
-	static R<T>		CreateOrGetResource(const char* filepathOrName);
-	static bool		AddResource(R<T> resource);
+	Mesh*		CreateOrGetMesh(const char* filepath);
+	Image*		CreateOrGetImage(const char* filepath);
+	Shader*		CreateOrGetShader(const char* filepath);
+	Material*	CreateOrGetMaterial(const char* filepath);
+	Texture2D*	CreateOrGetTexture2D(const char* filepath, TextureUsageBits textureUsage, GPUMemoryUsage memoryUsage);
+
+
+private:
+	//-----Private Methods-----
+
+	ResourceSystem();
+	~ResourceSystem();
+	ResourceSystem(const ResourceSystem& other) = delete;
+
+	void CreateBuiltInAssets();
+		void CreateDefaultMeshes();
+		void CreateDefaultShaders();
+		void CreateDefaultImages();
+		void CreateDefaultMaterials();
+		void CreateDefaultTexture2Ds();
 
 
 private:
 	//-----Private Data-----
 
-	StringId m_id;
-
-	static std::map<StringId, R<T>> s_resources;
+	std::map<StringID, Texture2D*>	m_texture2Ds;
+	std::map<StringID, Image*>		m_images;
+	std::map<StringID, Material*>	m_materials;
+	std::map<StringID, Shader*>		m_shaders;
+	std::map<StringID, Mesh*>		m_meshes;
 
 };
-
-
-//-------------------------------------------------------------------------------------------------
-template <typename T>
-std::map<StringId, R<T>> Resource<T>::s_resources;
-
-
-//-------------------------------------------------------------------------------------------------
-template <typename T>
-R<T> Resource<T>::GetResource(const char* filepathOrName)
-{
-	StringId id = SID(filepathOrName);
-	return GetResource<T>(id);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-template <typename T>
-R<T> Resource<T>::GetResource(const StringId& id)
-{
-	bool resourceExists = (s_resources.find(id) != s_resources.end());
-
-	if (resourceExists)
-	{
-		return s_resources[id];
-	}
-
-	return nullptr;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-template <typename T>
-R<T> Resource<T>::CreateOrGetResource(const char* nameOrFilepath)
-{
-	T* resource = Resource<T>::GetResource(nameOrFilepath);
-
-	if (resource == nullptr)
-	{
-		resource = new T();
-		resource->Load(nameOrFilepath);
-
-		Resource<T>::AddResource(nameOrFilepath, resource);
-	}
-
-	return resource;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-template <typename T>
-bool Resource<T>::AddResource(R<T> resource)
-{
-	bool resourceAlreadyExists = s_resources.find(resource->m_id) != s_resources.end();
-
-	if (!resourceAlreadyExists)
-	{
-		s_resources[resource->m_id] = resource;
-		return true;
-	}
-
-	return false;
-}
-
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS

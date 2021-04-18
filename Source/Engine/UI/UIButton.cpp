@@ -46,7 +46,7 @@ static bool DontBlockInput(UIElement* element, const UIMouseInfo& info)
 
 
 //-------------------------------------------------------------------------------------------------
-UIButton::UIButton(Canvas* canvas, const StringId& id)
+UIButton::UIButton(Canvas* canvas, const StringID& id)
 	: UIElement(canvas, id)
 {
 
@@ -164,9 +164,9 @@ void UIButton::Render()
 
 
 //-------------------------------------------------------------------------------------------------
-void UIButton::SetImage(Image* image)
+void UIButton::SetTexture(Texture2D* texture)
 {
-	m_imageElement->SetImage(image);
+	m_imageElement->SetTexture(texture);
 }
 
 

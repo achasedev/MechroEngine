@@ -10,6 +10,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Math/AABB2.h"
 #include "Engine/Render/Core/DX11Common.h"
+#include "Engine/Resource/Resource.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -113,6 +114,7 @@ public:
 	ShaderStage() {}
 	~ShaderStage();
 
+	void				Clear();
 	bool				LoadFromShaderSource(const char* filename, const void* source, const size_t sourceByteSize, ShaderStageType stageType);
 	bool				IsValid() const { return m_handle != nullptr; }
 
@@ -137,7 +139,7 @@ private:
 };
 
 //-------------------------------------------------------------------------------------------------
-class Shader
+class Shader : public Resource
 {
 public:
 	//-----Public Methods-----
@@ -145,7 +147,10 @@ public:
 	Shader();
 	~Shader();
 
-	bool					CreateFromFile(const char* filename);
+	bool					Load(const char* filepath);
+	void					Clear();
+
+	bool					LoadAndCompileShaderSource(const char* filename);
 	bool					CreateInputLayoutForVertexLayout(const VertexLayout* vertexLayout);
 	void					UpdateBlendState();
 	void					UpdateRasterizerState();

@@ -7,6 +7,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Framework/DevConsole.h"
 #include "Engine/IO/Image.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "ThirdParty/stb/stb_image.h"
@@ -67,22 +68,38 @@ void Image::Initialize(const IntVector2& dimensions, const Rgba& color /*= Rgba:
 
 
 //-------------------------------------------------------------------------------------------------
-bool Image::LoadFromFile(const char* filepath, bool flipVertically)
+bool Image::Load(const char* filepath, bool flipVertically /*= true*/)
 {
 	ASSERT_OR_DIE(m_data == nullptr, "Image already loaded!");
 
-	int numComponentsRequested = 0;
-	if (flipVertically) { stbi_set_flip_vertically_on_load(1); }
-	m_data = (uint8*)stbi_load(filepath, &m_dimensions.x, &m_dimensions.y, &m_numComponentsPerTexel, numComponentsRequested);
+	if (flipVertically)
+	{
+		stbi_set_flip_vertically_on_load(1);
+	}
+
+	m_data = (uint8*)stbi_load(filepath, &m_dimensions.x, &m_dimensions.y, &m_numComponentsPerTexel, 0);
 	stbi_set_flip_vertically_on_load(0);
 	
 	if (m_data != nullptr)
 	{
-		m_filepath = filepath;
 		m_size = m_dimensions.x * m_dimensions.y * m_numComponentsPerTexel;
+	}
+	else
+	{
+		ConsolePrintf("Couldn't load image %s", filepath);
 	}
 
 	return (m_data != nullptr);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Image::Clear()
+{
+	m_size = 0;
+	m_dimensions = IntVector2(0, 0);
+	m_numComponentsPerTexel = 0;
+	m_data = nullptr;
 }
 
 

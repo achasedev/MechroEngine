@@ -45,7 +45,7 @@ bool FireEvent(const std::string& eventName)
 
 
 //-------------------------------------------------------------------------------------------------
-bool FireEvent(const StringId& eventSID)
+bool FireEvent(const StringID& eventSID)
 {
 	NamedProperties args;
 	return FireEvent(eventSID, args);
@@ -67,7 +67,7 @@ bool FireEvent(const std::string& eventName, NamedProperties& args)
 
 
 //-------------------------------------------------------------------------------------------------
-bool FireEvent(const StringId& eventSID, NamedProperties& args)
+bool FireEvent(const StringID& eventSID, NamedProperties& args)
 {
 	return g_eventSystem->FireEvent(eventSID, args);
 }
@@ -86,7 +86,7 @@ EventSystem::EventSystem()
 //-------------------------------------------------------------------------------------------------
 EventSystem::~EventSystem()
 {
-	std::map<StringId, std::vector<EventSubscription*>>::iterator itr = m_subscriptions.begin();
+	std::map<StringID, std::vector<EventSubscription*>>::iterator itr = m_subscriptions.begin();
 
 	for (itr; itr != m_subscriptions.end(); ++itr)
 	{
@@ -133,7 +133,7 @@ void EventSystem::SubscribeEventCallbackFunction(const char* eventName, EventFun
 //-------------------------------------------------------------------------------------------------
 void EventSystem::UnsubscribeEventCallbackFunction(const char* eventName, EventFunctionCallback callback)
 {
-	StringId eventSID = SID(eventName);
+	StringID eventSID = SID(eventName);
 	std::vector<EventSubscription*>& subsToEvent = m_subscriptions[eventSID];
 
 	for (int subIndex = 0; subIndex < (int)subsToEvent.size(); ++subIndex)
@@ -160,7 +160,7 @@ void EventSystem::UnsubscribeEventCallbackFunction(const char* eventName, EventF
 
 
 //-------------------------------------------------------------------------------------------------
-bool EventSystem::FireEvent(const StringId& eventSID, NamedProperties& args)
+bool EventSystem::FireEvent(const StringID& eventSID, NamedProperties& args)
 {
 	bool eventHasSubscribers = (m_subscriptions.find(eventSID) != m_subscriptions.end());
 
@@ -187,7 +187,7 @@ bool EventSystem::FireEvent(const StringId& eventSID, NamedProperties& args)
 //-------------------------------------------------------------------------------------------------
 void EventSystem::GetAllEventNames(std::vector<std::string>& out_eventNames) const
 {
-	std::map<StringId, std::vector<EventSubscription*>>::const_iterator itr = m_subscriptions.begin();
+	std::map<StringID, std::vector<EventSubscription*>>::const_iterator itr = m_subscriptions.begin();
 
 	for (itr; itr != m_subscriptions.end(); itr++)
 	{

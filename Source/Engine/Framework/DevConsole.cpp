@@ -90,18 +90,20 @@ static bool DevConsoleMessageHandler(unsigned int msg, size_t wparam, size_t lpa
 //-------------------------------------------------------------------------------------------------
 static void ConsolePrintv(const Rgba& color, char const* format, va_list args)
 {
-	ASSERT_RETURN(g_devConsole != nullptr, NO_RETURN_VAL, "DevConsole not initialized!");
+	//ASSERT_RETURN(g_devConsole != nullptr, NO_RETURN_VAL, "DevConsole not initialized!");
+	if (g_devConsole != nullptr)
+	{
+		char textLiteral[VARIABLE_ARG_STACK_LOCAL_TEMP_LENGTH];
+		vsnprintf_s(textLiteral, VARIABLE_ARG_STACK_LOCAL_TEMP_LENGTH, _TRUNCATE, format, args);
+		textLiteral[VARIABLE_ARG_STACK_LOCAL_TEMP_LENGTH - 1] = '\0'; // In case vsnprintf overran (doesn't auto-terminate)
 
-	char textLiteral[VARIABLE_ARG_STACK_LOCAL_TEMP_LENGTH];
-	vsnprintf_s(textLiteral, VARIABLE_ARG_STACK_LOCAL_TEMP_LENGTH, _TRUNCATE, format, args);
-	textLiteral[VARIABLE_ARG_STACK_LOCAL_TEMP_LENGTH - 1] = '\0'; // In case vsnprintf overran (doesn't auto-terminate)
+		// Add it to the console log
+		ColoredText colorText;
+		colorText.m_text = std::string(textLiteral);
+		colorText.m_color = color;
 
-	// Add it to the console log
-	ColoredText colorText;
-	colorText.m_text = std::string(textLiteral);
-	colorText.m_color = color;
-
-	g_devConsole->AddToMessageQueue(colorText);
+		g_devConsole->AddToMessageQueue(colorText);
+	}
 }
 
 
@@ -475,11 +477,6 @@ bool DevConsole::HasInputSelection() const
 //-------------------------------------------------------------------------------------------------
 DevConsole::DevConsole()
 {
-	// TODO: Remove these when ResourceManager is going
-	m_shader = new Shader();
-	m_shader->CreateFromFile("Data/Shader/font.shader");
-	m_shader->SetBlend(BLEND_PRESET_ALPHA);
-
 	m_canvas = new Canvas();
 	m_canvas->InitializeFromXML("Data/Engine/Console_Layout.canvas");
 
@@ -493,12 +490,6 @@ DevConsole::DevConsole()
 	m_popUpPanel = m_canvas->FindElementAsType<UIPanel>(SID("popup_panel"));
 	m_popUpPanel->SetRenderMode(ELEMENT_RENDER_NONE);
 	m_fpsText = m_canvas->FindElementAsType<UIText>(SID("fps_text"));
-
-	m_inputFieldText->SetShader(m_shader);
-	m_inputCursor->SetShader(m_shader);
-	m_popUpText->SetShader(m_shader);
-	m_logScrollView->GetScrollTextElement()->SetShader(m_shader);
-	m_fpsText->SetShader(m_shader);
 
 	m_inputFieldText->m_onMouseClick = OnMouseClick_InputField;
 	m_inputFieldText->m_onMouseHold = OnMouseHold_InputField;
@@ -527,7 +518,6 @@ DevConsole::~DevConsole()
 	m_inputPanel = nullptr;
 	m_inputFieldText = nullptr;
 
-	SAFE_DELETE(m_shader);
 	SAFE_DELETE(m_canvas);
 }
 

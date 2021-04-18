@@ -73,7 +73,7 @@ public:
 
 	Vector2				GetResolution() const { return m_resolution; }
 	Texture2D*			GetOutputTexture() const;
-	UIElement*			FindElementByID(StringId id);
+	UIElement*			FindElementByID(StringID id);
 	UIElement*			GetElementInFocus() const { return m_elementInFocus; }
 	float				GetAspect() const;
 	Vector2				GetPixelsPerUnit() const;
@@ -82,7 +82,7 @@ public:
 	uint32				ToPixelHeight(float canvasHeight) const;
 	float				ToCanvasWidth(uint32 pixelWidth) const;
 	float				ToCanvasHeight(uint32 pixelHeight) const;
-	StringId			GetNextUnspecifiedID();
+	StringID			GetNextUnspecifiedID();
 	uint32				GetTopLayerIndex() const;
 	Clock*				GetClock() const;
 	Vector2				GetMousePosition() const;
@@ -93,7 +93,7 @@ public:
 	float				GetDefaultVerticalPadding() const { return m_defaultPadding.y; }
 
 	template <typename T>
-	T*					FindElementAsType(StringId id);
+	T*					FindElementAsType(StringID id);
 
 	bool				Event_WindowResize(NamedProperties& args);
 
@@ -121,7 +121,7 @@ private:
 	Clock*							m_clock = nullptr;
 
 	float							m_widthOrHeightBlend = 1.0f; // 1.0 is match to height
-	std::map<StringId, UIElement*>	m_globalElementMap; // For speed and tracking
+	std::map<StringID, UIElement*>	m_globalElementMap; // For speed and tracking
 
 	std::vector<UIElement*>			m_elementsHoveredLastFrame;
 	UIMouseInfo						m_lastFrameUIMouseInfo;
@@ -133,7 +133,7 @@ private:
 
 //-------------------------------------------------------------------------------------------------
 template <typename T>
-T* Canvas::FindElementAsType(StringId id)
+T* Canvas::FindElementAsType(StringID id)
 {
 	UIElement* element = FindElementByID(id);
 	if (element->GetType() == T::GetTypeStatic())

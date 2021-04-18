@@ -30,7 +30,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-void NamedProperties::Set(const StringId& name, const char* value)
+void NamedProperties::Set(const StringID& name, const char* value)
 {
 	Set(name, std::string(value));
 }
@@ -51,7 +51,7 @@ void NamedProperties::Set(const std::string& name, const char* value)
 
 
 //-------------------------------------------------------------------------------------------------
-std::string NamedProperties::Get(const StringId& name, const char* defaultValue)
+std::string NamedProperties::Get(const StringID& name, const char* defaultValue)
 {
 	return Get(name, std::string(defaultValue));
 }
@@ -75,7 +75,7 @@ std::string NamedProperties::Get(const std::string& name, const char* defaultVal
 std::string NamedProperties::ToString() const
 {
 	std::string totalString;
-	std::map<StringId, BaseProperty*>::const_iterator itr = m_properties.begin();
+	std::map<StringID, BaseProperty*>::const_iterator itr = m_properties.begin();
 
 	for (itr; itr != m_properties.end(); itr++)
 	{

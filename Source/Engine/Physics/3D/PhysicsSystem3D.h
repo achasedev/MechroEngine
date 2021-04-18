@@ -60,11 +60,11 @@ private:
 	// Called in FrameStep()
 	void ApplyForces(float deltaSeconds);
 	void CalculateContactImpulses(float deltaSeconds, CollisionSystem3d* collisionSystem);
-	void ApplyContactImpulses(float deltaSeconds, CollisionSystem3d* collisionSystem);
+	void ApplyContactImpulses(CollisionSystem3d* collisionSystem);
 	void UpdatePositions(float deltaSeconds);
 
 	void CalculateContactImpulses(float deltaSeconds, ContactManifold3d& manifold);
-	void ApplyContactImpulses(float deltaSeconds, ContactManifold3d& manifold);
+	void ApplyContactImpulses(ContactManifold3d& manifold);
 
 
 private:

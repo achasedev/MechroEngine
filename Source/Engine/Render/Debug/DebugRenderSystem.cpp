@@ -32,6 +32,11 @@ DebugRenderHandle DebugDrawCube(
 	const Vector3& extents, 
 	const DebugRenderOptions& options /*= DebugRenderOptions()*/)
 {
+	UNIMPLEMENTED();
+	UNUSED(position);
+	UNUSED(extents);
+	UNUSED(options);
+
 	return DebugRenderHandle();
 }
 

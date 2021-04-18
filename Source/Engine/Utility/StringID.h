@@ -15,8 +15,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class StringId;
-#define INVALID_STRING_ID 0
+class StringID;
+#define INVALID_STRING_ID StringID()
 #define SID(x) g_sidSystem->CreateOrGetStringId(x)
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -32,26 +32,26 @@ class StringId;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class StringId
+class StringID
 {
 	friend class StringIdSystem;
 
 public:
 	//-----Public Methods-----
 
-	StringId() {}
+	StringID() {}
 
 	const char* ToString() const { return m_string; }
 
-	bool operator==(const StringId& compare) const { return m_hash == compare.m_hash; } 
-	bool operator!=(const StringId& compare) const { return m_hash != compare.m_hash; } 
-	bool operator<(const StringId& compare) const { return m_hash < compare.m_hash; } // For std::map
+	bool operator==(const StringID& compare) const { return m_hash == compare.m_hash; } 
+	bool operator!=(const StringID& compare) const { return m_hash != compare.m_hash; } 
+	bool operator<(const StringID& compare) const { return m_hash < compare.m_hash; } // For std::map
 	
 
 private:
 	//-----Private Methods-----
 
-	StringId(uint32 hash, const char* string)
+	StringID(uint32 hash, const char* string)
 	 : m_hash(hash), m_string(string) {}
 
 
@@ -59,7 +59,7 @@ private:
 	//-----Private Data-----
 
 	const char* m_string = nullptr;
-	uint32		m_hash = INVALID_STRING_ID;
+	uint32		m_hash = 0;
 
 };
 
@@ -74,9 +74,9 @@ public:
 	static void		Shutdown();
 	static bool		IsInitialized() { return g_sidSystem != nullptr; }
 
-	StringId		CreateOrGetStringId(const char* str);
-	StringId		CreateOrGetStringId(const std::string& str);
-	const char*		GetStringForStringID(const StringId& stringID) const;
+	StringID		CreateOrGetStringId(const char* str);
+	StringID		CreateOrGetStringId(const std::string& str);
+	const char*		GetStringForStringID(const StringID& stringID) const;
 
 
 private:
@@ -86,7 +86,7 @@ private:
 	~StringIdSystem();
 	StringIdSystem(const StringIdSystem& copy) = delete;
 
-	StringId		InternString(const char* str);
+	StringID		InternString(const char* str);
 
 
 private:

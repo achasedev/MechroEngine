@@ -107,6 +107,7 @@ class FontLoader;
 class InputSystem;
 class JobSystem;
 class RenderContext;
+class ResourceSystem;
 class Window;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -121,6 +122,7 @@ extern InputSystem*			g_inputSystem;
 extern JobSystem*			g_jobSystem;
 extern RenderContext*		g_renderContext;
 extern Window*				g_window;
+extern ResourceSystem*		g_resourceSystem;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS DECLARATIONS

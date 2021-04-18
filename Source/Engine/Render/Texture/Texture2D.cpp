@@ -12,6 +12,7 @@
 #include "Engine/Render/View/ShaderResourceView.h"
 #include "Engine/Render/View/ShaderResourceView.h"
 #include "Engine/Render/Texture/Texture2D.h"
+#include "Engine/Resource/ResourceSystem.h"
 #include "Engine/IO/Image.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -123,14 +124,15 @@ static int GetComponentCountFromDxTextureFormat(DXGI_FORMAT dxFormat)
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
+
 //-------------------------------------------------------------------------------------------------
-bool Texture2D::CreateFromFile(const char* filepath, TextureUsageBits textureUsage, GPUMemoryUsage memoryUsage)
+bool Texture2D::Load(const char* filepath, TextureUsageBits textureUsage, GPUMemoryUsage memoryUsage)
 {
-	Image image;
-	if (image.LoadFromFile(filepath))
+	Image* image = g_resourceSystem->CreateOrGetImage(filepath);
+	if (image != nullptr)
 	{
 		m_srcFilepath = filepath;
-		return CreateFromImage(image, textureUsage, memoryUsage);
+		return CreateFromImage(*image, textureUsage, memoryUsage);
 	}
 
 	return false;

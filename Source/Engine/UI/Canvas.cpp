@@ -22,7 +22,7 @@
 #include "Engine/UI/UIScrollView.h"
 #include "Engine/UI/UIText.h"
 #include "Engine/Utility/NamedProperties.h"
-#include "Engine/Utility/StringId.h"
+#include "Engine/Utility/StringID.h"
 #include "Engine/Utility/XMLUtils.h"
 #include <algorithm>
 
@@ -286,7 +286,7 @@ Texture2D* Canvas::GetOutputTexture() const
 
 
 //-------------------------------------------------------------------------------------------------
-UIElement* Canvas::FindElementByID(StringId id)
+UIElement* Canvas::FindElementByID(StringID id)
 {
 	if (m_globalElementMap.find(id) != m_globalElementMap.end())
 	{
@@ -361,7 +361,7 @@ float Canvas::ToCanvasHeight(uint32 pixelHeight) const
 
 
 //-------------------------------------------------------------------------------------------------
-StringId Canvas::GetNextUnspecifiedID()
+StringID Canvas::GetNextUnspecifiedID()
 {
 	std::string name = Stringf("UNSPECIFIED_%i", m_nextUnspecifiedIDSuffix++);
 	return SID(name);
@@ -420,7 +420,7 @@ bool Canvas::Event_WindowResize(NamedProperties& args)
 
 	if (m_outputTexture->GetHeight() != m_outputTextureHeight)
 	{
-		std::map<StringId, UIElement*>::iterator itr = m_globalElementMap.begin();
+		std::map<StringID, UIElement*>::iterator itr = m_globalElementMap.begin();
 
 		for (itr; itr != m_globalElementMap.end(); itr++)
 		{
@@ -535,7 +535,7 @@ void Canvas::SetupUIMouseInfo(UIMouseInfo& out_input)
 //-------------------------------------------------------------------------------------------------
 void Canvas::FindMouseHoveredElements(const Vector2& cursorCanvasPos, std::vector<UIElement*>& out_hoverStack) const
 {
-	std::map<StringId, UIElement*>::const_iterator itr = m_globalElementMap.begin();
+	std::map<StringID, UIElement*>::const_iterator itr = m_globalElementMap.begin();
 	for (itr; itr != m_globalElementMap.end(); itr++)
 	{
 		UIElement* currElement = itr->second;

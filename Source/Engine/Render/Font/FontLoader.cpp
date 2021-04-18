@@ -97,7 +97,7 @@ Font* FontLoader::LoadFont(const char* sourceFilepath, uint32 faceIndex)
 //-------------------------------------------------------------------------------------------------
 FontLoader::~FontLoader()
 {
-	std::map<StringId, Font*>::iterator itr = m_fontFaces.begin();
+	std::map<StringID, Font*>::iterator itr = m_fontFaces.begin();
 
 	for (itr; itr != m_fontFaces.end(); itr++)
 	{

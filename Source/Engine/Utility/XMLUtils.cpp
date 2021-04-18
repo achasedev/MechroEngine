@@ -7,6 +7,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Framework/DevConsole.h"
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Framework/Rgba.h"
 #include "Engine/Utility/XMLUtils.h"
@@ -15,6 +16,7 @@
 #include "Engine/Math/IntVector3.h"
 #include "Engine/Math/Vector2.h"
 #include "Engine/Math/Vector3.h"
+
 // TODO: Print/log warnings if any of these functions fail, maybe use QueryAttribute to get whether it's missing or a failed conversion
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

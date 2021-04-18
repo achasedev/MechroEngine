@@ -10,7 +10,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include <string>
 #include "Engine/Framework/EngineCommon.h"
-#include "Engine/Utility/StringId.h"
+#include "Engine/Utility/StringID.h"
 #include "Engine/Utility/StringUtils.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -70,8 +70,8 @@ class NamedProperties
 public:
 	//-----Public Methods-----
 
-	template <typename T> void	Set(const StringId& name, const T& value);
-	template <typename T> T		Get(const StringId& name, const T& defaultValue);
+	template <typename T> void	Set(const StringID& name, const T& value);
+	template <typename T> T		Get(const StringID& name, const T& defaultValue);
 
 	// Helpers
 	template <typename T> void	Set(const char* name, const T& value);
@@ -82,10 +82,10 @@ public:
 	std::string					ToString() const;
 
 	// const char* specializations
-	void						Set(const StringId& name, const char* value);
+	void						Set(const StringID& name, const char* value);
 	void						Set(const char* name, const char* value);
 	void						Set(const std::string& name, const char* value);
-	std::string					Get(const StringId& name, const char* defaultValue);
+	std::string					Get(const StringID& name, const char* defaultValue);
 	std::string					Get(const char* name, const char* defaultValue);
 	std::string					Get(const std::string& name, const char* defaultValue);
 
@@ -93,14 +93,14 @@ public:
 private:
 	//-----Private Data-----
 
-	std::map<StringId, BaseProperty*> m_properties;
+	std::map<StringID, BaseProperty*> m_properties;
 
 };
 
 
 //-------------------------------------------------------------------------------------------------
 template <typename T>
-void NamedProperties::Set(const StringId& name, const T& value)
+void NamedProperties::Set(const StringID& name, const T& value)
 {
 	bool alreadyExists = m_properties.find(name) != m_properties.end();
 
@@ -124,7 +124,7 @@ void NamedProperties::Set(const StringId& name, const T& value)
 
 //-------------------------------------------------------------------------------------------------
 template <typename T>
-T NamedProperties::Get(const StringId& name, const T& defaultValue)
+T NamedProperties::Get(const StringID& name, const T& defaultValue)
 {
 	bool propertyExists = m_properties.find(name) != m_properties.end();
 

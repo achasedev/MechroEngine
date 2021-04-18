@@ -47,6 +47,9 @@ void				Tokenize(const std::string& stringToTokenize, const char delimiter, std:
 void				TrimWhitespace(std::string& stringToTrim);
 void				BreakStringIntoLines(const std::string& stringToBreak, std::vector<std::string>& out_lines);
 bool				AreEqualCaseInsensitive(const std::string& first, const std::string& second);
+std::string			GetFilePathExtension(const char* filepath);
+std::string			GetFilePathExtension(const std::string& filepath);
+bool				DoesFilePathHaveExtension(const std::string& filepath, const std::string& extension);
 
 std::string			ToString(float inValue);
 std::string			ToString(int inValue);

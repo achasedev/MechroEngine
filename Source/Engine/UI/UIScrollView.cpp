@@ -14,6 +14,7 @@
 #include "Engine/Render/Font/FontLoader.h"
 #include "Engine/Render/Material.h"
 #include "Engine/Render/Shader.h"
+#include "Engine/Resource/ResourceSystem.h"
 #include "Engine/UI/Canvas.h"
 #include "Engine/UI/UIButton.h"
 #include "Engine/UI/UIImage.h"
@@ -176,9 +177,7 @@ static bool OnMouseClick_Button(UIElement* element, const UIMouseInfo& info)
 	UNUSED(info);
 
 	UIButton* button = element->GetAsType<UIButton>();
-	Image* image = new Image(IntVector2(2), Rgba::YELLOW);
-	button->SetImage(image);
-
+	
 	return true;
 }
 
@@ -189,8 +188,6 @@ static bool OnMouseRelease_Button(UIElement* element, const UIMouseInfo& info)
 	UNUSED(info);
 
 	UIButton* button = element->GetAsType<UIButton>();
-	Image* image = new Image(IntVector2(2), Rgba::BLUE);
-	button->SetImage(image);
 
 	return true;
 }
@@ -202,8 +199,6 @@ static bool OnMouseRelease_Slider(UIElement* element, const UIMouseInfo& info)
 	UNUSED(info);
 
 	UIImage* slider = element->GetAsType<UIImage>();
-	Image* image = new Image(IntVector2(2), Rgba::CYAN);
-	slider->SetImage(image);
 
 	return true;
 }
@@ -215,8 +210,6 @@ static bool OnMouseClick_Slider(UIElement* element, const UIMouseInfo& info)
 	UNUSED(info);
 
 	UIImage* slider = element->GetAsType<UIImage>();
-	Image* image = new Image(IntVector2(2), Rgba::YELLOW);
-	slider->SetImage(image);
 
 	return true;
 }
@@ -270,7 +263,7 @@ VerticalScrollbarType StringToVerticalScrollbarType(const std::string& text)
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-UIScrollView::UIScrollView(Canvas* canvas, const StringId& id)
+UIScrollView::UIScrollView(Canvas* canvas, const StringID& id)
 	: UIElement(canvas, id)
 {
 	m_onHover = OnHover_MouseWheelScroll;
@@ -557,10 +550,7 @@ void UIScrollView::CreateVerticalScrollbar()
 		return;
 	}
 
-	// TODO: Delete this from orbit
-	Image* image1 = new Image(IntVector2(2), Rgba::BLUE);
-	Image* image2 = new Image(IntVector2(2), Rgba::BLUE);
-	Image* image3 = new Image(IntVector2(2), Rgba::CYAN);
+	Texture2D* whiteTexture = g_resourceSystem->CreateOrGetTexture2D("white", TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_STATIC);
 
 	// Create the elements
 	m_downButton = new UIButton(m_canvas, m_canvas->GetNextUnspecifiedID());
@@ -569,7 +559,7 @@ void UIScrollView::CreateVerticalScrollbar()
 	m_downButton->m_transform.SetPosition(Vector2::ZERO);
 	m_downButton->m_transform.SetPivot(Vector2::ZERO);
 	m_downButton->m_transform.SetDimensions(Vector2(m_buttonSize));
-	m_downButton->SetImage(image1);
+	m_downButton->SetTexture(whiteTexture);
 	m_downButton->m_onMouseHold = OnHold_DownButton;
 	m_downButton->m_onMouseClick = OnMouseClick_Button;
 	m_downButton->m_onMouseRelease = OnMouseRelease_Button;
@@ -581,7 +571,7 @@ void UIScrollView::CreateVerticalScrollbar()
 	m_upButton->m_transform.SetPosition(Vector2::ZERO);
 	m_upButton->m_transform.SetPivot(Vector2(0.f, 1.0f));
 	m_upButton->m_transform.SetDimensions(Vector2(m_buttonSize));
-	m_upButton->SetImage(image2);
+	m_upButton->SetTexture(whiteTexture);
 	m_upButton->m_onMouseHold = OnHold_UpButton;
 	m_upButton->m_onMouseClick = OnMouseClick_Button;
 	m_upButton->m_onMouseRelease = OnMouseRelease_Button;
@@ -593,7 +583,7 @@ void UIScrollView::CreateVerticalScrollbar()
 	m_verticalSlider->m_transform.SetPivot(Vector2::ZERO);
 	m_verticalSlider->m_transform.SetDimensions(Vector2(m_buttonSize)); // Height will be set correctly in first Update()
 	
-	m_verticalSlider->SetImage(image3);
+	m_verticalSlider->SetTexture(whiteTexture);
 	m_verticalSlider->m_onMouseHold = OnHold_VerticalSlider;
 	m_verticalSlider->m_onMouseClick = OnMouseClick_Slider;
 	m_verticalSlider->m_onMouseRelease = OnMouseRelease_Slider;
@@ -654,10 +644,7 @@ void UIScrollView::CreateHorizontalScrollbar()
 		return;
 	}
 
-	// TODO: Delete this from orbit
-	Image* image1 = new Image(IntVector2(2), Rgba::BLUE);
-	Image* image2 = new Image(IntVector2(2), Rgba::BLUE);
-	Image* image3 = new Image(IntVector2(2), Rgba::CYAN);
+	Texture2D* whiteTexture = g_resourceSystem->CreateOrGetTexture2D("white", TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_STATIC);
 
 	// Create the elements
 	m_leftButton = new UIButton(m_canvas, m_canvas->GetNextUnspecifiedID());
@@ -666,7 +653,7 @@ void UIScrollView::CreateHorizontalScrollbar()
 	m_leftButton->m_transform.SetPosition(Vector2::ZERO);
 	m_leftButton->m_transform.SetPivot(Vector2::ZERO);
 	m_leftButton->m_transform.SetDimensions(Vector2(m_buttonSize));
-	m_leftButton->SetImage(image1);
+	m_leftButton->SetTexture(whiteTexture);
 	m_leftButton->m_onMouseHold = OnHold_LeftButton;
 	m_leftButton->m_onMouseClick = OnMouseClick_Button;
 	m_leftButton->m_onMouseRelease = OnMouseRelease_Button;
@@ -678,7 +665,7 @@ void UIScrollView::CreateHorizontalScrollbar()
 	m_rightButton->m_transform.SetPosition(Vector2::ZERO);
 	m_rightButton->m_transform.SetPivot(Vector2(1.f, 0.f));
 	m_rightButton->m_transform.SetDimensions(Vector2(m_buttonSize));
-	m_rightButton->SetImage(image2);
+	m_rightButton->SetTexture(whiteTexture);
 	m_rightButton->m_onMouseHold = OnHold_RightButton;
 	m_rightButton->m_onMouseClick = OnMouseClick_Button;
 	m_rightButton->m_onMouseRelease = OnMouseRelease_Button;
@@ -689,7 +676,7 @@ void UIScrollView::CreateHorizontalScrollbar()
 	m_horizontalSlider->m_transform.SetPosition(Vector2(m_buttonSize, 0.f));
 	m_horizontalSlider->m_transform.SetPivot(Vector2::ZERO);
 	m_horizontalSlider->m_transform.SetDimensions(Vector2(m_buttonSize)); // Height will be set correctly in first Update()
-	m_horizontalSlider->SetImage(image3);
+	m_horizontalSlider->SetTexture(whiteTexture);
 	m_horizontalSlider->m_onMouseHold = OnHold_HorizontalSlider;
 	m_horizontalSlider->m_onMouseClick = OnMouseClick_Slider;
 	m_horizontalSlider->m_onMouseRelease = OnMouseRelease_Slider;

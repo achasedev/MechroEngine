@@ -36,7 +36,7 @@ public:
 	//-----Public Methods-----
 	RTTI_DERIVED_CLASS(UIButton);
 
-	UIButton(Canvas* canvas, const StringId& id);
+	UIButton(Canvas* canvas, const StringID& id);
 	virtual ~UIButton();
 
 	void				Initialize();
@@ -45,7 +45,7 @@ public:
 	virtual void		Update() override;
 	virtual void		Render() override;
 
-	void				SetImage(Image* image);
+	void				SetTexture(Texture2D* texture);
 
 
 private:

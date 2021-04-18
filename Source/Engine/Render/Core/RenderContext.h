@@ -101,7 +101,7 @@ public:
 	void								DrawWirePolygon3D(const Polygon3d& polygon, Material* material, const Rgba& color = Rgba::WHITE);
 	void								DrawWireOBB2D(const OBB2& obb, Material* material, const Rgba& color = Rgba::WHITE);
 	void								DrawPlane3(const Plane3& plane, Material* material, const Rgba& color = Rgba::WHITE);
-	void								DrawTransform(Transform& transform, Material* material, float scale);
+	void								DrawTransform(Transform& transform, float scale);
 
 	void								SaveTextureToImage(Texture2D* texture, const char* filepath);
 
@@ -172,14 +172,7 @@ void RenderContext::DrawVertexArray(const VERT_TYPE* vertices, uint32 numVertice
 	drawInstruction.m_startIndex = 0;
 	m_immediateMesh.SetDrawInstruction(drawInstruction);
 
-	if (material == nullptr)
-	{
-		DrawMesh(m_immediateMesh);
-	}
-	else
-	{
-		DrawMeshWithMaterial(m_immediateMesh, material);
-	}
+	DrawMeshWithMaterial(m_immediateMesh, material);
 }
 
 

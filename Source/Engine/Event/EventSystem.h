@@ -10,7 +10,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Event/EventSubscription.h"
 #include "Engine/Framework/EngineCommon.h"
-#include "Engine/Utility/StringId.h"
+#include "Engine/Utility/StringID.h"
 #include <map>
 #include <vector>
 
@@ -46,7 +46,7 @@ public:
 	template <typename T, typename T_Method> void	SubscribeEventCallbackObjectMethod(const char* eventName, T_Method callback, T& object);
 	template <typename T, typename T_Method> void	UnsubscribeEventCallbackObjectMethod(const char* eventName, T_Method callback, T& object);
 
-	bool											FireEvent(const StringId& eventSID, NamedProperties& args);
+	bool											FireEvent(const StringID& eventSID, NamedProperties& args);
 	void											GetAllEventNames(std::vector<std::string>& out_eventNames) const;
 
 
@@ -61,7 +61,7 @@ private:
 private:
 	//-----Private Data-----
 
-	std::map<StringId, std::vector<EventSubscription*>> m_subscriptions;
+	std::map<StringID, std::vector<EventSubscription*>> m_subscriptions;
 
 };
 
@@ -82,7 +82,7 @@ void EventSystem::SubscribeEventCallbackObjectMethod(const char* eventName, T_Me
 template <typename T, typename T_Method>
 void EventSystem::UnsubscribeEventCallbackObjectMethod(const char* eventName, T_Method callback, T& object)
 {
-	StringId eventSID = SID(eventName);
+	StringID eventSID = SID(eventName);
 
 	std::vector<EventSubscription*>& subsToEvent = m_subscriptions[eventSID];
 
@@ -114,7 +114,7 @@ void EventSystem::UnsubscribeEventCallbackObjectMethod(const char* eventName, T_
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 bool FireEvent(const char* eventName);
 bool FireEvent(const std::string& eventName);
-bool FireEvent(const StringId& eventSID);
+bool FireEvent(const StringID& eventSID);
 bool FireEvent(const char* eventName, NamedProperties& args);
 bool FireEvent(const std::string& eventName, NamedProperties& args);
-bool FireEvent(const StringId& eventSID, NamedProperties& args);
+bool FireEvent(const StringID& eventSID, NamedProperties& args);

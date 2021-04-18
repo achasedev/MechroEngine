@@ -35,7 +35,7 @@
 void Mesh::Load(const char* filepath)
 {
 	UNIMPLEMENTED();
-
+	UNUSED(filepath);
 	//Clear();
 
 	// Open the file
@@ -43,20 +43,6 @@ void Mesh::Load(const char* filepath)
 	// What format? Hello?
 
 	// Done!
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void Mesh::Refresh()
-{
-	UNIMPLEMENTED();
-}
-
-
-//-------------------------------------------------------------------------------------------------
-R<Mesh> Mesh::Copy()
-{
-	UNIMPLEMENTED();
 }
 
 

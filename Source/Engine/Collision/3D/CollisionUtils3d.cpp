@@ -158,7 +158,6 @@ int CollisionUtils3d::CalculateContacts(PolytopeCollider3d* colA, PolytopeCollid
 		// Choose the incident face
 		// The incident face is the face who's normal is mostly against the reference face's normal
 		int incFaceIndex = incShape->GetIndexOfFaceMostInDirection(-1.0f * broadResult.m_direction);
-		const PolygonFace3d* incFace = incShape->GetFace(incFaceIndex);
 
 		// Get all the vertices in the incident face to be clipped
 		incShape->GetAllVerticesInFace(incFaceIndex, finalPositions);
@@ -168,7 +167,7 @@ int CollisionUtils3d::CalculateContacts(PolytopeCollider3d* colA, PolytopeCollid
 
 		// Iterate over all the side planes that will clip the incident face
 		int numSidePlanes = (int) refSidePlanes.size();
-		for (int sidePlaneIndex = 0; sidePlaneIndex < (int)refSidePlanes.size(); ++sidePlaneIndex)
+		for (int sidePlaneIndex = 0; sidePlaneIndex < numSidePlanes; ++sidePlaneIndex)
 		{
 			Plane3& plane = refSidePlanes[sidePlaneIndex];
 

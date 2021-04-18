@@ -8,7 +8,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Utility/StringId.h"
+#include "Engine/Utility/StringID.h"
+#include "Engine/Resource/Resource.h"
 #include "Engine/Render/View/ShaderResourceView.h"
 #include <string>
 
@@ -30,14 +31,15 @@ class Shader;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Material
+class Material : public Resource
 {
 public:
 	//-----Public Methods-----
 
 	Material();
-	Material(const char* name);
-	Material(const char* name, Shader* shader, ShaderResourceView* albedo);
+
+	bool					Load(const char* filepath);
+	void					Clear();
 
 	void					SetShader(Shader* shader);
 	void					SetShaderResourceView(uint32 slot, ShaderResourceView* textureView);
@@ -51,7 +53,6 @@ public:
 private:
 	//-----Private Data-----
 
-	std::string				m_name;
 	Shader*					m_shader = nullptr;
 	ShaderResourceView*		m_shaderResourceViews[MAX_SRV_SLOTS];
 

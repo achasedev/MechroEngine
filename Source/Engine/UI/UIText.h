@@ -60,7 +60,7 @@ public:
 	//-----Public Methods-----
 	RTTI_DERIVED_CLASS(UIText);
 
-	UIText(Canvas* canvas, const StringId& id);
+	UIText(Canvas* canvas, const StringID& id);
 	virtual ~UIText();
 
 	virtual void				InitializeFromXML(const XMLElem& element) override;
@@ -78,7 +78,6 @@ public:
 	void						SetColor(const Rgba& color);
 	void						SetColor(int lineIndex, const Rgba& color);
 	void						SetFont(Font* font);
-	void						SetShader(Shader* shader);
 	void						SetFontHeight(float fontHeight);
 	void						SetTextDrawMode(TextDrawMode drawMode) { m_textDrawMode = drawMode; }
 	void						MarkDirty() { m_isDirty = true; }

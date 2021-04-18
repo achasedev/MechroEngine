@@ -39,18 +39,16 @@ public:
 	//-----Public Methods-----
 	RTTI_DERIVED_CLASS(UIImage);
 
-	UIImage(Canvas* canvas, const StringId& id);
+	UIImage(Canvas* canvas, const StringID& id);
 	virtual ~UIImage();
 
-	void				LoadImage(const std::string& filepath);
 	virtual void		InitializeFromXML(const XMLElem& element);
 
 	virtual void		Update();
 	virtual void		Render();
 
 	void				SetColor(const Rgba& color);
-	void				SetImage(Image* image);
-	void				SetShader(Shader* shader);
+	void				SetTexture(Texture2D* texture);
 
 
 private:
@@ -62,8 +60,6 @@ private:
 private:
 	//-----Private Data-----
 
-	Image*		m_image = nullptr;
-	Texture2D*	m_texture = nullptr;
 	Material*	m_material = nullptr;
 	Mesh*		m_mesh = nullptr;
 	Rgba		m_colorTint = Rgba::WHITE;

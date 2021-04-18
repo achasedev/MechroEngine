@@ -8,6 +8,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Event/EventSystem.h"
+#include "Engine/Framework/DevConsole.h"
 #include "Engine/Framework/Window.h"
 #include "Engine/IO/File.h"
 #include "Engine/IO/Image.h"
@@ -34,6 +35,7 @@
 #include "Engine/Render/View/ShaderResourceView.h"
 #include "Engine/Render/View/DepthStencilTargetView.h"
 #include "Engine/Render/Texture/Texture2D.h"
+#include "Engine/Resource/ResourceSystem.h"
 #include "Engine/Utility/NamedProperties.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -195,8 +197,12 @@ void RenderContext::BindUniformBuffer(uint32 slot, UniformBuffer* ubo)
 //-------------------------------------------------------------------------------------------------
 void RenderContext::BindMaterial(Material* material)
 {
-	ASSERT_OR_DIE(material != nullptr, "No material defaults set up yet!");
-	ASSERT_OR_DIE(material->GetShaderResourceView(SRV_SLOT_ALBEDO) != nullptr, "No Albedo on material!");
+	if (material == nullptr)
+	{
+		material = g_resourceSystem->CreateOrGetMaterial("Data/Material/default.material");
+	}
+
+	ASSERT_OR_DIE(material->GetShaderResourceView(SRV_SLOT_ALBEDO) != nullptr, "No albedo texture on material!");
 
 	// Bind Texture + Sampler
 	BindShaderResourceView(SRV_SLOT_ALBEDO, material->GetShaderResourceView(SRV_SLOT_ALBEDO));
@@ -296,10 +302,13 @@ void RenderContext::DrawRenderable(Renderable& renderable)
 		DrawCall dc;
 		dc.SetFromRenderable(renderable, drawIndex);
 
-		if (dc.GetMesh() != nullptr && dc.GetMaterial() != nullptr)
+		if (dc.GetMesh() != nullptr)
 		{
 			Draw(dc);
-			// TODO: Print a warning
+		}
+		else
+		{
+			ConsoleErrorf("Draw attempted with a null mesh!");
 		}
 	}
 }
@@ -517,7 +526,7 @@ void RenderContext::DrawPlane3(const Plane3& plane, Material* material, const Rg
 
 
 //-------------------------------------------------------------------------------------------------
-void RenderContext::DrawTransform(Transform& transform, Material* material, float scale)
+void RenderContext::DrawTransform(Transform& transform, float scale)
 {
 	std::vector<Vertex3D_PCU> vertices;
 
@@ -534,7 +543,7 @@ void RenderContext::DrawTransform(Transform& transform, Material* material, floa
 	vertices.push_back(Vertex3D_PCU(position + forward * scale, Rgba::BLUE, Vector2::ZERO));
 
 	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-	DrawVertexArray(vertices.data(), vertices.size(), nullptr, 0, material);
+	DrawVertexArray(vertices.data(), vertices.size(), nullptr, 0);
 	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 

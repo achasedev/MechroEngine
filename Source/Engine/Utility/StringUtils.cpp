@@ -186,6 +186,35 @@ bool AreEqualCaseInsensitive(const std::string& first, const std::string& second
 
 
 //-------------------------------------------------------------------------------------------------
+std::string GetFilePathExtension(const char* filepath)
+{
+	return GetFilePathExtension(std::string(filepath));
+}
+
+
+//-------------------------------------------------------------------------------------------------
+std::string GetFilePathExtension(const std::string& filepath)
+{
+	size_t dotIndex = filepath.find_last_of('.');
+	std::string extension;
+
+	if (dotIndex != std::string::npos)
+	{
+		extension = filepath.substr(dotIndex + 1);
+	}
+
+	return extension;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool DoesFilePathHaveExtension(const std::string& filepath, const std::string& extension)
+{
+	return AreEqualCaseInsensitive(GetFilePathExtension(filepath), extension);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 std::string ToString(float inValue)
 {
 	return Stringf("%f", inValue);

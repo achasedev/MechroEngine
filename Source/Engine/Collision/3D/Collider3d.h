@@ -13,7 +13,7 @@
 #include "Engine/Math/OBB3.h"
 #include "Engine/Math/Polygon3d.h"
 #include "Engine/Math/Sphere3d.h"
-#include "Engine/Utility/StringId.h"
+#include "Engine/Utility/StringID.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES

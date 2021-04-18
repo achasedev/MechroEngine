@@ -8,9 +8,9 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Framework/Resource.h"
 #include "Engine/Render/Buffer/IndexBuffer.h"
 #include "Engine/Render/Buffer/VertexBuffer.h"
+#include "Engine/Resource/Resource.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -40,15 +40,13 @@ struct DrawInstruction
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Mesh : public Resource<Mesh>
+class Mesh : public Resource
 {
 public:
 	//-----Public Methods-----
 
-	virtual void	Load(const char* filepath) override;
-	virtual void	Refresh() override;
-	virtual R<Mesh>	Copy() override;
-	virtual void	Clear() override;
+	void Load(const char* filepath);
+	void Clear();
 
 	template <typename VERT_TYPE>
 	void SetVertices(const VERT_TYPE* vertices, uint32 vertexCount)

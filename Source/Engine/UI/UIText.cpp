@@ -16,6 +16,7 @@
 #include "Engine/Render/Material.h"
 #include "Engine/Render/Mesh/MeshBuilder.h"
 #include "Engine/Render/Texture/Texture2D.h"
+#include "Engine/Resource/ResourceSystem.h"
 #include "Engine/UI/Canvas.h"
 #include "Engine/UI/UIText.h"
 
@@ -182,11 +183,12 @@ bool IsValidVerticalAlignment(const std::string& text)
 
 
 //-------------------------------------------------------------------------------------------------
-UIText::UIText(Canvas* canvas, const StringId& id)
+UIText::UIText(Canvas* canvas, const StringID& id)
 	: UIElement(canvas, id)
 {
 	m_mesh = new Mesh();
 	m_material = new Material();
+	m_material->SetShader(g_resourceSystem->CreateOrGetShader("Data/Shader/font.shader"));
 }
 
 
@@ -328,13 +330,6 @@ void UIText::SetFont(Font* font)
 {
 	m_font = font;
 	m_isDirty = true;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void UIText::SetShader(Shader* shader)
-{
-	m_material->SetShader(shader);
 }
 
 

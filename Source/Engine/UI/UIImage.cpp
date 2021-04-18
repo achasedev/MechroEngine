@@ -14,6 +14,7 @@
 #include "Engine/Render/Mesh/MeshBuilder.h"
 #include "Engine/Render/Shader.h"
 #include "Engine/Render/Texture/Texture2D.h"
+#include "Engine/Resource/ResourceSystem.h"
 #include "Engine/UI/UIImage.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -38,17 +39,13 @@ RTTI_TYPE_DEFINE(UIImage);
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-UIImage::UIImage(Canvas* canvas, const StringId& id)
+UIImage::UIImage(Canvas* canvas, const StringID& id)
 	: UIElement(canvas, id)
 {
 	UpdateMesh();
 
-	// TODO: Delete this
 	m_material = new Material();
-	Shader* shader = new Shader();
-	shader->CreateFromFile("Data/Shader/test.shader");
-	shader->SetBlend(BLEND_PRESET_ALPHA);
-	SetShader(shader);
+	m_material->SetShader(g_resourceSystem->CreateOrGetShader("Data/Shader/default_alpha.shader"));
 }
 
 
@@ -56,21 +53,7 @@ UIImage::UIImage(Canvas* canvas, const StringId& id)
 UIImage::~UIImage()
 {
 	SAFE_DELETE(m_mesh);
-	SAFE_DELETE(m_texture);
 	SAFE_DELETE(m_material);
-	SAFE_DELETE(m_image);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void UIImage::LoadImage(const std::string& filepath)
-{
-	Image* image = new Image();
-
-	if (image->LoadFromFile(filepath.c_str(), true))
-	{
-		SetImage(image);
-	}
 }
 
 
@@ -80,17 +63,11 @@ void UIImage::InitializeFromXML(const XMLElem& element)
 	UIElement::InitializeFromXML(element);
 
 	// Check if the image is the name of a color first
-	std::string imageText = XML::ParseAttribute(element, "image", "");
-
-	if (imageText.size() > 0)
-	{
-		LoadImage(imageText);
-	}
-	else
-	{
-		SetImage(new Image(IntVector2::ONES, Rgba::WHITE));
-	}
-
+	std::string imageText = XML::ParseAttribute(element, "image", "white");
+	Image* image = g_resourceSystem->CreateOrGetImage(imageText.c_str());
+	Texture2D* texture = g_resourceSystem->CreateOrGetTexture2D(image->GetResourceID().ToString(), TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_STATIC);
+	SetTexture(texture);
+	
 	Rgba color = XML::ParseAttribute(element, "color", m_colorTint);
 	SetColor(color);
 }
@@ -106,7 +83,7 @@ void UIImage::Update()
 //-------------------------------------------------------------------------------------------------
 void UIImage::Render()
 {
-	if (ShouldRenderSelf() && m_texture != nullptr)
+	if (ShouldRenderSelf())
 	{
 		UpdateMesh();
 
@@ -135,31 +112,9 @@ void UIImage::SetColor(const Rgba& color)
 
 
 //-------------------------------------------------------------------------------------------------
-void UIImage::SetImage(Image* image)
+void UIImage::SetTexture(Texture2D* texture)
 {
-	SAFE_DELETE(m_image);
-
-	m_image = image;
-
-	// Make a texture too
-	if (m_texture == nullptr)
-	{
-		m_texture = new Texture2D();
-		m_texture->CreateFromImage(*m_image, TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_GPU);
-	}
-	else
-	{
-		m_texture->UpdateFromImage(*m_image);
-	}
-
-	m_material->SetAlbedoTextureView(m_texture->CreateOrGetShaderResourceView());
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void UIImage::SetShader(Shader* shader)
-{
-	m_material->SetShader(shader);
+	m_material->SetAlbedoTextureView(texture->CreateOrGetShaderResourceView());
 }
 
 

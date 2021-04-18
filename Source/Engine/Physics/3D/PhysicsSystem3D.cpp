@@ -67,7 +67,7 @@ void PhysicsSystem3D::FrameStep(float deltaSeconds,	CollisionSystem3d* collision
 	if (collisionSystem != nullptr)
 	{
 		CalculateContactImpulses(deltaSeconds, collisionSystem);
-		ApplyContactImpulses(deltaSeconds, collisionSystem);
+		ApplyContactImpulses(collisionSystem);
 	}
 
 	UpdatePositions(deltaSeconds);
@@ -213,19 +213,19 @@ void PhysicsSystem3D::CalculateContactImpulses(float deltaSeconds, ContactManifo
 
 
 //-------------------------------------------------------------------------------------------------
-void PhysicsSystem3D::ApplyContactImpulses(float deltaSeconds, CollisionSystem3d* collisionSystem)
+void PhysicsSystem3D::ApplyContactImpulses(CollisionSystem3d* collisionSystem)
 {
 	Manifold3dIter itr = collisionSystem->m_manifolds.begin();
 
 	for (itr; itr != collisionSystem->m_manifolds.end(); itr++)
 	{
-		ApplyContactImpulses(deltaSeconds, itr->second);
+		ApplyContactImpulses(itr->second);
 	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void PhysicsSystem3D::ApplyContactImpulses(float deltaSeconds, ContactManifold3d& manifold)
+void PhysicsSystem3D::ApplyContactImpulses(ContactManifold3d& manifold)
 {
 	RigidBody3D* body1 = manifold.GetReferenceEntity()->GetRigidBody();
 	RigidBody3D* body2 = manifold.GetIncidentEntity()->GetRigidBody();

@@ -69,6 +69,8 @@ uint32 RefCount::Release()
 //-------------------------------------------------------------------------------------------------
 STATIC RefCount* RefCount::CreateOrGetRefCount(void* pointer)
 {
+	ASSERT_OR_DIE(pointer != nullptr, "Trying to refcount a nullptr!");
+
 	LOCK_JANITOR(s_registryLock);
 
 	// Check if this pointer is already being refcounted
