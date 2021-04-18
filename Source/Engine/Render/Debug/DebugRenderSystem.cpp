@@ -8,6 +8,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
+#include "Engine/Render/Core/RenderContext.h"
 #include "Engine/Render/Debug/DebugRenderSystem.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -21,10 +22,24 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+DebugRenderSystem*	g_debugRenderSystem = nullptr;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+//-------------------------------------------------------------------------------------------------
+DebugRenderHandle DebugDrawTransform(const Transform& transform, float lifetime /*= FLT_MAX*/, bool freezeTransform /*= false*/)
+{
+	DebugRenderOptions options;
+	options.m_lifetime = lifetime;
+	options.m_color = Rgba::WHITE;
+
+	DebugRenderTransform* debugTransform = new DebugRenderTransform(transform, freezeTransform, options);
+	return g_debugRenderSystem->AddObject(debugTransform);
+}
+
 
 //-------------------------------------------------------------------------------------------------
 DebugRenderHandle DebugDrawCube(
@@ -61,23 +76,33 @@ void DebugRenderSystem::Shutdown()
 
 
 //-------------------------------------------------------------------------------------------------
+void DebugRenderSystem::SetCamera(Camera* camera)
+{
+	m_camera = camera;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void DebugRenderSystem::Render()
 {
+	g_renderContext->BeginCamera(m_camera);
+
 	// Draw all objects
-	for (std::map<DebugRenderHandle, DebugRenderObject*>::iterator itr = m_objects.begin(); itr != m_objects.end(); itr++)
+	int numObjects = (int)m_objects.size();
+	for (int objIndex = 0; objIndex < numObjects; ++objIndex)
 	{
-		itr->second->Render();
+		m_objects[objIndex]->Render();
 	}
 
+	g_renderContext->EndCamera();
+
 	// Clean up any finished objects
-	std::map<DebugRenderHandle, DebugRenderObject*>::iterator currItr, nextItr;
-	for (currItr = m_objects.begin(), nextItr = currItr; currItr != m_objects.end(); currItr = nextItr)
+	for (int objIndex = numObjects - 1; objIndex >= 0; --objIndex)
 	{
-		++nextItr;
-		if (currItr->second->IsFinished())
+		if (m_objects[objIndex]->IsFinished())
 		{
-			SAFE_DELETE(currItr->second);
-			m_objects.erase(currItr);
+			SAFE_DELETE(m_objects[objIndex]);
+			m_objects.erase(m_objects.begin() + objIndex);
 		}
 	}
 }
@@ -86,10 +111,13 @@ void DebugRenderSystem::Render()
 //-------------------------------------------------------------------------------------------------
 DebugRenderObject* DebugRenderSystem::GetObject(const DebugRenderHandle& handle)
 {
-	const bool objectExists = m_objects.find(handle) != m_objects.end();
-	if (objectExists)
+	int numObjects = (int)m_objects.size();
+	for (int objIndex = 0; objIndex < numObjects; ++objIndex)
 	{
-		return m_objects[handle];
+		if (m_objects[objIndex]->GetHandle() == handle)
+		{
+			return m_objects[objIndex];
+		}
 	}
 
 	return nullptr;
@@ -97,8 +125,24 @@ DebugRenderObject* DebugRenderSystem::GetObject(const DebugRenderHandle& handle)
 
 
 //-------------------------------------------------------------------------------------------------
-void DebugRenderSystem::AddObject(DebugRenderObject* object)
+DebugRenderSystem::~DebugRenderSystem()
+{
+	int numObjects = (int)m_objects.size();
+	for (int objIndex = 0; objIndex < numObjects; ++objIndex)
+	{
+		SAFE_DELETE(m_objects[objIndex]);
+	}
+
+	m_objects.clear();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+DebugRenderHandle DebugRenderSystem::AddObject(DebugRenderObject* object)
 {
 	const DebugRenderHandle handle = m_nextHandle++;
-	m_objects[handle] = object;
+	object->m_handle = handle;
+	m_objects.push_back(object);
+
+	return handle;
 }

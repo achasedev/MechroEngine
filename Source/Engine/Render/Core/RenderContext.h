@@ -101,7 +101,7 @@ public:
 	void								DrawWirePolygon3D(const Polygon3d& polygon, Material* material, const Rgba& color = Rgba::WHITE);
 	void								DrawWireOBB2D(const OBB2& obb, Material* material, const Rgba& color = Rgba::WHITE);
 	void								DrawPlane3(const Plane3& plane, Material* material, const Rgba& color = Rgba::WHITE);
-	void								DrawTransform(Transform& transform, float scale);
+	void								DrawTransform(const Transform& transform, float scale);
 
 	void								SaveTextureToImage(Texture2D* texture, const char* filepath);
 

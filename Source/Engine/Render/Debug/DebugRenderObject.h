@@ -25,7 +25,8 @@ typedef int DebugRenderHandle;
 struct DebugRenderOptions
 {
 	Rgba	m_color = Rgba::RED;
-	float	m_lifetime = 0.f;
+	float	m_lifetime = FLT_MAX;
+	float	m_scale = 1.0f;
 };
 
 
@@ -38,35 +39,52 @@ struct DebugRenderOptions
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class DebugRenderObject : public Entity
+class DebugRenderObject
 {
+	friend class DebugRenderSystem;
 	RTTI_BASE_CLASS(DebugRenderObject);
+
 
 public:
 	//-----Public Methods-----
 
-	virtual void	Render() const = 0;
+	DebugRenderObject(const DebugRenderOptions& options);
 
-	bool			IsFinished() const;			
+	virtual void		Render() const = 0;
 
-	void			UpdateOptions(const DebugRenderOptions& options);
-	void			SetTimeToLive(float newTtl);
-	void			SetColor(const Rgba& color);
+	bool				IsFinished() const;			
+	DebugRenderHandle	GetHandle() const { return m_handle; }
+
+	void				SetOptions(const DebugRenderOptions& options);
+	void				SetTimeToLive(float newTtl);
+	void				SetColor(const Rgba& color);
+
+
+protected:
+	//-----Protected Data-----
+
+	Transform			m_transform;
+	FrameTimer			m_timer;
+	DebugRenderOptions	m_options;
+	DebugRenderHandle	m_handle = INVALID_DEBUG_RENDER_OBJECT_HANDLE;
+
+};
+
+
+//-------------------------------------------------------------------------------------------------
+class DebugRenderTransform : public DebugRenderObject
+{
+public:
+	//-----Public Methods-----
+
+	DebugRenderTransform(const Transform& transform, bool freezeTransform, const DebugRenderOptions& options);
+	virtual void Render() const override;
 
 
 private:
 	//-----Private Data-----
 
-	Transform			m_transform;
-	float				m_ttl = -1.0f;
-	bool				m_isFinished = false;
-	FrameTimer			m_frameTimer;
-	DebugRenderOptions	m_options;
-	DebugRenderHandle	m_debugHandle = INVALID_DEBUG_RENDER_OBJECT_HANDLE;
-
 };
-
-
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

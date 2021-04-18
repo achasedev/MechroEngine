@@ -8,6 +8,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Framework/EngineCommon.h"
+#include "Engine/Render/Core/RenderContext.h"
 #include "Engine/Render/Debug/DebugRenderObject.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -31,8 +32,41 @@ RTTI_TYPE_DEFINE(DebugRenderObject);
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
+
+//-------------------------------------------------------------------------------------------------
+DebugRenderObject::DebugRenderObject(const DebugRenderOptions& options)
+	: m_options(options)
+{
+	m_timer.SetInterval(options.m_lifetime);
+}
+
+
 //-------------------------------------------------------------------------------------------------
 bool DebugRenderObject::IsFinished() const
 {
-	return m_frameTimer.HasIntervalElapsed();
+	return m_timer.HasIntervalElapsed();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+DebugRenderTransform::DebugRenderTransform(const Transform& transform, bool freezeTransform, const DebugRenderOptions& options)
+	: DebugRenderObject(options)
+{
+	if (freezeTransform)
+	{
+		// Just copy it, so it doesn't move with the owner
+		m_transform = transform;
+	}
+	else
+	{
+		// Otherwise keep this transform identity and parent it to this transform, so it will move
+		m_transform.SetParentTransform(&transform);
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void DebugRenderTransform::Render() const
+{
+	g_renderContext->DrawTransform(m_transform, m_options.m_scale);
 }

@@ -66,53 +66,52 @@ public:
 
 	void SetLocalMatrix(const Matrix44& local);
 	void SetWorldMatrix(const Matrix44& world);
-	void SetParentTransform(Transform* parent, bool keepWorldPosRotScale = false);
+	void SetParentTransform(const Transform* parent, bool keepWorldPosRotScale = false);
 
-	Matrix44 GetLocalToParentMatrix();
-	Matrix44 GetParentToWorldMatrix();
-	Matrix44 GetWorldToParentMatrix();
-	Matrix44 GetLocalToWorldMatrix();
-	Matrix44 GetWorldToLocalMatrix();
+	Matrix44 GetLocalToParentMatrix() const;
+	Matrix44 GetParentToWorldMatrix() const;
+	Matrix44 GetWorldToParentMatrix() const;
+	Matrix44 GetLocalToWorldMatrix() const;
+	Matrix44 GetWorldToLocalMatrix() const;
 
-	Vector3 GetIVector();
-	Vector3 GetJVector();
-	Vector3 GetKVector();
+	Vector3 GetIVector() const;
+	Vector3 GetJVector() const;
+	Vector3 GetKVector() const;
 
-	Vector3 GetWorldPosition();
-	Vector3 GetWorldRotationDegrees();
-	Quaternion GetWorldRotation();
-	Vector3 GetWorldScale();
+	Vector3 GetWorldPosition() const;
+	Vector3 GetWorldRotationDegrees() const;
+	Quaternion GetWorldRotation() const;
+	Vector3 GetWorldScale() const;
 
-	Vector3 TransformPoint(const Vector3& point);
-	Vector3 InverseTransformPoint(const Vector3& point);
-	Vector3 TransformDirection(const Vector3& direction);
-	Vector3 InverseTransformDirection(const Vector3& direction);
+	Vector3 TransformPoint(const Vector3& point) const;
+	Vector3 InverseTransformPoint(const Vector3& point) const;
+	Vector3 TransformDirection(const Vector3& direction) const;
+	Vector3 InverseTransformDirection(const Vector3& direction) const;
 
 
 private:
 	//-----Private Methods-----
 
-	void UpdateLocalMatrix(bool forceUpdate = false);
+	void UpdateLocalMatrix(bool forceUpdate = false) const;
 
 
 public:
 	//-----Public Data-----
 
-	// All defined in parent space!
-	Vector3		position			= Vector3::ZERO;
-	Quaternion	rotation			= Quaternion::IDENTITY;
-	Vector3		scale				= Vector3::ONES;
+	Vector3		position = Vector3::ZERO; // Relative to parent's transform
+	Quaternion	rotation = Quaternion::IDENTITY; // Relative to my own vectors (i.e. an x rotation rotates me around my own x basis vector)
+	Vector3		scale = Vector3::ONES; // Relative to parent's scale (i.e. Parent is 2x, I am 0.5x, relative to world I am 1x)
 
 
 private:
 	//-----Private Data-----
 
 	// Save previous state to determine when to update matrix
-	Vector3		m_oldPosition = Vector3::ZERO;
-	Quaternion	m_oldRotation = Quaternion::IDENTITY;
-	Vector3		m_oldScale = Vector3::ONES;
-	Matrix44	m_localMatrix = Matrix44::IDENTITY;
+	mutable Vector3		m_oldPosition = Vector3::ZERO;
+	mutable Quaternion	m_oldRotation = Quaternion::IDENTITY;
+	mutable Vector3		m_oldScale = Vector3::ONES;
+	mutable Matrix44	m_localMatrix = Matrix44::IDENTITY;
 	
-	Transform*	m_parentTransform	= nullptr;
+	const Transform* m_parentTransform = nullptr;
 
 };

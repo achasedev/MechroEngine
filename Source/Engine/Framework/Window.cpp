@@ -205,7 +205,7 @@ void Window::Initialize(float aspect, const char* windowTitle)
 
 	// Hack to get around Visual Studio constantly sending the program to bottom on start up...
 	g_eventSystem->SubscribeEventCallbackObjectMethod("bring_to_front", &Window::BringWindowToFront, *g_window);
-	QueueDelayedEvent("bring_to_front", 0.5f);
+	QueueDelayedEvent("bring_to_front", 0.25f);
 }
 
 

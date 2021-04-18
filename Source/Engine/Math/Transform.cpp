@@ -140,7 +140,7 @@ void Transform::SetWorldMatrix(const Matrix44& world)
 
 
 //-------------------------------------------------------------------------------------------------
-void Transform::SetParentTransform(Transform* parent, bool keepWorldPosRotScale /*= false*/)
+void Transform::SetParentTransform(const Transform* parent, bool keepWorldPosRotScale /*= false*/)
 {
 	if (keepWorldPosRotScale)
 	{
@@ -201,14 +201,14 @@ void Transform::Scale(float xScale, float yScale, float zScale)
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44 Transform::GetLocalToParentMatrix()
+Matrix44 Transform::GetLocalToParentMatrix() const
 {
 	return m_localMatrix;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44 Transform::GetParentToWorldMatrix()
+Matrix44 Transform::GetParentToWorldMatrix() const
 {
 	if (m_parentTransform != nullptr)
 	{
@@ -220,7 +220,7 @@ Matrix44 Transform::GetParentToWorldMatrix()
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44 Transform::GetWorldToParentMatrix()
+Matrix44 Transform::GetWorldToParentMatrix() const
 {
 	if (m_parentTransform != nullptr)
 	{
@@ -232,7 +232,7 @@ Matrix44 Transform::GetWorldToParentMatrix()
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44 Transform::GetLocalToWorldMatrix()
+Matrix44 Transform::GetLocalToWorldMatrix() const
 {
 	UpdateLocalMatrix();
 
@@ -246,38 +246,35 @@ Matrix44 Transform::GetLocalToWorldMatrix()
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44 Transform::GetWorldToLocalMatrix()
+Matrix44 Transform::GetWorldToLocalMatrix() const
 {
 	return Matrix44::GetInverse(GetLocalToWorldMatrix());
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Transform::GetIVector()
+Vector3 Transform::GetIVector() const
 {
-	UpdateLocalMatrix();
-	return m_localMatrix.GetIVector().xyz();
+	return GetLocalToWorldMatrix().GetIVector().xyz();
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Transform::GetJVector()
+Vector3 Transform::GetJVector() const
 {
-	UpdateLocalMatrix();
-	return m_localMatrix.GetJVector().xyz();
+	return GetLocalToWorldMatrix().GetJVector().xyz();
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Transform::GetKVector()
+Vector3 Transform::GetKVector() const
 {
-	UpdateLocalMatrix();
-	return m_localMatrix.GetKVector().xyz();
+	return GetLocalToWorldMatrix().GetKVector().xyz();
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Transform::GetWorldPosition()
+Vector3 Transform::GetWorldPosition() const
 {
 	Matrix44 parentToWorld = GetParentToWorldMatrix();
 	return parentToWorld.TransformPoint(position).xyz();
@@ -285,7 +282,7 @@ Vector3 Transform::GetWorldPosition()
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Transform::GetWorldRotationDegrees()
+Vector3 Transform::GetWorldRotationDegrees() const
 {
 	UpdateLocalMatrix();
 
@@ -295,7 +292,7 @@ Vector3 Transform::GetWorldRotationDegrees()
 
 
 //-------------------------------------------------------------------------------------------------
-Quaternion Transform::GetWorldRotation()
+Quaternion Transform::GetWorldRotation() const
 {
 	Vector3 worldDegrees = GetWorldRotationDegrees();
 	return Quaternion::FromEulerAngles(worldDegrees);
@@ -303,7 +300,7 @@ Quaternion Transform::GetWorldRotation()
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Transform::GetWorldScale()
+Vector3 Transform::GetWorldScale() const
 {
 	UpdateLocalMatrix();
 
@@ -313,7 +310,7 @@ Vector3 Transform::GetWorldScale()
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Transform::TransformPoint(const Vector3& point)
+Vector3 Transform::TransformPoint(const Vector3& point) const
 {
 	Matrix44 localToWorld = GetLocalToWorldMatrix();
 	Vector4 result = localToWorld.TransformPoint(point);
@@ -323,7 +320,7 @@ Vector3 Transform::TransformPoint(const Vector3& point)
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Transform::InverseTransformDirection(const Vector3& direction)
+Vector3 Transform::InverseTransformDirection(const Vector3& direction) const
 {
 	Matrix44 worldToLocal = GetWorldToLocalMatrix();
 	Vector4 result = worldToLocal.TransformVector(direction);
@@ -333,7 +330,7 @@ Vector3 Transform::InverseTransformDirection(const Vector3& direction)
 
 
 //-------------------------------------------------------------------------------------------------
-void Transform::UpdateLocalMatrix(bool forceUpdate /*= false*/)
+void Transform::UpdateLocalMatrix(bool forceUpdate /*= false*/) const
 {
 	// Check if it needs to be updated first
 	bool translationUpToDate = AreMostlyEqual(position, m_oldPosition);

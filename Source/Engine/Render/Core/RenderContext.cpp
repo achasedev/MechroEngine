@@ -526,11 +526,11 @@ void RenderContext::DrawPlane3(const Plane3& plane, Material* material, const Rg
 
 
 //-------------------------------------------------------------------------------------------------
-void RenderContext::DrawTransform(Transform& transform, float scale)
+void RenderContext::DrawTransform(const Transform& transform, float scale)
 {
 	std::vector<Vertex3D_PCU> vertices;
 
-	Vector3 position = transform.position;
+	Vector3 position = transform.GetWorldPosition();
 	Vector3 right = transform.GetIVector();
 	Vector3 up = transform.GetJVector();
 	Vector3 forward = transform.GetKVector();

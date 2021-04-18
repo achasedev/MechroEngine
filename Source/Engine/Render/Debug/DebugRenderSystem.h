@@ -18,6 +18,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class Camera;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -33,27 +34,33 @@ class DebugRenderSystem
 public:
 	//-----Public Methods-----
 
-	void Initialize();
-	void Shutdown();
+	static void			Initialize();
+	static void			Shutdown();
 
-	void Render();
+	void				SetCamera(Camera* camera);
+	void				Render();
 
-	DebugRenderObject* GetObject(const DebugRenderHandle& handle);
+	DebugRenderHandle	AddObject(DebugRenderObject* object);
+	DebugRenderObject*	GetObject(const DebugRenderHandle& handle);
 
 	template<typename T>
-	T* GetObjectAs(const DebugRenderHandle& handle);
+	T*					GetObjectAs(const DebugRenderHandle& handle);
 
 
 private:
 	//-----Private Methods-----
-	void AddObject(DebugRenderObject* object);
+
+	DebugRenderSystem() {}
+	~DebugRenderSystem();
+	DebugRenderSystem(const DebugRenderSystem& other) = delete;
 
 
 private:
 	//-----Private Data-----
 
-	std::map<DebugRenderHandle, DebugRenderObject*> m_objects;
-	DebugRenderHandle								m_nextHandle = 0;
+	Camera*							m_camera = nullptr;
+	std::vector<DebugRenderObject*> m_objects;
+	DebugRenderHandle				m_nextHandle = 0;
 
 };
 
@@ -76,6 +83,9 @@ T* DebugRenderSystem::GetObjectAs(const DebugRenderHandle& handle)
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Convenience
+DebugRenderHandle DebugDrawTransform(const Transform& transform, float lifetime = FLT_MAX, bool freezeTransform = false);
+
+
 DebugRenderHandle DebugDrawCube(
 	const Vector3& position, 
 	const Vector3& extents, 

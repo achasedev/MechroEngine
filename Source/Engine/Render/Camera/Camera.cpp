@@ -323,21 +323,21 @@ Vector3 Camera::GetRotation() const
 //-------------------------------------------------------------------------------------------------
 Vector3 Camera::GetForwardVector()
 {
-	return m_transform.GetLocalToWorldMatrix().GetKVector().xyz();
+	return m_transform.GetKVector();
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Vector3 Camera::GetRightVector()
 {
-	return m_transform.GetLocalToWorldMatrix().GetIVector().xyz();
+	return m_transform.GetIVector();
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Vector3 Camera::GetUpVector()
 {
-	return m_transform.GetLocalToWorldMatrix().GetJVector().xyz();
+	return m_transform.GetJVector();
 }
 
 
