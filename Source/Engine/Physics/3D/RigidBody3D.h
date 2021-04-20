@@ -26,6 +26,7 @@ class Material;
 class Polygon3d;
 class PolytopeCollider3d;
 class Rgba;
+class Shader;
 class Transform;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -44,7 +45,7 @@ class RigidBody3D
 public:
 	//-----Public Methods-----
 
-	void				DebugRender(Material* material, const Rgba& color);
+	void				DebugRender(const Rgba& color, Shader* shader = nullptr);
 
 	// Mutators
 	void				AddForce(const Vector3& forceWs) { m_forceWs += forceWs; }
@@ -72,7 +73,7 @@ public:
 	Vector3				GetForce() const { return m_forceWs; }
 	Vector3				GetTorque() const { return m_torque; }
 	const Polygon3d*	GetLocalShape() const;
-	const Polygon3d*	GetWorldShape(Polygon3d& out_polygon) const;
+	const Polygon3d*	GetWorldShape() const;
 	bool				IsAffectedByGravity() const { return m_affectedByGravity; }
 
 	// Producers

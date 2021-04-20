@@ -177,7 +177,7 @@
     <ClCompile Include="Math\OBB3.cpp" />
     <ClCompile Include="Math\Range.cpp" />
     <ClCompile Include="Math\Sphere3d.cpp" />
-    <ClCompile Include="Render\Debug\DebugRenderObject.cpp" />
+    <ClCompile Include="Render\Debug\DebugRenderTask.cpp" />
     <ClCompile Include="Framework\DevConsole.cpp" />
     <ClCompile Include="Framework\EngineCommands.cpp" />
     <ClCompile Include="Framework\Entity.cpp" />
@@ -284,7 +284,7 @@
     <ClInclude Include="Math\Range.h" />
     <ClInclude Include="Math\Sphere3d.h" />
     <ClInclude Include="Physics\3D\PhysicsSystem3D.h" />
-    <ClInclude Include="Render\Debug\DebugRenderObject.h" />
+    <ClInclude Include="Render\Debug\DebugRenderTask.h" />
     <ClInclude Include="Framework\DevConsole.h" />
     <ClInclude Include="Framework\EngineCommands.h" />
     <ClInclude Include="Framework\Entity.h" />

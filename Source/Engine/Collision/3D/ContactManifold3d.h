@@ -110,7 +110,7 @@ public:
 	void					GenerateContacts();
 	void					UpdateContacts(const ContactPoint3D* contacts, int numContacts);
 
-	void					DebugRender(Material* material) const;
+	void					DebugRender() const;
 
 	bool					HasCollision() const { return m_broadphaseResult.m_collisionFound; }
 	int						GetNumContacts() const { return m_numContacts; }

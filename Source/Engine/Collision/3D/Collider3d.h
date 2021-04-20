@@ -26,6 +26,7 @@ class Entity;
 class Material;
 class Polygon3d;
 class Rgba;
+class Shader;
 class Transform;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -47,7 +48,7 @@ public:
 
 	Collider3d() {}
 
-	virtual void	DebugRender(Material* material, const Rgba& color) = 0;
+	virtual void	DebugRender(const Rgba& color, Shader* shader = nullptr) = 0;
 	Entity*			GetOwningEntity() const { return m_owner; }
 
 
@@ -73,7 +74,7 @@ public:
 	//-----Public Methods-----
 	RTTI_DERIVED_CLASS(SphereCollider3d);
 
-	virtual void DebugRender(Material* material, const Rgba& color) override;
+	virtual void DebugRender(const Rgba& color, Shader* shader = nullptr) override;
 
 	Sphere3d GetWorldShape();
 
@@ -99,7 +100,7 @@ public:
 	//-----Public Methods-----
 	RTTI_DERIVED_CLASS(CapsuleCollider3d);
 
-	virtual void DebugRender(Material* material, const Rgba& color) override;
+	virtual void DebugRender(const Rgba& color, Shader* shader = nullptr) override;
 
 	Capsule3d GetWorldBounds();
 
@@ -128,7 +129,7 @@ public:
 	PolytopeCollider3d(const OBB3& boxShape);
 	PolytopeCollider3d(const Polygon3d* shape);
 
-	virtual void		DebugRender(Material* material, const Rgba& color) override;
+	virtual void		DebugRender(const Rgba& color, Shader* shader = nullptr) override;
 
 	void				SetShape(Polygon3d* shape);
 	const Polygon3d*	GetLocalShape() const;

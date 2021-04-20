@@ -8,7 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Render/Debug/DebugRenderObject.h"
+#include "Engine/Render/Debug/DebugRenderTask.h"
 #include <map>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -40,8 +40,8 @@ public:
 	void				SetCamera(Camera* camera);
 	void				Render();
 
-	DebugRenderHandle	AddObject(DebugRenderObject* object);
-	DebugRenderObject*	GetObject(const DebugRenderHandle& handle);
+	DebugRenderHandle	AddObject(DebugRenderTask* object);
+	DebugRenderTask*	GetObject(const DebugRenderHandle& handle);
 
 	template<typename T>
 	T*					GetObjectAs(const DebugRenderHandle& handle);
@@ -59,7 +59,7 @@ private:
 	//-----Private Data-----
 
 	Camera*							m_camera = nullptr;
-	std::vector<DebugRenderObject*> m_objects;
+	std::vector<DebugRenderTask*> m_objects;
 	DebugRenderHandle				m_nextHandle = 0;
 
 };
@@ -73,7 +73,7 @@ private:
 template<typename T>
 T* DebugRenderSystem::GetObjectAs(const DebugRenderHandle& handle)
 {
-	DebugRenderObject* object = GetObject(handle);
+	DebugRenderTask* object = GetObject(handle);
 	return object->GetAsType<T*>();
 }
 
@@ -84,6 +84,7 @@ T* DebugRenderSystem::GetObjectAs(const DebugRenderHandle& handle)
 
 // Convenience
 DebugRenderHandle DebugDrawTransform(const Transform& transform, float lifetime = FLT_MAX, bool freezeTransform = false);
+DebugRenderHandle DebugDrawRigidBody3D(const RigidBody3D* body, const Rgba& color);
 
 
 DebugRenderHandle DebugDrawCube(

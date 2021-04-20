@@ -69,6 +69,26 @@ RenderContext* g_renderContext = nullptr;
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
+//-------------------------------------------------------------------------------------------------
+void SetupMaterial(Texture2D* albedo, Shader* shader, Material& out_material)
+{
+	ShaderResourceView* albedoView = (albedo != nullptr ? albedo->CreateOrGetShaderResourceView() : nullptr);
+
+	if (albedoView == nullptr)
+	{
+		albedoView = g_resourceSystem->CreateOrGetTexture2D("white")->CreateOrGetShaderResourceView();
+	}
+
+	if (shader == nullptr)
+	{
+		shader = g_resourceSystem->CreateOrGetShader("Data/Shader/default_alpha.shader");
+	}
+
+	out_material.SetAlbedoTextureView(albedoView);
+	out_material.SetShader(shader);
+}
+
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -215,7 +235,11 @@ void RenderContext::BindMaterial(Material* material)
 //-------------------------------------------------------------------------------------------------
 void RenderContext::BindShader(Shader* shader)
 {
-	ASSERT_OR_DIE(shader != nullptr, "Shader was nullptr when being bound!");
+	if (shader == nullptr)
+	{
+		shader = g_resourceSystem->CreateOrGetShader("Data/Shader/default_alpha.shader");
+		ASSERT_OR_DIE(shader != nullptr, "Default shader missing!");
+	}
 
 	if (m_currentShader != shader || m_currentShader->IsDirty())
 	{
@@ -369,7 +393,7 @@ void RenderContext::DrawPoint2D(const Vector2& position, float radius, Material*
 
 
 //-------------------------------------------------------------------------------------------------
-void RenderContext::DrawPoint3D(const Vector3& position, float radius, Material* material, const Rgba& color /*= Rgba::WHITE*/)
+void RenderContext::DrawPoint3D(const Vector3& position, float radius, const Rgba& color /*= Rgba::WHITE*/, Shader* shader /*= nullptr*/)
 {
 	std::vector<Vertex3D_PCU> vertices;
 
@@ -387,8 +411,11 @@ void RenderContext::DrawPoint3D(const Vector3& position, float radius, Material*
 	vertices.push_back(Vertex3D_PCU(front, color, Vector2::ZERO));
 	vertices.push_back(Vertex3D_PCU(back, color, Vector2::ZERO));
 
+	Material material;
+	SetupMaterial(nullptr, shader, material);
+
 	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-	DrawVertexArray(vertices.data(), (uint32)vertices.size(), nullptr, 0U, material);
+	DrawVertexArray(vertices.data(), (uint32)vertices.size(), nullptr, 0U, &material);
 	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
@@ -411,15 +438,18 @@ void RenderContext::DrawLine2D(const Vector2& start, const Vector2& end, Materia
 
 
 //-------------------------------------------------------------------------------------------------
-void RenderContext::DrawLine3D(const Vector3& start, const Vector3& end, Material* material, const Rgba& color /*= Rgba::WHITE*/)
+void RenderContext::DrawLine3D(const Vector3& start, const Vector3& end, const Rgba& color /*= Rgba::WHITE*/, Shader* shader /*= nullptr*/)
 {
 	std::vector<Vertex3D_PCU> vertices;
 
 	vertices.push_back(Vertex3D_PCU(start, color, Vector2::ZERO));
 	vertices.push_back(Vertex3D_PCU(end, color, Vector2::ZERO));
 
+	Material material;
+	SetupMaterial(nullptr, shader, material);
+
 	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-	DrawVertexArray(vertices.data(), (uint32)vertices.size(), nullptr, 0U, material);
+	DrawVertexArray(vertices.data(), (uint32)vertices.size(), nullptr, 0U, &material);
 	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
@@ -447,7 +477,7 @@ void RenderContext::DrawWirePolygon2D(const Polygon2D& polygon, Material* materi
 
 
 //-------------------------------------------------------------------------------------------------
-void RenderContext::DrawWirePolygon3D(const Polygon3d& polygon, Material* material, const Rgba& color /*= Rgba::WHITE*/)
+void RenderContext::DrawWirePolygon3D(const Polygon3d& polygon, const Rgba& color /*= Rgba::WHITE*/, Shader* shader /*= nullptr*/)
 {
 	int numFaces = polygon.GetNumFaces();
 	ASSERT_RETURN(numFaces > 0, NO_RETURN_VAL, "No Faces!");
@@ -472,8 +502,11 @@ void RenderContext::DrawWirePolygon3D(const Polygon3d& polygon, Material* materi
 		}
 	}
 
+	Material material;
+	SetupMaterial(nullptr, shader, material);
+
 	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-	DrawVertexArray(vertices.data(), (uint32)vertices.size(), nullptr, 0U, material);
+	DrawVertexArray(vertices.data(), (uint32)vertices.size(), nullptr, 0U, &material);
 	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
@@ -504,7 +537,7 @@ void RenderContext::DrawWireOBB2D(const OBB2& obb, Material* material, const Rgb
 
 
 //-------------------------------------------------------------------------------------------------
-void RenderContext::DrawPlane3(const Plane3& plane, Material* material, const Rgba& color /*= Rgba::WHITE*/)
+void RenderContext::DrawPlane3(const Plane3& plane, const Rgba& color /*= Rgba::WHITE*/, Shader* shader /*= nullptr*/)
 {
 	MeshBuilder mb;
 	mb.BeginBuilding(true);
@@ -516,12 +549,15 @@ void RenderContext::DrawPlane3(const Plane3& plane, Material* material, const Rg
 	mb.PushQuad3D(position, Vector2(5.f), AABB2::ZERO_TO_ONE, color, right, up);
 	mb.PushQuad3D(position, Vector2(5.f), AABB2::ZERO_TO_ONE, color, -1.0f * right, up);
 	mb.FinishBuilding();
-
 	mb.UpdateMesh<Vertex3D_PCU>(m_immediateMesh);
-	DrawMeshWithMaterial(m_immediateMesh, material);
+
+	Material material;
+	SetupMaterial(nullptr, shader, material);
+
+	DrawMeshWithMaterial(m_immediateMesh, &material);
 
 	// Draw the normal
-	DrawLine3D(position, position + plane.GetNormal(), material, Rgba::GREEN);
+	DrawLine3D(position, position + plane.GetNormal(), color, shader);
 }
 
 

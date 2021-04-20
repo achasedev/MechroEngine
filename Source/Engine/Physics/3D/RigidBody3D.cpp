@@ -85,6 +85,19 @@ const Polygon3d* RigidBody3D::GetLocalShape() const
 
 
 //-------------------------------------------------------------------------------------------------
+const Polygon3d* RigidBody3D::GetWorldShape() const
+{
+	if (m_collider != nullptr)
+	{
+		return m_collider->GetWorldShape();
+	}
+
+	// TODO: Return our own shape
+	return nullptr;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 Vector3 RigidBody3D::GetCenterOfMassWs() const
 {
 	Matrix44 toWorld = m_transform->GetLocalToWorldMatrix();
@@ -93,11 +106,11 @@ Vector3 RigidBody3D::GetCenterOfMassWs() const
 
 
 //-------------------------------------------------------------------------------------------------
-void RigidBody3D::DebugRender(Material* material, const Rgba& color)
+void RigidBody3D::DebugRender(const Rgba& color, Shader* shader /*= nullptr*/)
 {
 	// Debug render in world space
-	g_renderContext->DrawWirePolygon3D(*m_collider->GetWorldShape(), material, color);
-	g_renderContext->DrawPoint3D(GetCenterOfMassWs(), 0.25f, material, Rgba::YELLOW);
+	g_renderContext->DrawWirePolygon3D(*m_collider->GetWorldShape(), color, shader);
+	g_renderContext->DrawPoint3D(GetCenterOfMassWs(), 0.25f, Rgba::YELLOW, shader);
 }
 
 

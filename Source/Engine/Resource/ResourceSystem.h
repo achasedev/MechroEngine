@@ -46,7 +46,7 @@ public:
 	Image*		CreateOrGetImage(const char* filepath);
 	Shader*		CreateOrGetShader(const char* filepath);
 	Material*	CreateOrGetMaterial(const char* filepath);
-	Texture2D*	CreateOrGetTexture2D(const char* filepath, TextureUsageBits textureUsage, GPUMemoryUsage memoryUsage);
+	Texture2D*	CreateOrGetTexture2D(const char* filepath, TextureUsageBits textureUsage = TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPUMemoryUsage memoryUsage = GPU_MEMORY_USAGE_STATIC);
 
 
 private:

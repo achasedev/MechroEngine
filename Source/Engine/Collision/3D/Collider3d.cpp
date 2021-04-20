@@ -70,10 +70,10 @@ PolytopeCollider3d::PolytopeCollider3d(const Polygon3d* shape)
 
 
 //-------------------------------------------------------------------------------------------------
-void PolytopeCollider3d::DebugRender(Material* material, const Rgba& color)
+void PolytopeCollider3d::DebugRender(const Rgba& color, Shader* shader /*= nullptr*/)
 {
 	// Debug render in world space
-	g_renderContext->DrawWirePolygon3D(m_shapeWs, material, color);
+	g_renderContext->DrawWirePolygon3D(m_shapeWs, color, shader);
 }
 
 

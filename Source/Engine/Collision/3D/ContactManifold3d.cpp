@@ -248,21 +248,21 @@ void ContactManifold3d::UpdateContacts(const ContactPoint3D* contacts, int numCo
 
 #include "Engine/Render/Core/RenderContext.h"
 //-------------------------------------------------------------------------------------------------
-void ContactManifold3d::DebugRender(Material* material) const
+void ContactManifold3d::DebugRender() const
 {
 	Rgba color = (m_broadphaseResult.m_collisionFound ? Rgba::RED : Rgba::WHITE);
 	float aColorScale = (m_colA == m_broadphaseResult.m_refCol ? 1.0f : 0.5f);
 	float bColorScale = (m_colB == m_broadphaseResult.m_refCol ? 1.0f : 0.5f);
 
-	m_colA->DebugRender(material, color * aColorScale);
-	m_colB->DebugRender(material, color * bColorScale);
+	m_colA->DebugRender(color * aColorScale);
+	m_colB->DebugRender(color * bColorScale);
 
 	if (m_numContacts > 0)
 	{
 		for (int contactIndex = 0; contactIndex < m_numContacts; ++contactIndex)
 		{
-			g_renderContext->DrawPoint3D(m_contacts[contactIndex].m_position, 0.10f, material, Rgba::YELLOW);
-			g_renderContext->DrawLine3D(m_contacts[contactIndex].m_position, m_contacts[contactIndex].m_position + 0.25f * m_contacts[contactIndex].m_normal, material, Rgba::GREEN);
+			g_renderContext->DrawPoint3D(m_contacts[contactIndex].m_position, 0.10f, Rgba::YELLOW);
+			g_renderContext->DrawLine3D(m_contacts[contactIndex].m_position, m_contacts[contactIndex].m_position + 0.25f * m_contacts[contactIndex].m_normal, Rgba::GREEN);
 		}
 	}
 }

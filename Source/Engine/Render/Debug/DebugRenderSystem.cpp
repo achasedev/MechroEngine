@@ -42,6 +42,18 @@ DebugRenderHandle DebugDrawTransform(const Transform& transform, float lifetime 
 
 
 //-------------------------------------------------------------------------------------------------
+DebugRenderHandle DebugDrawRigidBody3D(const RigidBody3D* body, const Rgba& color)
+{
+	DebugRenderOptions options;
+	options.m_lifetime = FLT_MAX;
+	options.m_color = color;
+
+	DebugRenderRigidBody3D* debugBody = new DebugRenderRigidBody3D(body, options);
+	return g_debugRenderSystem->AddObject(debugBody);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 DebugRenderHandle DebugDrawCube(
 	const Vector3& position, 
 	const Vector3& extents, 
@@ -109,7 +121,7 @@ void DebugRenderSystem::Render()
 
 
 //-------------------------------------------------------------------------------------------------
-DebugRenderObject* DebugRenderSystem::GetObject(const DebugRenderHandle& handle)
+DebugRenderTask* DebugRenderSystem::GetObject(const DebugRenderHandle& handle)
 {
 	int numObjects = (int)m_objects.size();
 	for (int objIndex = 0; objIndex < numObjects; ++objIndex)
@@ -138,7 +150,7 @@ DebugRenderSystem::~DebugRenderSystem()
 
 
 //-------------------------------------------------------------------------------------------------
-DebugRenderHandle DebugRenderSystem::AddObject(DebugRenderObject* object)
+DebugRenderHandle DebugRenderSystem::AddObject(DebugRenderTask* object)
 {
 	const DebugRenderHandle handle = m_nextHandle++;
 	object->m_handle = handle;

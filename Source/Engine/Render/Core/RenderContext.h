@@ -94,13 +94,13 @@ public:
 	void								Draw(const DrawCall& drawCall);
 	
 	void								DrawPoint2D(const Vector2& position, float radius, Material* material, const Rgba& color = Rgba::WHITE);
-	void								DrawPoint3D(const Vector3& position, float radius, Material* material, const Rgba& color = Rgba::WHITE);
+	void								DrawPoint3D(const Vector3& position, float radius, const Rgba& color = Rgba::WHITE, Shader* shader = nullptr);
 	void								DrawLine2D(const Vector2& start, const Vector2& end, Material* material, const Rgba& color = Rgba::WHITE);
-	void								DrawLine3D(const Vector3& start, const Vector3& end, Material* material, const Rgba& color = Rgba::WHITE);
+	void								DrawLine3D(const Vector3& start, const Vector3& end, const Rgba& color = Rgba::WHITE, Shader* shader = nullptr);
 	void								DrawWirePolygon2D(const Polygon2D& polygon, Material* material, const Rgba& color = Rgba::WHITE);
-	void								DrawWirePolygon3D(const Polygon3d& polygon, Material* material, const Rgba& color = Rgba::WHITE);
+	void								DrawWirePolygon3D(const Polygon3d& polygon, const Rgba& color = Rgba::WHITE, Shader* shader = nullptr);
 	void								DrawWireOBB2D(const OBB2& obb, Material* material, const Rgba& color = Rgba::WHITE);
-	void								DrawPlane3(const Plane3& plane, Material* material, const Rgba& color = Rgba::WHITE);
+	void								DrawPlane3(const Plane3& plane, const Rgba& color = Rgba::WHITE, Shader* shader = nullptr);
 	void								DrawTransform(const Transform& transform, float scale);
 
 	void								SaveTextureToImage(Texture2D* texture, const char* filepath);

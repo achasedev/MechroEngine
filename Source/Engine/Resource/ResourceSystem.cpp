@@ -164,7 +164,7 @@ Material* ResourceSystem::CreateOrGetMaterial(const char* filepath)
 
 
 //-------------------------------------------------------------------------------------------------
-Texture2D* ResourceSystem::CreateOrGetTexture2D(const char* filepath, TextureUsageBits textureUsage, GPUMemoryUsage memoryUsage)
+Texture2D* ResourceSystem::CreateOrGetTexture2D(const char* filepath, TextureUsageBits textureUsage /*= TEXTURE_USAGE_SHADER_RESOURCE_BIT*/, GPUMemoryUsage memoryUsage /*= GPU_MEMORY_USAGE_STATIC*/)
 {
 	StringID id = SID(filepath);
 	Texture2DIter itr = m_texture2Ds.find(id);
