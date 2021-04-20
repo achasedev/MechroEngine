@@ -39,11 +39,12 @@ public:
 
 	PhysicsSystem3D();
 
+	void Update(CollisionSystem3d* collisionSystem = nullptr);
+	void DoPhysicsStep(float deltaSeconds, CollisionSystem3d* collisionSystem = nullptr);
+
 	void				SetTimeStep(float stepSeconds);
 	const RigidBody3D*	AddEntity(Entity* entity);
 	void				RemoveEntity(Entity* entity);
-
-	void				Update(CollisionSystem3d* collisionSystem = nullptr);
 
 
 public:
@@ -63,7 +64,6 @@ private:
 	void AddBody(RigidBody3D* body);
 
 	// Called in FrameStep()
-	void FrameStep(float deltaSeconds, CollisionSystem3d* collisionSystem = nullptr);
 	void ApplyForces(float deltaSeconds);
 	void CalculateEffectiveMasses(float deltaSeconds, CollisionSystem3d* collisionSystem);
 	void ApplyContactImpulses(CollisionSystem3d* collisionSystem);

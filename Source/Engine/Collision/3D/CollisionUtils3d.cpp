@@ -12,6 +12,7 @@
 #include "Engine/Collision/3D/ContactManifold3d.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Math/Polygon3d.h"
+#include "Engine/Render/Debug/DebugRenderSystem.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -257,6 +258,8 @@ int CollisionUtils3d::CalculateContacts(PolytopeCollider3d* colA, PolytopeCollid
 		out_contacts[contactIndex].m_position = finalPositions[contactIndex];
 		out_contacts[contactIndex].m_normal = broadResult.m_direction;
 		out_contacts[contactIndex].m_pen = finalPens[contactIndex];
+
+		DebugDrawPoint3D(out_contacts[contactIndex].m_position, Rgba::MAGENTA, 0.f);
 	}
 
 	return (int)finalPositions.size();
@@ -517,7 +520,7 @@ BroadphaseResult3d CollisionUtils3d::Collide(PolytopeCollider3d* colA, PolytopeC
 	}
 	else if (result.m_penetration == penOnFaceB)
 	{
-		result.m_direction = worldShapeB->GetFaceNormal(bestFaceIndexB); // Flip the axis so it points from A to B
+		result.m_direction = worldShapeB->GetFaceNormal(bestFaceIndexB);
 		result.m_isFaceCollision = true;
 		result.m_refFaceIndex = bestFaceIndexB;
 		result.m_refCol = colB;

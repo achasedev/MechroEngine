@@ -30,14 +30,41 @@ DebugRenderSystem*	g_debugRenderSystem = nullptr;
 
 
 //-------------------------------------------------------------------------------------------------
-DebugRenderHandle DebugDrawTransform(const Transform& transform, float lifetime /*= FLT_MAX*/, bool freezeTransform /*= false*/)
+DebugRenderHandle DebugDrawTransform(const Transform& transform, float lifetime /*= FLT_MAX*/, const Transform* parentTransform /*= nullptr*/)
 {
 	DebugRenderOptions options;
 	options.m_lifetime = lifetime;
 	options.m_color = Rgba::WHITE;
+	options.m_parentTransform = parentTransform;
 
-	DebugRenderTransform* debugTransform = new DebugRenderTransform(transform, freezeTransform, options);
+	DebugRenderTransform* debugTransform = new DebugRenderTransform(transform, options);
 	return g_debugRenderSystem->AddObject(debugTransform);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+DebugRenderHandle DebugDrawLine3D(const Vector3& start, const Vector3& end, const Rgba& color /*= Rgba::RED*/, float lifetime /*= FLT_MAX*/, const Transform* parentTransform /*= nullptr*/)
+{
+	DebugRenderOptions options;
+	options.m_lifetime = lifetime;
+	options.m_color = color;
+	options.m_parentTransform = parentTransform;
+
+	DebugRenderLine3D* line = new DebugRenderLine3D(start, end, options);
+	return g_debugRenderSystem->AddObject(line);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+DebugRenderHandle DebugDrawPoint3D(const Vector3& position, const Rgba& color /*= Rgba::RED*/, float lifetime /*= FLT_MAX*/, const Transform* parentTransform /*= nullptr*/)
+{
+	DebugRenderOptions options;
+	options.m_lifetime = lifetime;
+	options.m_color = color;
+	options.m_parentTransform = parentTransform;
+
+	DebugRenderPoint3D* point = new DebugRenderPoint3D(position, options);
+	return g_debugRenderSystem->AddObject(point);
 }
 
 
@@ -54,18 +81,17 @@ DebugRenderHandle DebugDrawRigidBody3D(const RigidBody3D* body, const Rgba& colo
 
 
 //-------------------------------------------------------------------------------------------------
-DebugRenderHandle DebugDrawCube(
-	const Vector3& position, 
-	const Vector3& extents, 
-	const DebugRenderOptions& options /*= DebugRenderOptions()*/)
+DebugRenderHandle DebugDrawCube(const Vector3& center, const Vector3& extents, const Rgba& color /*= Rgba::RED*/, float lifetime /*= FLT_MAX*/, const Transform* parentTransform /*= nullptr*/)
 {
-	UNIMPLEMENTED();
-	UNUSED(position);
-	UNUSED(extents);
-	UNUSED(options);
+	DebugRenderOptions options;
+	options.m_lifetime = lifetime;
+	options.m_color = color;
+	options.m_parentTransform = parentTransform;
 
-	return DebugRenderHandle();
+	DebugRenderCube* debugCube = new DebugRenderCube(center, extents, options);
+	return g_debugRenderSystem->AddObject(debugCube);
 }
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS

@@ -59,7 +59,7 @@ private:
 	//-----Private Data-----
 
 	Camera*							m_camera = nullptr;
-	std::vector<DebugRenderTask*> m_objects;
+	std::vector<DebugRenderTask*>	m_objects;
 	DebugRenderHandle				m_nextHandle = 0;
 
 };
@@ -83,11 +83,8 @@ T* DebugRenderSystem::GetObjectAs(const DebugRenderHandle& handle)
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Convenience
-DebugRenderHandle DebugDrawTransform(const Transform& transform, float lifetime = FLT_MAX, bool freezeTransform = false);
+DebugRenderHandle DebugDrawTransform(const Transform& transform, float lifetime = FLT_MAX, const Transform* parentTransform = nullptr);
+DebugRenderHandle DebugDrawLine3D(const Vector3& start, const Vector3& end, const Rgba& color = Rgba::RED, float lifetime = FLT_MAX, const Transform* parentTransform = nullptr);
+DebugRenderHandle DebugDrawPoint3D(const Vector3& position, const Rgba& color = Rgba::RED, float lifetime = FLT_MAX, const Transform* parentTransform = nullptr);
 DebugRenderHandle DebugDrawRigidBody3D(const RigidBody3D* body, const Rgba& color);
-
-
-DebugRenderHandle DebugDrawCube(
-	const Vector3& position, 
-	const Vector3& extents, 
-	const DebugRenderOptions& options = DebugRenderOptions());
+DebugRenderHandle DebugDrawCube(const Vector3& center, const Vector3& extents, const Rgba& color = Rgba::RED, float lifetime = FLT_MAX, const Transform* parentTransform = nullptr);

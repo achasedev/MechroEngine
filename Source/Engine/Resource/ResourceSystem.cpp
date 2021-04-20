@@ -237,7 +237,7 @@ void ResourceSystem::CreateDefaultImages()
 {
 	Image* whiteImage = new Image(IntVector2(2, 2), Rgba::WHITE);
 	whiteImage->m_resourceID = SID("white");
-	m_images[SID("white")] = whiteImage;
+	m_images[whiteImage->m_resourceID] = whiteImage;
 
 	CreateOrGetImage("Data/Image/debug.png");
 }
@@ -249,8 +249,14 @@ void ResourceSystem::CreateDefaultTexture2Ds()
 	Image* whiteImage = CreateOrGetImage("white");
 	Texture2D* whiteTexture = new Texture2D();
 	whiteTexture->CreateFromImage(*whiteImage, TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_STATIC);
-	whiteTexture->m_resourceID = SID("white");
-	m_texture2Ds[SID("white")] = whiteTexture;
+	whiteTexture->m_resourceID = whiteImage->m_resourceID;
+	m_texture2Ds[whiteTexture->m_resourceID] = whiteTexture;
+
+	Image* debugImage = CreateOrGetImage("Data/Image/debug.png");
+	Texture2D* debugTexture = new Texture2D();
+	debugTexture->CreateFromImage(*debugImage, TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_STATIC);
+	debugTexture->m_resourceID = debugImage->m_resourceID;
+	m_texture2Ds[debugTexture->m_resourceID] = debugTexture;
 }
 
 
@@ -258,6 +264,7 @@ void ResourceSystem::CreateDefaultTexture2Ds()
 void ResourceSystem::CreateDefaultMaterials()
 {
 	CreateOrGetMaterial("Data/Material/default.material");
+	CreateOrGetMaterial("Data/Material/debug.material");
 }
 
 

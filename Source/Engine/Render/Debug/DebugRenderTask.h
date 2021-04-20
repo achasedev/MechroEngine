@@ -26,8 +26,9 @@ class RigidBody3D;
 typedef int DebugRenderHandle;
 struct DebugRenderOptions
 {
-	Rgba	m_color = Rgba::RED;
-	float	m_lifetime = FLT_MAX;
+	Rgba				m_color = Rgba::RED;
+	float				m_lifetime = FLT_MAX;
+	const Transform*	m_parentTransform = nullptr;
 };
 
 
@@ -78,7 +79,7 @@ class DebugRenderTransform : public DebugRenderTask
 public:
 	//-----Public Methods-----
 
-	DebugRenderTransform(const Transform& transform, bool freezeTransform, const DebugRenderOptions& options);
+	DebugRenderTransform(const Transform& transform, const DebugRenderOptions& options);
 	virtual void Render() const override;
 
 
@@ -120,6 +121,37 @@ private:
 	//-----Private Data-----
 
 	const RigidBody3D* m_rigidBody = nullptr;
+
+};
+
+//-------------------------------------------------------------------------------------------------
+class DebugRenderPoint3D : public DebugRenderTask
+{
+public:
+	//-----Public Methods-----
+
+	DebugRenderPoint3D(const Vector3& position, const DebugRenderOptions& options);
+	virtual void Render() const override;
+
+
+private:
+	//-----Private Data-----
+	
+};
+
+
+//-------------------------------------------------------------------------------------------------
+class DebugRenderCube : public DebugRenderTask
+{
+public:
+	//-----Public Methods-----
+
+	DebugRenderCube(const Vector3& center, const Vector3& extents, const DebugRenderOptions& options);
+	virtual void Render() const override;
+
+
+private:
+	//-----Private Data-----
 
 };
 

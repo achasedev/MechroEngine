@@ -12,9 +12,11 @@
 #include "Engine/Collision/3D/ContactManifold3d.h"
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Framework/Entity.h"
+#include "Engine/Framework/Rgba.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Physics/3D/PhysicsSystem3D.h"
 #include "Engine/Physics/3D/RigidBody3D.h"
+#include "Engine/Render/Debug/DebugRenderSystem.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -28,11 +30,11 @@
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 const float PhysicsSystem3D::ALLOWED_PENETRATION = 0.01f;
-const float PhysicsSystem3D::BIAS_FACTOR = 0.05f;	
+const float PhysicsSystem3D::BIAS_FACTOR = 0.2f;	
 const float PhysicsSystem3D::DEFAULT_TIMESTEP = (1.f / 60.f);
 const bool PhysicsSystem3D::ACCUMULATE_IMPULSES = true;
 const bool PhysicsSystem3D::WARM_START_ACCUMULATIONS = true;
-const Vector3 PhysicsSystem3D::DEFAULT_GRAVITY_ACC = Vector3(0.f, -3.f, 0.f);
+const Vector3 PhysicsSystem3D::DEFAULT_GRAVITY_ACC = Vector3(0.f, -9.8f, 0.f);
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
@@ -42,23 +44,23 @@ const Vector3 PhysicsSystem3D::DEFAULT_GRAVITY_ACC = Vector3(0.f, -3.f, 0.f);
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
-//-------------------------------------------------------------------------------------------------
-void PhysicsSystem3D::Update(CollisionSystem3d* collisionSystem /* = nullptr*/)
-{
-	int numElapses = m_stepTimer.DecrementByIntervalAll();
-
-	if (numElapses > 0)
-	{
-		float deltaSeconds = (float)numElapses * m_stepTimer.GetIntervalSeconds();
-		FrameStep(deltaSeconds, collisionSystem);
-	}
-}
-
 
 //-------------------------------------------------------------------------------------------------
 PhysicsSystem3D::PhysicsSystem3D()
 {
 	SetTimeStep(DEFAULT_TIMESTEP);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void PhysicsSystem3D::Update(CollisionSystem3d* collisionSystem /*= nullptr*/)
+{
+	if (m_stepTimer.HasIntervalElapsed())
+	{
+		int numElapses = m_stepTimer.DecrementByIntervalAll();
+		float deltaSeconds = m_stepTimer.GetIntervalSeconds() * numElapses;
+		DoPhysicsStep(deltaSeconds, collisionSystem);
+	}
 }
 
 
@@ -86,7 +88,7 @@ const RigidBody3D* PhysicsSystem3D::AddEntity(Entity* entity)
 
 
 //-------------------------------------------------------------------------------------------------
-void PhysicsSystem3D::FrameStep(float deltaSeconds,	CollisionSystem3d* collisionSystem /* = nullptr*/)
+void PhysicsSystem3D::DoPhysicsStep(float deltaSeconds,	CollisionSystem3d* collisionSystem /* = nullptr*/)
 {
 	ApplyForces(deltaSeconds);
 
@@ -132,14 +134,8 @@ void PhysicsSystem3D::ApplyForces(float deltaSeconds)
 
 		// Force = Mass * Acceleration :)
 		Vector3 gravity = (body->IsAffectedByGravity() ? m_gravityAcc : Vector3::ZERO);
-		body->m_velocityWs += (body->m_invMass * body->m_forceWs + gravity) * deltaSeconds;
-
-		Vector3 deltaAngularVelocity;
-		deltaAngularVelocity.x = RadiansToDegrees(body->m_invInertia.x * body->m_torque.x * deltaSeconds);
-		deltaAngularVelocity.y = RadiansToDegrees(body->m_invInertia.y * body->m_torque.y * deltaSeconds);
-		deltaAngularVelocity.z = RadiansToDegrees(body->m_invInertia.z * body->m_torque.z * deltaSeconds);
-
-		body->m_angularVelocityDegrees += deltaAngularVelocity;
+		body->m_velocityWs += (body->m_invMass * (body->m_forceWs + gravity)) * deltaSeconds;
+		body->m_angularVelocityDegrees += RadiansToDegrees(body->m_invInertia * body->m_torque * deltaSeconds);
 
 		// Zero out forces, they're per-frame
 		body->m_forceWs = Vector3::ZERO;
@@ -168,7 +164,7 @@ void PhysicsSystem3D::CalculateEffectiveMasses(float deltaSeconds, ContactManifo
 
 	ContactPoint3D* contacts = manifold.GetContacts();
 
-	float invDeltaSeconds = (deltaSeconds > 0.f ? 1.0f / deltaSeconds : 0.f);
+	float invDeltaSeconds = (deltaSeconds > 0.f ? (1.0f / deltaSeconds) : 0.f);
 
 	for (int contactIndex = 0; contactIndex < manifold.GetNumContacts(); ++contactIndex)
 	{
@@ -183,11 +179,12 @@ void PhysicsSystem3D::CalculateEffectiveMasses(float deltaSeconds, ContactManifo
 		{
 			// me = invM1 + invM2 + dot(r1 x n, invI1 * (r1 x n)) + dot(r2 x n, invI2 * (r2 x n))
 			Vector3 kNormal = Vector3(body1->m_invMass + body2->m_invMass);
+
 			kNormal.x += DotProduct(CrossProduct(contact.m_r1, contact.m_normal), body1->m_invInertia.x * CrossProduct(contact.m_r1, contact.m_normal)) + DotProduct(CrossProduct(contact.m_r2, contact.m_normal), body2->m_invInertia.x * CrossProduct(contact.m_r2, contact.m_normal));
 			kNormal.y += DotProduct(CrossProduct(contact.m_r1, contact.m_normal), body1->m_invInertia.y * CrossProduct(contact.m_r1, contact.m_normal)) + DotProduct(CrossProduct(contact.m_r2, contact.m_normal), body2->m_invInertia.y * CrossProduct(contact.m_r2, contact.m_normal));
 			kNormal.z += DotProduct(CrossProduct(contact.m_r1, contact.m_normal), body1->m_invInertia.z * CrossProduct(contact.m_r1, contact.m_normal)) + DotProduct(CrossProduct(contact.m_r2, contact.m_normal), body2->m_invInertia.z * CrossProduct(contact.m_r2, contact.m_normal));	
 
-			contact.m_massNormal = 1.0f / ((kNormal.x + kNormal.y + kNormal.z));
+			contact.m_massNormal = 1.0f / (kNormal.x + kNormal.y + kNormal.z);
 		}
 
 		// Mass tangent and mass bitangent is used to calculate impulses to simulate friction
@@ -266,18 +263,18 @@ void PhysicsSystem3D::ApplyContactImpulses(ContactManifold3d& manifold)
 		// Find how angular velocities will affect our point's velocity
 		// Relative velocity at contact from body 1's point of view
 		// relV = v2 + w2 x r2 - v1 - w1 x r1
-		Vector3 relativeVelocity = body2->m_velocityWs + CrossProduct(DegreesToRadians(body2->m_angularVelocityDegrees), contact.m_r2) - body1->m_velocityWs - CrossProduct(DegreesToRadians(body1->m_angularVelocityDegrees), contact.m_r1);
+		Vector3 relativeVelocity1 = body2->m_velocityWs + CrossProduct(DegreesToRadians(body2->m_angularVelocityDegrees), contact.m_r2) - body1->m_velocityWs - CrossProduct(DegreesToRadians(body1->m_angularVelocityDegrees), contact.m_r1);
 
 		// Compute normal impulse
-		float speedAlongNormal = DotProduct(relativeVelocity, contact.m_normal);
+		float speedAlongNormal = DotProduct(relativeVelocity1, contact.m_normal);
 		float normalImpulseMagnitude = contact.m_massNormal * (-1.0f * speedAlongNormal + contact.m_bias); // Impulse goes against the velocity to correct, add a little bias for oomph
-
+		
 		if (ACCUMULATE_IMPULSES)
 		{
 			// Clamp the accumulated impulse
 			float oldAccNormalImpulse = contact.m_accNormalImpulse;
 			contact.m_accNormalImpulse = Max(oldAccNormalImpulse + normalImpulseMagnitude, 0.f);
-			normalImpulseMagnitude = contact.m_accNormalImpulse - oldAccNormalImpulse;
+			normalImpulseMagnitude = Max(contact.m_accNormalImpulse - oldAccNormalImpulse, 0.f);
 		}
 		else
 		{
@@ -296,7 +293,7 @@ void PhysicsSystem3D::ApplyContactImpulses(ContactManifold3d& manifold)
 		body2->m_angularVelocityDegrees += deltaAnglesN2;
 
 		// Recalculate the relative velocity
-		relativeVelocity = body2->m_velocityWs + CrossProduct(DegreesToRadians(body2->m_angularVelocityDegrees), contact.m_r2) - body1->m_velocityWs - CrossProduct(DegreesToRadians(body1->m_angularVelocityDegrees), contact.m_r1);
+		Vector3 relativeVelocity = body2->m_velocityWs + CrossProduct(DegreesToRadians(body2->m_angularVelocityDegrees), contact.m_r2) - body1->m_velocityWs - CrossProduct(DegreesToRadians(body1->m_angularVelocityDegrees), contact.m_r1);
 
 		float friction = Sqrt(body1->GetFriction() + body2->GetFriction());
 
@@ -366,6 +363,10 @@ void PhysicsSystem3D::ApplyContactImpulses(ContactManifold3d& manifold)
 		Vector3 deltaAnglesB2 = RadiansToDegrees(body2->m_invInertia * CrossProduct(contact.m_r2, bitangentImpulse));
 		body1->m_angularVelocityDegrees -= deltaAnglesB1;
 		body2->m_angularVelocityDegrees += deltaAnglesB2;
+
+		DebugDrawLine3D(contact.m_position, contact.m_position + 5.f * normalImpulse, Rgba::BLUE, 1.0f);
+		DebugDrawLine3D(contact.m_position, contact.m_position + 5.f * tangentImpulse, Rgba::RED, 1.0f);
+		DebugDrawLine3D(contact.m_position, contact.m_position + 5.f * bitangentImpulse, Rgba::GREEN, 1.0f);
 	}
 }
 
