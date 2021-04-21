@@ -12,6 +12,7 @@
 #include "Engine/Physics/3D/RigidBody3D.h"
 #include "Engine/Render/Core/Renderable.h"
 #include "Engine/Render/Core/RenderContext.h"
+#include "Engine/Render/Debug/DebugRenderSystem.h"
 #include "Engine/Render/Debug/DebugRenderTask.h"
 #include "Engine/Resource/ResourceSystem.h"
 
@@ -47,6 +48,16 @@ DebugRenderTask::DebugRenderTask(const DebugRenderOptions& options)
 
 
 //-------------------------------------------------------------------------------------------------
+void DebugRenderTask::PreRender() const
+{
+	// Update the UBO
+	DebugBufferData data;
+	data.m_colorTint = m_options.m_color.GetAsFloats();
+	g_debugRenderSystem->UpdateUniformBuffer(data);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 bool DebugRenderTask::IsFinished() const
 {
 	return m_timer.HasIntervalElapsed();
@@ -65,7 +76,7 @@ DebugRenderTransform::DebugRenderTransform(const Transform& transform, const Deb
 //-------------------------------------------------------------------------------------------------
 void DebugRenderTransform::Render() const
 {
-	g_renderContext->DrawTransform(m_transform, 1.0f);
+	g_renderContext->DrawTransform(m_transform, 1.0f, g_debugRenderSystem->GetShader());
 }
 
 
@@ -85,7 +96,7 @@ void DebugRenderLine3D::Render() const
 	Vector3 startWs = mat.TransformPoint(m_start).xyz();
 	Vector3 endWs = mat.TransformPoint(m_end).xyz();
 
-	g_renderContext->DrawLine3D(startWs, endWs, m_options.m_color);
+	g_renderContext->DrawLine3D(startWs, endWs, Rgba::WHITE, g_debugRenderSystem->GetShader());
 }
 
 
@@ -106,8 +117,8 @@ DebugRenderRigidBody3D::DebugRenderRigidBody3D(const RigidBody3D* rigidBody, con
 void DebugRenderRigidBody3D::Render() const
 {
 	const Polygon3d* bodyShape = m_rigidBody->GetWorldShape();
-	g_renderContext->DrawWirePolygon3D(*bodyShape, m_options.m_color);
-	g_renderContext->DrawPoint3D(m_rigidBody->GetCenterOfMassWs(), 0.25f, m_options.m_color);
+	g_renderContext->DrawWirePolygon3D(*bodyShape, Rgba::WHITE, g_debugRenderSystem->GetShader());
+	g_renderContext->DrawPoint3D(m_rigidBody->GetCenterOfMassWs(), 0.25f, Rgba::WHITE, g_debugRenderSystem->GetShader());
 }
 
 
@@ -123,7 +134,7 @@ DebugRenderPoint3D::DebugRenderPoint3D(const Vector3& position, const DebugRende
 void DebugRenderPoint3D::Render() const
 {
 	Vector3 posWs = m_transform.GetWorldPosition();
-	g_renderContext->DrawPoint3D(posWs, 0.25f, m_options.m_color);
+	g_renderContext->DrawPoint3D(posWs, 0.25f, Rgba::WHITE, g_debugRenderSystem->GetShader());
 }
 
 

@@ -101,7 +101,7 @@ public:
 	void								DrawWirePolygon3D(const Polygon3d& polygon, const Rgba& color = Rgba::WHITE, Shader* shader = nullptr);
 	void								DrawWireOBB2D(const OBB2& obb, Material* material, const Rgba& color = Rgba::WHITE);
 	void								DrawPlane3(const Plane3& plane, const Rgba& color = Rgba::WHITE, Shader* shader = nullptr);
-	void								DrawTransform(const Transform& transform, float scale);
+	void								DrawTransform(const Transform& transform, float scale, Shader* shader = nullptr);
 
 	void								SaveTextureToImage(Texture2D* texture, const char* filepath);
 
@@ -152,7 +152,7 @@ private:
 	UniformBuffer			m_modelMatrixUBO;
 
 	// Sampler
-	SamplerMode				m_samplerMode = SAMPLER_MODE_POINT;
+	SamplerMode				m_samplerMode = SAMPLER_MODE_LINEAR;
 	Sampler*				m_samplers[NUM_SAMPLER_MODES];
 
 };

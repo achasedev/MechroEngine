@@ -562,7 +562,7 @@ void RenderContext::DrawPlane3(const Plane3& plane, const Rgba& color /*= Rgba::
 
 
 //-------------------------------------------------------------------------------------------------
-void RenderContext::DrawTransform(const Transform& transform, float scale)
+void RenderContext::DrawTransform(const Transform& transform, float scale, Shader* shader /*= nullptr*/)
 {
 	std::vector<Vertex3D_PCU> vertices;
 
@@ -578,8 +578,11 @@ void RenderContext::DrawTransform(const Transform& transform, float scale)
 	vertices.push_back(Vertex3D_PCU(position, Rgba::BLUE, Vector2::ZERO));
 	vertices.push_back(Vertex3D_PCU(position + forward * scale, Rgba::BLUE, Vector2::ZERO));
 
+	Material material;
+	SetupMaterial(nullptr, shader, material);
+
 	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-	DrawVertexArray(vertices.data(), vertices.size(), nullptr, 0);
+	DrawVertexArray(vertices.data(), vertices.size(), nullptr, 0, &material);
 	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 

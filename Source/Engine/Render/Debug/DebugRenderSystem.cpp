@@ -10,6 +10,7 @@
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/Render/Core/RenderContext.h"
 #include "Engine/Render/Debug/DebugRenderSystem.h"
+#include "Engine/Resource/ResourceSystem.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -129,6 +130,7 @@ void DebugRenderSystem::Render()
 	int numObjects = (int)m_objects.size();
 	for (int objIndex = 0; objIndex < numObjects; ++objIndex)
 	{
+		m_objects[objIndex]->PreRender();
 		m_objects[objIndex]->Render();
 	}
 
@@ -159,6 +161,21 @@ DebugRenderTask* DebugRenderSystem::GetObject(const DebugRenderHandle& handle)
 	}
 
 	return nullptr;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Shader* DebugRenderSystem::GetShader() const
+{
+	return g_resourceSystem->CreateOrGetShader("Data/Shader/debug.shader");
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void DebugRenderSystem::UpdateUniformBuffer(const DebugBufferData& data)
+{
+	m_uniformBuffer.CopyToGPU(&data, sizeof(data));
+	g_renderContext->BindUniformBuffer(4U, &m_uniformBuffer);
 }
 
 

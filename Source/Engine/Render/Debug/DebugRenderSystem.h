@@ -8,6 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Render/Buffer/UniformBuffer.h"
 #include "Engine/Render/Debug/DebugRenderTask.h"
 #include <map>
 
@@ -19,6 +20,10 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Camera;
+struct DebugBufferData
+{
+	Vector4 m_colorTint = Vector4::ONES;
+};
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -43,6 +48,9 @@ public:
 	DebugRenderHandle	AddObject(DebugRenderTask* object);
 	DebugRenderTask*	GetObject(const DebugRenderHandle& handle);
 
+	Shader*				GetShader() const;
+	void				UpdateUniformBuffer(const DebugBufferData& data);
+
 	template<typename T>
 	T*					GetObjectAs(const DebugRenderHandle& handle);
 
@@ -59,6 +67,7 @@ private:
 	//-----Private Data-----
 
 	Camera*							m_camera = nullptr;
+	UniformBuffer					m_uniformBuffer;
 	std::vector<DebugRenderTask*>	m_objects;
 	DebugRenderHandle				m_nextHandle = 0;
 

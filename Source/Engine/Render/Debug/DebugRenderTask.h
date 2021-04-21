@@ -52,6 +52,7 @@ public:
 
 	DebugRenderTask(const DebugRenderOptions& options);
 
+	void				PreRender() const;
 	virtual void		Render() const = 0;
 
 	bool				IsFinished() const;			
