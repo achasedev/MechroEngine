@@ -728,3 +728,23 @@ void MeshBuilder::PushCube(
 		PushQuad3D(position, Vector2(dimensions.x, dimensions.z), bottomUVs, tint, Vector3::X_AXIS, Vector3::MINUS_Z_AXIS, Vector2(0.5f, 0.5f));
 	}
 }
+
+
+//-------------------------------------------------------------------------------------------------
+void MeshBuilder::PushSphere(const Vector3& center, float radius, const Rgba& color /*= Rgba::WHITE*/, int numUSteps /*= 10*/, int numVSteps /*= 10*/)
+{
+	ASSERT_OR_DIE(m_isBuilding, "MeshBuilder not building!");
+
+	SetColor(color);
+
+	for (int v = 0; v < numVSteps; ++v)
+	{
+		for (int u = 0; u < numUSteps; ++u)
+		{
+			Vector3 pos = SphericalToCartesian(radius, (float)u * 360.f, RangeMapFloat((float)v, 0.f, 1.0f, -180.f, 180.f));
+			
+			SetUV(Vector2(u, v));
+			PushVertex(pos);
+		}
+	}
+}

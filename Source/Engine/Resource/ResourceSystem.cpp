@@ -217,8 +217,18 @@ void ResourceSystem::CreateDefaultMeshes()
 	mb.PushCube(Vector3::ZERO, Vector3::ONES);
 	mb.FinishBuilding();
 
-	Mesh* mesh = mb.CreateMesh<Vertex3D_PCU>();
-	m_meshes[SID("unit_cube")] = mesh;
+	Mesh* cubeMesh = mb.CreateMesh<Vertex3D_PCU>();
+	cubeMesh->m_resourceID = SID("unit_cube");
+	m_meshes[cubeMesh->m_resourceID] = cubeMesh;
+
+	mb.Clear();
+	mb.BeginBuilding(true);
+	mb.PushSphere(Vector3::ZERO, 1.f);
+	mb.FinishBuilding();
+
+	Mesh* sphereMesh = mb.CreateMesh<Vertex3D_PCU>();
+	sphereMesh->m_resourceID = SID("unit_sphere");
+	m_meshes[sphereMesh->m_resourceID] = sphereMesh;
 }
 
 
