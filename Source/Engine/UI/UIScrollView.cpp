@@ -11,7 +11,6 @@
 #include "Engine/IO/Image.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Render/Core/RenderContext.h"
-#include "Engine/Render/Font/FontLoader.h"
 #include "Engine/Render/Material.h"
 #include "Engine/Render/Shader.h"
 #include "Engine/Resource/ResourceSystem.h"
@@ -299,7 +298,7 @@ void UIScrollView::InitializeFromXML(const XMLElem& element)
 
 	// Font name
 	std::string fontPath = XML::ParseAttribute(element, "font", "Data/Font/default.ttf");
-	Font* font = g_fontLoader->LoadFont(fontPath.c_str(), 0);
+	Font* font = g_resourceSystem->CreateOrGetFont(fontPath.c_str());
 
 	// Text
 	std::string rawText = XML::ParseAttribute(element, "text", "SAMPLE TEXT");

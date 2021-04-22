@@ -180,3 +180,18 @@ void DebugRenderSphere::Render() const
 
 	g_renderContext->DrawRenderable(rend);
 }
+
+
+//-------------------------------------------------------------------------------------------------
+DebugRenderText3D::DebugRenderText3D(const char* text, const Vector3& position, const DebugRenderOptions& options)
+	: DebugRenderTask(options)
+	, m_text(text)
+{
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void DebugRenderText3D::Render() const
+{
+	Font* font = g_resourceSystem->CreateOrGetFont("Data/Font/Prototype.ttf");
+}

@@ -12,7 +12,6 @@
 #include "Engine/Render/Core/RenderContext.h"
 #include "Engine/Render/Font/Font.h"
 #include "Engine/Render/Font/FontAtlas.h"
-#include "Engine/Render/Font/FontLoader.h"
 #include "Engine/Render/Material.h"
 #include "Engine/Render/Mesh/MeshBuilder.h"
 #include "Engine/Render/Texture/Texture2D.h"
@@ -491,7 +490,7 @@ void UIText::InitializeFromXML(const XMLElem& element)
 
 	// Font name
 	std::string fontPath = XML::ParseAttribute(element, "font", "Data/Font/default.ttf");
-	m_font = g_fontLoader->LoadFont(fontPath.c_str(), 0);
+	m_font = g_resourceSystem->CreateOrGetFont(fontPath.c_str());
 
 	// Text
 	std::string rawText = XML::ParseAttribute(element, "text", "SAMPLE TEXT");

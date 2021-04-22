@@ -38,6 +38,14 @@
 
 
 //-------------------------------------------------------------------------------------------------
+Font::Font(void* fontFace, const char* filepath, bool hasKerning)
+	: m_ftFace(fontFace), m_sourceFilepath(filepath), m_hasKerning(hasKerning)
+{
+
+}
+
+
+//-------------------------------------------------------------------------------------------------
 Font::~Font()
 {
 	FT_Done_Face((FT_Face)m_ftFace);

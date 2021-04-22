@@ -171,6 +171,23 @@ private:
 
 };
 
+//-------------------------------------------------------------------------------------------------
+class DebugRenderText3D : public DebugRenderTask
+{
+public:
+	//-----Public Methods-----
+
+	DebugRenderText3D(const char* text, const Vector3& position, const DebugRenderOptions& options);
+	virtual void Render() const override;
+
+
+private:
+	//-----Private Data-----
+
+	std::string m_text;
+
+};
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

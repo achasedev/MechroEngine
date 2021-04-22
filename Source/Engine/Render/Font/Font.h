@@ -11,6 +11,7 @@
 #include "Engine/Math/AABB2.h"
 #include "Engine/Math/IntVector2.h"
 #include "Engine/Render/Font/FontAtlas.h"
+#include "Engine/Resource/Resource.h"
 #include <map>
 #include <string>
 
@@ -32,13 +33,14 @@ class Texture2D;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Font
+class Font : public Resource
 {
 	friend class FontLoader;
 
 public:
 	//-----Public Methods-----
 
+	Font(void* fontFace, const char* filepath, bool hasKerning);
 	~Font();
 
 	FontAtlas*			CreateOrGetAtlasForPixelHeight(uint32 pixelHeight);

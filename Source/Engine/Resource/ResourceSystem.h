@@ -19,6 +19,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class Font;
 class Image;
 class Material;
 class Mesh;
@@ -47,6 +48,7 @@ public:
 	Shader*		CreateOrGetShader(const char* filepath);
 	Material*	CreateOrGetMaterial(const char* filepath);
 	Texture2D*	CreateOrGetTexture2D(const char* filepath, TextureUsageBits textureUsage = TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPUMemoryUsage memoryUsage = GPU_MEMORY_USAGE_STATIC);
+	Font*		CreateOrGetFont(const char* filepath);
 
 
 private:
@@ -62,6 +64,7 @@ private:
 		void CreateDefaultImages();
 		void CreateDefaultMaterials();
 		void CreateDefaultTexture2Ds();
+		void CreateDefaultFonts();
 
 
 private:
@@ -72,6 +75,7 @@ private:
 	std::map<StringID, Material*>	m_materials;
 	std::map<StringID, Shader*>		m_shaders;
 	std::map<StringID, Mesh*>		m_meshes;
+	std::map<StringID, Font*>		m_fonts;
 
 };
 

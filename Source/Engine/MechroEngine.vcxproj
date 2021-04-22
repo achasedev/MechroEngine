@@ -210,7 +210,6 @@
     <ClCompile Include="Render\Debug\DebugRenderSystem.cpp" />
     <ClCompile Include="Render\Font\Font.cpp" />
     <ClCompile Include="Render\Font\FontAtlas.cpp" />
-    <ClCompile Include="Render\Font\FontLoader.cpp" />
     <ClCompile Include="Render\Material.cpp" />
     <ClCompile Include="Render\Mesh\Mesh.cpp" />
     <ClCompile Include="Render\Mesh\MeshBuilder.cpp" />
@@ -323,7 +322,6 @@
     <ClInclude Include="Render\Camera\Camera.h" />
     <ClInclude Include="Render\Font\Font.h" />
     <ClInclude Include="Render\Font\FontAtlas.h" />
-    <ClInclude Include="Render\Font\FontLoader.h" />
     <ClInclude Include="Utility\SpritePacker.h" />
     <ClInclude Include="Render\View\RenderTargetView.h" />
     <ClInclude Include="Render\Core\DrawCall.h" />

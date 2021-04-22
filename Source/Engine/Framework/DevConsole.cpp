@@ -29,7 +29,6 @@
 #include "Engine/Utility/EngineUtils.h"
 #include "Engine/Utility/NamedProperties.h"
 #include "Engine/Render/Font/Font.h"
-#include "Engine/Render/Font/FontLoader.h"
 #include "Engine/Time/Clock.h"
 
 #ifndef WIN32_LEAN_AND_MEAN

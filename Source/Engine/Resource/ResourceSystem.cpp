@@ -10,12 +10,28 @@
 #include "Engine/Framework/DevConsole.h"
 #include "Engine/Framework/EngineCommon.h"
 #include "Engine/IO/Image.h"
+#include "Engine/Render/Font/Font.h"
 #include "Engine/Render/Material.h"
 #include "Engine/Render/Mesh/MeshBuilder.h"
 #include "Engine/Render/Shader.h"
 #include "Engine/Render/Texture/Texture2D.h"
 #include "Engine/Resource/ResourceSystem.h"
+#include "ThirdParty/freetype/include/ft2build.h"   
+#include FT_FREETYPE_H
 
+#if defined(_WIN64)
+#if defined(_DEBUG)
+#pragma comment(lib, "ThirdParty/freetype/freetype_x64_Debug.lib")  
+#else
+#pragma comment(lib, "ThirdParty/freetype/freetype_x64_Release.lib") 
+#endif
+#else
+#if defined (_DEBUG)
+#pragma comment(lib, "ThirdParty/freetype/freetype_win32_Debug.lib")
+#else
+#pragma comment(lib, "ThirdParty/freetype/freetype_win32_Release.lib")
+#endif
+#endif
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -28,10 +44,12 @@ typedef std::map<StringID, Mesh*>::iterator MeshIter;
 typedef std::map<StringID, Image*>::iterator ImageIter;
 typedef std::map<StringID, Shader*>::iterator ShaderIter;
 typedef std::map<StringID, Material*>::iterator MaterialIter;
+typedef std::map<StringID, Font*>::iterator FontIter;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+static FT_Library s_library;
 ResourceSystem* g_resourceSystem = nullptr;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -50,6 +68,10 @@ void ResourceSystem::Initialize()
 	
 	g_resourceSystem = new ResourceSystem();
 	g_resourceSystem->CreateBuiltInAssets();
+
+	// Initialize the FT library
+	FT_Error error = FT_Init_FreeType(&s_library);
+	ASSERT_RECOVERABLE(!error, "Couldn't initialize FreeType library!");
 }
 
 
@@ -58,6 +80,8 @@ void ResourceSystem::Shutdown()
 {
 	ASSERT_OR_DIE(g_resourceSystem != nullptr, "ResourceSystem not initialized!");
 	SAFE_DELETE(g_resourceSystem);
+
+	FT_Done_FreeType(s_library);
 }
 
 
@@ -193,6 +217,40 @@ Texture2D* ResourceSystem::CreateOrGetTexture2D(const char* filepath, TextureUsa
 
 
 //-------------------------------------------------------------------------------------------------
+Font* ResourceSystem::CreateOrGetFont(const char* filepath)
+{
+	StringID id = SID(filepath);
+	FontIter itr = m_fonts.find(id);
+	if (itr != m_fonts.end())
+	{
+		return itr->second;
+	}
+
+	Font* font = nullptr;
+	FT_Face face;
+	FT_Error error = FT_New_Face(s_library, filepath, 0, &face);
+
+	if (error == FT_Err_Unknown_File_Format)
+	{
+		ConsoleErrorf("Unsupported font format for file %s", filepath);
+	}
+	else if (error)
+	{
+		ConsoleErrorf("Couldn't load font file %s", filepath);
+	}
+	else
+	{
+		font = new Font(face, filepath, FT_HAS_KERNING(face));
+		font->m_resourceID = id;
+	}
+
+	m_fonts[id] = font;
+
+	return font;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 ResourceSystem::ResourceSystem()
 {
 }
@@ -267,6 +325,13 @@ void ResourceSystem::CreateDefaultTexture2Ds()
 	debugTexture->CreateFromImage(*debugImage, TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_STATIC);
 	debugTexture->m_resourceID = debugImage->m_resourceID;
 	m_texture2Ds[debugTexture->m_resourceID] = debugTexture;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void ResourceSystem::CreateDefaultFonts()
+{
+	CreateOrGetFont("Data/Font/Prototype.ttf");
 }
 
 
