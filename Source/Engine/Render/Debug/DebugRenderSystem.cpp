@@ -82,7 +82,7 @@ DebugRenderHandle DebugDrawRigidBody3D(const RigidBody3D* body, const Rgba& colo
 
 
 //-------------------------------------------------------------------------------------------------
-DebugRenderHandle DebugDrawCube(const Vector3& center, const Vector3& extents, const Rgba& color /*= Rgba::RED*/, float lifetime /*= FLT_MAX*/, const Transform* parentTransform /*= nullptr*/)
+DebugRenderHandle DebugDrawCube(const Vector3& center, const Vector3& extents, const Rgba& color /*= Rgba::WHITE*/, float lifetime /*= FLT_MAX*/, const Transform* parentTransform /*= nullptr*/)
 {
 	DebugRenderOptions options;
 	options.m_lifetime = lifetime;
@@ -91,6 +91,19 @@ DebugRenderHandle DebugDrawCube(const Vector3& center, const Vector3& extents, c
 
 	DebugRenderCube* debugCube = new DebugRenderCube(center, extents, options);
 	return g_debugRenderSystem->AddObject(debugCube);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+DebugRenderHandle DebugDrawSphere(const Vector3& center, float radius, const Rgba& color /*= Rgba::WHITE*/, float lifetime /*= FLT_MAX*/, const Transform* parentTransform /*= nullptr*/)
+{
+	DebugRenderOptions options;
+	options.m_lifetime = lifetime;
+	options.m_color = color;
+	options.m_parentTransform = parentTransform;
+
+	DebugRenderSphere* debugSphere = new DebugRenderSphere(center, radius, options);
+	return g_debugRenderSystem->AddObject(debugSphere);
 }
 
 

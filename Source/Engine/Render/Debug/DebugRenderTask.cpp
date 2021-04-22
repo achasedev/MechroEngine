@@ -158,3 +158,25 @@ void DebugRenderCube::Render() const
 	
 	g_renderContext->DrawRenderable(rend);
 }
+
+
+//-------------------------------------------------------------------------------------------------
+DebugRenderSphere::DebugRenderSphere(const Vector3& center, float radius, const DebugRenderOptions& options)
+	: DebugRenderTask(options)
+{
+	m_transform.position = center;
+	m_transform.scale = Vector3(radius);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void DebugRenderSphere::Render() const
+{
+	Mesh* sphereMesh = g_resourceSystem->CreateOrGetMesh("unit_sphere");
+	Material* debugMaterial = g_resourceSystem->CreateOrGetMaterial("Data/Material/debug.material");
+
+	Renderable rend;
+	rend.AddDraw(sphereMesh, debugMaterial, m_transform.GetLocalToWorldMatrix());
+
+	g_renderContext->DrawRenderable(rend);
+}

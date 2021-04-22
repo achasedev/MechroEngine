@@ -734,17 +734,57 @@ void MeshBuilder::PushCube(
 void MeshBuilder::PushSphere(const Vector3& center, float radius, const Rgba& color /*= Rgba::WHITE*/, int numUSteps /*= 10*/, int numVSteps /*= 10*/)
 {
 	ASSERT_OR_DIE(m_isBuilding, "MeshBuilder not building!");
+	ASSERT_OR_DIE(m_instruction.m_useIndices, "Spheres need indices currently!");
 
 	SetColor(color);
 
-	for (int v = 0; v < numVSteps; ++v)
+	for (int vStep = 0; vStep <= numVSteps; ++vStep) // <= since if we want n gaps, we need n+1 dividers
 	{
-		for (int u = 0; u < numUSteps; ++u)
+		for (int uStep = 0; uStep <= numUSteps; ++uStep) // <= since if we want n gaps, we need n+1 dividers
 		{
-			Vector3 pos = SphericalToCartesian(radius, (float)u * 360.f, RangeMapFloat((float)v, 0.f, 1.0f, -180.f, 180.f));
+			float u = RangeMapFloat((float)uStep, 0.f, (float)numUSteps, 0.f, 1.0f);
+			float v = RangeMapFloat((float)vStep, 0.f, (float)numVSteps, 0.f, 1.0f);
+
+			float rotationAngle = u * 360.f;
+			float azimuthAngle = RangeMapFloat(v, 0.f, 1.0f, 180.f, 0.f);
+			Vector3 pos = SphericalToCartesian(radius, rotationAngle, azimuthAngle);
 			
+			Vector3 normal = (pos - center).GetNormalized();
+
+			// Tangent - set the tangents at the poles to local RIGHT
+			Vector3 tangent = Vector3(-SinDegrees(rotationAngle) * SinDegrees(azimuthAngle), 0.f, CosDegrees(rotationAngle) * SinDegrees(azimuthAngle));
+			if (AreMostlyEqual(tangent, Vector3::ZERO))
+			{
+				tangent = Vector3::X_AXIS;
+			}
+			tangent.Normalize();
+
 			SetUV(Vector2(u, v));
-			PushVertex(pos);
+			SetNormal(normal);
+			SetTangent(Vector4(tangent, 1.0f));
+			PushVertex(center + pos);
+		}
+	}
+
+	// Pushing the indices
+	unsigned int numVertsPerV = numUSteps + 1;	// We push a vertex at the end of a slice that coincides with the first vertex of that slice, hence + 1
+
+	for (int vStep = 0; vStep < (int)numVSteps; ++vStep)
+	{
+		for (int uStep = 0; uStep < (int)numUSteps; ++uStep)
+		{
+			int bottomLeft = numVertsPerV * vStep + uStep;
+			int bottomRight = bottomLeft + 1;
+			int topRight = bottomRight + numVertsPerV;
+			int topLeft = bottomLeft + numVertsPerV;
+
+			PushIndex(bottomLeft);
+			PushIndex(topLeft);
+			PushIndex(topRight);
+
+			PushIndex(bottomLeft);
+			PushIndex(topRight);
+			PushIndex(bottomRight);
 		}
 	}
 }
