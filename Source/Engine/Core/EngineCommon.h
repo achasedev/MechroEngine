@@ -20,6 +20,22 @@
 #define STATIC
 #define SAFE_DELETE(p)  if (p != nullptr) { delete p; p = nullptr; }
 #define SAFE_FREE(p)  if (p != nullptr) { free(p); p = nullptr; }
+
+#define SAFE_DELETE_VECTOR(v)															\
+for (size_t safe_delete_index = 0; safe_delete_index < v.size(); ++safe_delete_index)	\
+{																						\
+	SAFE_DELETE(v[safe_delete_index]);													\
+}																						\
+v.clear();																				\
+
+#define SAFE_FREE_VECTOR(v)														\
+for (size_t safe_free_index = 0; safe_free_index < v.size(); ++safe_free_index)	\
+{																				\
+	SAFE_FREE(v[safe_free_index]);												\
+}																				\
+v.clear();																		\
+
+
 #define BIT_FLAG(x) (1 << x)
 #define _QUOTE(x) # x
 #define QUOTE(x) _QUOTE(x)
