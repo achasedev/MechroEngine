@@ -8,9 +8,9 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/EngineCommon.h"
-#include "Engine/Math/MathUtils.h"
+#include "Engine/Math/Vector3.h"
 #include "Engine/Physics/Particle/Particle.h"
-#include "Engine/Physics/Particle/ParticleSpring.h"
+#include "Engine/Physics/Particle/ParticleBungee.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -34,7 +34,7 @@
 
 
 //-------------------------------------------------------------------------------------------------
-ParticleSpring::ParticleSpring(Particle* endParticle, float springConstant, float restLength)
+ParticleBungee::ParticleBungee(Particle* endParticle, float springConstant, float restLength)
 	: m_endParticle(endParticle)
 	, m_springContant(springConstant)
 	, m_restLength(restLength)
@@ -43,8 +43,7 @@ ParticleSpring::ParticleSpring(Particle* endParticle, float springConstant, floa
 
 
 //-------------------------------------------------------------------------------------------------
-// Hook's Law implementation
-void ParticleSpring::GenerateAndApplyForce(Particle* particle, float deltaSeconds) const
+void ParticleBungee::GenerateAndApplyForce(Particle* particle, float deltaSeconds) const
 {
 	UNUSED(deltaSeconds);
 
@@ -54,10 +53,15 @@ void ParticleSpring::GenerateAndApplyForce(Particle* particle, float deltaSecond
 
 	if (springLength > 0.f)
 	{
-		// Determine magnitude based on length and resting length
-		float magnitude = (springLength - m_restLength) * m_springContant;
+		// Ensure the spring is stretched, don't apply force from compression
+		float deltaLength = (springLength - m_restLength);
+		if (deltaLength > 0.f)
+		{
+			// Determine magnitude based on length and resting length
+			float magnitude = deltaLength * m_springContant;
 
-		// Apply the force
-		particle->AddForce(forceDir * -magnitude);
+			// Apply the force
+			particle->AddForce(forceDir * -magnitude);
+		}
 	}
 }

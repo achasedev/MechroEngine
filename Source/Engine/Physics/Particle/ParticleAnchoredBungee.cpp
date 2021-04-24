@@ -8,9 +8,8 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/EngineCommon.h"
-#include "Engine/Math/MathUtils.h"
 #include "Engine/Physics/Particle/Particle.h"
-#include "Engine/Physics/Particle/ParticleSpring.h"
+#include "Engine/Physics/Particle/ParticleAnchoredBungee.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -28,14 +27,9 @@
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// CLASS IMPLEMENTATIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-
 //-------------------------------------------------------------------------------------------------
-ParticleSpring::ParticleSpring(Particle* endParticle, float springConstant, float restLength)
-	: m_endParticle(endParticle)
+ParticleAnchoredBungee::ParticleAnchoredBungee(const Vector3& anchorPosition, float springConstant, float restLength)
+	: m_anchorPos(anchorPosition)
 	, m_springContant(springConstant)
 	, m_restLength(restLength)
 {
@@ -43,21 +37,30 @@ ParticleSpring::ParticleSpring(Particle* endParticle, float springConstant, floa
 
 
 //-------------------------------------------------------------------------------------------------
-// Hook's Law implementation
-void ParticleSpring::GenerateAndApplyForce(Particle* particle, float deltaSeconds) const
+void ParticleAnchoredBungee::GenerateAndApplyForce(Particle* particle, float deltaSeconds) const
 {
 	UNUSED(deltaSeconds);
 
 	// Get the force direction, pointing from the end to this particle
-	Vector3 forceDir = particle->GetPosition() - m_endParticle->GetPosition();
+	Vector3 forceDir = particle->GetPosition() - m_anchorPos;
 	float springLength = forceDir.SafeNormalize(forceDir);
 
 	if (springLength > 0.f)
 	{
-		// Determine magnitude based on length and resting length
-		float magnitude = (springLength - m_restLength) * m_springContant;
+		float deltaLength = (springLength - m_restLength);
 
-		// Apply the force
-		particle->AddForce(forceDir * -magnitude);
+		if (deltaLength > 0.f)
+		{
+			// Determine magnitude based on length and resting length
+			springLength = deltaLength * m_springContant;
+
+			// Apply the force
+			particle->AddForce(forceDir * -springLength);
+		}
 	}
 }
+
+
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// CLASS IMPLEMENTATIONS
+///--------------------------------------------------------------------------------------------------------------------------------------------------

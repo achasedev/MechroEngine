@@ -3,14 +3,12 @@
 /// Date Created: April 24th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Core/EngineCommon.h"
-#include "Engine/Math/MathUtils.h"
-#include "Engine/Physics/Particle/Particle.h"
-#include "Engine/Physics/Particle/ParticleSpring.h"
+#include "Engine/Physics/Particle/ParticleForceGenerator.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -25,39 +23,29 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// CLASS DECLARATIONS
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------
+// Behaves just like a ParticleSpring, only it won't exert any push force, only pull if the spring is stretched
+class ParticleBungee : public ParticleForceGenerator
+{
+public:
+	//-----Public Methods-----
+
+	ParticleBungee(Particle* endParticle, float springConstant, float restLength);
+	virtual void GenerateAndApplyForce(Particle* particle, float deltaSeconds) const override;
+
+
+private:
+	//-----Private Data-----
+
+	Particle*	m_endParticle = nullptr;
+	float		m_springContant = 1.0f;
+	float		m_restLength = 1.0f;
+
+};
+
+///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// CLASS IMPLEMENTATIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-//-------------------------------------------------------------------------------------------------
-ParticleSpring::ParticleSpring(Particle* endParticle, float springConstant, float restLength)
-	: m_endParticle(endParticle)
-	, m_springContant(springConstant)
-	, m_restLength(restLength)
-{
-}
-
-
-//-------------------------------------------------------------------------------------------------
-// Hook's Law implementation
-void ParticleSpring::GenerateAndApplyForce(Particle* particle, float deltaSeconds) const
-{
-	UNUSED(deltaSeconds);
-
-	// Get the force direction, pointing from the end to this particle
-	Vector3 forceDir = particle->GetPosition() - m_endParticle->GetPosition();
-	float springLength = forceDir.SafeNormalize(forceDir);
-
-	if (springLength > 0.f)
-	{
-		// Determine magnitude based on length and resting length
-		float magnitude = (springLength - m_restLength) * m_springContant;
-
-		// Apply the force
-		particle->AddForce(forceDir * -magnitude);
-	}
-}
