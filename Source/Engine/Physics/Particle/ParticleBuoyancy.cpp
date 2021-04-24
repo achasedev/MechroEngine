@@ -8,7 +8,9 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/EngineCommon.h"
+#include "Engine/Math/MathUtils.h"
 #include "Engine/Physics/Particle/Particle.h"
+#include "Engine/Physics/Particle/ParticleBuoyancy.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -32,46 +34,37 @@
 
 
 //-------------------------------------------------------------------------------------------------
-Particle::Particle(const Vector3& position, const Vector3& velocity, float mass /*= 1.f*/, float damping /*= 0.999f*/, const Vector3& gravityAcc /*= Vector3(0.f, -10.f, 0.f)*/)
-	: m_position(position)
-	, m_velocity(velocity)
-	, m_damping(damping)
-	, m_gravityAcc(gravityAcc)
+ParticleBuoyancy::ParticleBuoyancy(float maxDepth, float objectVolume, float liquidAltitude /*= 0.f*/, float liquidDensity /*= 1000.f*/)
+	: m_maxDepth(maxDepth)
+	, m_objectVolume(objectVolume)
+	, m_liquidAltitude(liquidAltitude)
+	, m_liquidDensity(liquidDensity)
 {
-	SetMass(mass);
 }
 
-
+#include "Engine/Core/DevConsole.h"
 //-------------------------------------------------------------------------------------------------
-void Particle::Integrate(float deltaSeconds)
+void ParticleBuoyancy::GenerateAndApplyForce(Particle* particle, float deltaSeconds) const
 {
-	// Don't move static things
-	if (m_iMass == 0.f)
+	float objectAltitude = particle->GetPosition().y;
+
+	// If the object is completely out of the water, do nothing
+	if (objectAltitude >= m_liquidAltitude + m_maxDepth)
 		return;
 
-	// Update position
-	m_position += m_velocity * deltaSeconds;
+	float magnitude = 0.f;
+	if (objectAltitude <= m_liquidAltitude - m_maxDepth)
+	{
+		// If we're fully submerged, we apply the full buoyant force regardless of any "extra" depth we have
+		magnitude = m_liquidDensity * m_objectVolume;
+	}
+	else
+	{
+		// Not fully submerged, so we add a fraction of the force proportional to how much we're submerged
+		float fraction = RangeMapFloat(objectAltitude, m_liquidAltitude - m_maxDepth, m_liquidAltitude + m_maxDepth, 1.f, 0.f);
+		magnitude = (m_liquidDensity * m_objectVolume) * fraction;
+	}
 
-	// Update velocity
-	m_velocity += (m_gravityAcc + m_netForce * m_iMass) * deltaSeconds;
-
-	// Dampen it
-	m_velocity *= pow(m_damping, deltaSeconds);
-
-	ClearNetForce();
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void Particle::SetMass(float newMass)
-{
-	ASSERT_RETURN(newMass > 0.f, NO_RETURN_VAL, "Invalid mass!");
-	m_iMass = (1.f / newMass);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void Particle::SetInverseMass(float newIMass)
-{
-	m_iMass = newIMass;
+	ConsolePrintf("%.2f", magnitude);
+	particle->AddForce(Vector3(0.f, magnitude, 0.f));
 }

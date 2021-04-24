@@ -33,7 +33,7 @@ public:
 	//-----Public Methods-----
 
 	Particle() {}
-	Particle(const Vector3& position, const Vector3& velocity, float mass = 1.f, const Vector3& gravityAcc = Vector3(0.f, -10.f, 0.f));
+	Particle(const Vector3& position, const Vector3& velocity, float mass = 1.f, float damping = 0.999f, const Vector3& gravityAcc = Vector3(0.f, -10.f, 0.f));
 
 	void	Integrate(float deltaSeconds);
 	void	ClearNetForce() { m_netForce = Vector3::ZERO; }

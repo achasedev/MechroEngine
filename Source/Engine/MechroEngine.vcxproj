@@ -170,6 +170,7 @@
     <ClCompile Include="Physics\Particle\ParticleAnchoredSpring.cpp" />
     <ClCompile Include="Physics\Particle\ParticleAnchoredBungee.cpp" />
     <ClCompile Include="Physics\Particle\ParticleBungee.cpp" />
+    <ClCompile Include="Physics\Particle\ParticleBuoyancy.cpp" />
     <ClCompile Include="Physics\Particle\ParticleForceGenerator.cpp" />
     <ClCompile Include="Physics\Particle\ParticleGeneratorRegistry.cpp" />
     <ClCompile Include="Physics\Particle\ParticleSpring.cpp" />
@@ -268,6 +269,7 @@
     <ClInclude Include="Physics\Particle\ParticleAnchoredBungee.h" />
     <ClInclude Include="Physics\Particle\ParticleAnchoredSpring.h" />
     <ClInclude Include="Physics\Particle\ParticleBungee.h" />
+    <ClInclude Include="Physics\Particle\ParticleBuoyancy.h" />
     <ClInclude Include="Physics\Particle\ParticleForceGenerator.h" />
     <ClInclude Include="Physics\Particle\ParticleGeneratorRegistry.h" />
     <ClInclude Include="Physics\Particle\ParticleSpring.h" />

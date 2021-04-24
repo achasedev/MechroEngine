@@ -3,12 +3,12 @@
 /// Date Created: April 24th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Core/EngineCommon.h"
-#include "Engine/Physics/Particle/Particle.h"
+#include "Engine/Physics/Particle/ParticleForceGenerator.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -23,55 +23,28 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// CLASS DECLARATIONS
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------
+class ParticleBuoyancy : public ParticleForceGenerator
+{
+public:
+	//-----Public Methods-----
+
+	ParticleBuoyancy(float maxDepth, float objectVolume, float waterAltitude = 0.f, float liquidDensity = 1000.f);
+	virtual void GenerateAndApplyForce(Particle* particle, float deltaSeconds) const override;
+
+
+private:
+	//-----Private Data-----
+
+	float m_maxDepth = 1.f; // Depth when buoyant force becomes constant. For a box, this would be the Y-extent
+	float m_objectVolume = 1.0f; // In m^3
+	float m_liquidAltitude = 0.f; // World-space level of the water line
+	float m_liquidDensity = 1000.f; // kgm^-3, 1000 is water
+};
+
+///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// CLASS IMPLEMENTATIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-//-------------------------------------------------------------------------------------------------
-Particle::Particle(const Vector3& position, const Vector3& velocity, float mass /*= 1.f*/, float damping /*= 0.999f*/, const Vector3& gravityAcc /*= Vector3(0.f, -10.f, 0.f)*/)
-	: m_position(position)
-	, m_velocity(velocity)
-	, m_damping(damping)
-	, m_gravityAcc(gravityAcc)
-{
-	SetMass(mass);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void Particle::Integrate(float deltaSeconds)
-{
-	// Don't move static things
-	if (m_iMass == 0.f)
-		return;
-
-	// Update position
-	m_position += m_velocity * deltaSeconds;
-
-	// Update velocity
-	m_velocity += (m_gravityAcc + m_netForce * m_iMass) * deltaSeconds;
-
-	// Dampen it
-	m_velocity *= pow(m_damping, deltaSeconds);
-
-	ClearNetForce();
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void Particle::SetMass(float newMass)
-{
-	ASSERT_RETURN(newMass > 0.f, NO_RETURN_VAL, "Invalid mass!");
-	m_iMass = (1.f / newMass);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void Particle::SetInverseMass(float newIMass)
-{
-	m_iMass = newIMass;
-}
