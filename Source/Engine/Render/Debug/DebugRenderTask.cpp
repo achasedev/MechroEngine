@@ -7,11 +7,10 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Framework/DevConsole.h"
-#include "Engine/Framework/EngineCommon.h"
-#include "Engine/Physics/3D/RigidBody3D.h"
-#include "Engine/Render/Core/Renderable.h"
-#include "Engine/Render/Core/RenderContext.h"
+#include "Engine/Core/DevConsole.h"
+#include "Engine/Core/EngineCommon.h"
+#include "Engine/Render/Renderable.h"
+#include "Engine/Render/RenderContext.h"
 #include "Engine/Render/Debug/DebugRenderSystem.h"
 #include "Engine/Render/Debug/DebugRenderTask.h"
 #include "Engine/Resource/ResourceSystem.h"
@@ -101,28 +100,6 @@ void DebugRenderLine3D::Render() const
 
 
 //-------------------------------------------------------------------------------------------------
-DebugRenderRigidBody3D::DebugRenderRigidBody3D(const RigidBody3D* rigidBody, const DebugRenderOptions& options)
-	: DebugRenderTask(options)
-	, m_rigidBody(rigidBody)
-{
-	if (m_options.m_parentTransform != nullptr)
-	{
-		ConsoleErrorf("RigidBodies shouldn't have parent transforms, so the debug draw for one will ignore the parent transform specified.");
-		m_options.m_parentTransform = nullptr;
-	}
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void DebugRenderRigidBody3D::Render() const
-{
-	const Polygon3d* bodyShape = m_rigidBody->GetWorldShape();
-	g_renderContext->DrawWirePolygon3D(*bodyShape, Rgba::WHITE, g_debugRenderSystem->GetShader());
-	g_renderContext->DrawPoint3D(m_rigidBody->GetCenterOfMassWs(), 0.25f, Rgba::WHITE, g_debugRenderSystem->GetShader());
-}
-
-
-//-------------------------------------------------------------------------------------------------
 DebugRenderPoint3D::DebugRenderPoint3D(const Vector3& position, const DebugRenderOptions& options)
 	: DebugRenderTask(options)
 {
@@ -187,11 +164,13 @@ DebugRenderText3D::DebugRenderText3D(const char* text, const Vector3& position, 
 	: DebugRenderTask(options)
 	, m_text(text)
 {
+	m_transform.position = position;
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void DebugRenderText3D::Render() const
 {
-	Font* font = g_resourceSystem->CreateOrGetFont("Data/Font/Prototype.ttf");
+	UNIMPLEMENTED();
+	//Font* font = g_resourceSystem->CreateOrGetFont("Data/Font/Prototype.ttf");
 }

@@ -9,7 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include <string>
-#include "Engine/Framework/EngineCommon.h"
+#include "Engine/Core/EngineCommon.h"
 #include "Engine/Utility/StringID.h"
 #include "Engine/Utility/StringUtils.h"
 

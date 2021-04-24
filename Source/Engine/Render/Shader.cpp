@@ -7,11 +7,11 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Framework/DevConsole.h"
-#include "Engine/Framework/EngineCommon.h"
+#include "Engine/Core/DevConsole.h"
+#include "Engine/Core/EngineCommon.h"
 #include "Engine/IO/File.h"
-#include "Engine/Render/Core/DX11Common.h"
-#include "Engine/Render/Core/RenderContext.h"
+#include "Engine/Render/DX11Common.h"
+#include "Engine/Render/RenderContext.h"
 #include "Engine/Render/Shader.h"
 #include "Engine/Render/Mesh/Vertex.h"
 #include "Engine/Utility/XMLUtils.h"

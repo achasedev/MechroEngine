@@ -8,8 +8,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Framework/Entity.h"
-#include "Engine/Framework/Rgba.h"
+#include "Engine/Core/Entity.h"
+#include "Engine/Core/Rgba.h"
 #include "Engine/Math/Transform.h"
 #include "Engine/Math/Vector3.h"
 #include "Engine/Time/FrameTimer.h"
@@ -107,23 +107,6 @@ private:
 
 };
 
-
-//-------------------------------------------------------------------------------------------------
-class DebugRenderRigidBody3D : public DebugRenderTask
-{
-public:
-	//-----Public Methods-----
-
-	DebugRenderRigidBody3D(const RigidBody3D* rigidBody, const DebugRenderOptions& options);
-	virtual void Render() const override;
-
-
-private:
-	//-----Private Data-----
-
-	const RigidBody3D* m_rigidBody = nullptr;
-
-};
 
 //-------------------------------------------------------------------------------------------------
 class DebugRenderPoint3D : public DebugRenderTask

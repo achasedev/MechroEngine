@@ -7,7 +7,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Framework/EngineCommon.h"
+#include "Engine/Core/EngineCommon.h"
 #include "Engine/Job/EngineJobs.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "ThirdParty/stb/stb_image_write.h"

@@ -7,9 +7,9 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Framework/DevConsole.h"
-#include "Engine/Framework/EngineCommon.h"
-#include "Engine/Framework/Rgba.h"
+#include "Engine/Core/DevConsole.h"
+#include "Engine/Core/EngineCommon.h"
+#include "Engine/Core/Rgba.h"
 #include "Engine/Utility/XMLUtils.h"
 #include "Engine/Math/AABB2.h"
 #include "Engine/Math/IntVector2.h"

@@ -7,7 +7,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Render/Core/DX11Common.h"
+#include "Engine/Render/DX11Common.h"
 #include "Engine/Render/Mesh/Mesh.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -59,7 +59,7 @@ void Mesh::SetIndices(const uint32* indices, uint32 indexCount)
 	if (indices == nullptr || indexCount == 0)
 	{
 		ID3D11Buffer* indexDxHandle = m_indexBuffer.GetDxHandle();
-		//DX_SAFE_RELEASE(indexDxHandle);
+		DX_SAFE_RELEASE(indexDxHandle);
 	}
 	else
 	{

@@ -8,7 +8,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/IO/File.h"
-#include "Engine/Framework/EngineCommon.h"
+#include "Engine/Core/EngineCommon.h"
 #include <stdio.h>
 #include <cstdlib>
 #ifndef WIN32_LEAN_AND_MEAN

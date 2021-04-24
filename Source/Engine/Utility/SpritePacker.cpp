@@ -7,10 +7,10 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Framework/EngineCommon.h"
+#include "Engine/Core/EngineCommon.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/IO/Image.h"
-#include "Engine/Render/Core/DX11Common.h"
+#include "Engine/Render/DX11Common.h"
 #include "Engine/Render/Texture/Texture2D.h"
 #include "Engine/Utility/SpritePacker.h"
 

@@ -7,8 +7,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Render/Core/DX11Common.h"
-#include "Engine/Render/Core/RenderContext.h"
+#include "Engine/Render/DX11Common.h"
+#include "Engine/Render/RenderContext.h"
 #include "Engine/Render/View/ShaderResourceView.h"
 #include "Engine/Render/View/ShaderResourceView.h"
 #include "Engine/Render/Texture/Texture2D.h"

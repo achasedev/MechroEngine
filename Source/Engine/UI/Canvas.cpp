@@ -8,11 +8,11 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Event/EventSystem.h"
-#include "Engine/Framework/EngineCommon.h"
+#include "Engine/Core/EngineCommon.h"
 #include "Engine/IO/InputSystem.h"
 #include "Engine/Math/MathUtils.h"
-#include "Engine/Render/Camera/Camera.h"
-#include "Engine/Render/Core/RenderContext.h"
+#include "Engine/Render/Camera.h"
+#include "Engine/Render/RenderContext.h"
 #include "Engine/Render/Texture/Texture2D.h"
 #include "Engine/Time/Clock.h"
 #include "Engine/UI/Canvas.h"

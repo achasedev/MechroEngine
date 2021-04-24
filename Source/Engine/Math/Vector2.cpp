@@ -9,7 +9,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Math/Vector2.h"
 
-#include "Engine/Framework/EngineCommon.h"
+#include "Engine/Core/EngineCommon.h"
 #include "Engine/Math/IntVector2.h"
 #include "Engine/Math/MathUtils.h"
 #include <math.h>

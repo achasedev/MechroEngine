@@ -7,8 +7,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Framework/EngineCommon.h"
-#include "Engine/Render/Core/RenderContext.h"
+#include "Engine/Core/EngineCommon.h"
+#include "Engine/Render/RenderContext.h"
 #include "Engine/Render/Debug/DebugRenderSystem.h"
 #include "Engine/Resource/ResourceSystem.h"
 
@@ -66,18 +66,6 @@ DebugRenderHandle DebugDrawPoint3D(const Vector3& position, const Rgba& color /*
 
 	DebugRenderPoint3D* point = new DebugRenderPoint3D(position, options);
 	return g_debugRenderSystem->AddObject(point);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-DebugRenderHandle DebugDrawRigidBody3D(const RigidBody3D* body, const Rgba& color)
-{
-	DebugRenderOptions options;
-	options.m_lifetime = FLT_MAX;
-	options.m_color = color;
-
-	DebugRenderRigidBody3D* debugBody = new DebugRenderRigidBody3D(body, options);
-	return g_debugRenderSystem->AddObject(debugBody);
 }
 
 

@@ -7,8 +7,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Framework/EngineCommon.h"
-#include "Engine/Render/Core/DX11Common.h"
+#include "Engine/Core/EngineCommon.h"
+#include "Engine/Render/DX11Common.h"
 #include "Engine/Render/Texture/Texture.h"
 #include "Engine/Render/View/TextureView.h"
 

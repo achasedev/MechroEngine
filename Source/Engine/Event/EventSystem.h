@@ -9,7 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Event/EventSubscription.h"
-#include "Engine/Framework/EngineCommon.h"
+#include "Engine/Core/EngineCommon.h"
 #include "Engine/Time/FrameTimer.h"
 #include "Engine/Utility/NamedProperties.h"
 #include "Engine/Utility/StringID.h"

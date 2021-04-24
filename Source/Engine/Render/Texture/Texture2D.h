@@ -11,7 +11,7 @@
 #include "Engine/Render/Buffer/RenderBuffer.h"
 #include "Engine/Render/Texture/Texture.h"
 #include "Engine/Resource/Resource.h"
-#include "Engine/Framework/EngineCommon.h"
+#include "Engine/Core/EngineCommon.h"
 #include "Engine/Math/IntVector2.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

@@ -8,7 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Framework/EngineCommon.h"
+#include "Engine/Core/EngineCommon.h"
 #include "Engine/Math/IntVector3.h"
 #include "Engine/Render/Buffer/RenderBuffer.h"
 #include "Engine/Render/View/TextureView.h"

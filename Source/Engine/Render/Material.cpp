@@ -7,8 +7,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Framework/DevConsole.h"
-#include "Engine/Framework/EngineCommon.h"
+#include "Engine/Core/DevConsole.h"
+#include "Engine/Core/EngineCommon.h"
 #include "Engine/IO/File.h"
 #include "Engine/Render/Material.h"
 #include "Engine/Render/Shader.h"

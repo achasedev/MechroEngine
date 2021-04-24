@@ -9,7 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Math/OBB2.h"
-#include "Engine/Render/Core/Renderable.h"
+#include "Engine/Render/Renderable.h"
 #include "Engine/UI/RectTransform.h"
 #include "Engine/Utility/StringID.h"
 #include "Engine/Utility/XMLUtils.h"

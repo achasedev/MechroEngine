@@ -7,10 +7,10 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Render/Core/DX11Common.h"
-#include "Engine/Render/Core/RenderContext.h"
+#include "Engine/Render/DX11Common.h"
+#include "Engine/Render/RenderContext.h"
 #include "Engine/Render/Sampler.h"
-#include "Engine/Framework/EngineCommon.h"
+#include "Engine/Core/EngineCommon.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES

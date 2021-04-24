@@ -7,10 +7,10 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Framework/EngineCommon.h"
+#include "Engine/Core/EngineCommon.h"
 #include "Engine/IO/Image.h"
 #include "Engine/Math/MathUtils.h"
-#include "Engine/Render/Core/RenderContext.h"
+#include "Engine/Render/RenderContext.h"
 #include "Engine/Render/Material.h"
 #include "Engine/Render/Shader.h"
 #include "Engine/Resource/ResourceSystem.h"
@@ -174,8 +174,9 @@ static bool OnHold_HorizontalSlider(UIElement* element, const UIMouseInfo& info)
 static bool OnMouseClick_Button(UIElement* element, const UIMouseInfo& info)
 {
 	UNUSED(info);
+	UNUSED(element);
 
-	UIButton* button = element->GetAsType<UIButton>();
+	//UIButton* button = element->GetAsType<UIButton>();
 	
 	return true;
 }
@@ -185,8 +186,9 @@ static bool OnMouseClick_Button(UIElement* element, const UIMouseInfo& info)
 static bool OnMouseRelease_Button(UIElement* element, const UIMouseInfo& info)
 {
 	UNUSED(info);
+	UNUSED(element);
 
-	UIButton* button = element->GetAsType<UIButton>();
+	//UIButton* button = element->GetAsType<UIButton>();
 
 	return true;
 }
@@ -196,8 +198,9 @@ static bool OnMouseRelease_Button(UIElement* element, const UIMouseInfo& info)
 static bool OnMouseRelease_Slider(UIElement* element, const UIMouseInfo& info)
 {
 	UNUSED(info);
+	UNUSED(element);
 
-	UIImage* slider = element->GetAsType<UIImage>();
+	//UIImage* slider = element->GetAsType<UIImage>();
 
 	return true;
 }
@@ -207,8 +210,9 @@ static bool OnMouseRelease_Slider(UIElement* element, const UIMouseInfo& info)
 static bool OnMouseClick_Slider(UIElement* element, const UIMouseInfo& info)
 {
 	UNUSED(info);
+	UNUSED(element);
 
-	UIImage* slider = element->GetAsType<UIImage>();
+	//UIImage* slider = element->GetAsType<UIImage>();
 
 	return true;
 }

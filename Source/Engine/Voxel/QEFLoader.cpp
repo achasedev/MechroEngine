@@ -7,8 +7,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Framework/EngineCommon.h"
-#include "Engine/Framework/Rgba.h"
+#include "Engine/Core/EngineCommon.h"
+#include "Engine/Core/Rgba.h"
 #include "Engine/IO/File.h"
 #include "Engine/Math/IntVector2.h"
 #include "Engine/Math/IntVector3.h"
