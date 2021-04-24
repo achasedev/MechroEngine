@@ -346,4 +346,10 @@ void ResourceSystem::CreateDefaultMaterials()
 //-------------------------------------------------------------------------------------------------
 ResourceSystem::~ResourceSystem()
 {
+	SafeDeleteMap<StringID, Texture2D>(m_texture2Ds);
+	SafeDeleteMap<StringID, Image>(m_images);
+	SafeDeleteMap<StringID, Material>(m_materials);
+	SafeDeleteMap<StringID, Shader>(m_shaders);
+	SafeDeleteMap<StringID, Mesh>(m_meshes);
+	SafeDeleteMap<StringID, Font>(m_fonts);
 }

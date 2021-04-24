@@ -166,7 +166,11 @@
     <ClCompile Include="Event\EventSubscription.cpp" />
     <ClCompile Include="Event\EventSystem.cpp" />
     <ClCompile Include="Core\ConsoleCommand.cpp" />
-    <ClCompile Include="Physics\Particle.cpp" />
+    <ClCompile Include="Physics\Particle\Particle.cpp" />
+    <ClCompile Include="Physics\Particle\ParticleAnchoredSpring.cpp" />
+    <ClCompile Include="Physics\Particle\ParticleForceGenerator.cpp" />
+    <ClCompile Include="Physics\Particle\ParticleGeneratorRegistry.cpp" />
+    <ClCompile Include="Physics\Particle\ParticleSpring.cpp" />
     <ClCompile Include="Resource\Resource.cpp" />
     <ClCompile Include="Math\Edge3.cpp" />
     <ClCompile Include="Math\Line3.cpp" />
@@ -258,7 +262,11 @@
     <ClInclude Include="Event\EventSystem.h" />
     <ClInclude Include="Core\ConsoleCommand.h" />
     <ClInclude Include="Core\CommentSnippets.h" />
-    <ClInclude Include="Physics\Particle.h" />
+    <ClInclude Include="Physics\Particle\Particle.h" />
+    <ClInclude Include="Physics\Particle\ParticleAnchoredSpring.h" />
+    <ClInclude Include="Physics\Particle\ParticleForceGenerator.h" />
+    <ClInclude Include="Physics\Particle\ParticleGeneratorRegistry.h" />
+    <ClInclude Include="Physics\Particle\ParticleSpring.h" />
     <ClInclude Include="Resource\Resource.h" />
     <ClInclude Include="Math\Capsule3d.h" />
     <ClInclude Include="Math\Edge3.h" />

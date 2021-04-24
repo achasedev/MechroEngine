@@ -8,7 +8,8 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/EngineCommon.h"
-#include "Engine/Physics/Particle.h"
+#include "Engine/Physics/Particle/ParticleForceGenerator.h"
+#include "Engine/Physics/Particle/ParticleGeneratorRegistry.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -30,47 +31,19 @@
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
-
 //-------------------------------------------------------------------------------------------------
-Particle::Particle(const Vector3& position, const Vector3& velocity, float mass /*= 1.f*/, const Vector3& gravityAcc /*= Vector3(0.f, -10.f, 0.f)*/)
-	: m_position(position)
-	, m_velocity(velocity)
-	, m_gravityAcc(gravityAcc)
+void ParticleGeneratorRegistry::GenerateAndApplyForces(float deltaSeconds)
 {
-	SetMass(mass);
+	for (int regIndex = 0; regIndex < (int)m_registrations.size(); ++regIndex)
+	{
+		ParticleGenRegistration& reg = m_registrations[regIndex];
+		reg.m_generator->GenerateAndApplyForce(reg.m_particle, deltaSeconds);
+	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void Particle::Integrate(float deltaSeconds)
+void ParticleGeneratorRegistry::AddRegistration(Particle* particle, ParticleForceGenerator* generator)
 {
-	// Don't move static things
-	if (m_iMass == 0.f)
-		return;
-
-	// Update position
-	m_position += m_velocity * deltaSeconds;
-
-	// Update velocity
-	m_velocity += (m_gravityAcc + m_forceAccum * m_iMass) * deltaSeconds;
-
-	// Dampen it
-	m_velocity *= pow(m_damping, deltaSeconds);
-
-	ClearForceAccumulation();
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void Particle::SetMass(float newMass)
-{
-	ASSERT_RETURN(newMass > 0.f, NO_RETURN_VAL, "Invalid mass!");
-	m_iMass = (1.f / newMass);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void Particle::SetInverseMass(float newIMass)
-{
-	m_iMass = newIMass;
+	m_registrations.push_back(ParticleGenRegistration(particle, generator));
 }

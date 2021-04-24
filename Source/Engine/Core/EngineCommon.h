@@ -11,6 +11,8 @@
 #include "Engine/Utility/Assert.h"
 #include "Engine/Utility/StringUtils.h"
 #include <float.h>
+#include <map>
+#include <vector>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -19,23 +21,7 @@
 #define INLINE
 #define STATIC
 #define SAFE_DELETE(p)  if (p != nullptr) { delete p; p = nullptr; }
-#define SAFE_FREE(p)  if (p != nullptr) { free(p); p = nullptr; }
-
-#define SAFE_DELETE_VECTOR(v)															\
-for (size_t safe_delete_index = 0; safe_delete_index < v.size(); ++safe_delete_index)	\
-{																						\
-	SAFE_DELETE(v[safe_delete_index]);													\
-}																						\
-v.clear();																				\
-
-#define SAFE_FREE_VECTOR(v)														\
-for (size_t safe_free_index = 0; safe_free_index < v.size(); ++safe_free_index)	\
-{																				\
-	SAFE_FREE(v[safe_free_index]);												\
-}																				\
-v.clear();																		\
-
-
+#define SAFE_FREE(p)  if (p != nullptr) { free(p); p = nullptr; }																		
 #define BIT_FLAG(x) (1 << x)
 #define _QUOTE(x) # x
 #define QUOTE(x) _QUOTE(x)
@@ -147,3 +133,28 @@ extern ResourceSystem*		g_resourceSystem;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------
+template <typename T_ELEMENT>
+void SafeDeleteVector(std::vector<T_ELEMENT*>& v)
+{
+	for (auto& itr : v)
+	{
+		SAFE_DELETE(itr);
+	}
+
+	v.clear();
+}
+
+//-------------------------------------------------------------------------------------------------
+template <typename T_KEY, typename T_ELEMENT>
+void SafeDeleteMap(std::map<T_KEY, T_ELEMENT*>& map)
+{
+	typename std::map<T_KEY, T_ELEMENT*>::iterator itr = map.begin();
+	for (itr; itr != map.end(); itr++)
+	{
+		SAFE_DELETE(itr->second);
+	}
+
+	map.clear();
+}
