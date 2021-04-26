@@ -38,7 +38,9 @@ public:
 	void	Integrate(float deltaSeconds);
 	void	ClearNetForce() { m_netForce = Vector3::ZERO; }
 
-	void	SetGravityAcceleration(const Vector3& gravityAcc) { m_gravityAcc = gravityAcc; }
+	void	SetAcceleration(const Vector3& acceleration) { m_acceleration = acceleration; }
+	void	SetPosition(const Vector3& position) { m_position = position; }
+	void	SetVelocity(const Vector3& velocity) { m_velocity = velocity; }
 	void	AddForce(const Vector3& force) { m_netForce += force; }
 	void	SetDamping(float damping) { m_damping = damping; }
 	void	SetMass(float mass);
@@ -46,10 +48,10 @@ public:
 
 	Vector3 GetPosition() const { return m_position; }
 	Vector3 GetVelocity() const { return m_velocity; }
-	Vector3 GetGravityAcceleration() const { return m_gravityAcc; }
+	Vector3 GetAcceleration() const { return m_acceleration; }
 	float	GetDamping() const { return m_damping; }
 	float	GetMass() const { return (m_iMass > 0.f ? (1.f / m_iMass) : FLT_MAX); }
-	float	GetIMass() const { return m_iMass; }
+	float	GetInverseMass() const { return m_iMass; }
 
 
 private:
@@ -57,7 +59,7 @@ private:
 
 	Vector3 m_position		= Vector3::ZERO;
 	Vector3 m_velocity		= Vector3::ZERO;
-	Vector3 m_gravityAcc	= Vector3(0.f, -10.f, 0.f);
+	Vector3 m_acceleration	= Vector3(0.f, -10.f, 0.f); // Default for gravity
 	Vector3 m_netForce		= Vector3::ZERO;
 	float	m_damping		= 0.999f; // Reduce energy in the system
 	float	m_iMass			= 1.f;
