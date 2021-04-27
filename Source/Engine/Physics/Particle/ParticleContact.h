@@ -34,12 +34,14 @@ public:
 	//-----Public Methods-----
 
 	void	Resolve(float deltaSeconds);
+	float	CalculateSeparatingVelocity() const;
+
+	float	GetPenetration() const { return m_penetration; }
 
 
 private:
 	//-----Private Methods-----
 
-	float	CalculateSeparatingVelocity() const;
 	void	ResolveVelocity(float deltaSeconds);
 	void	ResolveInterpenetration();
 

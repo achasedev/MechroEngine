@@ -272,6 +272,7 @@
     <ClInclude Include="Physics\Particle\ParticleBungee.h" />
     <ClInclude Include="Physics\Particle\ParticleBuoyancy.h" />
     <ClInclude Include="Physics\Particle\ParticleContact.h" />
+    <ClInclude Include="Physics\Particle\ParticleContactResolver.h" />
     <ClInclude Include="Physics\Particle\ParticleForceGenerator.h" />
     <ClInclude Include="Physics\Particle\ParticleGeneratorRegistry.h" />
     <ClInclude Include="Physics\Particle\ParticleSpring.h" />
@@ -364,6 +365,9 @@
     <ClInclude Include="Utility\StringUtils.h" />
     <ClInclude Include="Utility\XMLUtils.h" />
     <ClInclude Include="Voxel\QEFLoader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Physics\Particle\ParticleContactResolver.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
