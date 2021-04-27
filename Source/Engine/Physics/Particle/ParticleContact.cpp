@@ -32,6 +32,16 @@
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
+//-------------------------------------------------------------------------------------------------
+ParticleContact::ParticleContact(Particle* particleA, Particle* particleB, float restitution, const Vector3& normal, float penetration)
+	: m_particleA(particleA)
+	, m_particleB(particleB)
+	, m_restitution(restitution)
+	, m_normal(normal)
+	, m_penetration(penetration)
+{
+}
+
 
 //-------------------------------------------------------------------------------------------------
 void ParticleContact::Resolve(float deltaSeconds)

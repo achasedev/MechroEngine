@@ -1,14 +1,16 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: April 25th, 2021
+/// Date Created: April 26th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/Vector3.h"
+#include "Engine/Core/EngineCommon.h"
+#include "Engine/Physics/Particle/Particle.h"
+#include "Engine/Physics/Particle/ParticleCable.h"
+#include "Engine/Physics/Particle/ParticleContact.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -17,49 +19,33 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Particle;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// CLASS DECLARATIONS
+/// C FUNCTIONS
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class ParticleContact
+int ParticleCable::GenerateContacts(ParticleContact* out_contacts) const
 {
-public:
-	//-----Public Methods-----
+	float length = GetCurrentLength();
 
-	ParticleContact(Particle* particleA, Particle* particleB, float restitution, const Vector3& normal, float penetration);
+	if (length < m_maxLength)
+		return 0;
 
-	void	Resolve(float deltaSeconds);
-	float	CalculateSeparatingVelocity() const;
+	// Make a contact to keep the particles together (with restitution)
 
-	float	GetPenetration() const { return m_penetration; }
+	Vector3 normal = (m_particles[1]->GetPosition() - m_particles[0]->GetPosition()).GetNormalized(); // Normal points *into* A now, as we want to keep the particles together, not apart
 
+	float penetration = length - m_maxLength;
+	out_contacts[0] = ParticleContact(m_particles[0], m_particles[1], m_restitution, normal, penetration);
 
-private:
-	//-----Private Methods-----
-
-	void	ResolveVelocity(float deltaSeconds);
-	void	ResolveInterpenetration();
-
-
-private:
-	//-----Private Data-----
-
-	Particle*	m_particleA = nullptr;
-	Particle*	m_particleB = nullptr;
-
-	float		m_restitution = 1.0f;
-	Vector3		m_normal = Vector3::ZERO;
-	float		m_penetration = 0.f; // A value <= 0 means no penetration
-
-};
-
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// C FUNCTIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
+	return 1;
+}

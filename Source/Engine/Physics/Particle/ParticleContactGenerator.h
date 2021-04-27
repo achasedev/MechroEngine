@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: April 25th, 2021
+/// Date Created: April 26th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,7 +8,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/Vector3.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -17,7 +16,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Particle;
+class ParticleContact;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -28,35 +27,16 @@ class Particle;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class ParticleContact
+class ParticleContactGenerator
 {
 public:
 	//-----Public Methods-----
 
-	ParticleContact(Particle* particleA, Particle* particleB, float restitution, const Vector3& normal, float penetration);
-
-	void	Resolve(float deltaSeconds);
-	float	CalculateSeparatingVelocity() const;
-
-	float	GetPenetration() const { return m_penetration; }
-
-
-private:
-	//-----Private Methods-----
-
-	void	ResolveVelocity(float deltaSeconds);
-	void	ResolveInterpenetration();
+	virtual int GenerateContacts(ParticleContact* out_contacts) const = 0;
 
 
 private:
 	//-----Private Data-----
-
-	Particle*	m_particleA = nullptr;
-	Particle*	m_particleB = nullptr;
-
-	float		m_restitution = 1.0f;
-	Vector3		m_normal = Vector3::ZERO;
-	float		m_penetration = 0.f; // A value <= 0 means no penetration
 
 };
 

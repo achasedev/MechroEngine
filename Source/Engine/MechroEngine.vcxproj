@@ -171,9 +171,12 @@
     <ClCompile Include="Physics\Particle\ParticleAnchoredBungee.cpp" />
     <ClCompile Include="Physics\Particle\ParticleBungee.cpp" />
     <ClCompile Include="Physics\Particle\ParticleBuoyancy.cpp" />
+    <ClCompile Include="Physics\Particle\ParticleCable.cpp" />
     <ClCompile Include="Physics\Particle\ParticleContact.cpp" />
     <ClCompile Include="Physics\Particle\ParticleForceGenerator.cpp" />
     <ClCompile Include="Physics\Particle\ParticleGeneratorRegistry.cpp" />
+    <ClCompile Include="Physics\Particle\ParticleLink.cpp" />
+    <ClCompile Include="Physics\Particle\ParticleRod.cpp" />
     <ClCompile Include="Physics\Particle\ParticleSpring.cpp" />
     <ClCompile Include="Resource\Resource.cpp" />
     <ClCompile Include="Math\Edge3.cpp" />
@@ -271,10 +274,14 @@
     <ClInclude Include="Physics\Particle\ParticleAnchoredSpring.h" />
     <ClInclude Include="Physics\Particle\ParticleBungee.h" />
     <ClInclude Include="Physics\Particle\ParticleBuoyancy.h" />
+    <ClInclude Include="Physics\Particle\ParticleCable.h" />
     <ClInclude Include="Physics\Particle\ParticleContact.h" />
+    <ClInclude Include="Physics\Particle\ParticleContactGenerator.h" />
     <ClInclude Include="Physics\Particle\ParticleContactResolver.h" />
     <ClInclude Include="Physics\Particle\ParticleForceGenerator.h" />
     <ClInclude Include="Physics\Particle\ParticleGeneratorRegistry.h" />
+    <ClInclude Include="Physics\Particle\ParticleLink.h" />
+    <ClInclude Include="Physics\Particle\ParticleRod.h" />
     <ClInclude Include="Physics\Particle\ParticleSpring.h" />
     <ClInclude Include="Resource\Resource.h" />
     <ClInclude Include="Math\Capsule3d.h" />
