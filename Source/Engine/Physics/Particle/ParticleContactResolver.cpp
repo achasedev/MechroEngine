@@ -87,6 +87,7 @@ void ParticleContactResolver::ResolveContacts(ParticleContact* contacts, int num
 
 		if (maxIndex < 0)
 			break;
+		
 
 		ParticleContact* maxContact = &contacts[maxIndex];
 
@@ -114,12 +115,12 @@ void ParticleContactResolver::ResolveContacts(ParticleContact* contacts, int num
 				if (contact->m_particleA == maxContact->m_particleA)
 				{
 					float moveAlongNormal = DotProduct(contact->m_normal, correctionA);
-					contact->m_penetration += moveAlongNormal;
+					contact->m_penetration -= moveAlongNormal;
 				}
 				else if (contact->m_particleA == maxContact->m_particleB)
 				{
 					float moveAlongNormal = DotProduct(contact->m_normal, correctionA);
-					contact->m_penetration -= moveAlongNormal;
+					contact->m_penetration += moveAlongNormal;
 				}
 			}
 
@@ -128,12 +129,12 @@ void ParticleContactResolver::ResolveContacts(ParticleContact* contacts, int num
 				if (contact->m_particleB == maxContact->m_particleA)
 				{
 					float moveAlongNormal = DotProduct(contact->m_normal, correctionB);
-					contact->m_penetration += moveAlongNormal;
+					contact->m_penetration -= moveAlongNormal;
 				}
 				else if (contact->m_particleB == maxContact->m_particleB)
 				{
 					float moveAlongNormal = DotProduct(contact->m_normal, correctionB);
-					contact->m_penetration -= moveAlongNormal;
+					contact->m_penetration += moveAlongNormal;
 				}
 			}
 		}

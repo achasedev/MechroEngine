@@ -59,7 +59,7 @@ int ParticleRod::GenerateContacts(ParticleContact* out_contacts, int limit) cons
 	const float penetration = currLength - m_length;
 
 	out_contacts[0] = ParticleContact(m_particles[0], m_particles[1], restitution, normal, penetration);
-	out_contacts[1] = ParticleContact(m_particles[0], m_particles[1], restitution, -1.0f * normal, penetration);
+	out_contacts[1] = ParticleContact(m_particles[0], m_particles[1], restitution, -1.0f * normal, -penetration);
 
 	return 2;
 }
