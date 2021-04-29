@@ -32,7 +32,7 @@ class ParticleContactGenerator
 public:
 	//-----Public Methods-----
 
-	virtual int GenerateContacts(ParticleContact* out_contacts) const = 0;
+	virtual int GenerateContacts(ParticleContact* out_contacts, int limit) const = 0;
 
 
 private:

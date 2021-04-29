@@ -35,18 +35,11 @@ public:
 
 	ParticleContact(Particle* particleA, Particle* particleB, float restitution, const Vector3& normal, float penetration);
 
-	void	Resolve(float deltaSeconds);
-	float	CalculateSeparatingVelocity() const;
-
-	float	GetPenetration() const { return m_penetration; }
-
-
-private:
-	//-----Private Methods-----
-
 	void	ResolveVelocity(float deltaSeconds);
 	void	ResolveInterpenetration();
 
+	float	CalculateSeparatingVelocity() const;\
+	float	GetPenetration() const { return m_penetration; }
 
 private:
 	//-----Private Data-----

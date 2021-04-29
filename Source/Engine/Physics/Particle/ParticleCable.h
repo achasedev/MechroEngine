@@ -32,7 +32,8 @@ class ParticleCable : public ParticleLink
 public:
 	//-----Public Methods-----
 
-	virtual int GenerateContacts(ParticleContact* out_contacts) const override;
+	ParticleCable(Particle* a, Particle* b, float maxLength, float restitution = 1.0f);
+	virtual int GenerateContacts(ParticleContact* out_contacts, int limit) const override;
 
 
 private:

@@ -32,7 +32,8 @@ class ParticleRod : public ParticleLink
 public:
 	//-----Public Methods-----
 
-	virtual int GenerateContacts(ParticleContact* out_contacts) const override;
+	ParticleRod(Particle* a, Particle* b, float length);
+	virtual int GenerateContacts(ParticleContact* out_contacts, int limit) const override;
 
 
 private:

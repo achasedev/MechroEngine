@@ -32,7 +32,10 @@ class ParticleContactResolver
 public:
 	//-----Public Methods-----
 
+	ParticleContactResolver() {}
 	ParticleContactResolver(int maxIterations);
+
+	void SetMaxIterations(int maxIterations) { m_maxIterations = maxIterations; }
 	void ResolveContacts(ParticleContact* contacts, int numContacts, float deltaSeconds);
 
 

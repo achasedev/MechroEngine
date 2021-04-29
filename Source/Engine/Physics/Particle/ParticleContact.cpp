@@ -44,14 +44,6 @@ ParticleContact::ParticleContact(Particle* particleA, Particle* particleB, float
 
 
 //-------------------------------------------------------------------------------------------------
-void ParticleContact::Resolve(float deltaSeconds)
-{
-	ResolveVelocity(deltaSeconds);
-	ResolveInterpenetration();
-}
-
-
-//-------------------------------------------------------------------------------------------------
 float ParticleContact::CalculateSeparatingVelocity() const
 {
 	ASSERT_OR_DIE(AreMostlyEqual(m_normal.GetLengthSquared(), 1.0f), "No normal!");
@@ -146,7 +138,10 @@ void ParticleContact::ResolveInterpenetration()
 
 	if (m_particleB != nullptr)
 	{
-		Vector3 correctionB = movePerIMass * m_particleB->GetInverseMass();
+		Vector3 correctionB = -1.0f * movePerIMass * m_particleB->GetInverseMass();
 		m_particleB->SetPosition(m_particleB->GetPosition() + correctionB);
 	}
+
+	// TODO: Need to update the penetration of all other contacts that involve these particles
+	m_penetration = 0.f;
 }

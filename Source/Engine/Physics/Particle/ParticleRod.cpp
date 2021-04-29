@@ -33,22 +33,33 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-int ParticleRod::GenerateContacts(ParticleContact* out_contacts) const
+ParticleRod::ParticleRod(Particle* a, Particle* b, float length)
+	: ParticleLink(a, b)
+	, m_length(length)
 {
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int ParticleRod::GenerateContacts(ParticleContact* out_contacts, int limit) const
+{
+	// If there isn't enough room for both contacts, just don't create any
+	if (limit <= 1)
+		return 0;
+
 	const float currLength = GetCurrentLength();
 	
 	if (currLength == m_length)
 		return 0;
 
 	// Generate *two* contacts, one to push them together and one to push them apart. More stable that way
-
-	Vector3 normal = (m_particles[1]->GetPosition() - m_particles[0]->GetPosition()).GetNormalized(); // Normal points *out of* A now, as we want to keep the particles together, not apart
+	Vector3 normal = (m_particles[1]->GetPosition() - m_particles[0]->GetPosition()).GetNormalized();
 
 	const float restitution = 0.f;
 	const float penetration = currLength - m_length;
 
 	out_contacts[0] = ParticleContact(m_particles[0], m_particles[1], restitution, normal, penetration);
-	out_contacts[1] = ParticleContact(m_particles[0], m_particles[1], restitution, -1.0f * normal, -penetration);
+	out_contacts[1] = ParticleContact(m_particles[0], m_particles[1], restitution, -1.0f * normal, penetration);
 
 	return 2;
 }

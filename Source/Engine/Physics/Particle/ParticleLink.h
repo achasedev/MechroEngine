@@ -33,6 +33,8 @@ class ParticleLink : public ParticleContactGenerator
 public:
 	//-----Public Methods-----
 
+	ParticleLink(Particle* a, Particle* b);
+
 	float GetCurrentLength() const;
 
 

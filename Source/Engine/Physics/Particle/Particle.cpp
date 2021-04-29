@@ -32,13 +32,13 @@
 
 
 //-------------------------------------------------------------------------------------------------
-Particle::Particle(const Vector3& position, const Vector3& velocity, float mass /*= 1.f*/, float damping /*= 0.999f*/, const Vector3& gravityAcc /*= Vector3(0.f, -10.f, 0.f)*/)
+Particle::Particle(const Vector3& position, const Vector3& velocity, float inverseMass /*= 1.f*/, float damping /*= 0.999f*/, const Vector3& acceleration /*= Vector3::ZERO*/)
 	: m_position(position)
 	, m_velocity(velocity)
 	, m_damping(damping)
-	, m_acceleration(gravityAcc)
+	, m_acceleration(acceleration)
 {
-	SetMass(mass);
+	SetInverseMass(inverseMass);
 }
 
 

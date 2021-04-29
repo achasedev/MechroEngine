@@ -20,6 +20,7 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Camera;
+class Shader;
 struct DebugBufferData
 {
 	Vector4 m_colorTint = Vector4::ONES;

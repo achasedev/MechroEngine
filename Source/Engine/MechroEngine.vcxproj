@@ -173,11 +173,13 @@
     <ClCompile Include="Physics\Particle\ParticleBuoyancy.cpp" />
     <ClCompile Include="Physics\Particle\ParticleCable.cpp" />
     <ClCompile Include="Physics\Particle\ParticleContact.cpp" />
+    <ClCompile Include="Physics\Particle\ParticleContactResolver.cpp" />
     <ClCompile Include="Physics\Particle\ParticleForceGenerator.cpp" />
-    <ClCompile Include="Physics\Particle\ParticleGeneratorRegistry.cpp" />
+    <ClCompile Include="Physics\Particle\ParticleForceRegistry.cpp" />
     <ClCompile Include="Physics\Particle\ParticleLink.cpp" />
     <ClCompile Include="Physics\Particle\ParticleRod.cpp" />
     <ClCompile Include="Physics\Particle\ParticleSpring.cpp" />
+    <ClCompile Include="Physics\Particle\ParticleWorld.cpp" />
     <ClCompile Include="Resource\Resource.cpp" />
     <ClCompile Include="Math\Edge3.cpp" />
     <ClCompile Include="Math\Line3.cpp" />
@@ -279,10 +281,11 @@
     <ClInclude Include="Physics\Particle\ParticleContactGenerator.h" />
     <ClInclude Include="Physics\Particle\ParticleContactResolver.h" />
     <ClInclude Include="Physics\Particle\ParticleForceGenerator.h" />
-    <ClInclude Include="Physics\Particle\ParticleGeneratorRegistry.h" />
+    <ClInclude Include="Physics\Particle\ParticleForceRegistry.h" />
     <ClInclude Include="Physics\Particle\ParticleLink.h" />
     <ClInclude Include="Physics\Particle\ParticleRod.h" />
     <ClInclude Include="Physics\Particle\ParticleSpring.h" />
+    <ClInclude Include="Physics\Particle\ParticleWorld.h" />
     <ClInclude Include="Resource\Resource.h" />
     <ClInclude Include="Math\Capsule3d.h" />
     <ClInclude Include="Math\Edge3.h" />
@@ -372,9 +375,6 @@
     <ClInclude Include="Utility\StringUtils.h" />
     <ClInclude Include="Utility\XMLUtils.h" />
     <ClInclude Include="Voxel\QEFLoader.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Physics\Particle\ParticleContactResolver.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

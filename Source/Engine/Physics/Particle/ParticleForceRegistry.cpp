@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: April 26th, 2021
+/// Date Created: April 24th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -8,9 +8,8 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/EngineCommon.h"
-#include "Engine/Physics/Particle/Particle.h"
-#include "Engine/Physics/Particle/ParticleCable.h"
-#include "Engine/Physics/Particle/ParticleContact.h"
+#include "Engine/Physics/Particle/ParticleForceGenerator.h"
+#include "Engine/Physics/Particle/ParticleForceRegistry.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -33,30 +32,18 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-ParticleCable::ParticleCable(Particle* a, Particle* b, float maxLength, float restitution /*= 1.0f*/)
-	: ParticleLink(a, b)
-	, m_maxLength(maxLength)
-	, m_restitution(restitution)
+void ParticleForceRegistry::GenerateAndApplyForces(float deltaSeconds)
 {
+	for (int regIndex = 0; regIndex < (int)m_registrations.size(); ++regIndex)
+	{
+		ParticleGenRegistration& reg = m_registrations[regIndex];
+		reg.m_generator->GenerateAndApplyForce(reg.m_particle, deltaSeconds);
+	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
-int ParticleCable::GenerateContacts(ParticleContact* out_contacts, int limit) const
+void ParticleForceRegistry::AddRegistration(Particle* particle, ParticleForceGenerator* generator)
 {
-	if (limit <= 0)
-		return 0;
-
-	float length = GetCurrentLength();
-
-	if (length < m_maxLength)
-		return 0;
-
-	// Make a contact to keep the particles together (with restitution)
-	Vector3 normal = (m_particles[1]->GetPosition() - m_particles[0]->GetPosition()).GetNormalized(); // Normal points *out of* A now, as we want to keep the particles together, not apart
-
-	float penetration = length - m_maxLength;
-	out_contacts[0] = ParticleContact(m_particles[0], m_particles[1], m_restitution, normal, penetration);
-
-	return 1;
+	m_registrations.push_back(ParticleGenRegistration(particle, generator));
 }
