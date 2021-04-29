@@ -115,7 +115,7 @@ void ParticleContact::ResolveVelocity(float deltaSeconds)
 
 
 //-------------------------------------------------------------------------------------------------
-void ParticleContact::ResolveInterpenetration()
+void ParticleContact::ResolveInterpenetration(Vector3& out_correctionA, Vector3& out_correctionB)
 {
 	if (m_penetration <= 0.f)
 		return;
@@ -133,13 +133,17 @@ void ParticleContact::ResolveInterpenetration()
 
 	Vector3 movePerIMass = m_normal * (m_penetration / totalIMass);
 
-	Vector3 correctionA = movePerIMass * m_particleA->GetInverseMass();
-	m_particleA->SetPosition(m_particleA->GetPosition() + correctionA);
+	out_correctionA = movePerIMass * m_particleA->GetInverseMass();
+	m_particleA->SetPosition(m_particleA->GetPosition() + out_correctionA);
 
 	if (m_particleB != nullptr)
 	{
-		Vector3 correctionB = -1.0f * movePerIMass * m_particleB->GetInverseMass();
-		m_particleB->SetPosition(m_particleB->GetPosition() + correctionB);
+		out_correctionB = -1.0f * movePerIMass * m_particleB->GetInverseMass();
+		m_particleB->SetPosition(m_particleB->GetPosition() + out_correctionB);
+	}
+	else
+	{
+		out_correctionB = Vector3::ZERO;
 	}
 
 	// TODO: Need to update the penetration of all other contacts that involve these particles

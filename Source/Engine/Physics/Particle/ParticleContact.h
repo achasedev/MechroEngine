@@ -30,13 +30,15 @@ class Particle;
 //-------------------------------------------------------------------------------------------------
 class ParticleContact
 {
+	friend class ParticleContactResolver;
+
 public:
 	//-----Public Methods-----
 
 	ParticleContact(Particle* particleA, Particle* particleB, float restitution, const Vector3& normal, float penetration);
 
 	void	ResolveVelocity(float deltaSeconds);
-	void	ResolveInterpenetration();
+	void	ResolveInterpenetration(Vector3& out_correctionA, Vector3& out_correctionB);
 
 	float	CalculateSeparatingVelocity() const;\
 	float	GetPenetration() const { return m_penetration; }

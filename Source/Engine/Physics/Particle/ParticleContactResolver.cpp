@@ -8,6 +8,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/EngineCommon.h"
+#include "Engine/Math/MathUtils.h"
 #include "Engine/Physics/Particle/ParticleContact.h"
 #include "Engine/Physics/Particle/ParticleContactResolver.h"
 
@@ -87,6 +88,54 @@ void ParticleContactResolver::ResolveContacts(ParticleContact* contacts, int num
 		if (maxIndex < 0)
 			break;
 
-		contacts[maxIndex].ResolveInterpenetration();
+		ParticleContact* maxContact = &contacts[maxIndex];
+
+		Vector3 correctionA;
+		Vector3 correctionB;
+
+		maxContact->ResolveInterpenetration(correctionA, correctionB);
+
+		bool aCorrected = !AreMostlyEqual(correctionA, Vector3::ZERO);
+		bool bCorrected = !AreMostlyEqual(correctionB, Vector3::ZERO);
+
+		if (!aCorrected && !bCorrected)
+			continue;
+
+		// Update all other contacts' penetrations that may have been changed by the correction
+		for (int contactIndex = 0; contactIndex < numContacts; ++contactIndex)
+		{
+			if (contactIndex == maxIndex)
+				continue;
+
+			ParticleContact* contact = &contacts[contactIndex];
+
+			if (aCorrected)
+			{
+				if (contact->m_particleA == maxContact->m_particleA)
+				{
+					float moveAlongNormal = DotProduct(contact->m_normal, correctionA);
+					contact->m_penetration += moveAlongNormal;
+				}
+				else if (contact->m_particleA == maxContact->m_particleB)
+				{
+					float moveAlongNormal = DotProduct(contact->m_normal, correctionA);
+					contact->m_penetration -= moveAlongNormal;
+				}
+			}
+
+			if (bCorrected)
+			{
+				if (contact->m_particleB == maxContact->m_particleA)
+				{
+					float moveAlongNormal = DotProduct(contact->m_normal, correctionB);
+					contact->m_penetration += moveAlongNormal;
+				}
+				else if (contact->m_particleB == maxContact->m_particleB)
+				{
+					float moveAlongNormal = DotProduct(contact->m_normal, correctionB);
+					contact->m_penetration -= moveAlongNormal;
+				}
+			}
+		}
 	}
 }
