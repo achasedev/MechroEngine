@@ -8,7 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/Matrix44.h"
+#include "Engine/Math/Matrix4.h"
 #include "Engine/Core/EngineCommon.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -39,7 +39,7 @@ public:
 	void		SetFromRenderable(const Renderable& renderable, uint32 drawCallIndex);
 	Mesh*		GetMesh() const { return m_mesh; }
 	Material*	GetMaterial() const { return m_material; }
-	Matrix44	GetModelMatrix() const { return m_modelMatrix; }
+	Matrix4	GetModelMatrix() const { return m_modelMatrix; }
 
 
 private:
@@ -47,7 +47,7 @@ private:
 
 	Mesh*		m_mesh = nullptr;
 	Material*	m_material = nullptr;
-	Matrix44	m_modelMatrix;
+	Matrix4	m_modelMatrix;
 
 };
 

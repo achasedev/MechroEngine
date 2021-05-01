@@ -478,10 +478,10 @@ AABB2 Canvas::GenerateOrthoBounds() const
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44 Canvas::GenerateOrthoMatrix() const
+Matrix4 Canvas::GenerateOrthoMatrix() const
 {
 	AABB2 orthoBounds = GenerateOrthoBounds();
-	return Matrix44::MakeOrtho(orthoBounds.GetBottomLeft(), orthoBounds.GetTopRight(), -1.0f, 1.0f);
+	return Matrix4::MakeOrtho(orthoBounds.GetBottomLeft(), orthoBounds.GetTopRight(), -1.0f, 1.0f);
 }
 
 

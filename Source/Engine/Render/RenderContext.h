@@ -26,7 +26,7 @@ class DepthStencilTargetView;
 class DrawCall;
 class IndexBuffer;
 class Material;
-class Matrix44;
+class Matrix4;
 class Mesh;
 class OBB2;
 class Plane3;
@@ -85,7 +85,7 @@ public:
 	void								BindShader(Shader* shader);
 	void								BindShaderResourceView(uint32 slot, ShaderResourceView* view);
 	void								BindSampler(uint32 slot, Sampler* sampler);
-	void								UpdateModelMatrixUBO(const Matrix44& modelMatrix);
+	void								UpdateModelMatrixUBO(const Matrix4& modelMatrix);
 
 	template <typename VERT_TYPE> void	DrawVertexArray(const VERT_TYPE* vertices, uint32 numVertices, const uint32* indices = nullptr, uint32 numIndices = 0, Material* material = nullptr);
 	void								DrawMesh(Mesh& mesh);

@@ -17,7 +17,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Matrix44;
+class Matrix4;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -65,7 +65,7 @@ public:
 
 	static float		GetAngleBetweenDegrees(const Quaternion& a, const Quaternion& b);
 	static Quaternion	FromEulerAngles(const Vector3& eulerAnglesDegrees);
-	static Quaternion	FromMatrix(const Matrix44& rotationMatrix);
+	static Quaternion	FromMatrix(const Matrix4& rotationMatrix);
 	static Quaternion	RotateToward(const Quaternion& start, const Quaternion& end, float maxAngleDegrees);
 
 	static Quaternion	Lerp(const Quaternion& a, const Quaternion& b, float fractionTowardEnd);
@@ -76,7 +76,7 @@ public:
 	//-----Public Data-----
 
 	Vector3 v;
-	float s;
+	float real;
 
 	// Statics
 	static const Quaternion IDENTITY;

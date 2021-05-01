@@ -166,6 +166,7 @@
     <ClCompile Include="Event\EventSubscription.cpp" />
     <ClCompile Include="Event\EventSystem.cpp" />
     <ClCompile Include="Core\ConsoleCommand.cpp" />
+    <ClCompile Include="Math\Matrix3.cpp" />
     <ClCompile Include="Physics\Particle\Particle.cpp" />
     <ClCompile Include="Physics\Particle\ParticleAnchoredSpring.cpp" />
     <ClCompile Include="Physics\Particle\ParticleAnchoredBungee.cpp" />
@@ -230,7 +231,7 @@
     <ClCompile Include="Math\AABB2.cpp" />
     <ClCompile Include="Math\IntVector2.cpp" />
     <ClCompile Include="Math\MathUtils.cpp" />
-    <ClCompile Include="Math\Matrix44.cpp" />
+    <ClCompile Include="Math\Matrix4.cpp" />
     <ClCompile Include="Math\Quaternion.cpp" />
     <ClCompile Include="Math\Transform.cpp" />
     <ClCompile Include="Math\Vector2.cpp" />
@@ -271,6 +272,7 @@
     <ClInclude Include="Event\EventSystem.h" />
     <ClInclude Include="Core\ConsoleCommand.h" />
     <ClInclude Include="Core\CommentSnippets.h" />
+    <ClInclude Include="Math\Matrix3.h" />
     <ClInclude Include="Physics\Particle\Particle.h" />
     <ClInclude Include="Physics\Particle\ParticleAnchoredBungee.h" />
     <ClInclude Include="Physics\Particle\ParticleAnchoredSpring.h" />
@@ -345,7 +347,7 @@
     <ClInclude Include="Render\Buffer\VertexBuffer.h" />
     <ClInclude Include="Core\Rgba.h" />
     <ClInclude Include="IO\Image.h" />
-    <ClInclude Include="Math\Matrix44.h" />
+    <ClInclude Include="Math\Matrix4.h" />
     <ClInclude Include="Render\RenderContext.h" />
     <ClInclude Include="Core\EngineCommon.h" />
     <ClInclude Include="IO\File.h" />

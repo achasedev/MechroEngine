@@ -1,24 +1,19 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: February 20th, 2021
+/// Date Created: May 1st, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Core/DevConsole.h"
 #include "Engine/Core/EngineCommon.h"
-#include "Engine/Render/Renderable.h"
-#include "Engine/Render/RenderContext.h"
-#include "Engine/Render/Debug/DebugRenderSystem.h"
-#include "Engine/Render/Debug/DebugRenderTask.h"
-#include "Engine/Resource/ResourceSystem.h"
+#include "Engine/Math/Matrix3.h"
+#include "Engine/Math/MathUtils.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-RTTI_TYPE_DEFINE(DebugRenderTask);
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
@@ -27,6 +22,8 @@ RTTI_TYPE_DEFINE(DebugRenderTask);
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+const Matrix3 Matrix3::IDENTITY = Matrix3(Vector3::X_AXIS, Vector3::Y_AXIS, Vector3::Z_AXIS);
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
@@ -36,141 +33,185 @@ RTTI_TYPE_DEFINE(DebugRenderTask);
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
-
 //-------------------------------------------------------------------------------------------------
-DebugRenderTask::DebugRenderTask(const DebugRenderOptions& options)
-	: m_options(options)
+Matrix3::Matrix3()
 {
-	m_transform.SetParentTransform(options.m_parentTransform);
-	m_timer.SetInterval(options.m_lifetime);
+	*this = IDENTITY;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void DebugRenderTask::PreRender() const
+Matrix3::Matrix3(float* nineBasisMajorValues)
 {
-	// Update the UBO
-	DebugBufferData data;
-	data.m_colorTint = m_options.m_color.GetAsFloats();
-	g_debugRenderSystem->UpdateUniformBuffer(data);
+	for (int i = 0; i < 9; ++i)
+	{
+		data[i] = nineBasisMajorValues[i];
+	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
-bool DebugRenderTask::IsFinished() const
+Matrix3::Matrix3(const Vector3& _iBasis, const Vector3& _jBasis, const Vector3& _kBasis)
 {
-	return m_timer.HasIntervalElapsed();
+	iBasis = _iBasis;
+	jBasis = _jBasis;
+	kBasis = _kBasis;
+}
+
+
+//--------------------------------------------------------------------------------------------------
+Matrix3::Matrix3(const Matrix3& other)
+{
+	*this = other;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-DebugRenderTransform::DebugRenderTransform(const Transform& transform, const DebugRenderOptions& options)
-	: DebugRenderTask(options)
+bool Matrix3::operator==(const Matrix3& other) const
 {
-	m_transform = transform;
-	m_transform.SetParentTransform(options.m_parentTransform); // Need to re-set this here, since the above line overwrites it...
+	return (iBasis == other.iBasis) && (jBasis == other.jBasis) && (kBasis == other.kBasis);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void DebugRenderTransform::Render() const
+void Matrix3::operator*=(const Matrix3& other)
 {
-	g_renderContext->DrawTransform(m_transform, 1.0f, g_debugRenderSystem->GetShader());
+	*this = (*this * other);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-DebugRenderLine3D::DebugRenderLine3D(const Vector3& start, const Vector3& end, const DebugRenderOptions& options)
-	: DebugRenderTask(options)
-	, m_start(start)
-	, m_end(end)
+Matrix3 Matrix3::operator*(const Matrix3& other) const
 {
-}
+	Matrix3 result;
 
+	result.Ix = DotProduct(GetXVector(), other.iBasis);
+	result.Iy = DotProduct(GetYVector(), other.iBasis);
+	result.Iz = DotProduct(GetZVector(), other.iBasis);
 
-//-------------------------------------------------------------------------------------------------
-void DebugRenderLine3D::Render() const
-{
-	Matrix4 mat = m_transform.GetLocalToWorldMatrix();
-	Vector3 startWs = mat.TransformPoint(m_start).xyz();
-	Vector3 endWs = mat.TransformPoint(m_end).xyz();
+	result.Jx = DotProduct(GetXVector(), other.jBasis);
+	result.Jy = DotProduct(GetYVector(), other.jBasis);
+	result.Jz = DotProduct(GetZVector(), other.jBasis);
 
-	g_renderContext->DrawLine3D(startWs, endWs, Rgba::WHITE, g_debugRenderSystem->GetShader());
-}
-
-
-//-------------------------------------------------------------------------------------------------
-DebugRenderPoint3D::DebugRenderPoint3D(const Vector3& position, const DebugRenderOptions& options)
-	: DebugRenderTask(options)
-{
-	m_transform.position = position;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void DebugRenderPoint3D::Render() const
-{
-	Vector3 posWs = m_transform.GetWorldPosition();
-	g_renderContext->DrawPoint3D(posWs, 0.25f, Rgba::WHITE, g_debugRenderSystem->GetShader());
-}
-
-
-//-------------------------------------------------------------------------------------------------
-DebugRenderCube::DebugRenderCube(const Vector3& center, const Vector3& extents, const DebugRenderOptions& options)
-	: DebugRenderTask(options)
-{
-	m_transform.position = center;
-	m_transform.scale = 2.f * extents; // Base mesh has 0.5 extents, so scale up the extents by 2 to compensate
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void DebugRenderCube::Render() const
-{
-	Mesh* cubeMesh = g_resourceSystem->CreateOrGetMesh("unit_cube");
-	Material* debugMaterial = g_resourceSystem->CreateOrGetMaterial("Data/Material/debug.material");
-
-	Renderable rend;
-	rend.AddDraw(cubeMesh, debugMaterial, m_transform.GetLocalToWorldMatrix());
+	result.Kx = DotProduct(GetXVector(), other.kBasis);
+	result.Ky = DotProduct(GetYVector(), other.kBasis);
+	result.Kz = DotProduct(GetZVector(), other.kBasis);
 	
-	g_renderContext->DrawRenderable(rend);
+	return result;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-DebugRenderSphere::DebugRenderSphere(const Vector3& center, float radius, const DebugRenderOptions& options)
-	: DebugRenderTask(options)
+void Matrix3::Transpose()
 {
-	m_transform.position = center;
-	m_transform.scale = Vector3(radius);
+	Matrix3 original = *this;
+
+	Iy = original.Jx;
+	Jx = original.Iy;
+
+	Iz = original.Kx;
+	Kx = original.Iz;
+
+	Jz = original.Ky;
+	Ky = original.Jz;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void DebugRenderSphere::Render() const
+void Matrix3::Invert()
 {
-	Mesh* sphereMesh = g_resourceSystem->CreateOrGetMesh("unit_sphere");
-	Material* debugMaterial = g_resourceSystem->CreateOrGetMaterial("Data/Material/debug.material");
+	float t1 = data[0] * data[4];
+	float t2 = data[0] * data[5];
+	float t3 = data[1] * data[3];
+	float t4 = data[2] * data[3];
+	float t5 = data[1] * data[6];
+	float t6 = data[2] * data[6];
 
-	Renderable rend;
-	rend.AddDraw(sphereMesh, debugMaterial, m_transform.GetLocalToWorldMatrix());
+	float det = t1 * data[8] - t2 * data[7] - t3 * data[8] + t4 * data[7] + t5 * data[5] - t6 * data[4];
+	ASSERT_OR_DIE(det == GetDeterminant(), "Determinant calculations don't match!");
+	ASSERT_RETURN(det != 0.f, NO_RETURN_VAL, "Cannot invert, 0.f determinant!");
+	
+	float invDet = 1.0f / det;
 
-	g_renderContext->DrawRenderable(rend);
+	Matrix3 old = *this;
+
+	data[0] = invDet * (old.data[4] * old.data[8] - old.data[5] * old.data[7]);
+	data[1] = invDet * (old.data[2] * old.data[7] - old.data[1] * old.data[8]);
+	data[2] = invDet * (old.data[1] * old.data[5] - old.data[2] * old.data[4]);
+	data[3] = invDet * (old.data[5] * old.data[6] - old.data[3] * old.data[8]);
+	data[4] = invDet * (old.data[0] * old.data[8] - t6);
+	data[5] = invDet * (t4 - t2);
+	data[6] = invDet * (old.data[3] * old.data[7] - old.data[4] * old.data[6]);
+	data[7] = invDet * (t5 - old.data[0] * old.data[7]);
+	data[8] = invDet * (t1 - t3);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-DebugRenderText3D::DebugRenderText3D(const char* text, const Vector3& position, const DebugRenderOptions& options)
-	: DebugRenderTask(options)
-	, m_text(text)
+Matrix3 Matrix3::GetTranspose() const
 {
-	m_transform.position = position;
+	Matrix3 result = *this;
+	result.Transpose();
+	return result;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void DebugRenderText3D::Render() const
+Matrix3 Matrix3::GetInverse() const
 {
-	UNIMPLEMENTED();
-	//Font* font = g_resourceSystem->CreateOrGetFont("Data/Font/Prototype.ttf");
+	Matrix3 result = *this;
+	result.Invert();
+	return result;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Matrix3::operator=(const Matrix3& other)
+{
+	Ix = other.Ix;
+	Iy = other.Iy;
+	Iz = other.Iz;
+
+	Jx = other.Jx;
+	Jy = other.Jy;
+	Jz = other.Jz;
+
+	Kx = other.Kx;
+	Ky = other.Ky;
+	Kz = other.Kz;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float Matrix3::GetDeterminant() const
+{
+	float p1 = Ix * Jy * Kz;
+	float p2 = Iy * Jz * Kx;
+	float p3 = Iz * Jx * Ky;
+	float p4 = Ix * Jz * Ky;
+	float p5 = Iz * Jy * Kx;
+	float p6 = Iy * Jx * Kz;
+
+	return p1 + p2 + p3 - p4 - p5 - p6;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector3 Matrix3::GetXVector() const
+{
+	return Vector3(Ix, Jx, Kx);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector3 Matrix3::GetYVector() const
+{
+	return Vector3(Iy, Jy, Ky);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector3 Matrix3::GetZVector() const
+{
+	return Vector3(Iz, Jz, Kz);
 }

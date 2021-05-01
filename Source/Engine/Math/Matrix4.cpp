@@ -9,7 +9,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/EngineCommon.h"
 #include "Engine/Math/MathUtils.h"
-#include "Engine/Math/Matrix44.h"
+#include "Engine/Math/Matrix4.h"
 #include "Engine/Math/Vector4.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -23,7 +23,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-const Matrix44 Matrix44::IDENTITY = Matrix44();
+const Matrix4 Matrix4::IDENTITY = Matrix4(Vector3::X_AXIS, Vector3::Y_AXIS, Vector3::Z_AXIS, Vector3::ZERO);
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
@@ -34,41 +34,27 @@ const Matrix44 Matrix44::IDENTITY = Matrix44();
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-Matrix44::Matrix44()
+Matrix4::Matrix4()
 {
+	*this = IDENTITY;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44::Matrix44(const float* sixteenValuesBasisMajor)
+Matrix4::Matrix4(const float* sixteenValuesBasisMajor)
 {
 	ASSERT_OR_DIE(sixteenValuesBasisMajor != nullptr, "Matrix received null values!");
 
-	Ix = sixteenValuesBasisMajor[0];
-	Iy = sixteenValuesBasisMajor[1];
-	Iz = sixteenValuesBasisMajor[2];
-	Iw = sixteenValuesBasisMajor[3];
-
-	Jx = sixteenValuesBasisMajor[4];
-	Jy = sixteenValuesBasisMajor[5];
-	Jz = sixteenValuesBasisMajor[6];
-	Jw = sixteenValuesBasisMajor[7];
-
-	Kx = sixteenValuesBasisMajor[8];
-	Ky = sixteenValuesBasisMajor[9];
-	Kz = sixteenValuesBasisMajor[10];
-	Kw = sixteenValuesBasisMajor[11];
-
-	Tx = sixteenValuesBasisMajor[12];
-	Ty = sixteenValuesBasisMajor[13];
-	Tz = sixteenValuesBasisMajor[14];
-	Tw = sixteenValuesBasisMajor[15];
+	for (int i = 0; i < 16; ++i)
+	{
+		data[i] = sixteenValuesBasisMajor[i];
+	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44::Matrix44(const Vector3& iBasis, const Vector3& jBasis, const Vector3& kBasis, const Vector3& translation/*=Vector3::ZERO*/)
-	: Matrix44()
+Matrix4::Matrix4(const Vector3& iBasis, const Vector3& jBasis, const Vector3& kBasis, const Vector3& translation/*=Vector3::ZERO*/)
+	: Matrix4()
 {
 	Ix = iBasis.x;
 	Iy = iBasis.y;
@@ -90,34 +76,26 @@ Matrix44::Matrix44(const Vector3& iBasis, const Vector3& jBasis, const Vector3& 
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44::Matrix44(const Vector4& iBasis, const Vector4& jBasis, const Vector4& kBasis, const Vector4& translation/*=Vector3::ZERO*/)
+Matrix4::Matrix4(const Vector4& _iBasis, const Vector4& _jBasis, const Vector4& _kBasis, const Vector4& _translation/*=Vector3::ZERO*/)
 {
-	Ix = iBasis.x;
-	Iy = iBasis.y;
-	Iz = iBasis.z;
-	Iw = iBasis.w;
-
-	Jx = jBasis.x;
-	Jy = jBasis.y;
-	Jz = jBasis.z;
-	Jw = iBasis.w;
-
-	Kx = kBasis.x;
-	Ky = kBasis.y;
-	Kz = kBasis.z;
-	Kw = kBasis.w;
-
-	Tx = translation.x;
-	Ty = translation.y;
-	Tz = translation.z;
-	Tw = translation.w;
+	iBasis = _iBasis;
+	jBasis = _jBasis;
+	kBasis = _kBasis;
+	translation = _translation;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-const Matrix44 Matrix44::operator*(const Matrix44& rightMat) const
+Matrix4::Matrix4(const Matrix4& other)
 {
-	Matrix44 result = *this;
+	*this = other;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+const Matrix4 Matrix4::operator*(const Matrix4& rightMat) const
+{
+	Matrix4 result = *this;
 	result.Append(rightMat);
 
 	return result;
@@ -125,16 +103,16 @@ const Matrix44 Matrix44::operator*(const Matrix44& rightMat) const
 
 
 //-------------------------------------------------------------------------------------------------
-const Vector4 Matrix44::operator*(const Vector4& rightVector) const
+const Vector4 Matrix4::operator*(const Vector4& rightVector) const
 {
 	return Transform(rightVector);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-const Matrix44 Matrix44::operator*(float scaler) const
+const Matrix4 Matrix4::operator*(float scaler) const
 {
-	Matrix44 result = *this;
+	Matrix4 result = *this;
 
 	result.Ix *= scaler;
 	result.Iy *= scaler;
@@ -161,7 +139,7 @@ const Matrix44 Matrix44::operator*(float scaler) const
 
 
 //-------------------------------------------------------------------------------------------------
-bool Matrix44::operator==(const Matrix44& other) const
+bool Matrix4::operator==(const Matrix4& other) const
 {
 	if (GetIVector() != other.GetIVector())
 	{
@@ -188,7 +166,32 @@ bool Matrix44::operator==(const Matrix44& other) const
 
 
 //-------------------------------------------------------------------------------------------------
-Vector4 Matrix44::TransformPoint(const Vector2& point) const
+void Matrix4::operator=(const Matrix4& other)
+{
+	Ix = other.Ix;
+	Iy = other.Iy;
+	Iz = other.Iz;
+	Iw = other.Iw;
+
+	Jx = other.Jx;
+	Jy = other.Jy;
+	Jz = other.Jz;
+	Jw = other.Jw;
+
+	Kx = other.Kx;
+	Ky = other.Ky;
+	Kz = other.Kz;
+	Kw = other.Kw;
+
+	Tx = other.Tx;
+	Ty = other.Ty;
+	Tz = other.Tz;
+	Tw = other.Tw;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector4 Matrix4::TransformPoint(const Vector2& point) const
 {
 	Vector4 pointToTransform = Vector4(point.x, point.y, 0.f, 1.0f);
 	return Transform(pointToTransform);
@@ -196,7 +199,7 @@ Vector4 Matrix44::TransformPoint(const Vector2& point) const
 
 
 //-------------------------------------------------------------------------------------------------
-Vector4 Matrix44::TransformPoint(const Vector3& point) const
+Vector4 Matrix4::TransformPoint(const Vector3& point) const
 {
 	Vector4 pointToTransform = Vector4(point.x, point.y, point.z, 1.0f);
 	return Transform(pointToTransform);
@@ -204,7 +207,7 @@ Vector4 Matrix44::TransformPoint(const Vector3& point) const
 
 
 //-------------------------------------------------------------------------------------------------
-Vector4 Matrix44::TransformVector(const Vector2& vector) const
+Vector4 Matrix4::TransformVector(const Vector2& vector) const
 {
 	Vector4 vectorToTransform = Vector4(vector.x, vector.y, 0.f, 0.0f);
 	return Transform(vectorToTransform);
@@ -212,7 +215,7 @@ Vector4 Matrix44::TransformVector(const Vector2& vector) const
 
 
 //-------------------------------------------------------------------------------------------------
-Vector4 Matrix44::TransformVector(const Vector3& vector) const
+Vector4 Matrix4::TransformVector(const Vector3& vector) const
 {
 	Vector4 vectorToTransform = Vector4(vector.x, vector.y, vector.z, 0.0f);
 	return Transform(vectorToTransform);
@@ -220,7 +223,7 @@ Vector4 Matrix44::TransformVector(const Vector3& vector) const
 
 
 //-------------------------------------------------------------------------------------------------
-Vector4 Matrix44::Transform(const Vector4& vector) const
+Vector4 Matrix4::Transform(const Vector4& vector) const
 {
 	Vector4 result;
 
@@ -234,7 +237,7 @@ Vector4 Matrix44::Transform(const Vector4& vector) const
 
 
 //-------------------------------------------------------------------------------------------------
-void Matrix44::SetIdentity()
+void Matrix4::SetIdentity()
 {
 	Ix = 1.0f;
 	Iy = 0.f;
@@ -259,7 +262,7 @@ void Matrix44::SetIdentity()
 
 
 //-------------------------------------------------------------------------------------------------
-void Matrix44::SetValues(const float* sixteenValuesBasisMajor)
+void Matrix4::SetValues(const float* sixteenValuesBasisMajor)
 {
 	Ix = sixteenValuesBasisMajor[0];
 	Iy = sixteenValuesBasisMajor[1];
@@ -287,10 +290,10 @@ void Matrix44::SetValues(const float* sixteenValuesBasisMajor)
 // Appends/concatenates the provided matrix on the RIGHT of the current matrix
 // i.e. thisMatrix = thisMatrix * matrixToAppend;
 //
-void Matrix44::Append(const Matrix44& matrixToAppend)
+void Matrix4::Append(const Matrix4& matrixToAppend)
 {
 	// Copy old values for calculation
-	Matrix44 oldValues = *this;
+	Matrix4 oldValues = *this;
 
 	// New I basis vector
 	Ix = DotProduct(oldValues.GetXVector(), matrixToAppend.GetIVector());
@@ -319,9 +322,9 @@ void Matrix44::Append(const Matrix44& matrixToAppend)
 
 
 //-------------------------------------------------------------------------------------------------
-void Matrix44::Transpose()
+void Matrix4::Transpose()
 {
-	Matrix44 original = *this;
+	Matrix4 original = *this;
 
 	Iy = original.Jx;
 	Jx = original.Iy;
@@ -344,7 +347,7 @@ void Matrix44::Transpose()
 
 
 //-------------------------------------------------------------------------------------------------
-void Matrix44::Invert()
+void Matrix4::Invert()
 {
 	double inv[16];
 	double det;
@@ -480,6 +483,8 @@ void Matrix44::Invert()
 		m[8] * m[2] * m[5];
 
 	det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
+	ASSERT_OR_DIE(AreMostlyEqual(static_cast<float>(det), GetDeterminant()), "Determinant calculations don't match!");
+	ASSERT_RETURN(det != 0.f, NO_RETURN_VAL, "Cannot invert, 0.f determinant!");
 	det = 1.0 / det;
 
 	Ix = static_cast<float>(inv[0] * det);
@@ -502,65 +507,65 @@ void Matrix44::Invert()
 
 
 //-------------------------------------------------------------------------------------------------
-Vector4 Matrix44::GetIVector() const
+Vector4 Matrix4::GetIVector() const
 {
 	return Vector4(Ix, Iy, Iz, Iw);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Vector4 Matrix44::GetJVector() const
+Vector4 Matrix4::GetJVector() const
 {
 	return Vector4(Jx, Jy, Jz, Jw);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Vector4 Matrix44::GetKVector() const
+Vector4 Matrix4::GetKVector() const
 {
 	return Vector4(Kx, Ky, Kz, Kw);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Vector4 Matrix44::GetTVector() const
+Vector4 Matrix4::GetTVector() const
 {
 	return Vector4(Tx, Ty, Tz, Tw);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Vector4 Matrix44::GetXVector() const
+Vector4 Matrix4::GetXVector() const
 {
 	return Vector4(Ix, Jx, Kx, Tx);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Vector4 Matrix44::GetYVector() const
+Vector4 Matrix4::GetYVector() const
 {
 	return Vector4(Iy, Jy, Ky, Ty);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Vector4 Matrix44::GetZVector() const
+Vector4 Matrix4::GetZVector() const
 {
 	return Vector4(Iz, Jz, Kz, Tz);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Vector4 Matrix44::GetWVector() const
+Vector4 Matrix4::GetWVector() const
 {
 	return Vector4(Iw, Jw, Kw, Tw);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44 Matrix44::MakeTranslation(const Vector3& translation)
+Matrix4 Matrix4::MakeTranslation(const Vector3& translation)
 {
-	Matrix44 translationMatrix;
+	Matrix4 translationMatrix;
 
 	translationMatrix.Tx = translation.x;
 	translationMatrix.Ty = translation.y;
@@ -571,9 +576,9 @@ Matrix44 Matrix44::MakeTranslation(const Vector3& translation)
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44 Matrix44::MakeScale(const Vector3& scale)
+Matrix4 Matrix4::MakeScale(const Vector3& scale)
 {
-	Matrix44 scaleMatrix;
+	Matrix4 scaleMatrix;
 
 	scaleMatrix.Ix = scale.x;
 	scaleMatrix.Jy = scale.y;
@@ -584,20 +589,20 @@ Matrix44 Matrix44::MakeScale(const Vector3& scale)
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44 Matrix44::MakeScaleUniform(float uniformScale)
+Matrix4 Matrix4::MakeScaleUniform(float uniformScale)
 {
 	return MakeScale(Vector3(uniformScale));
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44 Matrix44::MakeModelMatrix(const Vector3& translation, const Vector3& rotation, const Vector3& scale)
+Matrix4 Matrix4::MakeModelMatrix(const Vector3& translation, const Vector3& rotation, const Vector3& scale)
 {
-	Matrix44 translationMatrix = MakeTranslation(translation);
-	Matrix44 rotationMatrix = MakeRotation(rotation);
-	Matrix44 scaleMatrix = MakeScale(scale);
+	Matrix4 translationMatrix = MakeTranslation(translation);
+	Matrix4 rotationMatrix = MakeRotation(rotation);
+	Matrix4 scaleMatrix = MakeScale(scale);
 
-	Matrix44 result = translationMatrix * rotationMatrix * scaleMatrix;
+	Matrix4 result = translationMatrix * rotationMatrix * scaleMatrix;
 
 	return result;
 }
@@ -607,9 +612,9 @@ Matrix44 Matrix44::MakeModelMatrix(const Vector3& translation, const Vector3& ro
 // Constructs a matrix that transforms points from orthographic space (within the bounds specified)
 // into clips space (bounds(-1, -1) to (1, 1) with center at (0, 0))
 //
-Matrix44 Matrix44::MakeOrtho(float leftX, float rightX, float bottomY, float topY, float nearZ, float farZ)
+Matrix4 Matrix4::MakeOrtho(float leftX, float rightX, float bottomY, float topY, float nearZ, float farZ)
 {
-	Matrix44 orthoMatrix;
+	Matrix4 orthoMatrix;
 
 	orthoMatrix.Ix = 2.f / (rightX - leftX);
 	orthoMatrix.Jy = 2.f / (topY - bottomY);
@@ -624,18 +629,18 @@ Matrix44 Matrix44::MakeOrtho(float leftX, float rightX, float bottomY, float top
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44 Matrix44::MakeOrtho(const Vector2& bottomLeft, const Vector2& topRight, float nearZ/*=0.f*/, float farZ/*=1.0f*/)
+Matrix4 Matrix4::MakeOrtho(const Vector2& bottomLeft, const Vector2& topRight, float nearZ/*=0.f*/, float farZ/*=1.0f*/)
 {
 	return MakeOrtho(bottomLeft.x, topRight.x, bottomLeft.y, topRight.y, nearZ, farZ);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44 Matrix44::MakePerspective(float fovDegrees, float aspect, float nearZ, float farZ)
+Matrix4 Matrix4::MakePerspective(float fovDegrees, float aspect, float nearZ, float farZ)
 {
 	float d = (1.f / TanDegrees(0.5f * fovDegrees));
 
-	Matrix44 perspective;
+	Matrix4 perspective;
 
 	perspective.Ix = (d / aspect);
 	perspective.Jy = d;
@@ -650,7 +655,7 @@ Matrix44 Matrix44::MakePerspective(float fovDegrees, float aspect, float nearZ, 
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Matrix44::ExtractTranslation(const Matrix44& translationMatrix)
+Vector3 Matrix4::ExtractTranslation(const Matrix4& translationMatrix)
 {
 	Vector3 translation;
 
@@ -663,7 +668,7 @@ Vector3 Matrix44::ExtractTranslation(const Matrix44& translationMatrix)
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Matrix44::ExtractScale(const Matrix44& scaleMatrix)
+Vector3 Matrix4::ExtractScale(const Matrix4& scaleMatrix)
 {
 	// TODO: Check signs of cross product to flip correct axes for negative scales
 	float xScale = scaleMatrix.GetIVector().GetLength();
@@ -675,26 +680,40 @@ Vector3 Matrix44::ExtractScale(const Matrix44& scaleMatrix)
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44 Matrix44::GetInverse() const
+Matrix4 Matrix4::GetInverse() const
 {	
-	Matrix44 inverse = *this;
+	Matrix4 inverse = *this;
 	inverse.Invert();
 	return inverse;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44 Matrix44::GetInverse(const Matrix44& matrix)
+Matrix4 Matrix4::GetInverse(const Matrix4& matrix)
 {
 	return matrix.GetInverse();
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44 Matrix44::MakeRotation(const Vector3& rotation)
+float Matrix4::GetDeterminant() const
+{
+	float t1 = data[8] * data[5] * data[2];
+	float t2 = data[4] * data[9] * data[2];
+	float t3 = data[8] * data[1] * data[6];
+	float t4 = data[0] * data[9] * data[6];
+	float t5 = data[4] * data[1] * data[10];
+	float t6 = data[0] * data[5] * data[10];
+
+	return t1 + t2 + t3 - t4 - t5 + t6;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Matrix4 Matrix4::MakeRotation(const Vector3& rotation)
 {
 	// Rotation about z
-	Matrix44 rollMatrix;
+	Matrix4 rollMatrix;
 
 	rollMatrix.Ix = CosDegrees(rotation.z);
 	rollMatrix.Iy = SinDegrees(rotation.z);
@@ -703,7 +722,7 @@ Matrix44 Matrix44::MakeRotation(const Vector3& rotation)
 	rollMatrix.Jy = CosDegrees(rotation.z);
 
 	// Rotation about y
-	Matrix44 yawMatrix;
+	Matrix4 yawMatrix;
 
 	yawMatrix.Ix = CosDegrees(rotation.y);
 	yawMatrix.Iz = -SinDegrees(rotation.y);
@@ -712,7 +731,7 @@ Matrix44 Matrix44::MakeRotation(const Vector3& rotation)
 	yawMatrix.Kz = CosDegrees(rotation.y);
 
 	// Rotation about x
-	Matrix44 pitchMatrix;
+	Matrix4 pitchMatrix;
 
 	pitchMatrix.Jy = CosDegrees(rotation.x);
 	pitchMatrix.Jz = SinDegrees(rotation.x);
@@ -726,7 +745,7 @@ Matrix44 Matrix44::MakeRotation(const Vector3& rotation)
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44 Matrix44::MakeRotation(const Quaternion& rotation)
+Matrix4 Matrix4::MakeRotation(const Quaternion& rotation)
 {
 	// Imaginary part
 	float const x = rotation.v.x;
@@ -741,23 +760,23 @@ Matrix44 Matrix44::MakeRotation(const Quaternion& rotation)
 	// I Basis
 	Vector4 iCol = Vector4(
 		1.0f - 2.0f * y2 - 2.0f * z2,
-		2.0f * x * y + 2.0f * rotation.s * z,
-		2.0f * x * z - 2.0f * rotation.s * y,
+		2.0f * x * y + 2.0f * rotation.real * z,
+		2.0f * x * z - 2.0f * rotation.real * y,
 		0.f
 	);
 
 	// J Basis
 	Vector4 jCol = Vector4(
-		2.f * x * y - 2.0f * rotation.s * z,
+		2.f * x * y - 2.0f * rotation.real * z,
 		1.0f - 2.0f * x2 - 2.0f * z2,
-		2.0f * y * z + 2.0f * rotation.s * x,
+		2.0f * y * z + 2.0f * rotation.real * x,
 		0.f
 	);
 
 	// K Basis
 	Vector4 kCol = Vector4(
-		2.0f * x * z + 2.0f * rotation.s * y,
-		2.0f * y * z - 2.0f * rotation.s * x,
+		2.0f * x * z + 2.0f * rotation.real * y,
+		2.0f * y * z - 2.0f * rotation.real * x,
 		1.0f - 2.0f * x2 - 2.0f * y2,
 		0.f
 	);
@@ -765,13 +784,13 @@ Matrix44 Matrix44::MakeRotation(const Quaternion& rotation)
 	// T Basis
 	Vector4 tCol = Vector4(0.f, 0.f, 0.f, 1.0f);
 
-	Matrix44 result = Matrix44(iCol, jCol, kCol, tCol);
+	Matrix4 result = Matrix4(iCol, jCol, kCol, tCol);
 	return result;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Matrix44::ExtractRotationDegrees(const Matrix44& rotationMatrix)
+Vector3 Matrix4::ExtractRotationDegrees(const Matrix4& rotationMatrix)
 {
 	float xDegrees;
 	float yDegrees;
@@ -802,7 +821,7 @@ Vector3 Matrix44::ExtractRotationDegrees(const Matrix44& rotationMatrix)
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44 Matrix44::MakeLookAt(const Vector3& position, const Vector3& target, const Vector3& referenceUp /*= Vector3::Y_AXIS*/)
+Matrix4 Matrix4::MakeLookAt(const Vector3& position, const Vector3& target, const Vector3& referenceUp /*= Vector3::Y_AXIS*/)
 {
 	// Edge case - Target and position are the same position, then just look world forward
 	Vector3 forward;
@@ -823,5 +842,5 @@ Matrix44 Matrix44::MakeLookAt(const Vector3& position, const Vector3& target, co
 
 	Vector3 lookUp = CrossProduct(forward, right);
 
-	return Matrix44(right, lookUp, forward, position);
+	return Matrix4(right, lookUp, forward, position);
 }

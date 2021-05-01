@@ -43,7 +43,6 @@ public:
 	explicit Vector4(float initialX, float initialY, float initialZ, float initialW);
 	explicit Vector4(const Vector3& xyzVector, float wValue);
 	explicit Vector4(float initialValue);
-	~Vector4() {}
 
 	const	Vector4 operator+(const Vector4& addVector) const;
 	const	Vector4 operator-(const Vector4& subVector) const;

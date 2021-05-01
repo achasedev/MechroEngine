@@ -8,7 +8,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Math/MathUtils.h"
-#include "Engine/Math/Matrix44.h"
+#include "Engine/Math/Matrix4.h"
 #include "Engine/Math/Quaternion.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -33,29 +33,29 @@ const Quaternion Quaternion::IDENTITY = Quaternion();
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-Quaternion::Quaternion(float scalar, const Vector3& vector)
-	: v(vector), s(scalar)
+Quaternion::Quaternion(float real, const Vector3& complexVector)
+	: v(complexVector), real(real)
 {
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Quaternion::Quaternion()
-	: v(Vector3::ZERO), s(1.f)
+	: v(Vector3::ZERO), real(1.f)
 {
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Quaternion::Quaternion(const Quaternion& copy)
-	: v(copy.v), s(copy.s)
+	: v(copy.v), real(copy.real)
 {
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Quaternion::Quaternion(float scalar, float x, float y, float z)
-	: v(Vector3(x, y, z)), s(scalar)
+	: v(Vector3(x, y, z)), real(scalar)
 {
 }
 
@@ -65,7 +65,7 @@ const Quaternion Quaternion::operator+(const Quaternion& other) const
 {
 	Quaternion result;
 	result.v = v + other.v;
-	result.s = s + other.s;
+	result.real = real + other.real;
 
 	return result;
 }
@@ -76,7 +76,7 @@ const Quaternion Quaternion::operator-(const Quaternion& other) const
 {
 	Quaternion result;
 	result.v = v - other.v;
-	result.s = s - other.s;
+	result.real = real - other.real;
 
 	return result;
 }
@@ -87,8 +87,8 @@ const Quaternion Quaternion::operator*(const Quaternion& other) const
 {
 	Quaternion result;
 
-	result.s = s * other.s - DotProduct(v, other.v);
-	result.v = s * other.v + v * other.s + CrossProduct(v, other.v);
+	result.real = real * other.real - DotProduct(v, other.v);
+	result.v = real * other.v + v * other.real + CrossProduct(v, other.v);
 
 	return result;
 }
@@ -99,7 +99,7 @@ const Quaternion Quaternion::operator*(float scalar) const
 {
 	Quaternion result;
 
-	result.s = s * scalar;
+	result.real = real * scalar;
 	result.v = v * scalar;
 
 	return result;
@@ -111,7 +111,7 @@ const Quaternion operator*(float scalar, const Quaternion& quat)
 {
 	Quaternion result;
 
-	result.s = (scalar * quat.s);
+	result.real = (scalar * quat.real);
 	result.v = (scalar * quat.v);
 
 	return result;
@@ -121,7 +121,7 @@ const Quaternion operator*(float scalar, const Quaternion& quat)
 //-------------------------------------------------------------------------------------------------
 Quaternion Quaternion::Lerp(const Quaternion& a, const Quaternion& b, float fractionTowardEnd)
 {
-	float sResult = Interpolate(a.s, b.s, fractionTowardEnd);
+	float sResult = Interpolate(a.real, b.real, fractionTowardEnd);
 	Vector3 vResult = Interpolate(a.v, b.v, fractionTowardEnd);
 
 	return Quaternion(sResult, vResult);
@@ -133,15 +133,15 @@ void Quaternion::operator*=(const Quaternion& other)
 {
 	Quaternion old = (*this);
 
-	s = old.s * other.s - DotProduct(old.v, other.v);
-	v = old.s * other.v + old.v * other.s + CrossProduct(old.v, other.v);
+	real = old.real * other.real - DotProduct(old.v, other.v);
+	v = old.real * other.v + old.v * other.real + CrossProduct(old.v, other.v);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void Quaternion::operator*=(float scalar)
 {
-	s = s * scalar;
+	real = real * scalar;
 	v = v * scalar;
 }
 
@@ -151,7 +151,7 @@ void Quaternion::operator*=(float scalar)
 void Quaternion::operator+=(const Quaternion& other)
 {
 	v += other.v;
-	s += other.s;
+	real += other.real;
 }
 
 
@@ -159,7 +159,7 @@ void Quaternion::operator+=(const Quaternion& other)
 void Quaternion::operator-=(const Quaternion& other)
 {
 	v -= other.v;
-	s -= other.s;
+	real -= other.real;
 }
 
 
@@ -167,14 +167,14 @@ void Quaternion::operator-=(const Quaternion& other)
 void Quaternion::operator=(const Quaternion& copy)
 {
 	v = copy.v;
-	s = copy.s;
+	real = copy.real;
 }
 
 
 //-------------------------------------------------------------------------------------------------
 float Quaternion::GetMagnitude() const
 {
-	float squaredNorm = (s * s) + (v.x * v.x) + (v.y * v.y) + (v.z * v.z);
+	float squaredNorm = (real * real) + (v.x * v.x) + (v.y * v.y) + (v.z * v.z);
 	float magnitude = sqrtf(squaredNorm);
 
 	return magnitude;
@@ -206,7 +206,7 @@ Quaternion Quaternion::GetInverse() const
 
 	Quaternion conjugate = GetConjugate();
 
-	float scalar = conjugate.s * absoluteValue;
+	float scalar = conjugate.real * absoluteValue;
 	Vector3 vector = conjugate.v * absoluteValue;
 
 	return Quaternion(scalar, vector);
@@ -216,8 +216,8 @@ Quaternion Quaternion::GetInverse() const
 //-------------------------------------------------------------------------------------------------
 Vector3 Quaternion::GetAsEulerAngles() const
 {
-	Matrix44 matrix = Matrix44::MakeRotation(*this);
-	Vector3 eulerAngles = Matrix44::ExtractRotationDegrees(matrix);
+	Matrix4 matrix = Matrix4::MakeRotation(*this);
+	Vector3 eulerAngles = Matrix4::ExtractRotationDegrees(matrix);
 
 	return eulerAngles;
 }
@@ -233,16 +233,16 @@ void Quaternion::Normalize()
 //-------------------------------------------------------------------------------------------------
 void Quaternion::ConvertToUnitNorm()
 {
-	float angleDegrees = s;
+	float angleDegrees = real;
 
 	v.Normalize();
-	s = CosDegrees(0.5f * angleDegrees);
+	real = CosDegrees(0.5f * angleDegrees);
 	v = (v * SinDegrees(0.5f * angleDegrees));
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Quaternion::Rotate(const Vector3& point) const
+Vector3 Quaternion::RotatePoint(const Vector3& point) const
 {
 	Quaternion pointAsQuat = Quaternion(0.f, point);
 
@@ -250,7 +250,7 @@ Vector3 Quaternion::Rotate(const Vector3& point) const
 	//Quaternion rotatedResult = inverse * pointAsQuat * (*this);
 	Quaternion rotatedResult = (*this) * pointAsQuat * inverse;
 
-	ASSERT_OR_DIE(AreMostlyEqual(rotatedResult.s, 0.f), "This should be zero!");
+	ASSERT_OR_DIE(AreMostlyEqual(rotatedResult.real, 0.f), "This should be zero!");
 
 	return rotatedResult.v;
 }
@@ -259,7 +259,7 @@ Vector3 Quaternion::Rotate(const Vector3& point) const
 //-------------------------------------------------------------------------------------------------
 float Quaternion::GetAngleBetweenDegrees(const Quaternion& a, const Quaternion& b)
 {
-	float newReal = a.s * b.s - DotProduct(-1.0f * a.v, b.v);
+	float newReal = a.real * b.real - DotProduct(-1.0f * a.v, b.v);
 	float result = 2.0f * ACosDegrees(newReal);
 
 	return result;
@@ -292,10 +292,10 @@ Quaternion Quaternion::FromEulerAngles(const Vector3& eulerAnglesDegrees)
 
 
 //-------------------------------------------------------------------------------------------------
-Quaternion Quaternion::FromMatrix(const Matrix44& rotationMatrix)
+Quaternion Quaternion::FromMatrix(const Matrix4& rotationMatrix)
 {
 	// TODO: Faster way to do this?
-	return Quaternion::FromEulerAngles(Matrix44::ExtractRotationDegrees(rotationMatrix));
+	return Quaternion::FromEulerAngles(Matrix4::ExtractRotationDegrees(rotationMatrix));
 }
 
 
@@ -357,7 +357,7 @@ Quaternion Quaternion::Slerp(const Quaternion& a, const Quaternion& b, float fra
 	Quaternion r0 = start * f0;
 	Quaternion r1 = b * f1;
 
-	return Quaternion(r0.s + r1.s, r0.v + r1.v);
+	return Quaternion(r0.real + r1.real, r0.v + r1.v);
 }
 
 
@@ -366,7 +366,7 @@ Quaternion Quaternion::GetConjugate() const
 {
 	Quaternion result;
 
-	result.s = s;
+	result.real = real;
 	result.v = -1.0f * v;
 
 	return result;

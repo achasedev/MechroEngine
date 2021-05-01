@@ -30,7 +30,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-void Renderable::SetDrawMatrix(uint32 drawIndex, const Matrix44& drawMatrix)
+void Renderable::SetDrawMatrix(uint32 drawIndex, const Matrix4& drawMatrix)
 {
 	m_draws.resize(drawIndex + 1);
 	m_draws[drawIndex].m_drawMatrix = drawMatrix;
@@ -62,7 +62,7 @@ void Renderable::SetDraw(uint32 drawIndex, const RenderableDraw& draw)
 
 
 //-------------------------------------------------------------------------------------------------
-void Renderable::AddDraw(Mesh* mesh, Material* material, Matrix44 drawMatrix /*= Matrix44::IDENTITY*/)
+void Renderable::AddDraw(Mesh* mesh, Material* material, Matrix4 drawMatrix /*= Matrix44::IDENTITY*/)
 {
 	RenderableDraw rendDraw;
 	rendDraw.m_mesh = mesh;

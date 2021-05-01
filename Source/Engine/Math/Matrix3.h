@@ -1,14 +1,14 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: March 15th, 2020
+/// Date Created: May 1st, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Render/DrawCall.h"
-#include "Engine/Render/Renderable.h"
+#include "Engine/Math/Vector3.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -17,27 +17,77 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class Quaternion;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// C FUNCTIONS
+/// CLASS DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// CLASS IMPLEMENTATIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
+#pragma warning(disable : 4201) // Keep the structs anonymous
 
 //-------------------------------------------------------------------------------------------------
-void DrawCall::SetFromRenderable(const Renderable& renderable, uint32 drawCallIndex)
+class Matrix3
 {
-	RenderableDraw rendDraw = renderable.GetDraw(drawCallIndex);
+public:
+	//-----Public Methods-----
 
-	m_mesh = rendDraw.m_mesh;
-	m_material = rendDraw.m_material;
+	Matrix3();
+	explicit Matrix3(float* nineBasisMajorValues);
+	explicit Matrix3(const Vector3& iBasis, const Vector3& jBasis, const Vector3& kBasis);
+	explicit Matrix3(const Quaternion& quaternion);
+	Matrix3(const Matrix3& other);
+	
+	void operator=(const Matrix3& other);
+	void operator*=(const Matrix3& other);
+	bool operator==(const Matrix3& other) const;
+	Matrix3 operator*(const Matrix3& other) const;
 
-	Matrix4 renderableModelMatrix = renderable.GetModelMatrix();
-	m_modelMatrix = renderableModelMatrix * rendDraw.m_drawMatrix;
-}
+	void	Transpose();
+	void	Invert();
+
+	Matrix3 GetTranspose() const;
+	Matrix3 GetInverse() const;
+	float	GetDeterminant() const;
+	Vector3 GetXVector() const;
+	Vector3 GetYVector() const;
+	Vector3 GetZVector() const;
+
+
+public:
+	//-----Public Data-----
+
+	union
+	{
+		struct
+		{
+			float Ix;
+			float Iy;
+			float Iz;
+			float Jx;
+			float Jy;
+			float Jz;
+			float Kx;
+			float Ky;
+			float Kz;
+		};
+
+		struct  
+		{
+			Vector3 iBasis;
+			Vector3 jBasis;
+			Vector3 kBasis;
+		};
+
+		float data[9];
+	};
+
+	static const Matrix3 IDENTITY;
+};
+
+#pragma warning(default : 4201)
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// C FUNCTIONS
+///--------------------------------------------------------------------------------------------------------------------------------------------------

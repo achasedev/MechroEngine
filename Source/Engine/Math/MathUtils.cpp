@@ -579,7 +579,7 @@ float DotProduct(const Vector4& a, const Vector4& b)
 //-------------------------------------------------------------------------------------------------
 float DotProduct(const Quaternion& a, const Quaternion& b)
 {
-	return (a.s * b.s) + (a.v.x * b.v.x) + (a.v.y * b.v.y) + (a.v.z * b.v.z);
+	return (a.real * b.real) + (a.v.x * b.v.x) + (a.v.y * b.v.y) + (a.v.z * b.v.z);
 }
 
 
@@ -674,7 +674,7 @@ Vector2 RotateByAngleDegrees(const Vector2& vector, float deltaAngleDegrees)
 //-------------------------------------------------------------------------------------------------
 Vector3 RotateByAngleDegrees(const Vector3& vector, const Vector3& rotation)
 {
-	Matrix44 rotationMat = Matrix44::MakeRotation(rotation);
+	Matrix4 rotationMat = Matrix4::MakeRotation(rotation);
 	return rotationMat.TransformVector(vector).xyz();
 }
 
@@ -919,7 +919,7 @@ const AABB2 Interpolate(const AABB2& start, const AABB2& end, float fractionTowa
 
 
 //-------------------------------------------------------------------------------------------------
-const Matrix44 Interpolate(const Matrix44& start, const Matrix44& end, float fractionTowardEnd)
+const Matrix4 Interpolate(const Matrix4& start, const Matrix4& end, float fractionTowardEnd)
 {
 	Vector4 startI = start.GetIVector();
 	Vector4 endI = end.GetIVector();
@@ -938,7 +938,7 @@ const Matrix44 Interpolate(const Matrix44& start, const Matrix44& end, float fra
 	Vector4 resultK = Interpolate(startK, endK, fractionTowardEnd);
 	Vector4 resultT = Interpolate(startT, endT, fractionTowardEnd);
 
-	return Matrix44(resultI, resultJ, resultK, resultT);
+	return Matrix4(resultI, resultJ, resultK, resultT);
 }
 
 

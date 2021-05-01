@@ -8,7 +8,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/EngineCommon.h"
-#include "Engine/Math/Matrix44.h"
+#include "Engine/Math/Matrix4.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Math/OBB3.h"
 #include "Engine/Math/Polygon3d.h"
@@ -255,7 +255,7 @@ const PolygonVertex3d* Polygon3d::GetVertex(int vertexIndex) const
 
 
 //-------------------------------------------------------------------------------------------------
-void Polygon3d::GetTransformed(const Matrix44& matrix, Polygon3d& out_polygon) const
+void Polygon3d::GetTransformed(const Matrix4& matrix, Polygon3d& out_polygon) const
 {
 	out_polygon.Clear();
 

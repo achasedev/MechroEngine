@@ -114,7 +114,7 @@ public:
 	Vector3					GetEdgeDirectionNormalized(int edgeIndex) const;
 	bool					HasGeneratedHalfEdges() const { return m_edges.size() > 0; }
 
-	void					GetTransformed(const Matrix44& matrix, Polygon3d& out_polygon) const;
+	void					GetTransformed(const Matrix4& matrix, Polygon3d& out_polygon) const;
 	Vector3					GetCenter() const;
 
 

@@ -302,9 +302,9 @@ void RenderContext::BindSampler(uint32 slot, Sampler* sampler)
 
 
 //-------------------------------------------------------------------------------------------------
-void RenderContext::UpdateModelMatrixUBO(const Matrix44& modelMatrix)
+void RenderContext::UpdateModelMatrixUBO(const Matrix4& modelMatrix)
 {
-	m_modelMatrixUBO.CopyToGPU(&modelMatrix, sizeof(Matrix44));
+	m_modelMatrixUBO.CopyToGPU(&modelMatrix, sizeof(Matrix4));
 }
 
 
@@ -729,7 +729,7 @@ void RenderContext::PostDxInit()
 	InitDefaultColorAndDepthViews();
 
 	// Model matrix UBO
-	UpdateModelMatrixUBO(Matrix44::IDENTITY);
+	UpdateModelMatrixUBO(Matrix4::IDENTITY);
 	BindUniformBuffer(UNIFORM_SLOT_MODEL_MATRIX, &m_modelMatrixUBO);
 }
 

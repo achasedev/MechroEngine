@@ -9,7 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Math/Quaternion.h"
-#include "Engine/Math/Matrix44.h"
+#include "Engine/Math/Matrix4.h"
 #include "Engine/Math/Vector3.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -64,15 +64,15 @@ public:
 	
 	void SetWorldPosition(const Vector3& newPosition);
 
-	void SetLocalMatrix(const Matrix44& local);
-	void SetWorldMatrix(const Matrix44& world);
+	void SetLocalMatrix(const Matrix4& local);
+	void SetWorldMatrix(const Matrix4& world);
 	void SetParentTransform(const Transform* parent, bool keepWorldPosRotScale = false);
 
-	Matrix44 GetLocalToParentMatrix() const;
-	Matrix44 GetParentToWorldMatrix() const;
-	Matrix44 GetWorldToParentMatrix() const;
-	Matrix44 GetLocalToWorldMatrix() const;
-	Matrix44 GetWorldToLocalMatrix() const;
+	Matrix4 GetLocalToParentMatrix() const;
+	Matrix4 GetParentToWorldMatrix() const;
+	Matrix4 GetWorldToParentMatrix() const;
+	Matrix4 GetLocalToWorldMatrix() const;
+	Matrix4 GetWorldToLocalMatrix() const;
 
 	Vector3 GetIVector() const;
 	Vector3 GetJVector() const;
@@ -110,7 +110,7 @@ private:
 	mutable Vector3		m_oldPosition = Vector3::ZERO;
 	mutable Quaternion	m_oldRotation = Quaternion::IDENTITY;
 	mutable Vector3		m_oldScale = Vector3::ONES;
-	mutable Matrix44	m_localMatrix = Matrix44::IDENTITY;
+	mutable Matrix4	m_localMatrix = Matrix4::IDENTITY;
 	
 	const Transform* m_parentTransform = nullptr;
 

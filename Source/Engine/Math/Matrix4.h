@@ -28,26 +28,25 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// C FUNCTIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
+#pragma warning(disable : 4201) // Keep the structs anonymous
 
 //-------------------------------------------------------------------------------------------------
-class Matrix44
+class Matrix4
 {
 public:
 	//-----Public Methods-----
 
-	Matrix44();
-	explicit Matrix44(const float* sixteenValuesBasisMajor); // float[16] array in order Ix, Iy...
-	explicit Matrix44(const Vector3& iBasis, const Vector3& jBasis, const Vector3& kBasis, const Vector3& translation = Vector3::ZERO);
-	explicit Matrix44(const Vector4& iBasis, const Vector4& jBasis, const Vector4& kBasis, const Vector4& translation = Vector4::ZERO);
+	Matrix4();
+	explicit Matrix4(const float* sixteenValuesBasisMajor); // float[16] array in order Ix, Iy...
+	explicit Matrix4(const Vector3& iBasis, const Vector3& jBasis, const Vector3& kBasis, const Vector3& translation = Vector3::ZERO);
+	explicit Matrix4(const Vector4& iBasis, const Vector4& jBasis, const Vector4& kBasis, const Vector4& translation = Vector4::ZERO);
+	Matrix4(const Matrix4& other);
 
-	const Matrix44	operator*(const Matrix44& rightMat) const;
-	const Matrix44	operator*(float uniformScaler) const;
+	const Matrix4	operator*(const Matrix4& rightMat) const;
+	const Matrix4	operator*(float uniformScaler) const;
 	const Vector4	operator*(const Vector4& rightVector) const;
-	bool			operator==(const Matrix44& other) const;
+	bool			operator==(const Matrix4& other) const;
+	void			operator=(const Matrix4& other);
 
 	Vector4 TransformPoint(const Vector2& point) const;
 	Vector4 TransformPoint(const Vector3& point) const;
@@ -57,7 +56,7 @@ public:
 
 	void SetIdentity();
 	void SetValues(const float* sixteenValuesBasisMajor);		// float[16] array in order Ix, Iy...
-	void Append(const Matrix44& matrixToAppend);				// Concatenate on the right	
+	void Append(const Matrix4& matrixToAppend);				// Concatenate on the right	
 	void Transpose();
 	void Invert();
 
@@ -70,25 +69,26 @@ public:
 	Vector4 GetYVector() const;
 	Vector4 GetZVector() const;
 	Vector4 GetWVector() const;
-	Matrix44 GetInverse() const;
+	Matrix4 GetInverse() const;
+	float GetDeterminant() const;
 
 	// Static producers
-	static Matrix44 MakeTranslation(const Vector3& translation);
-	static Matrix44 MakeRotation(const Vector3& rotation);
-	static Matrix44 MakeRotation(const Quaternion& rotation);
-	static Matrix44 MakeScale(const Vector3& scale);
-	static Matrix44 MakeScaleUniform(float uniformScale);
-	static Matrix44 MakeModelMatrix(const Vector3& translation, const Vector3& rotation, const Vector3& scale);
+	static Matrix4 MakeTranslation(const Vector3& translation);
+	static Matrix4 MakeRotation(const Vector3& rotation);
+	static Matrix4 MakeRotation(const Quaternion& rotation);
+	static Matrix4 MakeScale(const Vector3& scale);
+	static Matrix4 MakeScaleUniform(float uniformScale);
+	static Matrix4 MakeModelMatrix(const Vector3& translation, const Vector3& rotation, const Vector3& scale);
 
-	static Matrix44 MakeOrtho(float leftX, float rightX, float bottomY, float topY, float nearZ, float farZ);
-	static Matrix44 MakeOrtho(const Vector2& bottomLeft, const Vector2& topRight, float nearZ = 0.f, float farZ = 1.0f);
-	static Matrix44 MakePerspective(float fovDegrees, float aspect, float nearZ, float farZ);
-	static Matrix44 MakeLookAt(const Vector3& position, const Vector3& target, const Vector3& up = Vector3::Y_AXIS);
-	static Matrix44 GetInverse(const Matrix44& matrix);
+	static Matrix4 MakeOrtho(float leftX, float rightX, float bottomY, float topY, float nearZ, float farZ);
+	static Matrix4 MakeOrtho(const Vector2& bottomLeft, const Vector2& topRight, float nearZ = 0.f, float farZ = 1.0f);
+	static Matrix4 MakePerspective(float fovDegrees, float aspect, float nearZ, float farZ);
+	static Matrix4 MakeLookAt(const Vector3& position, const Vector3& target, const Vector3& up = Vector3::Y_AXIS);
+	static Matrix4 GetInverse(const Matrix4& matrix);
 
-	static Vector3 ExtractTranslation(const Matrix44& translationMatrix);
-	static Vector3 ExtractRotationDegrees(const Matrix44& rotationMatrix);
-	static Vector3 ExtractScale(const Matrix44& scaleMatrix);
+	static Vector3 ExtractTranslation(const Matrix4& translationMatrix);
+	static Vector3 ExtractRotationDegrees(const Matrix4& rotationMatrix);
+	static Vector3 ExtractScale(const Matrix4& scaleMatrix);
 
 
 public:
@@ -96,30 +96,53 @@ public:
 	// 16 floats to represent the 4x4 Basis-major ordered matrix
 	// Initialized to identity
 
-	// I basis vector
-	float Ix = 1.0f;
-	float Iy = 0.f;
-	float Iz = 0.f;
-	float Iw = 0.f;
+	union
+	{
+		struct  
+		{
+			// I basis vector
+			float Ix;
+			float Iy;
+			float Iz;
+			float Iw;
 
-	// J basis vector
-	float Jx = 0.f;
-	float Jy = 1.f;
-	float Jz = 0.f;
-	float Jw = 0.f;
+			// J basis vector
+			float Jx;
+			float Jy;
+			float Jz;
+			float Jw;
 
-	// K basis vector
-	float Kx = 0.f;
-	float Ky = 0.f;
-	float Kz = 1.f;
-	float Kw = 0.f;
+			// K basis vector
+			float Kx;
+			float Ky;
+			float Kz;
+			float Kw;
 
-	// T (translation) vector
-	float Tx = 0.f;
-	float Ty = 0.f;
-	float Tz = 0.f;
-	float Tw = 1.f;
+			// T (translation) vector
+			float Tx;
+			float Ty;
+			float Tz;
+			float Tw;
+		};
 
-	const static Matrix44 IDENTITY;
+		struct
+		{
+			Vector4 iBasis;
+			Vector4 jBasis;
+			Vector4 kBasis;
+			Vector4 translation;
+		};
+
+		float data[16];
+	};
+	
+
+	const static Matrix4 IDENTITY;
 
 };
+
+#pragma warning(default : 4201)
+
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// C FUNCTIONS
+///--------------------------------------------------------------------------------------------------------------------------------------------------

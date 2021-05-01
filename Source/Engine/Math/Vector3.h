@@ -48,8 +48,6 @@ public:
 	explicit Vector3(const Vector2& xyVector, float initialZ);
 	explicit Vector3(const IntVector3& intVector);
 
-	~Vector3() {}
-
 	const Vector3			operator+(const Vector3& addVector) const;
 	const Vector3			operator-(const Vector3& subVector) const;
 	const Vector3			operator*(float uniformScaler) const;
@@ -109,6 +107,14 @@ public:
 			float r;
 			float g;
 			float b;
+		};
+
+		// Basis component access
+		struct
+		{
+			float i;
+			float j;
+			float k;
 		};
 
 		// Swizzles!

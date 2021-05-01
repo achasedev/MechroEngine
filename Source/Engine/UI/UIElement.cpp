@@ -429,7 +429,7 @@ OBB2 UIElement::GetCanvasBounds() const
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44 UIElement::CreateModelMatrix() const
+Matrix4 UIElement::CreateModelMatrix() const
 {
 	OBB2 finalBounds = GetCanvasBounds();
 	return CreateModelMatrix(finalBounds);
@@ -437,7 +437,7 @@ Matrix44 UIElement::CreateModelMatrix() const
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44 UIElement::CreateModelMatrix(const OBB2& finalBounds) const
+Matrix4 UIElement::CreateModelMatrix(const OBB2& finalBounds) const
 {
 	// Process
 	// - Apply scale
@@ -451,9 +451,9 @@ Matrix44 UIElement::CreateModelMatrix(const OBB2& finalBounds) const
 	Vector3 scale = Vector3(finalBounds.m_alignedBounds.GetWidth(), finalBounds.m_alignedBounds.GetHeight(), 1.0f);
 	Vector2 recenter = -1.0f * (finalBounds.m_alignedBounds.GetCenter() - finalBounds.m_alignedBounds.GetBottomLeft());
 
-	Matrix44 scaleMat = Matrix44::MakeScale(scale);
-	Matrix44 rotationMat = Matrix44::MakeTranslation(Vector3(-1.0f * recenter, 0.f)) * Matrix44::MakeRotation(rotation) * Matrix44::MakeTranslation(Vector3(recenter, 0.f));
-	Matrix44 translationMat = Matrix44::MakeTranslation(translation);
+	Matrix4 scaleMat = Matrix4::MakeScale(scale);
+	Matrix4 rotationMat = Matrix4::MakeTranslation(Vector3(-1.0f * recenter, 0.f)) * Matrix4::MakeRotation(rotation) * Matrix4::MakeTranslation(Vector3(recenter, 0.f));
+	Matrix4 translationMat = Matrix4::MakeTranslation(translation);
 
 	return translationMat * rotationMat * scaleMat;
 }

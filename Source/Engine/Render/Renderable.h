@@ -9,7 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/EngineCommon.h"
-#include "Engine/Math/Matrix44.h"
+#include "Engine/Math/Matrix4.h"
 #include <vector>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -23,7 +23,7 @@ class Mesh;
 class Material;
 struct RenderableDraw
 {
-	Matrix44			m_drawMatrix;
+	Matrix4			m_drawMatrix;
 	Mesh*				m_mesh = nullptr;
 	Material*			m_material = nullptr;
 };
@@ -42,22 +42,22 @@ class Renderable
 public:
 	//-----Public Methods-----
 
-	void			SetDrawMatrix(uint32 drawIndex, const Matrix44& drawMatrix);
+	void			SetDrawMatrix(uint32 drawIndex, const Matrix4& drawMatrix);
 	void			SetDrawMaterial(uint32 drawIndex, Material* material);
 	void			SetDrawMesh(uint32 drawIndex, Mesh* mesh);
 	void			SetDraw(uint32 drawIndex, const RenderableDraw& draw);
-	void			SetRenderableMatrix(const Matrix44& rendMatrix) { m_matrix = rendMatrix; }
-	void			AddDraw(Mesh* mesh, Material* material, Matrix44 drawMatrix = Matrix44::IDENTITY);
+	void			SetRenderableMatrix(const Matrix4& rendMatrix) { m_matrix = rendMatrix; }
+	void			AddDraw(Mesh* mesh, Material* material, Matrix4 drawMatrix = Matrix4::IDENTITY);
 
 	uint32			GetNumDrawCalls() const { return (uint32)m_draws.size(); }
 	RenderableDraw	GetDraw(uint32 drawIndex) const;
-	Matrix44		GetModelMatrix() const { return m_matrix; }
+	Matrix4		GetModelMatrix() const { return m_matrix; }
 
 
 private:
 	//-----Private Data-----
 
-	Matrix44						m_matrix = Matrix44::IDENTITY;
+	Matrix4						m_matrix = Matrix4::IDENTITY;
 	std::vector<RenderableDraw>		m_draws;
 
 };

@@ -85,7 +85,7 @@ Vector3 OBB3::GetMaxsWs() const
 //-------------------------------------------------------------------------------------------------
 Vector3 OBB3::GetRightVector() const
 {
-	Matrix44 rotAsMatrix = Matrix44::MakeRotation(rotation);
+	Matrix4 rotAsMatrix = Matrix4::MakeRotation(rotation);
 	return rotAsMatrix.GetIVector().xyz();
 }
 
@@ -93,7 +93,7 @@ Vector3 OBB3::GetRightVector() const
 //-------------------------------------------------------------------------------------------------
 Vector3 OBB3::GetUpVector() const
 {
-	Matrix44 rotAsMatrix = Matrix44::MakeRotation(rotation);
+	Matrix4 rotAsMatrix = Matrix4::MakeRotation(rotation);
 	return rotAsMatrix.GetJVector().xyz();
 }
 
@@ -101,15 +101,15 @@ Vector3 OBB3::GetUpVector() const
 //-------------------------------------------------------------------------------------------------
 Vector3 OBB3::GetForwardVector() const
 {
-	Matrix44 rotAsMatrix = Matrix44::MakeRotation(rotation);
+	Matrix4 rotAsMatrix = Matrix4::MakeRotation(rotation);
 	return rotAsMatrix.GetKVector().xyz();
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44 OBB3::GetModelMatrix() const
+Matrix4 OBB3::GetModelMatrix() const
 {
-	return Matrix44::MakeModelMatrix(center, rotation.GetAsEulerAngles(), extents);
+	return Matrix4::MakeModelMatrix(center, rotation.GetAsEulerAngles(), extents);
 }
 
 

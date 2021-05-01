@@ -27,9 +27,9 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 struct CameraUBOLayout
 {
-	Matrix44	m_cameraMatrix;
-	Matrix44	m_viewMatrix;
-	Matrix44	m_projectionMatrix;
+	Matrix4	m_cameraMatrix;
+	Matrix4	m_viewMatrix;
+	Matrix4	m_projectionMatrix;
 	float		m_viewportTopLeftX;
 	float		m_viewportTopLeftY;
 	float		m_viewportWidth;
@@ -46,9 +46,9 @@ struct CameraUBOLayout
 
 //-------------------------------------------------------------------------------------------------
 // Quick Matrix invert for look-at matrices
-static Matrix44 InvertLookAtMatrix(const Matrix44& lookAt)
+static Matrix4 InvertLookAtMatrix(const Matrix4& lookAt)
 {
-	Matrix44 rotation = lookAt;
+	Matrix4 rotation = lookAt;
 
 	rotation.Tx = 0.f;
 	rotation.Ty = 0.f;
@@ -56,7 +56,7 @@ static Matrix44 InvertLookAtMatrix(const Matrix44& lookAt)
 
 	rotation.Transpose();
 
-	Matrix44 translation = Matrix44::MakeTranslation(Vector3(-lookAt.Tx, -lookAt.Ty, -lookAt.Tz));
+	Matrix4 translation = Matrix4::MakeTranslation(Vector3(-lookAt.Tx, -lookAt.Ty, -lookAt.Tz));
 	rotation.Append(translation);
 
 	return rotation;
@@ -150,7 +150,7 @@ void Camera::SetRotation(const Vector3& rotation)
 
 
 //-------------------------------------------------------------------------------------------------
-void Camera::SetProjection(CameraProjection projectionType, const Matrix44& projection)
+void Camera::SetProjection(CameraProjection projectionType, const Matrix4& projection)
 {
 	m_currentProjection = projectionType;
 	m_projectionMatrix = projection;
@@ -164,7 +164,7 @@ void Camera::SetProjectionOrthographic(float orthoHeight, float aspect)
 	m_orthoBounds.maxs = Vector2(orthoHeight * aspect, orthoHeight);
 	m_nearClipZ = -1.0f;
 	m_farClipZ = 1.0f;
-	m_projectionMatrix = Matrix44::MakeOrtho(m_orthoBounds.mins, m_orthoBounds.maxs, m_nearClipZ, m_farClipZ);
+	m_projectionMatrix = Matrix4::MakeOrtho(m_orthoBounds.mins, m_orthoBounds.maxs, m_nearClipZ, m_farClipZ);
 	m_currentProjection = CAMERA_PROJECTION_ORTHOGRAPHIC;
 }
 
@@ -177,7 +177,7 @@ void Camera::SetProjectionPerspective(float fovDegrees, float nearZ, float farZ)
 	m_farClipZ = farZ;
 
 	float aspect = g_window->GetClientAspect();
-	m_projectionMatrix = Matrix44::MakePerspective(fovDegrees, aspect, nearZ, farZ);
+	m_projectionMatrix = Matrix4::MakePerspective(fovDegrees, aspect, nearZ, farZ);
 	m_currentProjection = CAMERA_PROJECTION_PERSPECTIVE;
 }
 
@@ -215,7 +215,7 @@ void Camera::Rotate(const Vector3& deltaEulerAnglesDegrees)
 //-------------------------------------------------------------------------------------------------
 void Camera::LookAt(const Vector3& position, const Vector3& target, const Vector3& up /*= Vector3::Y_AXIS*/)
 {
-	Matrix44 cameraMatrix = Matrix44::MakeLookAt(position, target, up);
+	Matrix4 cameraMatrix = Matrix4::MakeLookAt(position, target, up);
 
 	m_transform.position = position;
 	m_transform.rotation = Quaternion::FromMatrix(cameraMatrix);
@@ -226,7 +226,7 @@ void Camera::LookAt(const Vector3& position, const Vector3& target, const Vector
 
 
 //-------------------------------------------------------------------------------------------------
-void Camera::SetCameraMatrix(const Matrix44& cameraMatrix)
+void Camera::SetCameraMatrix(const Matrix4& cameraMatrix)
 {
 	m_transform.SetLocalMatrix(cameraMatrix);
 	m_viewMatrix = InvertLookAtMatrix(cameraMatrix);
@@ -234,7 +234,7 @@ void Camera::SetCameraMatrix(const Matrix44& cameraMatrix)
 
 
 //-------------------------------------------------------------------------------------------------
-void Camera::SetViewMatrix(const Matrix44& viewMatrix)
+void Camera::SetViewMatrix(const Matrix4& viewMatrix)
 {
 	m_viewMatrix = viewMatrix;
 	m_transform.SetLocalMatrix(InvertLookAtMatrix(viewMatrix));
@@ -274,17 +274,17 @@ DepthStencilTargetView* Camera::GetDepthStencilTargetView()
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44 Camera::GetCameraMatrix()
+Matrix4 Camera::GetCameraMatrix()
 {
 	return m_transform.GetLocalToParentMatrix();
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44 Camera::GetViewMatrix()
+Matrix4 Camera::GetViewMatrix()
 {
 	// Matrix may be out of data - update to be sure
-	Matrix44 cameraMatrix = m_transform.GetLocalToParentMatrix();
+	Matrix4 cameraMatrix = m_transform.GetLocalToParentMatrix();
 	m_viewMatrix = InvertLookAtMatrix(cameraMatrix);
 
 	return m_viewMatrix;
@@ -292,7 +292,7 @@ Matrix44 Camera::GetViewMatrix()
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix44 Camera::GetProjectionMatrix() const
+Matrix4 Camera::GetProjectionMatrix() const
 {
 	return m_projectionMatrix;
 }

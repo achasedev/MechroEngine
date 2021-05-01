@@ -51,7 +51,7 @@ public:
 	Vector3		GetRightVector() const;
 	Vector3		GetUpVector() const;
 	Vector3		GetForwardVector() const;
-	Matrix44	GetModelMatrix() const;
+	Matrix4	GetModelMatrix() const;
 	Face3		GetFaceInDirection(const Vector3& direction) const;
 
 	void		GetFaceSupportPlanes(std::vector<Plane3>& out_planes) const;

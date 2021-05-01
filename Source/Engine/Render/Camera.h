@@ -9,7 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Math/AABB2.h"
-#include "Engine/Math/Matrix44.h"
+#include "Engine/Math/Matrix4.h"
 #include "Engine/Math/Transform.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -49,7 +49,7 @@ public:
 
 	void					SetRenderTarget(Texture2D* renderTarget, bool ownsTarget);
 	void					SetDepthTarget(Texture2D* depthTarget, bool ownsTarget);
-	void					SetProjection(CameraProjection projectionType, const Matrix44& projection);
+	void					SetProjection(CameraProjection projectionType, const Matrix4& projection);
 	void					SetProjectionOrthographic(float orthoHeight, float aspect);
 	void					SetProjectionPerspective(float fovDegrees, float nearZ, float farZ);
 	void					UpdateUBO();
@@ -61,8 +61,8 @@ public:
 
 	void					SetFOV(float fovDegrees) { m_fovDegrees = fovDegrees; }
 	void					LookAt(const Vector3& position, const Vector3& target, const Vector3& up = Vector3::Y_AXIS);
-	void					SetCameraMatrix(const Matrix44& cameraMatrix);
-	void					SetViewMatrix(const Matrix44& viewMatrix);
+	void					SetCameraMatrix(const Matrix4& cameraMatrix);
+	void					SetViewMatrix(const Matrix4& viewMatrix);
 
 	Texture2D*				GetRenderTarget() const;
 	Texture2D*				GetDepthTarget() const;
@@ -71,9 +71,9 @@ public:
 	RenderTargetView*		GetRenderTargetView();
 	DepthStencilTargetView*	GetDepthStencilTargetView();
 
-	Matrix44				GetCameraMatrix();
-	Matrix44				GetViewMatrix();
-	Matrix44				GetProjectionMatrix() const;
+	Matrix4				GetCameraMatrix();
+	Matrix4				GetViewMatrix();
+	Matrix4				GetProjectionMatrix() const;
 	AABB2					GetOrthoBounds() const;
 	
 	Vector3					GetPosition() const;
@@ -91,10 +91,10 @@ private:
 
 	// Model/View Data
 	Transform				m_transform;
-	Matrix44				m_viewMatrix;
+	Matrix4				m_viewMatrix;
 	
 	// Projection
-	Matrix44				m_projectionMatrix;
+	Matrix4				m_projectionMatrix;
 	AABB2					m_orthoBounds;
 	float					m_fovDegrees = 90.f;
 	float					m_nearClipZ = 0.f;
