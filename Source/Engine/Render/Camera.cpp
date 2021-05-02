@@ -144,7 +144,7 @@ void Camera::Translate(const Vector3& translation)
 //-------------------------------------------------------------------------------------------------
 void Camera::SetRotation(const Vector3& rotation)
 {
-	m_transform.rotation = Quaternion::FromEulerAngles(rotation);
+	m_transform.rotation = Quaternion::CreateFromEulerAngles(rotation);
 	m_viewMatrix = InvertLookAtMatrix(m_transform.GetLocalToWorldMatrix());
 }
 
@@ -207,7 +207,7 @@ void Camera::UpdateUBO()
 //-------------------------------------------------------------------------------------------------
 void Camera::Rotate(const Vector3& deltaEulerAnglesDegrees)
 {
-	m_transform.Rotate(deltaEulerAnglesDegrees);
+	m_transform.RotateDegrees(deltaEulerAnglesDegrees, RELATIVE_TO_SELF);
 	m_viewMatrix = InvertLookAtMatrix(m_transform.GetLocalToWorldMatrix());
 }
 

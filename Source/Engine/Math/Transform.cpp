@@ -39,7 +39,7 @@ Transform::Transform()
 
 //-------------------------------------------------------------------------------------------------
 Transform::Transform(const Vector3& startPosition, const Vector3& startRotation, const Vector3& startScale)
-	: position(startPosition), rotation(Quaternion::FromEulerAngles(startRotation)), scale(startScale)
+	: position(startPosition), rotation(Quaternion::CreateFromEulerAngles(startRotation)), scale(startScale)
 {
 	UpdateLocalMatrix(true);
 }
@@ -66,7 +66,7 @@ void Transform::SetPosition(const Vector3& newPosition)
 //-------------------------------------------------------------------------------------------------
 void Transform::SetRotation(const Vector3& newRotation)
 {
-	rotation = Quaternion::FromEulerAngles(newRotation);
+	rotation = Quaternion::CreateFromEulerAngles(newRotation);
 }
 
 
@@ -78,7 +78,7 @@ void Transform::SetScale(const Vector3& newScale)
 
 
 //-------------------------------------------------------------------------------------------------
-void Transform::Translate(const Vector3& translation, TransformRelation relativeTo /*= RELATIVE_TO_SELF*/)
+void Transform::Translate(const Vector3& translation, TransformRelativeTo relativeTo /*= RELATIVE_TO_SELF*/)
 {
 	switch (relativeTo)
 	{
@@ -106,7 +106,7 @@ void Transform::Translate(const Vector3& translation, TransformRelation relative
 
 
 //-------------------------------------------------------------------------------------------------
-void Transform::Translate(float xTranslation, float yTranslation, float zTranslation, TransformRelation relativeTo /*= RELATIVE_TO_SELF*/)
+void Transform::Translate(float xTranslation, float yTranslation, float zTranslation, TransformRelativeTo relativeTo /*= RELATIVE_TO_SELF*/)
 {
 	Translate(Vector3(xTranslation, yTranslation, zTranslation), relativeTo);
 }
@@ -157,23 +157,61 @@ void Transform::SetParentTransform(const Transform* parent, bool keepWorldPosRot
 
 
 //-------------------------------------------------------------------------------------------------
-void Transform::Rotate(const Vector3& deltaRotation)
+void Transform::RotateDegrees(float xDegrees, float yDegrees, float zDegrees, TransformRelativeTo relativeTo /*= RELATIVE_TO_SELF*/)
 {
-	Rotate(Quaternion::FromEulerAngles(deltaRotation));
+	RotateDegrees(Vector3(xDegrees, yDegrees, zDegrees), relativeTo);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void Transform::Rotate(const Quaternion& deltaRotation)
+void Transform::RotateDegrees(const Vector3& rotationDegrees, TransformRelativeTo relativeTo /*= RELATIVE_TO_SELF*/)
 {
-	rotation *= deltaRotation;
+	Rotate(Quaternion::CreateFromEulerAngles(rotationDegrees), relativeTo);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void Transform::Rotate(float xRotation, float yRotation, float zRotation)
+void Transform::RotateRadians(float xRadians, float yRadians, float zRadians, TransformRelativeTo relativeTo /*= RELATIVE_TO_SELF*/)
 {
-	Rotate(Vector3(xRotation, yRotation, zRotation));
+	RotateRadians(Vector3(xRadians, yRadians, zRadians), relativeTo);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Transform::RotateRadians(const Vector3& rotationRadians, TransformRelativeTo relativeTo /*= RELATIVE_TO_SELF*/)
+{
+	Rotate(Quaternion::CreateFromRadianAngles(rotationRadians), relativeTo);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Transform::Rotate(const Quaternion& deltaRotation, TransformRelativeTo relativeTo /*= RELATIVE_TO_SELF*/)
+{
+	switch (relativeTo)
+	{
+	case RELATIVE_TO_SELF:
+		rotation *= deltaRotation;
+		break;
+	case RELATIVE_TO_PARENT:
+		rotation = deltaRotation * rotation;
+		break;
+	case RELATIVE_TO_WORLD:
+		if (m_parentTransform == nullptr)
+		{
+			rotation = deltaRotation * rotation;
+		}
+		else
+		{
+			Quaternion parentWorldRotation = m_parentTransform->GetWorldRotation();
+			Quaternion invParentWorldRotation = parentWorldRotation.GetInverse();
+			Quaternion newWorldRotation = deltaRotation * parentWorldRotation * rotation;
+			rotation = invParentWorldRotation * newWorldRotation;
+		}
+		break;
+	default:
+		ERROR_AND_DIE("Bad enum!");
+		break;
+	}
 }
 
 
@@ -282,20 +320,15 @@ Vector3 Transform::GetWorldPosition() const
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Transform::GetWorldRotationDegrees() const
-{
-	UpdateLocalMatrix();
-
-	Matrix4 toWorldMatrix = GetLocalToWorldMatrix();
-	return Matrix4::ExtractRotationDegrees(toWorldMatrix);
-}
-
-
-//-------------------------------------------------------------------------------------------------
 Quaternion Transform::GetWorldRotation() const
 {
-	Vector3 worldDegrees = GetWorldRotationDegrees();
-	return Quaternion::FromEulerAngles(worldDegrees);
+	if (m_parentTransform != nullptr)
+	{
+		Quaternion parentWorldRotation = GetWorldRotation();
+		return parentWorldRotation * rotation;
+	}
+
+	return rotation;
 }
 
 

@@ -75,7 +75,8 @@ DebugRenderTransform::DebugRenderTransform(const Transform& transform, const Deb
 //-------------------------------------------------------------------------------------------------
 void DebugRenderTransform::Render() const
 {
-	g_renderContext->DrawTransform(m_transform, 1.0f, g_debugRenderSystem->GetShader());
+	Shader* shader = g_resourceSystem->CreateOrGetShader("Data/Shader/default_opaque.shader");
+	g_renderContext->DrawTransform(m_transform, 1.0f, shader);
 }
 
 

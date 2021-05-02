@@ -33,7 +33,7 @@
 
 //-------------------------------------------------------------------------------------------------
 OBB3::OBB3(const Vector3& center, const Vector3& extents, const Vector3& rotationDegrees)
-	: center(center), extents(extents), rotation(Quaternion::FromEulerAngles(rotationDegrees))
+	: center(center), extents(extents), rotation(Quaternion::CreateFromEulerAngles(rotationDegrees))
 {
 }
 
@@ -57,28 +57,28 @@ void OBB3::GetPoints(Vector3 out_points[8]) const
 	//out_points[6] = rotation.RotatePoint(center) + Vector3(-extents.x, extents.y, extents.z);	// Left, Top, Front
 	//out_points[7] = rotation.RotatePoint(center) + Vector3(-extents.x, -extents.y, extents.z);	// Left, Bottom, Front
 
-	out_points[0] = center + rotation.Rotate(Vector3(-extents.x, -extents.y, -extents.z)); // Left, Bottom, Back
-	out_points[1] = center + rotation.Rotate(Vector3(-extents.x, extents.y, -extents.z));	// Left, Top, Back
-	out_points[2] = center + rotation.Rotate(Vector3(extents.x, extents.y, -extents.z));	// Right, Top, Back 
-	out_points[3] = center + rotation.Rotate(Vector3(extents.x, -extents.y, -extents.z));	// Right, Bottom, Back
-	out_points[4] = center + rotation.Rotate(Vector3(extents.x, -extents.y, extents.z));	// Right, Bottom, Front
-	out_points[5] = center + rotation.Rotate(Vector3(extents.x, extents.y, extents.z));	// Right, Top, Front
-	out_points[6] = center + rotation.Rotate(Vector3(-extents.x, extents.y, extents.z));	// Left, Top, Front
-	out_points[7] = center + rotation.Rotate(Vector3(-extents.x, -extents.y, extents.z));	// Left, Bottom, Front
+	out_points[0] = center + rotation.RotatePoint(Vector3(-extents.x, -extents.y, -extents.z)); // Left, Bottom, Back
+	out_points[1] = center + rotation.RotatePoint(Vector3(-extents.x, extents.y, -extents.z));	// Left, Top, Back
+	out_points[2] = center + rotation.RotatePoint(Vector3(extents.x, extents.y, -extents.z));	// Right, Top, Back 
+	out_points[3] = center + rotation.RotatePoint(Vector3(extents.x, -extents.y, -extents.z));	// Right, Bottom, Back
+	out_points[4] = center + rotation.RotatePoint(Vector3(extents.x, -extents.y, extents.z));	// Right, Bottom, Front
+	out_points[5] = center + rotation.RotatePoint(Vector3(extents.x, extents.y, extents.z));	// Right, Top, Front
+	out_points[6] = center + rotation.RotatePoint(Vector3(-extents.x, extents.y, extents.z));	// Left, Top, Front
+	out_points[7] = center + rotation.RotatePoint(Vector3(-extents.x, -extents.y, extents.z));	// Left, Bottom, Front
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Vector3 OBB3::GetMinsWs() const
 {
-	return rotation.Rotate(center - extents);
+	return rotation.RotatePoint(center - extents);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Vector3 OBB3::GetMaxsWs() const
 {
-	return rotation.Rotate(center + extents);
+	return rotation.RotatePoint(center + extents);
 }
 
 

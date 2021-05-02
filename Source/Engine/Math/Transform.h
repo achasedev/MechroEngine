@@ -19,7 +19,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-enum TransformRelation
+enum TransformRelativeTo
 {
 	RELATIVE_TO_SELF,
 	RELATIVE_TO_PARENT,
@@ -53,11 +53,15 @@ public:
 	void SetRotation(const Vector3& newRotation);
 	void SetScale(const Vector3& newScale);
 
-	void Translate(float xTranslation, float yTranslation, float zTranslation, TransformRelation relativeTo = RELATIVE_TO_SELF);
-	void Translate(const Vector3& translation, TransformRelation relativeTo = RELATIVE_TO_SELF);
-	void Rotate(float xRotation, float yRotation, float zRotation);
-	void Rotate(const Vector3& deltaRotation);
-	void Rotate(const Quaternion& deltaRotation);
+	void Translate(float xTranslation, float yTranslation, float zTranslation, TransformRelativeTo relativeTo = RELATIVE_TO_SELF);
+	void Translate(const Vector3& translation, TransformRelativeTo relativeTo = RELATIVE_TO_SELF);
+
+	void RotateDegrees(float xDegrees, float yDegrees, float zDegrees, TransformRelativeTo relativeTo = RELATIVE_TO_SELF);
+	void RotateRadians(float xRadians, float yRadians, float zRadians, TransformRelativeTo relativeTo = RELATIVE_TO_SELF);
+	void RotateDegrees(const Vector3& rotationDegrees, TransformRelativeTo relativeTo = RELATIVE_TO_SELF);
+	void RotateRadians(const Vector3& rotationRadians, TransformRelativeTo relativeTo = RELATIVE_TO_SELF);
+	void Rotate(const Quaternion& rotation, TransformRelativeTo relativeTo = RELATIVE_TO_SELF);
+
 	void Scale(float xScale, float yScale, float zScale);
 	void Scale(const Vector3& axisScalars);
 	void Scale(float uniformScale);
@@ -79,7 +83,6 @@ public:
 	Vector3 GetKVector() const;
 
 	Vector3 GetWorldPosition() const;
-	Vector3 GetWorldRotationDegrees() const;
 	Quaternion GetWorldRotation() const;
 	Vector3 GetWorldScale() const;
 
@@ -110,7 +113,7 @@ private:
 	mutable Vector3		m_oldPosition = Vector3::ZERO;
 	mutable Quaternion	m_oldRotation = Quaternion::IDENTITY;
 	mutable Vector3		m_oldScale = Vector3::ONES;
-	mutable Matrix4	m_localMatrix = Matrix4::IDENTITY;
+	mutable Matrix4		m_localMatrix = Matrix4::IDENTITY;
 	
 	const Transform* m_parentTransform = nullptr;
 

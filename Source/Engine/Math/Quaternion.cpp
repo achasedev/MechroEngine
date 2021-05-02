@@ -54,8 +54,8 @@ Quaternion::Quaternion(const Quaternion& copy)
 
 
 //-------------------------------------------------------------------------------------------------
-Quaternion::Quaternion(float scalar, float x, float y, float z)
-	: v(Vector3(x, y, z)), real(scalar)
+Quaternion::Quaternion(float _real, float vx, float vy, float vz)
+	: v(Vector3(vx, vy, vz)), real(_real)
 {
 }
 
@@ -174,10 +174,26 @@ void Quaternion::operator=(const Quaternion& copy)
 //-------------------------------------------------------------------------------------------------
 float Quaternion::GetMagnitude() const
 {
-	float squaredNorm = (real * real) + (v.x * v.x) + (v.y * v.y) + (v.z * v.z);
-	float magnitude = sqrtf(squaredNorm);
+	return sqrtf(GetMagnitudeSquared());
+}
 
-	return magnitude;
+
+//-------------------------------------------------------------------------------------------------
+float Quaternion::GetMagnitudeSquared() const
+{
+	return (real * real) + (v.x * v.x) + (v.y * v.y) + (v.z * v.z);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float Quaternion::DecomposeIntoAxisAndRadianAngle(Vector3& out_axis) const
+{
+	float magnitude = GetMagnitude();
+	ASSERT_RETURN(magnitude > 0.f, 0.f, "Degenerate Quaternion!");
+	float invMag = 1.0f / magnitude;
+
+	out_axis = (invMag * v).GetNormalized();
+	return 2.f * acosf(real);
 }
 
 
@@ -267,16 +283,30 @@ float Quaternion::GetAngleBetweenDegrees(const Quaternion& a, const Quaternion& 
 
 
 //-------------------------------------------------------------------------------------------------
-Quaternion Quaternion::FromEulerAngles(const Vector3& eulerAnglesDegrees)
+Quaternion Quaternion::CreateFromEulerAngles(const Vector3& eulerAnglesDegrees)
 {
-	const Vector3 he = 0.5f * eulerAnglesDegrees;
+	return CreateFromRadianAngles(DegreesToRadians(eulerAnglesDegrees));
+}
 
-	float cx = CosDegrees(he.x);
-	float sx = SinDegrees(he.x);
-	float cy = CosDegrees(he.y);
-	float sy = SinDegrees(he.y);
-	float cz = CosDegrees(he.z);
-	float sz = SinDegrees(he.z);
+
+//-------------------------------------------------------------------------------------------------
+Quaternion Quaternion::CreateFromEulerAngles(float xDegrees, float yDegrees, float zDegrees)
+{
+	return CreateFromEulerAngles(Vector3(xDegrees, yDegrees, zDegrees));
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Quaternion Quaternion::CreateFromRadianAngles(const Vector3& radianAngles)
+{
+	const Vector3 he = 0.5f * radianAngles;
+
+	float cx = cosf(he.x);
+	float sx = sinf(he.x);
+	float cy = cosf(he.y);
+	float sy = sinf(he.y);
+	float cz = cosf(he.z);
+	float sz = sinf(he.z);
 
 	float r = cx * cy*cz + sx * sy*sz;
 	float ix = sx * cy*cz + cx * sy*sz;
@@ -292,10 +322,35 @@ Quaternion Quaternion::FromEulerAngles(const Vector3& eulerAnglesDegrees)
 
 
 //-------------------------------------------------------------------------------------------------
+Quaternion Quaternion::CreateFromRadianAngles(float xRadians, float yRadians, float zRadians)
+{
+	return CreateFromRadianAngles(Vector3(xRadians, yRadians, zRadians));
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Quaternion Quaternion::CreateFromAxisAndRadianAngle(const Vector3& axis, float radians)
+{
+	float he = 0.5f * radians;
+	float real = cosf(he);
+	Vector3 vector = axis.GetNormalized() * sinf(he);
+
+	return Quaternion(real, vector);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Quaternion Quaternion::CreateFromAxisAndDegreeAngle(const Vector3& axis, float degrees)
+{
+	return CreateFromAxisAndRadianAngle(axis, DegreesToRadians(degrees));
+}
+
+
+//-------------------------------------------------------------------------------------------------
 Quaternion Quaternion::FromMatrix(const Matrix4& rotationMatrix)
 {
 	// TODO: Faster way to do this?
-	return Quaternion::FromEulerAngles(Matrix4::ExtractRotationDegrees(rotationMatrix));
+	return Quaternion::CreateFromEulerAngles(Matrix4::ExtractRotationDegrees(rotationMatrix));
 }
 
 
