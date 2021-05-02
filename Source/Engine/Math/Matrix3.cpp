@@ -67,6 +67,13 @@ Matrix3::Matrix3(const Matrix3& other)
 
 
 //-------------------------------------------------------------------------------------------------
+Matrix3::Matrix3(const Quaternion& quaternion)
+{
+	SetFromQuaternion(quaternion);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 bool Matrix3::operator==(const Matrix3& other) const
 {
 	return (iBasis == other.iBasis) && (jBasis == other.jBasis) && (kBasis == other.kBasis);
@@ -144,6 +151,23 @@ void Matrix3::Invert()
 	data[6] = invDet * (old.data[3] * old.data[7] - old.data[4] * old.data[6]);
 	data[7] = invDet * (t5 - old.data[0] * old.data[7]);
 	data[8] = invDet * (t1 - t3);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Matrix3::SetFromQuaternion(const Quaternion& q)
+{
+	Ix = 1.f - 2.f * (q.y * q.y + q.z * q.z);
+	Iy = 2.f * (q.x * q.y - q.z * q.w);
+	Iz = 2.f * (q.x * q.z + q.y * q.w);
+
+	Jx = 2.f * (q.x * q.y + q.z * q.w);
+	Jy = 1.f - 2.f * (q.x * q.x + q.z * q.z);
+	Jz = 2.f * (q.y * q.z - q.x * q.w);
+
+	Kx = 2.f * (q.x * q.z - q.y * q.w);
+	Ky = 2.f * (q.y * q.z + q.x * q.w);
+	Kz = 1.f - 2.f * (q.x * q.x + q.y * q.y);
 }
 
 

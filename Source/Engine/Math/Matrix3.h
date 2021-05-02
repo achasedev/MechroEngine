@@ -47,6 +47,7 @@ public:
 
 	void	Transpose();
 	void	Invert();
+	void	SetFromQuaternion(const Quaternion& quaternion);
 
 	Matrix3 GetTranspose() const;
 	Matrix3 GetInverse() const;

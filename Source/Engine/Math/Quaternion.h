@@ -18,6 +18,7 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Matrix4;
+class ScaledAxisRotation;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -26,6 +27,7 @@ class Matrix4;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#pragma warning(disable : 4201) // Keep the structs anonymous
 
 //-------------------------------------------------------------------------------------------------
 class Quaternion
@@ -58,7 +60,7 @@ public:
 	Quaternion			GetNormalized() const;
 	Quaternion			GetConjugate() const;
 	Quaternion			GetInverse() const;
-	Vector3				GetAsEulerAngles() const;
+	Vector3				GetAsEulerAnglesDegrees() const;
 
 	void				Normalize();
 	void				ConvertToUnitNorm();
@@ -66,12 +68,14 @@ public:
 	Vector3				RotatePoint(const Vector3& point) const;
 
 	// "CreateFromXAngles" are angle representations about the standard x, y, and z axes
-	static Quaternion	CreateFromEulerAngles(float xDegrees, float yDegrees, float zDegrees);
-	static Quaternion	CreateFromEulerAngles(const Vector3& eulerAnglesDegrees);
-	static Quaternion	CreateFromRadianAngles(float xRadians, float yRadians, float zRadians);
-	static Quaternion	CreateFromRadianAngles(const Vector3& radianAngles);
+	static Quaternion	CreateFromEulerAnglesDegrees(float xDegrees, float yDegrees, float zDegrees);
+	static Quaternion	CreateFromEulerAnglesDegrees(const Vector3& eulerAnglesDegrees);
+	static Quaternion	CreateFromEulerAnglesRadians(float xRadians, float yRadians, float zRadians);
+	static Quaternion	CreateFromEulerAnglesRadians(const Vector3& radianAngles);
 	static Quaternion	CreateFromAxisAndRadianAngle(const Vector3& axis, float radians);
 	static Quaternion	CreateFromAxisAndDegreeAngle(const Vector3& axis, float degrees);
+	static Quaternion	CreateFromScaledAxisDegrees(const ScaledAxisRotation& scaledAxisDegrees);
+	static Quaternion	CreateFromScaledAxisRadians(const ScaledAxisRotation& scaledAxisRadians);
 
 	static Quaternion	FromMatrix(const Matrix4& rotationMatrix);
 
@@ -84,14 +88,30 @@ public:
 public:
 	//-----Public Data-----
 
-	Vector3 v;
-	float real;
+	union
+	{
+		struct  
+		{
+			float real;
+			Vector3 v;
+		};
+
+		struct  
+		{
+			float w;
+			float x;
+			float y;
+			float z;
+		};
+
+	};
 
 	// Statics
 	static const Quaternion IDENTITY;
 
 };
 
+#pragma warning(default : 4201)
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

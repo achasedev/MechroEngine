@@ -144,7 +144,7 @@ void Camera::Translate(const Vector3& translation)
 //-------------------------------------------------------------------------------------------------
 void Camera::SetRotation(const Vector3& rotation)
 {
-	m_transform.rotation = Quaternion::CreateFromEulerAngles(rotation);
+	m_transform.rotation = Quaternion::CreateFromEulerAnglesDegrees(rotation);
 	m_viewMatrix = InvertLookAtMatrix(m_transform.GetLocalToWorldMatrix());
 }
 
@@ -316,7 +316,7 @@ Vector3 Camera::GetPosition() const
 //-------------------------------------------------------------------------------------------------
 Vector3 Camera::GetRotation() const
 {
-	return m_transform.rotation.GetAsEulerAngles();
+	return m_transform.rotation.GetAsEulerAnglesDegrees();
 }
 
 

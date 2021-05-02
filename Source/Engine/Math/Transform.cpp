@@ -39,7 +39,7 @@ Transform::Transform()
 
 //-------------------------------------------------------------------------------------------------
 Transform::Transform(const Vector3& startPosition, const Vector3& startRotation, const Vector3& startScale)
-	: position(startPosition), rotation(Quaternion::CreateFromEulerAngles(startRotation)), scale(startScale)
+	: position(startPosition), rotation(Quaternion::CreateFromEulerAnglesDegrees(startRotation)), scale(startScale)
 {
 	UpdateLocalMatrix(true);
 }
@@ -66,7 +66,7 @@ void Transform::SetPosition(const Vector3& newPosition)
 //-------------------------------------------------------------------------------------------------
 void Transform::SetRotation(const Vector3& newRotation)
 {
-	rotation = Quaternion::CreateFromEulerAngles(newRotation);
+	rotation = Quaternion::CreateFromEulerAnglesDegrees(newRotation);
 }
 
 
@@ -166,7 +166,7 @@ void Transform::RotateDegrees(float xDegrees, float yDegrees, float zDegrees, Tr
 //-------------------------------------------------------------------------------------------------
 void Transform::RotateDegrees(const Vector3& rotationDegrees, TransformRelativeTo relativeTo /*= RELATIVE_TO_SELF*/)
 {
-	Rotate(Quaternion::CreateFromEulerAngles(rotationDegrees), relativeTo);
+	Rotate(Quaternion::CreateFromEulerAnglesDegrees(rotationDegrees), relativeTo);
 }
 
 
@@ -180,7 +180,7 @@ void Transform::RotateRadians(float xRadians, float yRadians, float zRadians, Tr
 //-------------------------------------------------------------------------------------------------
 void Transform::RotateRadians(const Vector3& rotationRadians, TransformRelativeTo relativeTo /*= RELATIVE_TO_SELF*/)
 {
-	Rotate(Quaternion::CreateFromRadianAngles(rotationRadians), relativeTo);
+	Rotate(Quaternion::CreateFromEulerAnglesRadians(rotationRadians), relativeTo);
 }
 
 

@@ -33,7 +33,7 @@
 
 //-------------------------------------------------------------------------------------------------
 OBB3::OBB3(const Vector3& center, const Vector3& extents, const Vector3& rotationDegrees)
-	: center(center), extents(extents), rotation(Quaternion::CreateFromEulerAngles(rotationDegrees))
+	: center(center), extents(extents), rotation(Quaternion::CreateFromEulerAnglesDegrees(rotationDegrees))
 {
 }
 
@@ -109,7 +109,7 @@ Vector3 OBB3::GetForwardVector() const
 //-------------------------------------------------------------------------------------------------
 Matrix4 OBB3::GetModelMatrix() const
 {
-	return Matrix4::MakeModelMatrix(center, rotation.GetAsEulerAngles(), extents);
+	return Matrix4::MakeModelMatrix(center, rotation.GetAsEulerAnglesDegrees(), extents);
 }
 
 

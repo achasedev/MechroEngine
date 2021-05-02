@@ -167,6 +167,7 @@
     <ClCompile Include="Event\EventSystem.cpp" />
     <ClCompile Include="Core\ConsoleCommand.cpp" />
     <ClCompile Include="Math\Matrix3.cpp" />
+    <ClCompile Include="Math\ScaledAxisRotation.cpp" />
     <ClCompile Include="Physics\Particle\Particle.cpp" />
     <ClCompile Include="Physics\Particle\ParticleAnchoredSpring.cpp" />
     <ClCompile Include="Physics\Particle\ParticleAnchoredBungee.cpp" />
@@ -273,6 +274,7 @@
     <ClInclude Include="Core\ConsoleCommand.h" />
     <ClInclude Include="Core\CommentSnippets.h" />
     <ClInclude Include="Math\Matrix3.h" />
+    <ClInclude Include="Math\ScaledAxisRotation.h" />
     <ClInclude Include="Physics\Particle\Particle.h" />
     <ClInclude Include="Physics\Particle\ParticleAnchoredBungee.h" />
     <ClInclude Include="Physics\Particle\ParticleAnchoredSpring.h" />

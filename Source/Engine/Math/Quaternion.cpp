@@ -9,6 +9,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Math/Matrix4.h"
+#include "Engine/Math/ScaledAxisRotation.h"
 #include "Engine/Math/Quaternion.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -230,7 +231,7 @@ Quaternion Quaternion::GetInverse() const
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Quaternion::GetAsEulerAngles() const
+Vector3 Quaternion::GetAsEulerAnglesDegrees() const
 {
 	Matrix4 matrix = Matrix4::MakeRotation(*this);
 	Vector3 eulerAngles = Matrix4::ExtractRotationDegrees(matrix);
@@ -283,21 +284,21 @@ float Quaternion::GetAngleBetweenDegrees(const Quaternion& a, const Quaternion& 
 
 
 //-------------------------------------------------------------------------------------------------
-Quaternion Quaternion::CreateFromEulerAngles(const Vector3& eulerAnglesDegrees)
+Quaternion Quaternion::CreateFromEulerAnglesDegrees(const Vector3& eulerAnglesDegrees)
 {
-	return CreateFromRadianAngles(DegreesToRadians(eulerAnglesDegrees));
+	return CreateFromEulerAnglesRadians(DegreesToRadians(eulerAnglesDegrees));
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Quaternion Quaternion::CreateFromEulerAngles(float xDegrees, float yDegrees, float zDegrees)
+Quaternion Quaternion::CreateFromEulerAnglesDegrees(float xDegrees, float yDegrees, float zDegrees)
 {
-	return CreateFromEulerAngles(Vector3(xDegrees, yDegrees, zDegrees));
+	return CreateFromEulerAnglesDegrees(Vector3(xDegrees, yDegrees, zDegrees));
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Quaternion Quaternion::CreateFromRadianAngles(const Vector3& radianAngles)
+Quaternion Quaternion::CreateFromEulerAnglesRadians(const Vector3& radianAngles)
 {
 	const Vector3 he = 0.5f * radianAngles;
 
@@ -322,9 +323,9 @@ Quaternion Quaternion::CreateFromRadianAngles(const Vector3& radianAngles)
 
 
 //-------------------------------------------------------------------------------------------------
-Quaternion Quaternion::CreateFromRadianAngles(float xRadians, float yRadians, float zRadians)
+Quaternion Quaternion::CreateFromEulerAnglesRadians(float xRadians, float yRadians, float zRadians)
 {
-	return CreateFromRadianAngles(Vector3(xRadians, yRadians, zRadians));
+	return CreateFromEulerAnglesRadians(Vector3(xRadians, yRadians, zRadians));
 }
 
 
@@ -347,10 +348,30 @@ Quaternion Quaternion::CreateFromAxisAndDegreeAngle(const Vector3& axis, float d
 
 
 //-------------------------------------------------------------------------------------------------
+Quaternion Quaternion::CreateFromScaledAxisDegrees(const ScaledAxisRotation& scaledAxisDegrees)
+{
+	Vector3 axis = scaledAxisDegrees.data;
+	float angleDegrees = axis.Normalize();
+
+	return CreateFromAxisAndDegreeAngle(axis, angleDegrees);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Quaternion Quaternion::CreateFromScaledAxisRadians(const ScaledAxisRotation& scaledAxisRadians)
+{
+	Vector3 axis = scaledAxisRadians.data;
+	float angleRadians = axis.Normalize();
+
+	return CreateFromAxisAndRadianAngle(axis, angleRadians);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 Quaternion Quaternion::FromMatrix(const Matrix4& rotationMatrix)
 {
 	// TODO: Faster way to do this?
-	return Quaternion::CreateFromEulerAngles(Matrix4::ExtractRotationDegrees(rotationMatrix));
+	return Quaternion::CreateFromEulerAnglesDegrees(Matrix4::ExtractRotationDegrees(rotationMatrix));
 }
 
 
