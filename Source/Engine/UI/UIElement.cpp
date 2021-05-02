@@ -452,7 +452,7 @@ Matrix4 UIElement::CreateModelMatrix(const OBB2& finalBounds) const
 	Vector2 recenter = -1.0f * (finalBounds.m_alignedBounds.GetCenter() - finalBounds.m_alignedBounds.GetBottomLeft());
 
 	Matrix4 scaleMat = Matrix4::MakeScale(scale);
-	Matrix4 rotationMat = Matrix4::MakeTranslation(Vector3(-1.0f * recenter, 0.f)) * Matrix4::MakeRotation(rotation) * Matrix4::MakeTranslation(Vector3(recenter, 0.f));
+	Matrix4 rotationMat = Matrix4::MakeTranslation(Vector3(-1.0f * recenter, 0.f)) * Matrix4::MakeRotationFromEulerAnglesDegrees(rotation) * Matrix4::MakeTranslation(Vector3(recenter, 0.f));
 	Matrix4 translationMat = Matrix4::MakeTranslation(translation);
 
 	return translationMat * rotationMat * scaleMat;

@@ -8,6 +8,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Math/MathUtils.h"
+#include "Engine/Math/Matrix3.h"
 #include "Engine/Math/Matrix4.h"
 #include "Engine/Math/ScaledAxisRotation.h"
 #include "Engine/Math/Quaternion.h"
@@ -233,10 +234,8 @@ Quaternion Quaternion::GetInverse() const
 //-------------------------------------------------------------------------------------------------
 Vector3 Quaternion::GetAsEulerAnglesDegrees() const
 {
-	Matrix4 matrix = Matrix4::MakeRotation(*this);
-	Vector3 eulerAngles = Matrix4::ExtractRotationDegrees(matrix);
-
-	return eulerAngles;
+	Matrix3 matrix(*this);
+	return Matrix3::ExtractRotationAsEulerAnglesDegrees(matrix);;
 }
 
 
@@ -371,7 +370,7 @@ Quaternion Quaternion::CreateFromScaledAxisRadians(const ScaledAxisRotation& sca
 Quaternion Quaternion::FromMatrix(const Matrix4& rotationMatrix)
 {
 	// TODO: Faster way to do this?
-	return Quaternion::CreateFromEulerAnglesDegrees(Matrix4::ExtractRotationDegrees(rotationMatrix));
+	return Quaternion::CreateFromEulerAnglesDegrees(Matrix4::ExtractRotationAsEulerAnglesDegrees(rotationMatrix));
 }
 
 

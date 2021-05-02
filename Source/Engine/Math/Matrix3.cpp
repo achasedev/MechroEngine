@@ -158,15 +158,15 @@ void Matrix3::Invert()
 void Matrix3::SetFromQuaternion(const Quaternion& q)
 {
 	Ix = 1.f - 2.f * (q.y * q.y + q.z * q.z);
-	Iy = 2.f * (q.x * q.y - q.z * q.w);
-	Iz = 2.f * (q.x * q.z + q.y * q.w);
+	Iy = 2.f * (q.x * q.y + q.z * q.w);
+	Iz = 2.f * (q.x * q.z - q.y * q.w);
 
-	Jx = 2.f * (q.x * q.y + q.z * q.w);
+	Jx = 2.f * (q.x * q.y - q.z * q.w);
 	Jy = 1.f - 2.f * (q.x * q.x + q.z * q.z);
-	Jz = 2.f * (q.y * q.z - q.x * q.w);
+	Jz = 2.f * (q.y * q.z + q.x * q.w);
 
-	Kx = 2.f * (q.x * q.z - q.y * q.w);
-	Ky = 2.f * (q.y * q.z + q.x * q.w);
+	Kx = 2.f * (q.x * q.z + q.y * q.w);
+	Ky = 2.f * (q.y * q.z - q.x * q.w);
 	Kz = 1.f - 2.f * (q.x * q.x + q.y * q.y);
 }
 
@@ -238,4 +238,85 @@ Vector3 Matrix3::GetYVector() const
 Vector3 Matrix3::GetZVector() const
 {
 	return Vector3(Iz, Jz, Kz);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Matrix3 Matrix3::MakeRotationFromEulerAnglesDegrees(const Vector3& anglesDegrees)
+{
+	return MakeRotationFromEulerAnglesRadians(DegreesToRadians(anglesDegrees));
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Matrix3 Matrix3::MakeRotationFromEulerAnglesRadians(const Vector3& anglesRadians)
+{
+	float cosx = cosf(anglesRadians.x);
+	float sinx = sinf(anglesRadians.x);
+	float cosy = cosf(anglesRadians.y);
+	float siny = sinf(anglesRadians.y);
+	float cosz = cosf(anglesRadians.z);
+	float sinz = sinf(anglesRadians.z);
+
+	// Rotation about z
+	Matrix3 rollMatrix;
+	rollMatrix.Ix = cosz;
+	rollMatrix.Iy = sinz;
+	rollMatrix.Jx = -sinz;
+	rollMatrix.Jy = cosz;
+
+	// Rotation about y
+	Matrix3 yawMatrix;
+	yawMatrix.Ix = cosy;
+	yawMatrix.Iz = -siny;
+	yawMatrix.Kx = siny;
+	yawMatrix.Kz = cosy;
+
+	// Rotation about x
+	Matrix3 pitchMatrix;
+	pitchMatrix.Jy = cosx;
+	pitchMatrix.Jz = sinx;
+	pitchMatrix.Ky = -sinx;
+	pitchMatrix.Kz = cosx;
+
+	// Concatenate and return
+	return yawMatrix * pitchMatrix * rollMatrix;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector3 Matrix3::ExtractRotationAsEulerAnglesDegrees(const Matrix3& matrix)
+{
+	return RadiansToDegrees(ExtractRotationAsEulerAnglesRadians(matrix));
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector3 Matrix3::ExtractRotationAsEulerAnglesRadians(const Matrix3& matrix)
+{
+	float xRadians;
+	float yRadians;
+	float zRadians;
+
+	float iScalar = (1.f / matrix.iBasis.GetLength());
+	float jScalar = (1.f / matrix.jBasis.GetLength());
+	float kScalar = (1.f / matrix.kBasis.GetLength());
+
+	float sineX = -1.0f * kScalar * matrix.Ky;
+	xRadians = asinf(sineX);
+
+	float cosX = cosf(xRadians);
+	if (cosX != 0.f)
+	{
+		yRadians = atan2f(kScalar * matrix.Kx, kScalar * matrix.Kz);
+		zRadians = atan2f(iScalar * matrix.Iy, jScalar * matrix.Jy);
+	}
+	else
+	{
+		// Gimble lock, lose roll but keep yaw
+		zRadians = 0.f;
+		yRadians = atan2f(-iScalar * matrix.Iz, iScalar * matrix.Ix);
+	}
+
+	return Vector3(xRadians, yRadians, zRadians);
 }

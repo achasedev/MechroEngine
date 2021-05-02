@@ -56,6 +56,11 @@ public:
 	Vector3 GetYVector() const;
 	Vector3 GetZVector() const;
 
+	static Matrix3 MakeRotationFromEulerAnglesDegrees(const Vector3& anglesDegrees);
+	static Matrix3 MakeRotationFromEulerAnglesRadians(const Vector3& anglesRadians);
+	static Vector3 ExtractRotationAsEulerAnglesDegrees(const Matrix3& matrix);
+	static Vector3 ExtractRotationAsEulerAnglesRadians(const Matrix3& matrix);
+
 
 public:
 	//-----Public Data-----

@@ -56,8 +56,10 @@ public:
 
 	void					SetPosition(const Vector3& position);
 	void					Translate(const Vector3& translation);
-	void					SetRotation(const Vector3& rotation);
-	void					Rotate(const Vector3& rotationEulerAngles);
+	void					SetRotationEulerAnglesDegrees(const Vector3& eulerAnglesDegrees);
+	void					SetRotationEulerAnglesRadians(const Vector3& eulerAnglesRadians);
+	void					RotateEulerAnglesDegrees(const Vector3& deltaEulerAnglesDegrees);
+	void					RotateEulerAnglesRadians(const Vector3& deltaEulerAnglesRadians);
 
 	void					SetFOV(float fovDegrees) { m_fovDegrees = fovDegrees; }
 	void					LookAt(const Vector3& position, const Vector3& target, const Vector3& up = Vector3::Y_AXIS);

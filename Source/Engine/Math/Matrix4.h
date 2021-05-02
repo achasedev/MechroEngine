@@ -20,6 +20,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class Matrix3;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -40,6 +41,8 @@ public:
 	explicit Matrix4(const float* sixteenValuesBasisMajor); // float[16] array in order Ix, Iy...
 	explicit Matrix4(const Vector3& iBasis, const Vector3& jBasis, const Vector3& kBasis, const Vector3& translation = Vector3::ZERO);
 	explicit Matrix4(const Vector4& iBasis, const Vector4& jBasis, const Vector4& kBasis, const Vector4& translation = Vector4::ZERO);
+	explicit Matrix4(const Matrix3& mat3);
+
 	Matrix4(const Matrix4& other);
 
 	const Matrix4	operator*(const Matrix4& rightMat) const;
@@ -55,7 +58,7 @@ public:
 	Vector4 Transform(const Vector4& vector) const;
 
 	void SetIdentity();
-	void SetValues(const float* sixteenValuesBasisMajor);		// float[16] array in order Ix, Iy...
+	void SetValues(const float* sixteenValuesBasisMajor);	// float[16] array in order Ix, Iy...
 	void Append(const Matrix4& matrixToAppend);				// Concatenate on the right	
 	void Transpose();
 	void Invert();
@@ -70,11 +73,13 @@ public:
 	Vector4 GetZVector() const;
 	Vector4 GetWVector() const;
 	Matrix4 GetInverse() const;
-	float GetDeterminant() const;
+	Matrix3 GetMatrix3Part() const;
+	float	GetDeterminant() const;
 
 	// Static producers
 	static Matrix4 MakeTranslation(const Vector3& translation);
-	static Matrix4 MakeRotation(const Vector3& rotation);
+	static Matrix4 MakeRotationFromEulerAnglesDegrees(const Vector3& anglesDegrees);
+	static Matrix4 MakeRotationFromEulerAnglesRadians(const Vector3& anglesRadians);
 	static Matrix4 MakeRotation(const Quaternion& rotation);
 	static Matrix4 MakeScale(const Vector3& scale);
 	static Matrix4 MakeScaleUniform(float uniformScale);
@@ -87,7 +92,8 @@ public:
 	static Matrix4 GetInverse(const Matrix4& matrix);
 
 	static Vector3 ExtractTranslation(const Matrix4& translationMatrix);
-	static Vector3 ExtractRotationDegrees(const Matrix4& rotationMatrix);
+	static Vector3 ExtractRotationAsEulerAnglesDegrees(const Matrix4& rotationMatrix);
+	static Vector3 ExtractRotationAsEulerAnglesRadians(const Matrix4& rotationMatrix);
 	static Vector3 ExtractScale(const Matrix4& scaleMatrix);
 
 

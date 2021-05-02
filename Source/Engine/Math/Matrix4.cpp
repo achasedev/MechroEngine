@@ -9,6 +9,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/EngineCommon.h"
 #include "Engine/Math/MathUtils.h"
+#include "Engine/Math/Matrix3.h"
 #include "Engine/Math/Matrix4.h"
 #include "Engine/Math/Vector4.h"
 
@@ -89,6 +90,28 @@ Matrix4::Matrix4(const Vector4& _iBasis, const Vector4& _jBasis, const Vector4& 
 Matrix4::Matrix4(const Matrix4& other)
 {
 	*this = other;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Matrix4::Matrix4(const Matrix3& mat3)
+{
+	Ix = mat3.Ix;
+	Iy = mat3.Iy;
+	Iz = mat3.Iz;
+	Iw = 0.f;
+
+	Jx = mat3.Jx;
+	Jy = mat3.Jy;
+	Jz = mat3.Jz;
+	Jw = 0.f;
+
+	Kx = mat3.Kx;
+	Ky = mat3.Ky;
+	Kz = mat3.Kz;
+	Kw = 0.f;
+
+	translation = Vector4(0.f, 0.f, 0.f, 1.0f);
 }
 
 
@@ -599,7 +622,7 @@ Matrix4 Matrix4::MakeScaleUniform(float uniformScale)
 Matrix4 Matrix4::MakeModelMatrix(const Vector3& translation, const Vector3& rotation, const Vector3& scale)
 {
 	Matrix4 translationMatrix = MakeTranslation(translation);
-	Matrix4 rotationMatrix = MakeRotation(rotation);
+	Matrix4 rotationMatrix = MakeRotationFromEulerAnglesDegrees(rotation);
 	Matrix4 scaleMatrix = MakeScale(scale);
 
 	Matrix4 result = translationMatrix * rotationMatrix * scaleMatrix;
@@ -696,6 +719,27 @@ Matrix4 Matrix4::GetInverse(const Matrix4& matrix)
 
 
 //-------------------------------------------------------------------------------------------------
+Matrix3 Matrix4::GetMatrix3Part() const
+{
+	Matrix3 matrix;
+
+	matrix.Ix = Ix;
+	matrix.Iy = Iy;
+	matrix.Iz = Iz;
+
+	matrix.Jx = Jx;
+	matrix.Jy = Jy;
+	matrix.Jz = Jz;
+
+	matrix.Kx = Kx;
+	matrix.Ky = Ky;
+	matrix.Kz = Kz;
+
+	return matrix;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 float Matrix4::GetDeterminant() const
 {
 	float t1 = data[8] * data[5] * data[2];
@@ -710,113 +754,37 @@ float Matrix4::GetDeterminant() const
 
 
 //-------------------------------------------------------------------------------------------------
-Matrix4 Matrix4::MakeRotation(const Vector3& rotation)
+Matrix4 Matrix4::MakeRotationFromEulerAnglesDegrees(const Vector3& anglesDegrees)
 {
-	// Rotation about z
-	Matrix4 rollMatrix;
+	return Matrix4(Matrix3::MakeRotationFromEulerAnglesDegrees(anglesDegrees));
+}
 
-	rollMatrix.Ix = CosDegrees(rotation.z);
-	rollMatrix.Iy = SinDegrees(rotation.z);
 
-	rollMatrix.Jx = -SinDegrees(rotation.z);
-	rollMatrix.Jy = CosDegrees(rotation.z);
-
-	// Rotation about y
-	Matrix4 yawMatrix;
-
-	yawMatrix.Ix = CosDegrees(rotation.y);
-	yawMatrix.Iz = -SinDegrees(rotation.y);
-
-	yawMatrix.Kx = SinDegrees(rotation.y);
-	yawMatrix.Kz = CosDegrees(rotation.y);
-
-	// Rotation about x
-	Matrix4 pitchMatrix;
-
-	pitchMatrix.Jy = CosDegrees(rotation.x);
-	pitchMatrix.Jz = SinDegrees(rotation.x);
-
-	pitchMatrix.Ky = -SinDegrees(rotation.x);
-	pitchMatrix.Kz = CosDegrees(rotation.x);
-
-	// Concatenate and return
-	return yawMatrix * pitchMatrix * rollMatrix;
+//-------------------------------------------------------------------------------------------------
+Matrix4 Matrix4::MakeRotationFromEulerAnglesRadians(const Vector3& anglesRadians)
+{
+	return Matrix4(Matrix3::MakeRotationFromEulerAnglesRadians(anglesRadians));
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Matrix4 Matrix4::MakeRotation(const Quaternion& rotation)
 {
-	// Imaginary part
-	float const x = rotation.v.x;
-	float const y = rotation.v.y;
-	float const z = rotation.v.z;
-
-	// Cache off some squares
-	float const x2 = x * x;
-	float const y2 = y * y;
-	float const z2 = z * z;
-
-	// I Basis
-	Vector4 iCol = Vector4(
-		1.0f - 2.0f * y2 - 2.0f * z2,
-		2.0f * x * y + 2.0f * rotation.real * z,
-		2.0f * x * z - 2.0f * rotation.real * y,
-		0.f
-	);
-
-	// J Basis
-	Vector4 jCol = Vector4(
-		2.f * x * y - 2.0f * rotation.real * z,
-		1.0f - 2.0f * x2 - 2.0f * z2,
-		2.0f * y * z + 2.0f * rotation.real * x,
-		0.f
-	);
-
-	// K Basis
-	Vector4 kCol = Vector4(
-		2.0f * x * z + 2.0f * rotation.real * y,
-		2.0f * y * z - 2.0f * rotation.real * x,
-		1.0f - 2.0f * x2 - 2.0f * y2,
-		0.f
-	);
-
-	// T Basis
-	Vector4 tCol = Vector4(0.f, 0.f, 0.f, 1.0f);
-
-	Matrix4 result = Matrix4(iCol, jCol, kCol, tCol);
-	return result;
+	return Matrix4(Matrix3(rotation));
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Matrix4::ExtractRotationDegrees(const Matrix4& rotationMatrix)
+Vector3 Matrix4::ExtractRotationAsEulerAnglesDegrees(const Matrix4& rotationMatrix)
 {
-	float xDegrees;
-	float yDegrees;
-	float zDegrees;
+	return Matrix3::ExtractRotationAsEulerAnglesDegrees(rotationMatrix.GetMatrix3Part());
+}
 
-	float iScalar = (1.f / rotationMatrix.GetIVector().GetLength());
-	float jScalar = (1.f / rotationMatrix.GetJVector().GetLength());
-	float kScalar = (1.f / rotationMatrix.GetKVector().GetLength());
 
-	float sineX = -1.0f * kScalar * rotationMatrix.Ky;
-	xDegrees = ASinDegrees(sineX);
-
-	float cosX = CosDegrees(xDegrees);
-	if (cosX != 0.f)
-	{
-		yDegrees = Atan2Degrees(kScalar * rotationMatrix.Kx, kScalar * rotationMatrix.Kz);
-		zDegrees = Atan2Degrees(iScalar * rotationMatrix.Iy, jScalar * rotationMatrix.Jy);
-	}
-	else
-	{
-		// Gimble lock, lose roll but keep yaw
-		zDegrees = 0.f;
-		yDegrees = Atan2Degrees(-iScalar * rotationMatrix.Iz, iScalar * rotationMatrix.Ix);
-	}
-
-	return Vector3(xDegrees, yDegrees, zDegrees);
+//-------------------------------------------------------------------------------------------------
+Vector3 Matrix4::ExtractRotationAsEulerAnglesRadians(const Matrix4& rotationMatrix)
+{
+	return Matrix3::ExtractRotationAsEulerAnglesRadians(rotationMatrix.GetMatrix3Part());
 }
 
 

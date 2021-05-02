@@ -674,7 +674,7 @@ Vector2 RotateByAngleDegrees(const Vector2& vector, float deltaAngleDegrees)
 //-------------------------------------------------------------------------------------------------
 Vector3 RotateByAngleDegrees(const Vector3& vector, const Vector3& rotation)
 {
-	Matrix4 rotationMat = Matrix4::MakeRotation(rotation);
+	Matrix4 rotationMat = Matrix4::MakeRotationFromEulerAnglesDegrees(rotation);
 	return rotationMat.TransformVector(vector).xyz();
 }
 
