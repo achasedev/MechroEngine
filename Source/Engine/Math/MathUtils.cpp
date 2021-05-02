@@ -634,29 +634,29 @@ bool Refract(const Vector3& incidentVector, const Vector3& normal, float niOverN
 
 
 //-------------------------------------------------------------------------------------------------
-Vector2 RotateByAngleDegrees(const Vector2& vector, float deltaAngleDegrees)
+Vector2 RotateDirectionByEulerAngleDegrees(const Vector2& direction, float deltaAngleDegrees)
 {
 	float simplifiedAngle = GetAngleBetweenZeroThreeSixty(deltaAngleDegrees);
 
 	// Optimizations
 	if (simplifiedAngle == 0.f)
 	{
-		return vector;
+		return direction;
 	}
 
 	if (simplifiedAngle == 90.f)
 	{
-		return Vector2(-vector.y, vector.x);
+		return Vector2(-direction.y, direction.x);
 	}
 
 	if (simplifiedAngle == 180.f)
 	{
-		return -1.0f * vector;
+		return -1.0f * direction;
 	}
 
 	if (simplifiedAngle == 270.f)
 	{
-		return Vector2(vector.y, -vector.x);
+		return Vector2(direction.y, -direction.x);
 	}
 
 	// Do the actual math
@@ -664,18 +664,18 @@ Vector2 RotateByAngleDegrees(const Vector2& vector, float deltaAngleDegrees)
 	float sn = SinDegrees(simplifiedAngle);
 
 	Vector2 result;
-	result.x = vector.x * cs - vector.y * sn;
-	result.y = vector.x * sn + vector.y * cs;
+	result.x = direction.x * cs - direction.y * sn;
+	result.y = direction.x * sn + direction.y * cs;
 
 	return result;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 RotateByAngleDegrees(const Vector3& vector, const Vector3& rotation)
+Vector3 RotateDirectionByEulerAnglesDegrees(const Vector3& direction, const Vector3& eulerAnglesDegrees)
 {
-	Matrix4 rotationMat = Matrix4::MakeRotationFromEulerAnglesDegrees(rotation);
-	return rotationMat.TransformVector(vector).xyz();
+	Matrix4 rotationMat = Matrix4::MakeRotationFromEulerAnglesDegrees(eulerAnglesDegrees);
+	return rotationMat.TransformDirection(direction);
 }
 
 

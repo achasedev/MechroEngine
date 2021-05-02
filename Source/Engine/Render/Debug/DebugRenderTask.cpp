@@ -93,8 +93,8 @@ DebugRenderLine3D::DebugRenderLine3D(const Vector3& start, const Vector3& end, c
 void DebugRenderLine3D::Render() const
 {
 	Matrix4 mat = m_transform.GetLocalToWorldMatrix();
-	Vector3 startWs = mat.TransformPoint(m_start).xyz();
-	Vector3 endWs = mat.TransformPoint(m_end).xyz();
+	Vector3 startWs = mat.TransformPosition(m_start);
+	Vector3 endWs = mat.TransformPosition(m_end);
 
 	g_renderContext->DrawLine3D(startWs, endWs, Rgba::WHITE, g_debugRenderSystem->GetShader());
 }

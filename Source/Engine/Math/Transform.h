@@ -82,12 +82,12 @@ public:
 	Vector3 GetJVector() const;
 	Vector3 GetKVector() const;
 
-	Vector3 GetWorldPosition() const;
-	Quaternion GetWorldRotation() const;
-	Vector3 GetWorldScale() const;
+	Vector3		GetWorldPosition() const;
+	Quaternion	GetWorldRotation() const;
+	Vector3		GetWorldScale() const;
 
-	Vector3 TransformPoint(const Vector3& point) const;
-	Vector3 InverseTransformPoint(const Vector3& point) const;
+	Vector3 TransformPosition(const Vector3& positionToTransform) const;
+	Vector3 InverseTransformPosition(const Vector3& positionToTransform) const;
 	Vector3 TransformDirection(const Vector3& direction) const;
 	Vector3 InverseTransformDirection(const Vector3& direction) const;
 

@@ -51,17 +51,12 @@ public:
 	bool			operator==(const Matrix4& other) const;
 	void			operator=(const Matrix4& other);
 
-	Vector4 TransformPoint(const Vector2& point) const;
-	Vector4 TransformPoint(const Vector3& point) const;
-	Vector4 TransformVector(const Vector2& vector) const;
-	Vector4 TransformVector(const Vector3& vector) const;
-	Vector4 Transform(const Vector4& vector) const;
-
 	void SetIdentity();
 	void SetValues(const float* sixteenValuesBasisMajor);	// float[16] array in order Ix, Iy...
 	void Append(const Matrix4& matrixToAppend);				// Concatenate on the right	
 	void Transpose();
 	void Invert();
+	void FastInverse();
 
 	// Accessors
 	Vector4 GetIVector() const;
@@ -75,6 +70,10 @@ public:
 	Matrix4 GetInverse() const;
 	Matrix3 GetMatrix3Part() const;
 	float	GetDeterminant() const;
+
+	// Producers
+	Vector3 TransformPosition(const Vector3& position) const;
+	Vector3 TransformDirection(const Vector3& direction) const;
 
 	// Static producers
 	static Matrix4 MakeTranslation(const Vector3& translation);

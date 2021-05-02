@@ -235,7 +235,15 @@ Quaternion Quaternion::GetInverse() const
 Vector3 Quaternion::GetAsEulerAnglesDegrees() const
 {
 	Matrix3 matrix(*this);
-	return Matrix3::ExtractRotationAsEulerAnglesDegrees(matrix);;
+	return Matrix3::ExtractRotationAsEulerAnglesDegrees(matrix);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector3 Quaternion::GetAsEulerAnglesRadians() const
+{
+	Matrix3 matrix(*this);
+	return Matrix3::ExtractRotationAsEulerAnglesRadians(matrix);
 }
 
 

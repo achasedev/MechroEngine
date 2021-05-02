@@ -73,13 +73,14 @@ public:
 	RenderTargetView*		GetRenderTargetView();
 	DepthStencilTargetView*	GetDepthStencilTargetView();
 
-	Matrix4				GetCameraMatrix();
-	Matrix4				GetViewMatrix();
-	Matrix4				GetProjectionMatrix() const;
+	Matrix4					GetCameraMatrix();
+	Matrix4					GetViewMatrix();
+	Matrix4					GetProjectionMatrix() const;
 	AABB2					GetOrthoBounds() const;
 	
 	Vector3					GetPosition() const;
-	Vector3					GetRotation() const;
+	Vector3					GetRotationAsEulerAnglesDegrees() const;
+	Vector3					GetRotationAsEulerAnglesRadians() const;
 
 	Vector3					GetForwardVector();
 	Vector3					GetRightVector();

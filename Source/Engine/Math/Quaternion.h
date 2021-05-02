@@ -61,6 +61,7 @@ public:
 	Quaternion			GetConjugate() const;
 	Quaternion			GetInverse() const;
 	Vector3				GetAsEulerAnglesDegrees() const;
+	Vector3				GetAsEulerAnglesRadians() const;
 
 	void				Normalize();
 	void				ConvertToUnitNorm();

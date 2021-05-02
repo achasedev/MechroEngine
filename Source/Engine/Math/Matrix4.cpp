@@ -60,14 +60,17 @@ Matrix4::Matrix4(const Vector3& iBasis, const Vector3& jBasis, const Vector3& kB
 	Ix = iBasis.x;
 	Iy = iBasis.y;
 	Iz = iBasis.z;
+	Iw = 0.f;
 
 	Jx = jBasis.x;
 	Jy = jBasis.y;
 	Jz = jBasis.z;
+	Jw = 0.f;
 
 	Kx = kBasis.x;
 	Ky = kBasis.y;
 	Kz = kBasis.z;
+	Kw = 0.f;
 
 	Tx = translation.x;
 	Ty = translation.y;
@@ -126,9 +129,16 @@ const Matrix4 Matrix4::operator*(const Matrix4& rightMat) const
 
 
 //-------------------------------------------------------------------------------------------------
-const Vector4 Matrix4::operator*(const Vector4& rightVector) const
+const Vector4 Matrix4::operator*(const Vector4& rhsVector) const
 {
-	return Transform(rightVector);
+	Vector4 result;
+
+	result.x = DotProduct(GetXVector(), rhsVector);
+	result.y = DotProduct(GetYVector(), rhsVector);
+	result.z = DotProduct(GetZVector(), rhsVector);
+	result.w = DotProduct(GetWVector(), rhsVector);
+
+	return result;
 }
 
 
@@ -210,52 +220,6 @@ void Matrix4::operator=(const Matrix4& other)
 	Ty = other.Ty;
 	Tz = other.Tz;
 	Tw = other.Tw;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-Vector4 Matrix4::TransformPoint(const Vector2& point) const
-{
-	Vector4 pointToTransform = Vector4(point.x, point.y, 0.f, 1.0f);
-	return Transform(pointToTransform);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-Vector4 Matrix4::TransformPoint(const Vector3& point) const
-{
-	Vector4 pointToTransform = Vector4(point.x, point.y, point.z, 1.0f);
-	return Transform(pointToTransform);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-Vector4 Matrix4::TransformVector(const Vector2& vector) const
-{
-	Vector4 vectorToTransform = Vector4(vector.x, vector.y, 0.f, 0.0f);
-	return Transform(vectorToTransform);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-Vector4 Matrix4::TransformVector(const Vector3& vector) const
-{
-	Vector4 vectorToTransform = Vector4(vector.x, vector.y, vector.z, 0.0f);
-	return Transform(vectorToTransform);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-Vector4 Matrix4::Transform(const Vector4& vector) const
-{
-	Vector4 result;
-
-	result.x = DotProduct(GetXVector(), vector);
-	result.y = DotProduct(GetYVector(), vector);
-	result.z = DotProduct(GetZVector(), vector);
-	result.w = DotProduct(GetWVector(), vector);
-
-	return result;
 }
 
 
@@ -530,6 +494,21 @@ void Matrix4::Invert()
 
 
 //-------------------------------------------------------------------------------------------------
+void Matrix4::FastInverse()
+{
+	// Remove the translation
+	Vector3 invTranslation = -1.0f * translation.xyz();
+	translation = Vector4(0.f, 0.f, 0.f, 1.f);
+
+	// What remains is a rotation (+ scale), so the inverse is the transpose
+	Transpose();
+
+	// Set the translation to be its inverse
+	translation = Vector4(invTranslation, 1.0f);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 Vector4 Matrix4::GetIVector() const
 {
 	return Vector4(Ix, Iy, Iz, Iw);
@@ -750,6 +729,19 @@ float Matrix4::GetDeterminant() const
 	float t6 = data[0] * data[5] * data[10];
 
 	return t1 + t2 + t3 - t4 - t5 + t6;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector3 Matrix4::TransformPosition(const Vector3& position) const
+{
+	return ((*this) * Vector4(position, 1.0f)).xyz();
+}
+
+
+Vector3 Matrix4::TransformDirection(const Vector3& direction) const
+{
+	return ((*this) * Vector4(direction, 0.f)).xyz();
 }
 
 

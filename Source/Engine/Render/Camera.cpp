@@ -330,9 +330,16 @@ Vector3 Camera::GetPosition() const
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Camera::GetRotation() const
+Vector3 Camera::GetRotationAsEulerAnglesDegrees() const
 {
 	return m_transform.rotation.GetAsEulerAnglesDegrees();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector3 Camera::GetRotationAsEulerAnglesRadians() const
+{
+	return m_transform.rotation.GetAsEulerAnglesRadians();
 }
 
 

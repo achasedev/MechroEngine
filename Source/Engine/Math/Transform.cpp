@@ -85,7 +85,7 @@ void Transform::Translate(const Vector3& translation, TransformRelativeTo relati
 	case RELATIVE_TO_SELF:
 	{
 		UpdateLocalMatrix();
-		Vector3 localTranslation = m_localMatrix.TransformVector(translation).xyz();
+		Vector3 localTranslation = m_localMatrix.TransformDirection(translation);
 		position += localTranslation;
 	}
 		break;
@@ -95,7 +95,7 @@ void Transform::Translate(const Vector3& translation, TransformRelativeTo relati
 	case RELATIVE_TO_WORLD:
 	{
 		Matrix4 worldToParent = GetWorldToParentMatrix();
-		Vector3 worldTranslation = worldToParent.TransformVector(translation).xyz();
+		Vector3 worldTranslation = worldToParent.TransformDirection(translation);
 		position += worldTranslation;
 	}
 		break;
@@ -116,7 +116,7 @@ void Transform::Translate(float xTranslation, float yTranslation, float zTransla
 void Transform::SetWorldPosition(const Vector3& newPosition)
 {
 	Matrix4 worldToParent = GetWorldToParentMatrix();
-	position = worldToParent.TransformPoint(newPosition).xyz();
+	position = worldToParent.TransformPosition(newPosition);
 }
 
 
@@ -315,7 +315,7 @@ Vector3 Transform::GetKVector() const
 Vector3 Transform::GetWorldPosition() const
 {
 	Matrix4 parentToWorld = GetParentToWorldMatrix();
-	return parentToWorld.TransformPoint(position).xyz();
+	return parentToWorld.TransformPosition(position);
 }
 
 
@@ -343,12 +343,26 @@ Vector3 Transform::GetWorldScale() const
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Transform::TransformPoint(const Vector3& point) const
+Vector3 Transform::TransformPosition(const Vector3& positionToTransform) const
 {
 	Matrix4 localToWorld = GetLocalToWorldMatrix();
-	Vector4 result = localToWorld.TransformPoint(point);
+	return localToWorld.TransformPosition(positionToTransform);
+}
 
-	return result.xyz();
+
+//-------------------------------------------------------------------------------------------------
+Vector3 Transform::InverseTransformPosition(const Vector3& positionToTransform) const
+{
+	Matrix4 worldToLocal = GetWorldToLocalMatrix();
+	return worldToLocal.TransformPosition(positionToTransform);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector3 Transform::TransformDirection(const Vector3& direction) const
+{
+	Matrix4 localToWorld = GetLocalToWorldMatrix();
+	return localToWorld.TransformDirection(direction);
 }
 
 
@@ -356,9 +370,7 @@ Vector3 Transform::TransformPoint(const Vector3& point) const
 Vector3 Transform::InverseTransformDirection(const Vector3& direction) const
 {
 	Matrix4 worldToLocal = GetWorldToLocalMatrix();
-	Vector4 result = worldToLocal.TransformVector(direction);
-
-	return result.xyz();
+	return worldToLocal.TransformDirection(direction);
 }
 
 

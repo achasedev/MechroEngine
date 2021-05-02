@@ -130,8 +130,8 @@ float	CrossProduct(const Vector2& a, const Vector2& b); // Performs a 3D cross p
 Vector3 CrossProduct(const Vector3& a, const Vector3& b);
 Vector3 Reflect(const Vector3& incidentVector, const Vector3& normal);
 bool	Refract(const Vector3& incidentVector, const Vector3& normal, float niOverNt, Vector3& out_refractedVector); // Returns true if the given vector will refract across the surface, false otherwise
-Vector2	RotateByAngleDegrees(const Vector2& vector, float orientation);
-Vector3	RotateByAngleDegrees(const Vector3& vector, const Vector3& rotation);
+Vector2	RotateDirectionByEulerAngleDegrees(const Vector2& direction, float angleDegrees);
+Vector3	RotateDirectionByEulerAnglesDegrees(const Vector3& direction, const Vector3& eulerAnglesDegrees);
 Vector3 CalculateNormalForTriangle(const Vector3& a, const Vector3& b, const Vector3& c);
 
 
