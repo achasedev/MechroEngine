@@ -48,15 +48,15 @@ void ParticleAnchoredSpring::GenerateAndApplyForce(Particle* particle, float del
 
 	// Get the force direction, pointing from the end to this particle
 	Vector3 forceDir = particle->GetPosition() - m_anchorPos;
-	float magnitude = forceDir.SafeNormalize(forceDir);
+	float currLength = forceDir.SafeNormalize(forceDir);
 
-	if (magnitude > 0.f)
+	if (currLength > 0.f)
 	{
 		// Determine magnitude based on length and resting length
-		magnitude = (magnitude - m_restLength) * m_springConstant;
+		currLength = (currLength - m_restLength) * m_springConstant;
 
 		// Apply the force
-		particle->AddForce(forceDir * -magnitude);
+		particle->AddForce(forceDir * -currLength);
 	}
 }
 

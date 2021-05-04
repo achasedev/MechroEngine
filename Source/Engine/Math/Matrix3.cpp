@@ -148,7 +148,7 @@ void Matrix3::Invert()
 	float t6 = data[2] * data[6];
 
 	float det = t1 * data[8] - t2 * data[7] - t3 * data[8] + t4 * data[7] + t5 * data[5] - t6 * data[4];
-	ASSERT_OR_DIE(det == GetDeterminant(), "Determinant calculations don't match!");
+	ASSERT_OR_DIE(AreMostlyEqual(det, GetDeterminant()), "Determinant calculations don't match!");
 	ASSERT_RETURN(det != 0.f, NO_RETURN_VAL, "Cannot invert, 0.f determinant!");
 	
 	float invDet = 1.0f / det;

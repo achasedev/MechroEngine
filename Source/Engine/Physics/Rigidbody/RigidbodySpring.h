@@ -9,7 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Math/Vector3.h"
-#include "Engine/Physics/Rigidbody/RigidbodyForceGenerator.h"
+#include "Engine/Physics/RigidBody/RigidBodyForceGenerator.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -28,19 +28,19 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class RigidbodySpring : public RigidbodyForceGenerator
+class RigidBodySpring : public RigidBodyForceGenerator
 {
 public:
 	//-----Public Methods-----
 
-	RigidbodySpring(const Vector3& connectionPointLs, Rigidbody* otherBody, const Vector3& otherConnectionPointLs, float springConstant, float restLength);
-	virtual void GenerateAndAddForce(Rigidbody* body, float deltaSeconds) const override;
+	RigidBodySpring(const Vector3& connectionPointLs, RigidBody* otherBody, const Vector3& otherConnectionPointLs, float springConstant, float restLength);
+	virtual void GenerateAndAddForce(RigidBody* body, float deltaSeconds) const override;
 
 
 private:
 	//-----Private Data-----
 
-	Rigidbody*	m_otherBody = nullptr;
+	RigidBody*	m_otherBody = nullptr;
 	Vector3		m_connectionPointLs = Vector3::ZERO;		// Defined in the space of the body passed to GenerateAndAddForce()
 	Vector3		m_otherConnectionPointLs = Vector3::ZERO;	// Defined in m_otherBody's local space
 	float		m_springConstant = 0.999f;

@@ -9,7 +9,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/EngineCommon.h"
 #include "Engine/Math/MathUtils.h"
-#include "Engine/Physics/Rigidbody/Rigidbody.h"
+#include "Engine/Physics/RigidBody/RigidBody.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -33,7 +33,7 @@
 
 
 //-------------------------------------------------------------------------------------------------
-void Rigidbody::AddWorldForce(const Vector3& forceWs)
+void RigidBody::AddWorldForce(const Vector3& forceWs)
 {
 	m_forceAccumWs += forceWs;
 	m_isAwake = true;
@@ -41,7 +41,7 @@ void Rigidbody::AddWorldForce(const Vector3& forceWs)
 
 
 //-------------------------------------------------------------------------------------------------
-void Rigidbody::AddLocalForce(const Vector3& forceLs)
+void RigidBody::AddLocalForce(const Vector3& forceLs)
 {
 	Vector3 forceWs = transform.TransformDirection(forceLs);
 	AddWorldForce(forceWs);
@@ -49,7 +49,7 @@ void Rigidbody::AddLocalForce(const Vector3& forceLs)
 
 
 //-------------------------------------------------------------------------------------------------
-void Rigidbody::AddWorldForceAtWorldPoint(const Vector3& forceWs, const Vector3& pointWs)
+void RigidBody::AddWorldForceAtWorldPoint(const Vector3& forceWs, const Vector3& pointWs)
 {
 	Vector3 centerToPoint = pointWs - transform.position;
 	m_forceAccumWs += forceWs;
@@ -59,7 +59,7 @@ void Rigidbody::AddWorldForceAtWorldPoint(const Vector3& forceWs, const Vector3&
 
 
 //-------------------------------------------------------------------------------------------------
-void Rigidbody::AddWorldForceAtLocalPoint(const Vector3& forceWs, const Vector3& pointLs)
+void RigidBody::AddWorldForceAtLocalPoint(const Vector3& forceWs, const Vector3& pointLs)
 {
 	Vector3 pointWs = transform.TransformPosition(pointLs);
 	AddWorldForceAtWorldPoint(forceWs, pointWs);
@@ -67,7 +67,7 @@ void Rigidbody::AddWorldForceAtLocalPoint(const Vector3& forceWs, const Vector3&
 
 
 //-------------------------------------------------------------------------------------------------
-void Rigidbody::AddLocalForceAtLocalPoint(const Vector3& forceLs, const Vector3& pointLs)
+void RigidBody::AddLocalForceAtLocalPoint(const Vector3& forceLs, const Vector3& pointLs)
 {
 	Vector3 pointWs = transform.TransformPosition(pointLs);
 	Vector3 forceWs = transform.TransformDirection(forceLs);
@@ -76,7 +76,7 @@ void Rigidbody::AddLocalForceAtLocalPoint(const Vector3& forceLs, const Vector3&
 
 
 //-------------------------------------------------------------------------------------------------
-void Rigidbody::AddLocalForceAtWorldPoint(const Vector3& forceLs, const Vector3& pointWs)
+void RigidBody::AddLocalForceAtWorldPoint(const Vector3& forceLs, const Vector3& pointWs)
 {
 	Vector3 forceWs = transform.TransformDirection(forceLs);
 	AddWorldForceAtWorldPoint(forceWs, pointWs);
@@ -84,7 +84,7 @@ void Rigidbody::AddLocalForceAtWorldPoint(const Vector3& forceLs, const Vector3&
 
 
 //-------------------------------------------------------------------------------------------------
-void Rigidbody::Integrate(float deltaSeconds)
+void RigidBody::Integrate(float deltaSeconds)
 {
 	// Calculate accelerations
 	Vector3 acceleration = m_acceleration;
@@ -112,7 +112,7 @@ void Rigidbody::Integrate(float deltaSeconds)
 
 
 //-------------------------------------------------------------------------------------------------
-void Rigidbody::CalculateDerivedData()
+void RigidBody::CalculateDerivedData()
 {
 	// Update the world inverse inertia tensor
 	Matrix3 toWorldRotation = transform.GetLocalToWorldMatrix().GetMatrix3Part();
@@ -125,7 +125,7 @@ void Rigidbody::CalculateDerivedData()
 
 
 //-------------------------------------------------------------------------------------------------
-void Rigidbody::ClearForces()
+void RigidBody::ClearForces()
 {
 	m_forceAccumWs = Vector3::ZERO;
 	m_torqueAccumWs = Vector3::ZERO;

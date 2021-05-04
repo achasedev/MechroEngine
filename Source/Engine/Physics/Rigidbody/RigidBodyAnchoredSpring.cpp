@@ -1,13 +1,15 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: May 2nd, 2021
-/// Description: An interface for objects that apply forces per-frame on any rigidbody it is given
+/// Date Created: May 3rd, 2021
+/// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Core/EngineCommon.h"
+#include "Engine/Physics/RigidBody/RigidBody.h"
+#include "Engine/Physics/RigidBody/RigidBodyAnchoredSpring.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -16,30 +18,45 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class RigidBody;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// CLASS DECLARATIONS
+/// C FUNCTIONS
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class RigidBodyForceGenerator
+RigidBodyAnchoredSpring::RigidBodyAnchoredSpring(const Vector3& connectionPointLs, const Vector3& anchorPositionWs, float springConstant, float restLength)
+	: m_connectionPointLs(connectionPointLs)
+	, m_anchorPositionWs(anchorPositionWs)
+	, m_springConstant(springConstant)
+	, m_restLength(restLength)
 {
-public:
-	//-----Public Methods-----
-
-	virtual void GenerateAndAddForce(RigidBody* body, float deltaSeconds) const = 0;
+}
 
 
-private:
-	//-----Private Data-----
+//-------------------------------------------------------------------------------------------------
+void RigidBodyAnchoredSpring::GenerateAndAddForce(RigidBody* body, float deltaSeconds) const
+{
+	UNUSED(deltaSeconds);
 
-};
+	// Get the force direction, pointing from the end to this particle
+	Vector3 connectionPointWs = body->transform.TransformPosition(m_connectionPointLs);
+	Vector3 forceDir = connectionPointWs - m_anchorPositionWs;
+	float currLength = forceDir.SafeNormalize(forceDir);
 
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// C FUNCTIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
+	if (currLength > 0.f)
+	{
+		// Determine magnitude based on length and resting length
+		currLength = (currLength - m_restLength) * m_springConstant;
+
+		// Apply the force
+		body->AddWorldForceAtLocalPoint(forceDir * -currLength, m_connectionPointLs);
+	}
+}

@@ -146,6 +146,7 @@ void SafeDeleteVector(std::vector<T_ELEMENT*>& v)
 	v.clear();
 }
 
+
 //-------------------------------------------------------------------------------------------------
 template <typename T_KEY, typename T_ELEMENT>
 void SafeDeleteMap(std::map<T_KEY, T_ELEMENT*>& map)

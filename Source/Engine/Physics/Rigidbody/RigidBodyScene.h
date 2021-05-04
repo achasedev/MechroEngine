@@ -1,13 +1,15 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: May 2nd, 2021
-/// Description: An interface for objects that apply forces per-frame on any rigidbody it is given
+/// Date Created: May 3rd, 2021
+/// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Physics/RigidBody/RigidBodyForceRegistry.h"
+#include <vector>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -17,6 +19,7 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class RigidBody;
+class RigidBodyForceGenerator;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -27,16 +30,33 @@ class RigidBody;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class RigidBodyForceGenerator
+class RigidBodyScene
 {
 public:
 	//-----Public Methods-----
 
-	virtual void GenerateAndAddForce(RigidBody* body, float deltaSeconds) const = 0;
+	RigidBodyScene();
+	~RigidBodyScene();
+
+	void BeginFrame();
+	void DoPhysicsStep(float deltaSeconds);
+
+	void AddRigidbody(RigidBody* body);
+	void AddForceGenerator(RigidBodyForceGenerator* forceGen, RigidBody* body);
+
+
+private:
+	//-----Private Methods-----
+
+	void Integrate(float deltaSeconds);
 
 
 private:
 	//-----Private Data-----
+
+	std::vector<RigidBody*> m_bodies;
+	std::vector<RigidBodyForceGenerator*> m_forceGens;
+	RigidBodyForceRegistry m_forceRegistry;
 
 };
 

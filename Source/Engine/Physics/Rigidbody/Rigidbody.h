@@ -28,11 +28,15 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Rigidbody
+class RigidBody
 {
+	friend class RigidBodyScene;
+
 public:
 	//-----Public Methods-----
 
+	void Integrate(float deltaSeconds);
+	
 	void AddWorldForce(const Vector3& forceWs);
 	void AddLocalForce(const Vector3& forceLs);
 	void AddWorldForceAtWorldPoint(const Vector3& forceWs, const Vector3& pointWs);
@@ -40,7 +44,11 @@ public:
 	void AddLocalForceAtLocalPoint(const Vector3& forceLs, const Vector3& pointLs);
 	void AddLocalForceAtWorldPoint(const Vector3& forceLs, const Vector3& pointWs);
 
-	void Integrate(float deltaSeconds);
+	void SetAcceleration(const Vector3& acceleration) { m_acceleration = acceleration; }
+	void SetInverseMass(float iMass) { m_iMass = iMass; }
+	void SetLinearDamping(float linearDamping) { m_linearDamping = linearDamping; }
+	void SetAngularDamping(float angularDamping) { m_angularDamping = angularDamping; }
+	void SetInverseInertiaTensor(const Matrix3& inverseInertiaTensor) { m_inverseInertiaTensorLocal = inverseInertiaTensor; }
 
 
 public:

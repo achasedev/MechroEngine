@@ -9,7 +9,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/EngineCommon.h"
 #include "Engine/Physics/RigidBody/RigidBody.h"
-#include "Engine/Physics/RigidBody/RigidBodySpring.h"
+#include "Engine/Physics/RigidBody/RigidBodyForceGenerator.h"
+#include "Engine/Physics/RigidBody/RigidBodyScene.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -32,32 +33,74 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-RigidBodySpring::RigidBodySpring(const Vector3& connectionPointLs, RigidBody* otherBody, const Vector3& otherConnectionPointLs, float springConstant, float restLength)
-	: m_connectionPointLs(connectionPointLs)
-	, m_otherBody(otherBody)
-	, m_otherConnectionPointLs(otherConnectionPointLs)
-	, m_springConstant(springConstant)
-	, m_restLength(restLength)
+RigidBodyScene::RigidBodyScene()
 {
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void RigidBodySpring::GenerateAndAddForce(RigidBody* body, float deltaSeconds) const
+RigidBodyScene::~RigidBodyScene()
 {
-	UNUSED(deltaSeconds);
+	SafeDeleteVector(m_forceGens);
+	SafeDeleteVector(m_bodies);
+}
 
-	// Get the force direction, pointing from other to this body
-	Vector3 connectionPointWs = body->transform.TransformPosition(m_connectionPointLs);
-	Vector3 forceDir = connectionPointWs - m_otherBody->transform.position;
-	float springLength = forceDir.SafeNormalize(forceDir);
 
-	if (springLength > 0.f)
+//-------------------------------------------------------------------------------------------------
+void RigidBodyScene::BeginFrame()
+{
+	for (RigidBody* body : m_bodies)
 	{
-		// Determine magnitude based on length and resting length
-		float magnitude = (springLength - m_restLength) * m_springConstant;
+		body->CalculateDerivedData();
+		body->ClearForces();
+	}
+}
 
-		// Apply the force
-		body->AddWorldForceAtLocalPoint(forceDir * -magnitude, m_connectionPointLs);
+
+//-------------------------------------------------------------------------------------------------
+void RigidBodyScene::DoPhysicsStep(float deltaSeconds)
+{
+	// Apply all forces
+	m_forceRegistry.GenerateAndAddForces(deltaSeconds);
+
+	// Update positions and velocities
+	Integrate(deltaSeconds);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RigidBodyScene::AddRigidbody(RigidBody* body)
+{
+	if (std::find(m_bodies.begin(), m_bodies.end(), body) == m_bodies.end())
+	{
+		m_bodies.push_back(body);
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RigidBodyScene::AddForceGenerator(RigidBodyForceGenerator* forceGen, RigidBody* body)
+{
+	// Add the generator and body of not already added
+	if (std::find(m_forceGens.begin(), m_forceGens.end(), forceGen) == m_forceGens.end())
+	{
+		m_forceGens.push_back(forceGen);
+	}
+
+	if (std::find(m_bodies.begin(), m_bodies.end(), body) == m_bodies.end())
+	{
+		m_bodies.push_back(body);
+	}
+
+	m_forceRegistry.AddRegistration(body, forceGen);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RigidBodyScene::Integrate(float deltaSeconds)
+{
+	for (RigidBody* body : m_bodies)
+	{
+		body->Integrate(deltaSeconds);
 	}
 }

@@ -1,13 +1,14 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: May 2nd, 2021
-/// Description: An interface for objects that apply forces per-frame on any rigidbody it is given
+/// Date Created: May 3rd, 2021
+/// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include <vector>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -17,6 +18,16 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class RigidBody;
+class RigidBodyForceGenerator;
+
+struct RigidbodyForceRegistration
+{
+	RigidbodyForceRegistration(RigidBody* body, RigidBodyForceGenerator* generator)
+		: body(body), generator(generator) {}
+
+	RigidBody* body = nullptr;
+	RigidBodyForceGenerator* generator = nullptr;
+};
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -27,16 +38,19 @@ class RigidBody;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class RigidBodyForceGenerator
+class RigidBodyForceRegistry
 {
 public:
 	//-----Public Methods-----
 
-	virtual void GenerateAndAddForce(RigidBody* body, float deltaSeconds) const = 0;
+	void GenerateAndAddForces(float deltaSeconds);
+	void AddRegistration(RigidBody* body, RigidBodyForceGenerator* generator);
 
 
 private:
 	//-----Private Data-----
+
+	std::vector<RigidbodyForceRegistration> m_registrations;
 
 };
 

@@ -1,13 +1,15 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: May 2nd, 2021
-/// Description: An interface for objects that apply forces per-frame on any rigidbody it is given
+/// Date Created: May 3rd, 2021
+/// Description: A force generator for applying a spring force to a rigidbody per-frame, with the other end at a fixed, unmoveable position
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Math/Vector3.h"
+#include "Engine/Physics/RigidBody/RigidBodyForceGenerator.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -16,7 +18,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class RigidBody;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -27,16 +28,22 @@ class RigidBody;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class RigidBodyForceGenerator
+class RigidBodyAnchoredSpring : public RigidBodyForceGenerator
 {
 public:
 	//-----Public Methods-----
 
-	virtual void GenerateAndAddForce(RigidBody* body, float deltaSeconds) const = 0;
+	RigidBodyAnchoredSpring(const Vector3& connectionPointLs, const Vector3& anchorPositionWs, float springConstant, float restLength);
+	virtual void GenerateAndAddForce(RigidBody* body, float deltaSeconds) const override;
 
 
 private:
 	//-----Private Data-----
+
+	Vector3		m_connectionPointLs = Vector3::ZERO; // Defined in the space of the body passed to GenerateAndAddForce()
+	Vector3		m_anchorPositionWs = Vector3::ZERO;	
+	float		m_springConstant = 0.999f;
+	float		m_restLength = 1.f;
 
 };
 
