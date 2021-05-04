@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: April 24th, 2021
+/// Date Created: May 3rd, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -8,8 +8,8 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/EngineCommon.h"
-#include "Engine/Physics/Particle/Particle.h"
-#include "Engine/Physics/Particle/ParticleAnchoredBungee.h"
+#include "Engine/Physics/Rigidbody/Rigidbody.h"
+#include "Engine/Physics/Rigidbody/RigidbodySpring.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -27,9 +27,15 @@
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// CLASS IMPLEMENTATIONS
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+
 //-------------------------------------------------------------------------------------------------
-ParticleAnchoredBungee::ParticleAnchoredBungee(const Vector3& anchorPosition, float springConstant, float restLength)
-	: m_anchorPos(anchorPosition)
+RigidbodySpring::RigidbodySpring(const Vector3& connectionPointLs, Rigidbody* otherBody, const Vector3& otherConnectionPointLs, float springConstant, float restLength)
+	: m_connectionPointLs(connectionPointLs)
+	, m_otherBody(otherBody)
+	, m_otherConnectionPointLs(otherConnectionPointLs)
 	, m_springConstant(springConstant)
 	, m_restLength(restLength)
 {
@@ -37,30 +43,20 @@ ParticleAnchoredBungee::ParticleAnchoredBungee(const Vector3& anchorPosition, fl
 
 
 //-------------------------------------------------------------------------------------------------
-void ParticleAnchoredBungee::GenerateAndApplyForce(Particle* particle, float deltaSeconds) const
+void RigidbodySpring::GenerateAndAddForce(Rigidbody* body, float deltaSeconds) const
 {
 	UNUSED(deltaSeconds);
 
-	// Get the force direction, pointing from the end to this particle
-	Vector3 forceDir = particle->GetPosition() - m_anchorPos;
+	// Get the force direction, pointing from other to this body
+	Vector3 forceDir = body->transform.position - m_otherBody->transform.position;
 	float springLength = forceDir.SafeNormalize(forceDir);
 
 	if (springLength > 0.f)
 	{
-		float deltaLength = (springLength - m_restLength);
+		// Determine magnitude based on length and resting length
+		float magnitude = (springLength - m_restLength) * m_springConstant;
 
-		if (deltaLength > 0.f)
-		{
-			// Determine magnitude based on length and resting length
-			springLength = deltaLength * m_springConstant;
-
-			// Apply the force
-			particle->AddForce(forceDir * -springLength);
-		}
+		// Apply the force
+		body->AddWorldForceAtLocalPoint(forceDir * -magnitude, m_connectionPointLs);
 	}
 }
-
-
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// CLASS IMPLEMENTATIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------

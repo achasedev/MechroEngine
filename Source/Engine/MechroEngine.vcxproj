@@ -182,6 +182,8 @@
     <ClCompile Include="Physics\Particle\ParticleRod.cpp" />
     <ClCompile Include="Physics\Particle\ParticleSpring.cpp" />
     <ClCompile Include="Physics\Particle\ParticleWorld.cpp" />
+    <ClCompile Include="Physics\Rigidbody\Rigidbody.cpp" />
+    <ClCompile Include="Physics\Rigidbody\RigidbodySpring.cpp" />
     <ClCompile Include="Resource\Resource.cpp" />
     <ClCompile Include="Math\Edge3.cpp" />
     <ClCompile Include="Math\Line3.cpp" />
@@ -290,6 +292,9 @@
     <ClInclude Include="Physics\Particle\ParticleRod.h" />
     <ClInclude Include="Physics\Particle\ParticleSpring.h" />
     <ClInclude Include="Physics\Particle\ParticleWorld.h" />
+    <ClInclude Include="Physics\Rigidbody\Rigidbody.h" />
+    <ClInclude Include="Physics\Rigidbody\RigidbodyForceGenerator.h" />
+    <ClInclude Include="Physics\Rigidbody\RigidbodySpring.h" />
     <ClInclude Include="Resource\Resource.h" />
     <ClInclude Include="Math\Capsule3d.h" />
     <ClInclude Include="Math\Edge3.h" />

@@ -36,7 +36,7 @@
 //-------------------------------------------------------------------------------------------------
 ParticleBungee::ParticleBungee(Particle* endParticle, float springConstant, float restLength)
 	: m_endParticle(endParticle)
-	, m_springContant(springConstant)
+	, m_springConstant(springConstant)
 	, m_restLength(restLength)
 {
 }
@@ -58,7 +58,7 @@ void ParticleBungee::GenerateAndApplyForce(Particle* particle, float deltaSecond
 		if (deltaLength > 0.f)
 		{
 			// Determine magnitude based on length and resting length
-			float magnitude = deltaLength * m_springContant;
+			float magnitude = deltaLength * m_springConstant;
 
 			// Apply the force
 			particle->AddForce(forceDir * -magnitude);

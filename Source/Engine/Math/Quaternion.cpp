@@ -92,6 +92,8 @@ const Quaternion Quaternion::operator*(const Quaternion& other) const
 	result.real = real * other.real - DotProduct(v, other.v);
 	result.v = real * other.v + v * other.real + CrossProduct(v, other.v);
 
+	result.Normalize();
+
 	return result;
 }
 
@@ -137,6 +139,8 @@ void Quaternion::operator*=(const Quaternion& other)
 
 	real = old.real * other.real - DotProduct(old.v, other.v);
 	v = old.real * other.v + old.v * other.real + CrossProduct(old.v, other.v);
+
+	Normalize();
 }
 
 

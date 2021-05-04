@@ -109,6 +109,19 @@ Matrix3 Matrix3::operator*(const Matrix3& other) const
 
 
 //-------------------------------------------------------------------------------------------------
+Vector3 Matrix3::operator*(const Vector3& v) const
+{
+	Vector3 result;
+
+	result.x = DotProduct(GetXVector(), v);
+	result.y = DotProduct(GetYVector(), v);
+	result.z = DotProduct(GetZVector(), v);
+
+	return result;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void Matrix3::Transpose()
 {
 	Matrix3 original = *this;

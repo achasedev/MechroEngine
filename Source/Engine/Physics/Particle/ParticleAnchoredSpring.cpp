@@ -35,7 +35,7 @@
 //-------------------------------------------------------------------------------------------------
 ParticleAnchoredSpring::ParticleAnchoredSpring(const Vector3& anchorPosition, float springConstant, float restLength)
 	: m_anchorPos(anchorPosition)
-	, m_springContant(springConstant)
+	, m_springConstant(springConstant)
 	, m_restLength(restLength)
 {
 }
@@ -53,7 +53,7 @@ void ParticleAnchoredSpring::GenerateAndApplyForce(Particle* particle, float del
 	if (magnitude > 0.f)
 	{
 		// Determine magnitude based on length and resting length
-		magnitude = (magnitude - m_restLength) * m_springContant;
+		magnitude = (magnitude - m_restLength) * m_springConstant;
 
 		// Apply the force
 		particle->AddForce(forceDir * -magnitude);

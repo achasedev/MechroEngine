@@ -1,15 +1,15 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: April 24th, 2021
-/// Description: 
+/// Date Created: May 2nd, 2021
+/// Description: A force generator for applying a spring force to a rigidbody per-frame
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Core/EngineCommon.h"
-#include "Engine/Physics/Particle/Particle.h"
-#include "Engine/Physics/Particle/ParticleAnchoredBungee.h"
+#include "Engine/Math/Vector3.h"
+#include "Engine/Physics/Rigidbody/RigidbodyForceGenerator.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -24,43 +24,30 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// CLASS DECLARATIONS
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------
+class RigidbodySpring : public RigidbodyForceGenerator
+{
+public:
+	//-----Public Methods-----
+
+	RigidbodySpring(const Vector3& connectionPointLs, Rigidbody* otherBody, const Vector3& otherConnectionPointLs, float springConstant, float restLength);
+	virtual void GenerateAndAddForce(Rigidbody* body, float deltaSeconds) const override;
+
+
+private:
+	//-----Private Data-----
+
+	Rigidbody*	m_otherBody = nullptr;
+	Vector3		m_connectionPointLs = Vector3::ZERO;		// Defined in the space of the body passed to GenerateAndAddForce()
+	Vector3		m_otherConnectionPointLs = Vector3::ZERO;	// Defined in m_otherBody's local space
+	float		m_springConstant = 0.999f;
+	float		m_restLength = 1.f;
+
+};
+
+///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------------------------------
-ParticleAnchoredBungee::ParticleAnchoredBungee(const Vector3& anchorPosition, float springConstant, float restLength)
-	: m_anchorPos(anchorPosition)
-	, m_springConstant(springConstant)
-	, m_restLength(restLength)
-{
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void ParticleAnchoredBungee::GenerateAndApplyForce(Particle* particle, float deltaSeconds) const
-{
-	UNUSED(deltaSeconds);
-
-	// Get the force direction, pointing from the end to this particle
-	Vector3 forceDir = particle->GetPosition() - m_anchorPos;
-	float springLength = forceDir.SafeNormalize(forceDir);
-
-	if (springLength > 0.f)
-	{
-		float deltaLength = (springLength - m_restLength);
-
-		if (deltaLength > 0.f)
-		{
-			// Determine magnitude based on length and resting length
-			springLength = deltaLength * m_springConstant;
-
-			// Apply the force
-			particle->AddForce(forceDir * -springLength);
-		}
-	}
-}
-
-
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

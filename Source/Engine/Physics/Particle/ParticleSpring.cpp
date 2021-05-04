@@ -36,7 +36,7 @@
 //-------------------------------------------------------------------------------------------------
 ParticleSpring::ParticleSpring(Particle* endParticle, float springConstant, float restLength)
 	: m_endParticle(endParticle)
-	, m_springContant(springConstant)
+	, m_springConstant(springConstant)
 	, m_restLength(restLength)
 {
 }
@@ -55,7 +55,7 @@ void ParticleSpring::GenerateAndApplyForce(Particle* particle, float deltaSecond
 	if (springLength > 0.f)
 	{
 		// Determine magnitude based on length and resting length
-		float magnitude = (springLength - m_restLength) * m_springContant;
+		float magnitude = (springLength - m_restLength) * m_springConstant;
 
 		// Apply the force
 		particle->AddForce(forceDir * -magnitude);

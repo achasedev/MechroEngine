@@ -44,6 +44,7 @@ public:
 	void operator*=(const Matrix3& other);
 	bool operator==(const Matrix3& other) const;
 	Matrix3 operator*(const Matrix3& other) const;
+	Vector3 operator*(const Vector3& v) const;
 
 	void	Transpose();
 	void	Invert();

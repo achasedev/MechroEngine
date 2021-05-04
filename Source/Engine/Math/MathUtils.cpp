@@ -8,6 +8,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Math/MathUtils.h"
+#include "Engine/Math/Matrix3.h"
 #include "Engine/Math/Vector2.h"
 #include <math.h>
 #include <cstdlib>
@@ -1043,6 +1044,22 @@ bool AreMostlyEqual(const Quaternion& a, const Quaternion& b, float epsilon /*= 
 {
 	float angleBetween = Quaternion::GetAngleBetweenDegrees(a, b);
 	return (angleBetween <= epsilon);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool AreMostlyEqual(const Matrix3& a, const Matrix3& b, float epsilon /*= DEFAULT_EPSILON*/)
+{
+	return
+		AreMostlyEqual(a.Ix, b.Ix, epsilon) &&
+		AreMostlyEqual(a.Iy, b.Iy, epsilon) &&
+		AreMostlyEqual(a.Iz, b.Iz, epsilon) &&
+		AreMostlyEqual(a.Jx, b.Jx, epsilon) &&
+		AreMostlyEqual(a.Jy, b.Jy, epsilon) &&
+		AreMostlyEqual(a.Jz, b.Jz, epsilon) &&
+		AreMostlyEqual(a.Kx, b.Kx, epsilon) &&
+		AreMostlyEqual(a.Ky, b.Ky, epsilon) &&
+		AreMostlyEqual(a.Kz, b.Kz, epsilon);
 }
 
 

@@ -40,7 +40,7 @@ private:
 	//-----Private Data-----
 
 	Particle*	m_endParticle = nullptr;
-	float		m_springContant = 1.0f;
+	float		m_springConstant = 1.0f;
 	float		m_restLength	= 1.0f;
 
 };

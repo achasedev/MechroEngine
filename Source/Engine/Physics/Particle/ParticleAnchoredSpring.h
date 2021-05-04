@@ -41,7 +41,7 @@ private:
 	//-----Private Data-----
 
 	Vector3	m_anchorPos = Vector3::ZERO;
-	float	m_springContant = 1.0f;
+	float	m_springConstant = 1.0f;
 	float	m_restLength = 1.0f;
 
 };
