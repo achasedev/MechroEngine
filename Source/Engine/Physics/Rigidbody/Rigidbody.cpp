@@ -103,7 +103,7 @@ void RigidBody::Integrate(float deltaSeconds)
 	// Update position/rotation
 	transform.position += m_velocity * deltaSeconds;
 
-	Quaternion deltaRotation = Quaternion::CreateFromEulerAnglesRadians(m_angularVelocityRadians);
+	Quaternion deltaRotation = Quaternion::CreateFromEulerAnglesRadians(m_angularVelocityRadians * deltaSeconds);
 	transform.Rotate(deltaRotation, RELATIVE_TO_WORLD); // Forces/torques are world space, so velocity/angular velocity is ws....so this is a rotation about the world axes
 
 	CalculateDerivedData();
