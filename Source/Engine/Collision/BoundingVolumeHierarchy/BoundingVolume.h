@@ -33,8 +33,11 @@ class BoundingVolumeSphere : public Sphere3D
 public:
 	//-----Public Methods-----
 
+	BoundingVolumeSphere();
 	BoundingVolumeSphere(const Sphere3D& sphere);
 	BoundingVolumeSphere(const BoundingVolumeSphere& a, const BoundingVolumeSphere& b); // For combining bounding volumes
+
+	void	DebugRender() const;
 
 	bool	Overlaps(const BoundingVolumeSphere& sphere);
 	float	GetSize() const { return radius; }

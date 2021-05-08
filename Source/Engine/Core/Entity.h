@@ -51,7 +51,6 @@ public:
 
 	Transform transform;
 
-
 	RigidBody*				rigidBody = nullptr;
 	AABB3					renderShapeLs;
 	AABB3					physicsShapeLs;

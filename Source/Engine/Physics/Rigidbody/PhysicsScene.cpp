@@ -33,7 +33,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-PhysicsScene::PhysicsScene(CollisionScene* collisionScene)
+PhysicsScene::PhysicsScene(CollisionScene<BoundingVolumeSphere>* collisionScene)
 	: m_collisionScene(collisionScene)
 {
 }
@@ -63,6 +63,11 @@ void PhysicsScene::DoPhysicsStep(float deltaSeconds)
 {
 	// Apply all forces
 	m_forceRegistry.GenerateAndAddForces(deltaSeconds);
+
+	if (m_collisionScene != nullptr)
+	{
+		m_collisionScene->Update();
+	}
 
 	// Update positions and velocities
 	Integrate(deltaSeconds);

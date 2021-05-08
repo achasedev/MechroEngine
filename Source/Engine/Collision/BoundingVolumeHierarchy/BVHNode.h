@@ -35,25 +35,28 @@ struct PotentialCollision
 template <class BoundingVolumeClass>
 class BVHNode
 {
-	//-----Friend Classes-----
-	friend class CollisionScene<BoundingVolumeClass>;
+	template<class BoundingVolumeClass> friend class CollisionScene;
 
 public:
 	//-----Public Methods-----
 
 	int		GetPotentialCollisions(PotentialCollision* out_collisions, int limit) const; // Intended to be called on the root node to get total collisions
-	bool	IsLeaf() const { return m_entity != nullptr; }
+	bool	IsLeaf() const;
+	bool	IsRoot() const { return m_parent == nullptr; }
 
 
 private:
 	//-----Private Methods-----
 
+	BVHNode();
 	BVHNode(const BoundingVolumeClass& boundingVolume);
 	~BVHNode();
 
+	void DebugRender() const;
+
 	// Recursively updates the tree to add/remove the given node
-	void	Insert(BVHNode<BoundingVolumeClass>* node);
-	void	Remove(BVHNode<BoundingVolumeClass>* node);
+	BVHNode<BoundingVolumeClass>*	Insert(BVHNode<BoundingVolumeClass>* node); // Returns the root of the tree, in case insert moves it around
+	BVHNode<BoundingVolumeClass>*	RemoveSelf();
 	void	RecalculateBoundingVolume();
 	int		GetPotentialCollisionsBetween(const BVHNode<BoundingVolumeClass>* other, PotentialCollision* out_collisions, int limit) const;
 
@@ -71,6 +74,48 @@ private:
 
 //-------------------------------------------------------------------------------------------------
 template <class BoundingVolumeClass>
+bool BVHNode<BoundingVolumeClass>::IsLeaf() const
+{
+	bool bothNull = (m_children[0] == nullptr && m_children[1] == nullptr);
+	bool bothNotNull = (m_children[0] != nullptr && m_children[1] != nullptr);
+	ASSERT_OR_DIE(bothNull || bothNotNull, "Uneven children on node!");
+
+	bool isLeaf = bothNull; // Leafness defined as not having children
+
+	// Safety checks
+	if (isLeaf)
+	{
+		ASSERT_OR_DIE(m_entity != nullptr, "Leaf doesn't have an entity!");
+	}
+
+	return isLeaf;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+template <class BoundingVolumeClass>
+void BVHNode<BoundingVolumeClass>::DebugRender() const
+{
+	m_boundingVolume.DebugRender();
+	if (!IsLeaf())
+	{
+		m_children[0]->DebugRender();
+		m_children[1]->DebugRender();
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+template <class BoundingVolumeClass>
+BVHNode<BoundingVolumeClass>::BVHNode()
+{
+	m_children[0] = nullptr;
+	m_children[1] = nullptr;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+template <class BoundingVolumeClass>
 BVHNode<BoundingVolumeClass>::~BVHNode()
 {
 	ASSERT_OR_DIE(m_children[0] == nullptr && m_children[1] == nullptr, "BVHNode being deleted but has children!");
@@ -81,8 +126,8 @@ BVHNode<BoundingVolumeClass>::~BVHNode()
 //-------------------------------------------------------------------------------------------------
 template <class BoundingVolumeClass>
 BVHNode<BoundingVolumeClass>::BVHNode(const BoundingVolumeClass& boundingVolume)
+	: m_boundingVolume(boundingVolume)
 {
-	m_boundingVolume = boundingVolume;
 	m_children[0] = nullptr;
 	m_children[1] = nullptr;
 }
@@ -154,37 +199,59 @@ int BVHNode<BoundingVolumeClass>::GetPotentialCollisionsBetween(const BVHNode<Bo
 
 //-------------------------------------------------------------------------------------------------
 template <class BoundingVolumeClass>
-void BVHNode<BoundingVolumeClass>::Insert(BVHNode<BoundingVolumeClass>* node)
+BVHNode<BoundingVolumeClass>* BVHNode<BoundingVolumeClass>::Insert(BVHNode<BoundingVolumeClass>* node)
 {
 	ASSERT_OR_DIE(node->m_entity != nullptr, "Only insert nodes that could be leaves - actual entities!");
 
 	if (IsLeaf())
 	{
-		// Convert this node to a parent of what this node was + the new node
+		// Create a new node to be our parent
+		BVHNode<BoundingVolumeClass>* parentNode = new BVHNode<BoundingVolumeClass>();
 
-		// First make child 0 us
-		m_children[0] = new BVHNode<BoundingVolumeClass>(m_boundingVolume);
-		m_children[0]->m_entity = m_entity;
-		m_children[0]->m_parent = this;
+		// Parent <-> Grandparent
+		parentNode->m_parent = m_parent;
+		if (parentNode->m_parent != nullptr)
+		{
+			if (parentNode->m_parent->m_children[0] == this)
+			{
+				parentNode->m_parent->m_children[0] = parentNode;
+			}
+			else
+			{
+				parentNode->m_parent->m_children[1] = parentNode;
+			}
+		}
 
-		// Now set up child 1
-		m_children[1] = node;
-		m_children[1]->m_parent = this;
+		// Parent <-> Child (this)
+		parentNode->m_children[0] = this;
+		parentNode->m_children[1] = node;
 
-		// Now clean us up
-		m_entity = nullptr;
-		RecalculateBoundingVolume();
+		node->m_parent = parentNode;
+		m_parent = parentNode;
+
+		// Update the parent now to have the right bounding volume
+		m_parent->RecalculateBoundingVolume();
+
+		// If the root changed, return it, otherwise return nullptr
+		if (m_parent->IsRoot())
+		{
+			return m_parent;
+		}
+		else
+		{
+			return nullptr;
+		}
 	}
 	else
 	{
 		// Recurse down the path that would grow less to encompass this node
 		if (m_children[0]->m_boundingVolume.GetGrowth(node->m_boundingVolume) < m_children[1]->m_boundingVolume.GetGrowth(node->m_boundingVolume))
 		{
-			m_children[0]->Insert(node);
+			return m_children[0]->Insert(node);
 		}
 		else
 		{
-			m_children[1]->Insert(node);
+			return m_children[1]->Insert(node);
 		}
 	}
 }
@@ -192,28 +259,49 @@ void BVHNode<BoundingVolumeClass>::Insert(BVHNode<BoundingVolumeClass>* node)
 
 //-------------------------------------------------------------------------------------------------
 template <class BoundingVolumeClass>
-void BVHNode<BoundingVolumeClass>::Remove(BVHNode<BoundingVolumeClass>* node)
+BVHNode<BoundingVolumeClass>* BVHNode<BoundingVolumeClass>::RemoveSelf()
 {
 	ASSERT_OR_DIE(m_entity != nullptr, "Only remove nodes that could be leaves - actual entities!");
 	ASSERT_OR_DIE(m_children[0] == nullptr && m_children[1] == nullptr, "Node being removed has children!");
+	ASSERT_OR_DIE(!IsRoot(), "Can't remove root - the owner of the tree needs to delete us in that case!");
 
-	// We need to put our sibling in our parent's place
-	BVHNode<BoundingVolumeClass>* sibling = (m_parent->m_children[0] == this ? m_children[1] : m_children[0]);
-
+	// We need to put our sibling in our parent's place, and then delete the parent
+	BVHNode<BoundingVolumeClass>* sibling = (m_parent->m_children[0] == this ? m_parent->m_children[1] : m_parent->m_children[0]);
 	BVHNode<BoundingVolumeClass>* toDelete = sibling->m_parent;
+
+	// Connecting sibling to new parent (previously was grandparent)
 	sibling->m_parent = toDelete->m_parent;
+	if (sibling->m_parent != nullptr)
+	{
+		if (sibling->m_parent->m_children[0] == toDelete)
+		{
+			sibling->m_parent->m_children[0] = sibling;
+		}
+		else
+		{
+			sibling->m_parent->m_children[1] = sibling;
+		}
+	}
 
 	// Not necessary, but to ensure we're cleaning up all lose ends and pass our asserts in the destructor
 	toDelete->m_parent = nullptr;
 	toDelete->m_children[0] = nullptr;
 	toDelete->m_children[1] = nullptr;
-	SAFE_DELETE(toDelete);
-
-	// Update the nodes above this
-	sibling->m_parent->RecalculateBoundingVolume();
+	delete toDelete;
+	toDelete = nullptr;
 
 	// Clean up the removed node
-	node->m_parent = nullptr;
+	m_parent = nullptr;
+
+	// If the sibling is the new root, return it
+	if (sibling->IsRoot())
+	{
+		return sibling;
+	}
+
+	// Otherwise tell the new parent to account for not having us anymore
+	sibling->m_parent->RecalculateBoundingVolume();
+	return nullptr;
 }
 
 
@@ -221,6 +309,10 @@ void BVHNode<BoundingVolumeClass>::Remove(BVHNode<BoundingVolumeClass>* node)
 template <class BoundingVolumeClass>
 void BVHNode<BoundingVolumeClass>::RecalculateBoundingVolume()
 {
+	ASSERT_OR_DIE(m_children[0] != nullptr && m_children[1] != nullptr, "No children to use for recalculation!");
+	ASSERT_OR_DIE(!IsLeaf(), "Leaf nodes should not be recalculated!");
+	ASSERT_OR_DIE(this != m_parent, "We are our own parent!");
+
 	m_boundingVolume = BoundingVolumeClass(m_children[0]->m_boundingVolume, m_children[1]->m_boundingVolume);
 	if (m_parent != nullptr)
 	{

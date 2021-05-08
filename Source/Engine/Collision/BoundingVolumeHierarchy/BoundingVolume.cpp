@@ -9,7 +9,9 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Collision/BoundingVolumeHierarchy/BoundingVolume.h"
 #include "Engine/Core/EngineCommon.h"
+#include "Engine/Core/Rgba.h"
 #include "Engine/Math/MathUtils.h"
+#include "Engine/Render/Debug/DebugRenderSystem.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -75,6 +77,27 @@ BoundingVolumeSphere::BoundingVolumeSphere(const BoundingVolumeSphere& a, const 
 			center += aToB * ((radius - a.radius) / distance);
 		}
 	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+BoundingVolumeSphere::BoundingVolumeSphere()
+{
+	radius = 1.f;
+	center = Vector3::ZERO;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void BoundingVolumeSphere::DebugRender() const
+{
+	DebugRenderOptions options;
+	options.m_color = Rgba::RED;
+	options.m_lifetime = 0.f;
+	options.m_fillMode = FILL_MODE_WIREFRAME;
+
+	DebugRenderSphere* drawSphere = new DebugRenderSphere(center, radius, options);
+	g_debugRenderSystem->AddObject(drawSphere);
 }
 
 

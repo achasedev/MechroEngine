@@ -12,6 +12,7 @@
 #include "Engine/Core/Rgba.h"
 #include "Engine/Math/Transform.h"
 #include "Engine/Math/Vector3.h"
+#include "Engine/Render/Shader.h"
 #include "Engine/Time/FrameTimer.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -29,6 +30,7 @@ struct DebugRenderOptions
 	Rgba				m_color = Rgba::RED;
 	float				m_lifetime = FLT_MAX;
 	const Transform*	m_parentTransform = nullptr;
+	FillMode			m_fillMode = FILL_MODE_SOLID;
 };
 
 

@@ -14,6 +14,8 @@
 #include "Engine/Render/Debug/DebugRenderSystem.h"
 #include "Engine/Render/Debug/DebugRenderTask.h"
 #include "Engine/Resource/ResourceSystem.h"
+#include "Engine/Render/Material.h"
+#include "Engine/Render/Texture/Texture2D.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -151,12 +153,26 @@ DebugRenderSphere::DebugRenderSphere(const Vector3& center, float radius, const 
 void DebugRenderSphere::Render() const
 {
 	Mesh* sphereMesh = g_resourceSystem->CreateOrGetMesh("unit_sphere");
+
+	// TODO: Material instancing
 	Material* debugMaterial = g_resourceSystem->CreateOrGetMaterial("Data/Material/debug.material");
+	ShaderResourceView* prevAlbedo = debugMaterial->GetAlbedo();
+	if (m_options.m_fillMode == FILL_MODE_WIREFRAME)
+	{
+		debugMaterial->SetAlbedoTextureView(g_resourceSystem->CreateOrGetTexture2D("white")->CreateOrGetShaderResourceView());
+	}
+
+	// TODO: Shader instancing
+	FillMode prevFillMode = debugMaterial->GetShader()->GetFillMode();
+	debugMaterial->GetShader()->SetFillMode(m_options.m_fillMode);
 
 	Renderable rend;
 	rend.AddDraw(sphereMesh, debugMaterial, m_transform.GetLocalToWorldMatrix());
 
 	g_renderContext->DrawRenderable(rend);
+
+	debugMaterial->GetShader()->SetFillMode(prevFillMode);
+	debugMaterial->SetAlbedoTextureView(prevAlbedo);
 }
 
 

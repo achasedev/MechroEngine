@@ -10,6 +10,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include <vector>
 #include "Engine/Collision/BoundingVolumeHierarchy/BVHNode.h"
+#include "Engine/Core/Entity.h"
+#include "Engine/Math/MathUtils.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -18,7 +20,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Entity;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -35,19 +36,21 @@ class CollisionScene
 public:
 	//-----Public Methods-----
 
-	CollisionScene() {}
-	~CollisionScene();
-
-	void Update();
+	CollisionScene<BoundingVolumeClass>() {}
+	~CollisionScene<BoundingVolumeClass>();
 
 	void AddEntity(Entity* entity);
 	void RemoveEntity(Entity* entity);
+
+	void Update();
+	void DebugRenderBoundingHierarchy() const;
+	void DebugRenderLeafBoundingVolumes() const;
 
 
 private:
 	//-----Private Methods-----
 
-	void UpdateNode(BVHNode* node, const BoundingVolumeClass& newVolume);
+	void UpdateNode(BVHNode<BoundingVolumeClass>* node, const BoundingVolumeClass& newVolume);
 
 	BVHNode<BoundingVolumeClass>* GetAndEraseLeafNodeForEntity(Entity* entity);
 
@@ -59,6 +62,28 @@ private:
 	std::vector<BVHNode<BoundingVolumeClass>*>	m_leaves;  // Optimization, faster search
 
 };
+
+
+//-------------------------------------------------------------------------------------------------
+template <class BoundingVolumeClass>
+void CollisionScene<BoundingVolumeClass>::DebugRenderBoundingHierarchy() const
+{
+	if (m_boundingTreeRoot != nullptr)
+	{
+		m_boundingTreeRoot->DebugRender();
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+template <class BoundingVolumeClass>
+void CollisionScene<BoundingVolumeClass>::DebugRenderLeafBoundingVolumes() const
+{
+	for (BVHNode<BoundingVolumeClass>* leaf : m_leaves)
+	{
+		leaf->m_boundingVolume.DebugRender();
+	}
+}
 
 
 //-------------------------------------------------------------------------------------------------
@@ -76,8 +101,21 @@ void CollisionScene<BoundingVolumeClass>::AddEntity(Entity* entity)
 {
 	BoundingVolumeSphere worldVolume = entity->GetWorldPhysicsBoundingVolume();
 	BVHNode<BoundingVolumeClass>* node = new BVHNode<BoundingVolumeClass>(worldVolume);
+	node->m_entity = entity;
 
-	m_boundingTreeRoot->Insert(node);
+	if (m_boundingTreeRoot != nullptr)
+	{
+		BVHNode<BoundingVolumeClass>* newRoot = m_boundingTreeRoot->Insert(node);
+		if (newRoot != nullptr)
+		{
+			m_boundingTreeRoot = newRoot;
+		}
+	}
+	else
+	{
+		m_boundingTreeRoot = node;
+	}
+
 	m_leaves.push_back(node);
 }
 
@@ -87,8 +125,21 @@ template <class BoundingVolumeClass>
 void CollisionScene<BoundingVolumeClass>::RemoveEntity(Entity* entity)
 {
 	BVHNode<BoundingVolumeClass>* node = GetAndEraseLeafNodeForEntity(entity);
-	m_boundingTreeRoot->Remove(node);
-	SAFE_DELETE(node);
+
+	if (node != m_boundingTreeRoot)
+	{
+		BVHNode<BoundingVolumeClass>* newRoot = node->RemoveSelf();
+		if (newRoot != nullptr)
+		{
+			m_boundingTreeRoot = newRoot;
+		}
+
+		SAFE_DELETE(node);
+	}
+	else
+	{
+		SAFE_DELETE(m_boundingTreeRoot);
+	}
 }
 
 
@@ -97,9 +148,9 @@ template <class BoundingVolumeClass>
 void CollisionScene<BoundingVolumeClass>::Update()
 {
 	// For each node, check if the entity's bounding volume changed a significant amount. If so, update it
-	for (BVHNode* node : m_leaves)
+	for (BVHNode<BoundingVolumeClass>* node : m_leaves)
 	{
-		BoundingVolumeClass worldVolume = node->m_entity->GetWorldPhysicsBoundingVolume<BoundingVolumeClass>();
+		BoundingVolumeSphere worldVolume = node->m_entity->GetWorldPhysicsBoundingVolume();
 
 		if (!AreMostlyEqual(node->m_boundingVolume, worldVolume))
 		{
@@ -113,14 +164,24 @@ void CollisionScene<BoundingVolumeClass>::Update()
 template <class BoundingVolumeClass>
 void CollisionScene<BoundingVolumeClass>::UpdateNode(BVHNode<BoundingVolumeClass>* node, const BoundingVolumeClass& newVolume)
 {
+	ASSERT_OR_DIE(node->m_parent != nullptr, "No Parent!");
+
 	// Remove the node from the tree, recursively updating bounding volumes
-	m_boundingTreeRoot->Remove(node);
+	BVHNode<BoundingVolumeClass>* newRoot = node->RemoveSelf();
+	if (newRoot != nullptr)
+	{
+		m_boundingTreeRoot = newRoot;
+	}
 
 	// Set the node's new bounding volume
 	node->m_boundingVolume = newVolume;
 
 	// Re-insert the node into the tree, based on "best fit"
-	m_boundingTreeRoot->Insert(node);
+	newRoot = m_boundingTreeRoot->Insert(node);
+	if (newRoot != nullptr)
+	{
+		m_boundingTreeRoot = newRoot;
+	}
 }
 
 

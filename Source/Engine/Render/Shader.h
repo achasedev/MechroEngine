@@ -164,6 +164,7 @@ public:
 	void					DisableScissor();
 
 	bool					IsDirty() const;
+	FillMode				GetFillMode() const { return m_fillMode; }
 
 	ID3D11VertexShader*		GetVertexStage() const { return m_vertexShader.GetAsVertexShader(); }
 	ID3D11PixelShader*		GetFragmentStage() const { return m_fragmentShader.GetAsFragmentShader(); }
