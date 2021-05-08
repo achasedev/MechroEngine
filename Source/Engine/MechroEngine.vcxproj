@@ -163,6 +163,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\ThirdParty\tinyxml2\tinyxml2.cpp" />
+    <ClCompile Include="Collision\BoundingVolumeHierarchy\BoundingVolume.cpp" />
     <ClCompile Include="Event\EventSubscription.cpp" />
     <ClCompile Include="Event\EventSystem.cpp" />
     <ClCompile Include="Core\ConsoleCommand.cpp" />
@@ -192,7 +193,7 @@
     <ClCompile Include="Math\Line3.cpp" />
     <ClCompile Include="Math\OBB3.cpp" />
     <ClCompile Include="Math\Range.cpp" />
-    <ClCompile Include="Math\Sphere3d.cpp" />
+    <ClCompile Include="Math\Sphere3D.cpp" />
     <ClCompile Include="Render\Debug\DebugRenderTask.cpp" />
     <ClCompile Include="Core\DevConsole.cpp" />
     <ClCompile Include="Core\EngineCommands.cpp" />
@@ -272,6 +273,8 @@
     <ClInclude Include="..\ThirdParty\stb\stb_image.h" />
     <ClInclude Include="..\ThirdParty\stb\stb_image_write.h" />
     <ClInclude Include="..\ThirdParty\tinyxml2\tinyxml2.h" />
+    <ClInclude Include="Collision\BoundingVolumeHierarchy\BoundingVolume.h" />
+    <ClInclude Include="Collision\BoundingVolumeHierarchy\BVHNode.h" />
     <ClInclude Include="DataStructures\ColoredText.h" />
     <ClInclude Include="DataStructures\ThreadSafeQueue.h" />
     <ClInclude Include="Event\EventSubscription.h" />
@@ -307,7 +310,7 @@
     <ClInclude Include="Math\Line3.h" />
     <ClInclude Include="Math\OBB3.h" />
     <ClInclude Include="Math\Range.h" />
-    <ClInclude Include="Math\Sphere3d.h" />
+    <ClInclude Include="Math\Sphere3D.h" />
     <ClInclude Include="Render\Debug\DebugRenderTask.h" />
     <ClInclude Include="Core\DevConsole.h" />
     <ClInclude Include="Core\EngineCommands.h" />

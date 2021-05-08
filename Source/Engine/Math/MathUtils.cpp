@@ -1131,6 +1131,16 @@ bool DoAABB3sOverlap(const AABB3& a, const AABB3& b)
 
 
 //-------------------------------------------------------------------------------------------------
+bool DoSpheresOverlap(const Sphere3D& a, const Sphere3D& b)
+{
+	float radiusSquared = (a.radius + b.radius) * (a.radius + b.radius);
+	float distanceSquared = (a.center - b.center).GetLengthSquared();
+
+	return distanceSquared < radiusSquared;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 Vector2 RotatePointAboutPoint2D(const Vector2& pointToRotate, const Vector2& pointOfRotation, float angleDegrees)
 {
 	float c = CosDegrees(angleDegrees);

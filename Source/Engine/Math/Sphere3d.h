@@ -28,23 +28,21 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Sphere3d
+class Sphere3D
 {
 public:
 	//-----Public Methods-----
 
-	Sphere3d() {}
-	Sphere3d(const Vector3& center, float radius)
-		: m_center(center), m_radius(radius) {}
-
-	AABB3 GetBoundingBox() const;
+	Sphere3D() {}
+	Sphere3D(const Vector3& center, float radius)
+		: center(center), radius(radius) {}
 
 
 public:
 	//-----Public Data-----
 
-	Vector3 m_center;
-	float	m_radius;
+	Vector3 center;
+	float	radius;
 
 };
 
