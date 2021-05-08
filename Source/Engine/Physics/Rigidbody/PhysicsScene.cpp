@@ -10,7 +10,7 @@
 #include "Engine/Core/EngineCommon.h"
 #include "Engine/Physics/RigidBody/RigidBody.h"
 #include "Engine/Physics/RigidBody/RigidBodyForceGenerator.h"
-#include "Engine/Physics/RigidBody/RigidBodyScene.h"
+#include "Engine/Physics/RigidBody/PhysicsScene.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -33,13 +33,14 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-RigidBodyScene::RigidBodyScene()
+PhysicsScene::PhysicsScene(CollisionScene* collisionScene)
+	: m_collisionScene(collisionScene)
 {
 }
 
 
 //-------------------------------------------------------------------------------------------------
-RigidBodyScene::~RigidBodyScene()
+PhysicsScene::~PhysicsScene()
 {
 	SafeDeleteVector(m_forceGens);
 	SafeDeleteVector(m_bodies);
@@ -47,7 +48,7 @@ RigidBodyScene::~RigidBodyScene()
 
 
 //-------------------------------------------------------------------------------------------------
-void RigidBodyScene::BeginFrame()
+void PhysicsScene::BeginFrame()
 {
 	for (RigidBody* body : m_bodies)
 	{
@@ -58,7 +59,7 @@ void RigidBodyScene::BeginFrame()
 
 
 //-------------------------------------------------------------------------------------------------
-void RigidBodyScene::DoPhysicsStep(float deltaSeconds)
+void PhysicsScene::DoPhysicsStep(float deltaSeconds)
 {
 	// Apply all forces
 	m_forceRegistry.GenerateAndAddForces(deltaSeconds);
@@ -69,7 +70,7 @@ void RigidBodyScene::DoPhysicsStep(float deltaSeconds)
 
 
 //-------------------------------------------------------------------------------------------------
-void RigidBodyScene::AddRigidbody(RigidBody* body)
+void PhysicsScene::AddRigidbody(RigidBody* body)
 {
 	if (std::find(m_bodies.begin(), m_bodies.end(), body) == m_bodies.end())
 	{
@@ -79,7 +80,7 @@ void RigidBodyScene::AddRigidbody(RigidBody* body)
 
 
 //-------------------------------------------------------------------------------------------------
-void RigidBodyScene::AddForceGenerator(RigidBodyForceGenerator* forceGen, RigidBody* body)
+void PhysicsScene::AddForceGenerator(RigidBodyForceGenerator* forceGen, RigidBody* body)
 {
 	// Add the generator and body of not already added
 	if (std::find(m_forceGens.begin(), m_forceGens.end(), forceGen) == m_forceGens.end())
@@ -97,7 +98,7 @@ void RigidBodyScene::AddForceGenerator(RigidBodyForceGenerator* forceGen, RigidB
 
 
 //-------------------------------------------------------------------------------------------------
-void RigidBodyScene::Integrate(float deltaSeconds)
+void PhysicsScene::Integrate(float deltaSeconds)
 {
 	for (RigidBody* body : m_bodies)
 	{

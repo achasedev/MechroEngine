@@ -186,6 +186,7 @@ bool AreMostlyEqual(const Vector2& a, const Vector2& b, float epsilon = DEFAULT_
 bool AreMostlyEqual(const Vector3& a, const Vector3& b, float epsilon = DEFAULT_EPSILON);
 bool AreMostlyEqual(const Matrix3& a, const Matrix3& b, float epsilon = DEFAULT_EPSILON);
 bool AreMostlyEqual(const Quaternion& a, const Quaternion& b, float epsilon = DEFAULT_EPSILON);
+bool AreMostlyEqual(const Sphere3D& a, const Sphere3D& b, float epsilon = DEFAULT_EPSILON);
 
 
 //-------------------------------------------------------------------------------------------------

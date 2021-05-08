@@ -9,6 +9,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/EngineCommon.h"
 #include "Engine/Core/Entity.h"
+#include "Engine/Core/Rgba.h"
+#include "Engine/Render/Debug/DebugRenderSystem.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -34,6 +36,24 @@ EntityID Entity::s_nextEntityID = 0;
 //-------------------------------------------------------------------------------------------------
 Entity::Entity()
 	: m_id(s_nextEntityID)
+	, physicsBoundingShapeLs(BoundingVolumeSphere(Sphere3D(Vector3::ZERO, 1.f)))
 {
 	++s_nextEntityID;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Entity::Render() const
+{
+	DebugDrawCube(Vector3::ZERO, 0.5f * renderShapeLs.GetDimensions(), Rgba::WHITE, 0.f, &transform);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+BoundingVolumeSphere Entity::GetWorldPhysicsBoundingVolume() const
+{
+	BoundingVolumeSphere worldBounds = physicsBoundingShapeLs;
+	worldBounds.center = transform.TransformPosition(worldBounds.center);
+
+	return worldBounds;
 }

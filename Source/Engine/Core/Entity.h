@@ -8,7 +8,9 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Collision/BoundingVolumeHierarchy/BoundingVolume.h"
 #include "Engine/Core/EngineCommon.h"
+#include "Engine/Math/AABB3.h"
 #include "Engine/Math/Transform.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -20,8 +22,7 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 typedef int EntityID;
-class Collider3d;
-class RigidBody3D;
+class RigidBody;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -34,16 +35,15 @@ class RigidBody3D;
 //-------------------------------------------------------------------------------------------------
 class Entity
 {
-	friend class CollisionSystem3d;
-	friend class PhysicsSystem3D;
-
 public:
 	//-----Public Methods-----
 
 	Entity();
 
-	Collider3d* GetCollider() const { return m_collider; }
-	RigidBody3D* GetRigidBody() const { return m_rigidBody; }
+	void Update(float deltaSeconds);
+	void Render() const;
+
+	BoundingVolumeSphere GetWorldPhysicsBoundingVolume() const;
 
 
 public:
@@ -52,17 +52,19 @@ public:
 	Transform transform;
 
 
+	RigidBody*				rigidBody = nullptr;
+	AABB3					renderShapeLs;
+	AABB3					physicsShapeLs;
+	BoundingVolumeSphere	physicsBoundingShapeLs;
+
+
 private:
 	//-----Private Data-----
 
-	const EntityID		m_id;
-	Collider3d*			m_collider = nullptr;
-	RigidBody3D*		m_rigidBody = nullptr;
-
-	static EntityID		s_nextEntityID;
+	const EntityID			m_id;
+	static EntityID			s_nextEntityID;
 
 };
-
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS

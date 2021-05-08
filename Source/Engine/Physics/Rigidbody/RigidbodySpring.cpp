@@ -48,8 +48,8 @@ void RigidBodySpring::GenerateAndAddForce(RigidBody* body, float deltaSeconds) c
 	UNUSED(deltaSeconds);
 
 	// Get the force direction, pointing from other to this body
-	Vector3 connectionPointWs = body->transform.TransformPosition(m_connectionPointLs);
-	Vector3 forceDir = connectionPointWs - m_otherBody->transform.position;
+	Vector3 connectionPointWs = body->transform->TransformPosition(m_connectionPointLs);
+	Vector3 forceDir = connectionPointWs - m_otherBody->transform->position;
 	float springLength = forceDir.SafeNormalize(forceDir);
 
 	if (springLength > 0.f)

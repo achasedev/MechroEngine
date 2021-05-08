@@ -47,7 +47,7 @@ void RigidBodyAnchoredSpring::GenerateAndAddForce(RigidBody* body, float deltaSe
 	UNUSED(deltaSeconds);
 
 	// Get the force direction, pointing from the end to this particle
-	Vector3 connectionPointWs = body->transform.TransformPosition(m_connectionPointLs);
+	Vector3 connectionPointWs = body->transform->TransformPosition(m_connectionPointLs);
 	Vector3 forceDir = connectionPointWs - m_anchorPositionWs;
 	float currLength = forceDir.SafeNormalize(forceDir);
 

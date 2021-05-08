@@ -1064,6 +1064,13 @@ bool AreMostlyEqual(const Matrix3& a, const Matrix3& b, float epsilon /*= DEFAUL
 
 
 //-------------------------------------------------------------------------------------------------
+bool AreMostlyEqual(const Sphere3D& a, const Sphere3D& b, float epsilon /*= DEFAULT_EPSILON*/)
+{
+	return AreMostlyEqual(a.center, b.center, epsilon) && AreMostlyEqual(a.radius, b.radius, epsilon);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 bool DoRangesOverlap(const Range& a, const Range& b)
 {
 	return a.GetOverlap(b) > 0.f;

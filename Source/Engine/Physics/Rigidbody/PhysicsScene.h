@@ -8,6 +8,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Collision/BoundingVolumeHierarchy/BoundingVolume.h"
+#include "Engine/Collision/CollisionScene.h"
 #include "Engine/Physics/RigidBody/RigidBodyForceRegistry.h"
 #include <vector>
 
@@ -30,13 +32,13 @@ class RigidBodyForceGenerator;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class RigidBodyScene
+class PhysicsScene
 {
 public:
 	//-----Public Methods-----
 
-	RigidBodyScene();
-	~RigidBodyScene();
+	PhysicsScene(CollisionScene<BoundingVolumeSphere>* collisionScene);
+	~PhysicsScene();
 
 	void BeginFrame();
 	void DoPhysicsStep(float deltaSeconds);
@@ -54,9 +56,10 @@ private:
 private:
 	//-----Private Data-----
 
-	std::vector<RigidBody*> m_bodies;
-	std::vector<RigidBodyForceGenerator*> m_forceGens;
-	RigidBodyForceRegistry m_forceRegistry;
+	std::vector<RigidBody*>					m_bodies;
+	std::vector<RigidBodyForceGenerator*>	m_forceGens;
+	RigidBodyForceRegistry					m_forceRegistry;
+	CollisionScene<BoundingVolumeSphere>*	m_collisionScene = nullptr;
 
 };
 

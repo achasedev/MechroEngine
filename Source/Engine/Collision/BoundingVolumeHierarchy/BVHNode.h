@@ -8,6 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Utility/Assert.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -34,27 +35,57 @@ struct PotentialCollision
 template <class BoundingVolumeClass>
 class BVHNode
 {
+	//-----Friend Classes-----
+	friend class CollisionScene<BoundingVolumeClass>;
+
 public:
 	//-----Public Methods-----
 
-	int		GetPotentialCollisions(PotentialCollision* out_collisions, int limit) const;
+	int		GetPotentialCollisions(PotentialCollision* out_collisions, int limit) const; // Intended to be called on the root node to get total collisions
 	bool	IsLeaf() const { return m_entity != nullptr; }
 
 
 private:
 	//-----Private Methods-----
 
+	BVHNode(const BoundingVolumeClass& boundingVolume);
+	~BVHNode();
+
+	// Recursively updates the tree to add/remove the given node
+	void	Insert(BVHNode<BoundingVolumeClass>* node);
+	void	Remove(BVHNode<BoundingVolumeClass>* node);
+	void	RecalculateBoundingVolume();
 	int		GetPotentialCollisionsBetween(const BVHNode<BoundingVolumeClass>* other, PotentialCollision* out_collisions, int limit) const;
 
 
 private:
 	//-----Private Data-----
 
+	BVHNode*				m_parent = nullptr;
 	BVHNode*				m_children[2];
 	BoundingVolumeClass		m_boundingVolume; // Encompasses all entities at or below this level
 	Entity*					m_entity = nullptr; // Only set on leaf nodes
 
 };
+
+
+//-------------------------------------------------------------------------------------------------
+template <class BoundingVolumeClass>
+BVHNode<BoundingVolumeClass>::~BVHNode()
+{
+	ASSERT_OR_DIE(m_children[0] == nullptr && m_children[1] == nullptr, "BVHNode being deleted but has children!");
+	ASSERT_OR_DIE(m_parent == nullptr, "BVHNode being deleted but has parent!");
+}
+
+
+//-------------------------------------------------------------------------------------------------
+template <class BoundingVolumeClass>
+BVHNode<BoundingVolumeClass>::BVHNode(const BoundingVolumeClass& boundingVolume)
+{
+	m_boundingVolume = boundingVolume;
+	m_children[0] = nullptr;
+	m_children[1] = nullptr;
+}
 
 
 //-------------------------------------------------------------------------------------------------
@@ -119,6 +150,84 @@ int BVHNode<BoundingVolumeClass>::GetPotentialCollisionsBetween(const BVHNode<Bo
 		}
 	}
 }
+
+
+//-------------------------------------------------------------------------------------------------
+template <class BoundingVolumeClass>
+void BVHNode<BoundingVolumeClass>::Insert(BVHNode<BoundingVolumeClass>* node)
+{
+	ASSERT_OR_DIE(node->m_entity != nullptr, "Only insert nodes that could be leaves - actual entities!");
+
+	if (IsLeaf())
+	{
+		// Convert this node to a parent of what this node was + the new node
+
+		// First make child 0 us
+		m_children[0] = new BVHNode<BoundingVolumeClass>(m_boundingVolume);
+		m_children[0]->m_entity = m_entity;
+		m_children[0]->m_parent = this;
+
+		// Now set up child 1
+		m_children[1] = node;
+		m_children[1]->m_parent = this;
+
+		// Now clean us up
+		m_entity = nullptr;
+		RecalculateBoundingVolume();
+	}
+	else
+	{
+		// Recurse down the path that would grow less to encompass this node
+		if (m_children[0]->m_boundingVolume.GetGrowth(node->m_boundingVolume) < m_children[1]->m_boundingVolume.GetGrowth(node->m_boundingVolume))
+		{
+			m_children[0]->Insert(node);
+		}
+		else
+		{
+			m_children[1]->Insert(node);
+		}
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+template <class BoundingVolumeClass>
+void BVHNode<BoundingVolumeClass>::Remove(BVHNode<BoundingVolumeClass>* node)
+{
+	ASSERT_OR_DIE(m_entity != nullptr, "Only remove nodes that could be leaves - actual entities!");
+	ASSERT_OR_DIE(m_children[0] == nullptr && m_children[1] == nullptr, "Node being removed has children!");
+
+	// We need to put our sibling in our parent's place
+	BVHNode<BoundingVolumeClass>* sibling = (m_parent->m_children[0] == this ? m_children[1] : m_children[0]);
+
+	BVHNode<BoundingVolumeClass>* toDelete = sibling->m_parent;
+	sibling->m_parent = toDelete->m_parent;
+
+	// Not necessary, but to ensure we're cleaning up all lose ends and pass our asserts in the destructor
+	toDelete->m_parent = nullptr;
+	toDelete->m_children[0] = nullptr;
+	toDelete->m_children[1] = nullptr;
+	SAFE_DELETE(toDelete);
+
+	// Update the nodes above this
+	sibling->m_parent->RecalculateBoundingVolume();
+
+	// Clean up the removed node
+	node->m_parent = nullptr;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+template <class BoundingVolumeClass>
+void BVHNode<BoundingVolumeClass>::RecalculateBoundingVolume()
+{
+	m_boundingVolume = BoundingVolumeClass(m_children[0]->m_boundingVolume, m_children[1]->m_boundingVolume);
+	if (m_parent != nullptr)
+	{
+		m_parent->RecalculateBoundingVolume();
+	}
+}
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS

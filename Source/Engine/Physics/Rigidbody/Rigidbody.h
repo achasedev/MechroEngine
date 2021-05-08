@@ -30,10 +30,12 @@
 //-------------------------------------------------------------------------------------------------
 class RigidBody
 {
-	friend class RigidBodyScene;
+	friend class PhysicsScene;
 
 public:
 	//-----Public Methods-----
+
+	RigidBody(Transform* transform);
 
 	void Integrate(float deltaSeconds);
 	
@@ -54,7 +56,7 @@ public:
 public:
 	//-----Public Data-----
 
-	Transform transform;
+	Transform* transform = nullptr;
 
 
 private:

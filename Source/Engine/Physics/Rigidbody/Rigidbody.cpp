@@ -43,7 +43,7 @@ void RigidBody::AddWorldForce(const Vector3& forceWs)
 //-------------------------------------------------------------------------------------------------
 void RigidBody::AddLocalForce(const Vector3& forceLs)
 {
-	Vector3 forceWs = transform.TransformDirection(forceLs);
+	Vector3 forceWs = transform->TransformDirection(forceLs);
 	AddWorldForce(forceWs);
 }
 
@@ -51,7 +51,7 @@ void RigidBody::AddLocalForce(const Vector3& forceLs)
 //-------------------------------------------------------------------------------------------------
 void RigidBody::AddWorldForceAtWorldPoint(const Vector3& forceWs, const Vector3& pointWs)
 {
-	Vector3 centerToPoint = pointWs - transform.position;
+	Vector3 centerToPoint = pointWs - transform->position;
 	m_forceAccumWs += forceWs;
 	m_torqueAccumWs += CrossProduct(centerToPoint, forceWs);
 	m_isAwake = true;
@@ -61,7 +61,7 @@ void RigidBody::AddWorldForceAtWorldPoint(const Vector3& forceWs, const Vector3&
 //-------------------------------------------------------------------------------------------------
 void RigidBody::AddWorldForceAtLocalPoint(const Vector3& forceWs, const Vector3& pointLs)
 {
-	Vector3 pointWs = transform.TransformPosition(pointLs);
+	Vector3 pointWs = transform->TransformPosition(pointLs);
 	AddWorldForceAtWorldPoint(forceWs, pointWs);
 }
 
@@ -69,8 +69,8 @@ void RigidBody::AddWorldForceAtLocalPoint(const Vector3& forceWs, const Vector3&
 //-------------------------------------------------------------------------------------------------
 void RigidBody::AddLocalForceAtLocalPoint(const Vector3& forceLs, const Vector3& pointLs)
 {
-	Vector3 pointWs = transform.TransformPosition(pointLs);
-	Vector3 forceWs = transform.TransformDirection(forceLs);
+	Vector3 pointWs = transform->TransformPosition(pointLs);
+	Vector3 forceWs = transform->TransformDirection(forceLs);
 	AddWorldForceAtWorldPoint(forceWs, pointWs);
 }
 
@@ -78,8 +78,15 @@ void RigidBody::AddLocalForceAtLocalPoint(const Vector3& forceLs, const Vector3&
 //-------------------------------------------------------------------------------------------------
 void RigidBody::AddLocalForceAtWorldPoint(const Vector3& forceLs, const Vector3& pointWs)
 {
-	Vector3 forceWs = transform.TransformDirection(forceLs);
+	Vector3 forceWs = transform->TransformDirection(forceLs);
 	AddWorldForceAtWorldPoint(forceWs, pointWs);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+RigidBody::RigidBody(Transform* transform)
+	: transform(transform)
+{
 }
 
 
@@ -101,10 +108,10 @@ void RigidBody::Integrate(float deltaSeconds)
 	m_angularVelocityRadians *= Pow(m_angularDamping, deltaSeconds);
 
 	// Update position/rotation
-	transform.position += m_velocity * deltaSeconds;
+	transform->position += m_velocity * deltaSeconds;
 
 	Quaternion deltaRotation = Quaternion::CreateFromEulerAnglesRadians(m_angularVelocityRadians * deltaSeconds);
-	transform.Rotate(deltaRotation, RELATIVE_TO_WORLD); // Forces/torques are world space, so velocity/angular velocity is ws....so this is a rotation about the world axes
+	transform->Rotate(deltaRotation, RELATIVE_TO_WORLD); // Forces/torques are world space, so velocity/angular velocity is ws....so this is a rotation about the world axes
 
 	CalculateDerivedData();
 	ClearForces();
@@ -115,7 +122,7 @@ void RigidBody::Integrate(float deltaSeconds)
 void RigidBody::CalculateDerivedData()
 {
 	// Update the world inverse inertia tensor
-	Matrix3 toWorldRotation = transform.GetLocalToWorldMatrix().GetMatrix3Part();
+	Matrix3 toWorldRotation = transform->GetLocalToWorldMatrix().GetMatrix3Part();
 	Matrix3 toLocalRotation = toWorldRotation;
 	toLocalRotation.Transpose();
 	ASSERT_OR_DIE(AreMostlyEqual(toLocalRotation, toWorldRotation.GetInverse()), "Transpose and inverse are not equal"); // Transpose should be the inverse, but to be safe check

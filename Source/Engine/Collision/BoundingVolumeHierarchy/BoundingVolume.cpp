@@ -32,10 +32,10 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-BoundingVolumeSphere::BoundingVolumeSphere(const Sphere3D* sphere)
+BoundingVolumeSphere::BoundingVolumeSphere(const Sphere3D& sphere)
 {
-	center = sphere->center;
-	radius = sphere->radius;
+	center = sphere.center;
+	radius = sphere.radius;
 }
 
 
@@ -82,4 +82,20 @@ BoundingVolumeSphere::BoundingVolumeSphere(const BoundingVolumeSphere& a, const 
 bool BoundingVolumeSphere::Overlaps(const BoundingVolumeSphere& sphere)
 {
 	return DoSpheresOverlap(*this, sphere);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float BoundingVolumeSphere::GetGrowth(const BoundingVolumeSphere& other) const
+{
+	// Gauge growth by change in volume
+	// We *cannot* move this sphere to encapsulate other, as then we may uncover something we're already encapsulating
+	// We can only grow our radius
+	float distance = (center - other.center).GetLength();
+	float radiusNeeded = distance + other.radius;
+
+	float currVolume = (4.f / 3.f) * PI * radius * radius * radius;
+	float growthVolume = (4.f / 3.f) * PI * radiusNeeded * radiusNeeded * radiusNeeded;
+	
+	return Max(0.f, growthVolume - currVolume); // Clamp above zero to indicate when we don't need to grow
 }
