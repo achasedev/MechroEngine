@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: November 23rd, 2020
+/// Date Created: May 8th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -13,10 +13,35 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#define MAX_CONTACT_COUNT 8
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class RigidBody;
+
+//-------------------------------------------------------------------------------------------------
+struct Contact
+{
+	Vector3		position = Vector3::ZERO;
+	Vector3		normal = Vector3::ZERO;
+	float		penetration = 0.f;
+	float		restitution = 1.f;
+	float		friction = 0.f;
+	RigidBody*	bodyA = nullptr;
+	RigidBody*	bodyB = nullptr;
+};
+
+
+//-------------------------------------------------------------------------------------------------
+struct CollisionData
+{
+	Contact		contacts[MAX_CONTACT_COUNT];
+	int			numContacts = 0;
+	float		restitution = 1.f;
+	float		friction = 0.f;
+
+};
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -26,36 +51,7 @@
 /// CLASS DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
-//-------------------------------------------------------------------------------------------------
-class Plane3
-{
-public:
-	//-----Public Methods-----
 
-	Plane3() {}
-	Plane3(const Vector3& normal, float distance);
-	Plane3(const Vector3& normal, const Vector3& pointOnPlane);
-
-	void	SetNormal(const Vector3& normal) { normal = normal; }
-	void	SetDistance(float distance) { distance = distance; }
-	
-	Vector3 GetNormal() const { return normal; }
-	float	GetDistance() const { return distance; }
-
-	bool	ContainsPoint(const Vector3& point) const;
-	bool	IsPointInFront(const Vector3& point) const;
-	bool	IsPointBehind(const Vector3& point) const;
-	float	GetDistanceFromPlane(const Vector3& point) const;
-	Vector3	GetProjectedPointOntoPlane(const Vector3& point) const;
-
-
-public:
-	//-----Public Data-----
-
-	Vector3 normal = Vector3::ZERO;
-	float	distance = 0.f; // Distance along normal from origin to closest point on plane
-
-};
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS

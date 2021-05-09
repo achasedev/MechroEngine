@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: March 20th, 2021
+/// Date Created: May 8th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,11 +8,9 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/AABB3.h"
-#include "Engine/Math/Face3.h"
-#include "Engine/Math/Plane3.h"
+#include "Engine/Math/OBB3.h"
+#include "Engine/Math/Sphere3D.h"
 #include "Engine/Math/Transform.h"
-#include <vector>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -21,6 +19,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class Entity;
+class RigidBody;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -31,43 +31,68 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class OBB3
+template <typename T>
+class CollisionPrimitive
 {
 public:
 	//-----Public Methods-----
 
-	OBB3() {}
-	OBB3(const Vector3& center, const Vector3& extents, const Vector3& rotation);
-	OBB3(const Vector3& center, const Vector3& extents, const Quaternion& rotation);
+	virtual T	GetWorldData() const = 0;
 
-	Vector3		GetCenter() const { return center; }
-	Vector3		GetExtents() const { return extents; }
-	Vector3		GetRotationDegrees() const { return rotation.GetAsEulerAnglesDegrees(); }
-
-	Vector3		GetMinsWs() const;
-	Vector3		GetMaxsWs() const;
-	void		GetPoints(Vector3 out_points[8]) const;
-
-	Vector3		GetRightVector() const;
-	Vector3		GetUpVector() const;
-	Vector3		GetForwardVector() const;
-	Matrix4		GetModelMatrix() const;
-	Face3		GetFaceInDirection(const Vector3& direction) const;
-
-	void		GetFaceSupportPlanes(std::vector<Plane3>& out_planes) const;
+	bool		HasRigidBody() const { return entity->rigidBody != nullptr; }
+	RigidBody*	GetRigidBody() const { return entity->rigidBody; }
 
 
-public:
-	//-----Public Data-----
+private:
+	//-----Private Data-----
 
-	// The center, dimensions, and rotation are all baked into the transform, with (-1, -1, -1) being the "mins" and (1, 1, 1) the "maxs"
-	// The center is then (0, 0, 0)
-	Vector3 center;
-	Vector3 extents;
-	Quaternion rotation;
+	Entity*		entity = nullptr;	// This entity doesn't need a rigidbody! It just means do the collision detection, but no correction
+	T			dataLs;				// Defined in the owning entity's transform
 
 };
 
+//-------------------------------------------------------------------------------------------------
+class CollisionSphere : public CollisionPrimitive<Sphere3D>
+{
+public:
+	//-----Public Methods-----
+
+	virtual Sphere3D GetWorldData() const override;
+
+
+private:
+	//-----Private Data-----
+
+};
+
+
+//-------------------------------------------------------------------------------------------------
+class CollisionHalfSpace : public CollisionPrimitive<Plane3>
+{
+public:
+	//-----Public Methods-----
+
+	virtual Plane3 GetWorldData() const override;
+
+
+private:
+	//-----Private Data-----
+
+};
+
+//-------------------------------------------------------------------------------------------------
+class CollisionBox : public CollisionPrimitive<OBB3>
+{
+public:
+	//-----Public Methods-----
+
+	virtual OBB3 GetWorldData() const override;
+
+
+private:
+	//-----Private Data-----
+
+};
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS

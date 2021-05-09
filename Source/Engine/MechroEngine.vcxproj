@@ -164,6 +164,7 @@
   <ItemGroup>
     <ClCompile Include="..\ThirdParty\tinyxml2\tinyxml2.cpp" />
     <ClCompile Include="Collision\BoundingVolumeHierarchy\BoundingVolume.cpp" />
+    <ClCompile Include="Collision\CollisionDetector.cpp" />
     <ClCompile Include="Event\EventSubscription.cpp" />
     <ClCompile Include="Event\EventSystem.cpp" />
     <ClCompile Include="Core\ConsoleCommand.cpp" />
@@ -275,7 +276,10 @@
     <ClInclude Include="..\ThirdParty\tinyxml2\tinyxml2.h" />
     <ClInclude Include="Collision\BoundingVolumeHierarchy\BoundingVolume.h" />
     <ClInclude Include="Collision\BoundingVolumeHierarchy\BVHNode.h" />
+    <ClInclude Include="Collision\CollisionDetector.h" />
+    <ClInclude Include="Collision\CollisionPrimitive.h" />
     <ClInclude Include="Collision\CollisionScene.h" />
+    <ClInclude Include="Collision\Contact.h" />
     <ClInclude Include="DataStructures\ColoredText.h" />
     <ClInclude Include="DataStructures\ThreadSafeQueue.h" />
     <ClInclude Include="Event\EventSubscription.h" />
