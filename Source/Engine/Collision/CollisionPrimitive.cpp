@@ -1,16 +1,15 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: May 3rd, 2021
+/// Date Created: May 9th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Collision/CollisionPrimitive.h"
 #include "Engine/Core/EngineCommon.h"
-#include "Engine/Physics/RigidBody/RigidBody.h"
-#include "Engine/Physics/RigidBody/RigidBodyForceGenerator.h"
-#include "Engine/Physics/RigidBody/PhysicsScene.h"
+#include "Engine/Core/Entity.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -32,81 +31,55 @@
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
+
 //-------------------------------------------------------------------------------------------------
-PhysicsScene::PhysicsScene(CollisionScene<BoundingVolumeSphere>* collisionScene)
-	: m_collisionScene(collisionScene)
+CollisionSphere::CollisionSphere(Entity* owningEntity, const Sphere3D& sphereLs)
+	: CollisionPrimitive(owningEntity)
 {
+	dataLs = sphereLs;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-PhysicsScene::~PhysicsScene()
+Sphere3D CollisionSphere::GetDataInWorldSpace() const
 {
-	SafeDeleteVector(m_forceGens);
-	SafeDeleteVector(m_bodies);
+	Vector3 centerWs = entity->transform.TransformPosition(dataLs.center);
+	return Sphere3D(centerWs, dataLs.radius);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void PhysicsScene::BeginFrame()
+CollisionHalfSpace::CollisionHalfSpace(Entity* owningEntity, const Plane3& planeLs)
+	: CollisionPrimitive(owningEntity)
 {
-	for (RigidBody* body : m_bodies)
-	{
-		body->CalculateDerivedData();
-		body->ClearForces();
-	}
+	dataLs = planeLs;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void PhysicsScene::DoPhysicsStep(float deltaSeconds)
+Plane3 CollisionHalfSpace::GetDataInWorldSpace() const
 {
-	// Apply all forces
-	m_forceRegistry.GenerateAndAddForces(deltaSeconds);
+	Vector3 normalWs = entity->transform.TransformDirection(dataLs.m_normal);
+	Vector3 positionLs = dataLs.m_normal * dataLs.m_distance;
+	Vector3 positionWs = entity->transform.TransformPosition(positionLs);
 
-	if (m_collisionScene != nullptr)
-	{
-		m_collisionScene->DoCollisionStep();
-	}
-
-	// Update positions and velocities
-	Integrate(deltaSeconds);
+	return Plane3(normalWs, positionWs);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void PhysicsScene::AddRigidbody(RigidBody* body)
+CollisionBox::CollisionBox(Entity* owningEntity, const OBB3& boxLs)
+	: CollisionPrimitive(owningEntity)
 {
-	if (std::find(m_bodies.begin(), m_bodies.end(), body) == m_bodies.end())
-	{
-		m_bodies.push_back(body);
-	}
+	dataLs = boxLs;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void PhysicsScene::AddForceGenerator(RigidBodyForceGenerator* forceGen, RigidBody* body)
+OBB3 CollisionBox::GetDataInWorldSpace() const
 {
-	// Add the generator and body of not already added
-	if (std::find(m_forceGens.begin(), m_forceGens.end(), forceGen) == m_forceGens.end())
-	{
-		m_forceGens.push_back(forceGen);
-	}
+	Vector3 centerWs = entity->transform.TransformPosition(dataLs.center);
+	Quaternion rotationWs = entity->transform.rotation * dataLs.rotation;
 
-	if (std::find(m_bodies.begin(), m_bodies.end(), body) == m_bodies.end())
-	{
-		m_bodies.push_back(body);
-	}
-
-	m_forceRegistry.AddRegistration(body, forceGen);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void PhysicsScene::Integrate(float deltaSeconds)
-{
-	for (RigidBody* body : m_bodies)
-	{
-		body->Integrate(deltaSeconds);
-	}
+	return OBB3(centerWs, dataLs.extents, rotationWs);
 }

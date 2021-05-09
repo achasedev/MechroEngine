@@ -118,6 +118,7 @@ Vector3 GetRandomPointWithinUnitSphere();
 int		RoundToNearestInt(float inValue);
 Vector2	Clamp(const Vector2& inValue, const Vector2& minInclusive, const Vector2& maxInclusive);
 Vector3 Clamp(const Vector3& inValue, float minInclusive, float maxInclusive);
+Vector3 Clamp(const Vector3& inValue, const Vector3& minInclusive, const Vector3& maxInclusive);
 
 
 //-------------------------------------------------------------------------------------------------

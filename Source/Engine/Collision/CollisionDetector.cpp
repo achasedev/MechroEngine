@@ -40,15 +40,15 @@ int CollisionDetector::GenerateContacts(const CollisionSphere& a, const Collisio
 	if (collisionData.numContacts >= MAX_CONTACT_COUNT)
 		return 0;
 
-	Sphere3D aSphere = a.GetWorldData();
-	Sphere3D bSphere = b.GetWorldData();
+	Sphere3D aSphere = a.GetDataInWorldSpace();
+	Sphere3D bSphere = b.GetDataInWorldSpace();
 
 	Vector3 bToA = aSphere.center - bSphere.center;
 	float distanceSquared = bToA.GetLengthSquared();
 
 	if (distanceSquared >= (aSphere.radius + bSphere.radius) * (aSphere.radius + bSphere.radius))
 	{
-		return 0.f;
+		return 0;
 	}
 
 	float distance = bToA.Normalize();
@@ -79,8 +79,8 @@ int CollisionDetector::GenerateContacts(const CollisionSphere& sphere, const Col
 	if (collisionData.numContacts >= MAX_CONTACT_COUNT)
 		return 0;
 
-	Sphere3D sphereWs = sphere.GetWorldData();
-	Plane3 planeWs = halfSpace.GetWorldData();
+	Sphere3D sphereWs = sphere.GetDataInWorldSpace();
+	Plane3 planeWs = halfSpace.GetDataInWorldSpace();
 
 	float distance = planeWs.GetDistanceFromPlane(sphereWs.center) - sphereWs.radius;
 	
@@ -113,8 +113,8 @@ int CollisionDetector::GenerateContacts(const CollisionBox& box, const Collision
 	if (collisionData.numContacts >= MAX_CONTACT_COUNT)
 		return 0;
 
-	OBB3 boxWs = box.GetWorldData();
-	Plane3 planeWs = halfSpace.GetWorldData();
+	OBB3 boxWs = box.GetDataInWorldSpace();
+	Plane3 planeWs = halfSpace.GetDataInWorldSpace();
 
 	Vector3 boxVertsWs[8];
 	boxWs.GetPoints(boxVertsWs);
@@ -129,7 +129,7 @@ int CollisionDetector::GenerateContacts(const CollisionBox& box, const Collision
 			Contact* contact = &collisionData.contacts[collisionData.numContacts];
 
 			contact->position = 0.5f * (boxVertsWs[i] + planeWs.GetProjectedPointOntoPlane(boxVertsWs[i])); // Position is half way between the box vertex and the plane
-			contact->normal = planeWs.normal;
+			contact->normal = planeWs.m_normal;
 			contact->penetration = distance;
 
 			if (box.HasRigidBody())
@@ -157,5 +157,49 @@ int CollisionDetector::GenerateContacts(const CollisionBox& box, const Collision
 //-------------------------------------------------------------------------------------------------
 int CollisionDetector::GenerateContacts(const CollisionBox& box, const CollisionSphere& sphere, CollisionData& collisionData)
 {
-	
+	if (collisionData.numContacts >= MAX_CONTACT_COUNT)
+		return 0;
+
+	Sphere3D sphereWs = sphere.GetDataInWorldSpace();
+	OBB3 boxWs = box.GetDataInWorldSpace();
+
+	Vector3 sphereCenterRel = boxWs.TransformPositionIntoSpace(sphereWs.center);
+
+	// Early out check
+	if (Abs(sphereCenterRel.x) - sphereWs.radius >= boxWs.extents.x ||
+		Abs(sphereCenterRel.y) - sphereWs.radius >= boxWs.extents.y ||
+		Abs(sphereCenterRel.z) - sphereWs.radius >= boxWs.extents.z)
+	{
+		return 0;
+	}
+
+	// Get the closest point on the box to the sphere
+	Vector3 closestPointRel = Clamp(sphereCenterRel, -1.0f * boxWs.extents, boxWs.extents);
+	Vector3 closestPointWs = boxWs.TransformPositionOutOfSpace(closestPointRel);
+
+	// Get the distance from the sphere to the box point
+	Vector3 sphereToBox = closestPointWs - sphereWs.center;
+	float distanceSquared = sphereToBox.GetLengthSquared();
+	float radiusSquared = sphereWs.radius * sphereWs.radius;
+
+	if (distanceSquared >= radiusSquared)
+		return 0;
+
+	// Create the contact
+	Contact* contact = &collisionData.contacts[collisionData.numContacts];
+	contact->position = closestPointWs;
+	contact->normal = sphereToBox;
+	float distance = contact->normal.Normalize();
+	contact->penetration = sphereWs.radius - distance;
+
+	if (box.HasRigidBody() && sphere.HasRigidBody())
+	{
+		contact->bodyA = box.GetRigidBody();
+		contact->bodyB = sphere.GetRigidBody();
+		contact->restitution = collisionData.restitution;
+		contact->friction = collisionData.friction;
+	}
+
+	collisionData.numContacts++;
+	return 1;
 }

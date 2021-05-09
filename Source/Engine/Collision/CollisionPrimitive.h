@@ -37,19 +37,31 @@ class CollisionPrimitive
 public:
 	//-----Public Methods-----
 
-	virtual T	GetWorldData() const = 0;
+	CollisionPrimitive() {}
+	CollisionPrimitive(Entity* owningEntity);
+
+	virtual T	GetDataInWorldSpace() const = 0;
 
 	bool		HasRigidBody() const { return entity->rigidBody != nullptr; }
 	RigidBody*	GetRigidBody() const { return entity->rigidBody; }
 
 
-private:
-	//-----Private Data-----
+protected:
+	//-----Protected Data-----
 
 	Entity*		entity = nullptr;	// This entity doesn't need a rigidbody! It just means do the collision detection, but no correction
 	T			dataLs;				// Defined in the owning entity's transform
 
 };
+
+
+//-------------------------------------------------------------------------------------------------
+template <typename T>
+CollisionPrimitive<T>::CollisionPrimitive(Entity* owningEntity)
+	: entity(owningEntity)
+{
+}
+
 
 //-------------------------------------------------------------------------------------------------
 class CollisionSphere : public CollisionPrimitive<Sphere3D>
@@ -57,7 +69,10 @@ class CollisionSphere : public CollisionPrimitive<Sphere3D>
 public:
 	//-----Public Methods-----
 
-	virtual Sphere3D GetWorldData() const override;
+	CollisionSphere() {}
+	CollisionSphere(Entity* owningEntity, const Sphere3D& sphereLs);
+
+	virtual Sphere3D GetDataInWorldSpace() const override;
 
 
 private:
@@ -72,7 +87,10 @@ class CollisionHalfSpace : public CollisionPrimitive<Plane3>
 public:
 	//-----Public Methods-----
 
-	virtual Plane3 GetWorldData() const override;
+	CollisionHalfSpace() {}
+	CollisionHalfSpace(Entity* owningEntity, const Plane3& planeLs);
+
+	virtual Plane3 GetDataInWorldSpace() const override;
 
 
 private:
@@ -86,7 +104,10 @@ class CollisionBox : public CollisionPrimitive<OBB3>
 public:
 	//-----Public Methods-----
 
-	virtual OBB3 GetWorldData() const override;
+	CollisionBox() {}
+	CollisionBox(Entity* owningEntity, const OBB3& boxLs);
+
+	virtual OBB3 GetDataInWorldSpace() const override;
 
 
 private:

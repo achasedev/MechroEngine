@@ -36,11 +36,11 @@ public:
 	Plane3(const Vector3& normal, float distance);
 	Plane3(const Vector3& normal, const Vector3& pointOnPlane);
 
-	void	SetNormal(const Vector3& normal) { normal = normal; }
-	void	SetDistance(float distance) { distance = distance; }
+	void	SetNormal(const Vector3& normal) { m_normal = normal; }
+	void	SetDistance(float distance) { m_distance = distance; }
 	
-	Vector3 GetNormal() const { return normal; }
-	float	GetDistance() const { return distance; }
+	Vector3 GetNormal() const { return m_normal; }
+	float	GetDistance() const { return m_distance; }
 
 	bool	ContainsPoint(const Vector3& point) const;
 	bool	IsPointInFront(const Vector3& point) const;
@@ -52,8 +52,8 @@ public:
 public:
 	//-----Public Data-----
 
-	Vector3 normal = Vector3::ZERO;
-	float	distance = 0.f; // Distance along normal from origin to closest point on plane
+	Vector3 m_normal = Vector3::ZERO;
+	float	m_distance = 0.f; // Distance along normal from origin to closest point on plane
 
 };
 

@@ -8,6 +8,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/EngineCommon.h"
+#include "Engine/Math/Matrix3.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Math/OBB3.h"
 
@@ -57,28 +58,28 @@ void OBB3::GetPoints(Vector3 out_points[8]) const
 	//out_points[6] = rotation.RotatePoint(center) + Vector3(-extents.x, extents.y, extents.z);	// Left, Top, Front
 	//out_points[7] = rotation.RotatePoint(center) + Vector3(-extents.x, -extents.y, extents.z);	// Left, Bottom, Front
 
-	out_points[0] = center + rotation.RotatePoint(Vector3(-extents.x, -extents.y, -extents.z)); // Left, Bottom, Back
-	out_points[1] = center + rotation.RotatePoint(Vector3(-extents.x, extents.y, -extents.z));	// Left, Top, Back
-	out_points[2] = center + rotation.RotatePoint(Vector3(extents.x, extents.y, -extents.z));	// Right, Top, Back 
-	out_points[3] = center + rotation.RotatePoint(Vector3(extents.x, -extents.y, -extents.z));	// Right, Bottom, Back
-	out_points[4] = center + rotation.RotatePoint(Vector3(extents.x, -extents.y, extents.z));	// Right, Bottom, Front
-	out_points[5] = center + rotation.RotatePoint(Vector3(extents.x, extents.y, extents.z));	// Right, Top, Front
-	out_points[6] = center + rotation.RotatePoint(Vector3(-extents.x, extents.y, extents.z));	// Left, Top, Front
-	out_points[7] = center + rotation.RotatePoint(Vector3(-extents.x, -extents.y, extents.z));	// Left, Bottom, Front
+	out_points[0] = center + rotation.RotatePosition(Vector3(-extents.x, -extents.y, -extents.z)); // Left, Bottom, Back
+	out_points[1] = center + rotation.RotatePosition(Vector3(-extents.x, extents.y, -extents.z));	// Left, Top, Back
+	out_points[2] = center + rotation.RotatePosition(Vector3(extents.x, extents.y, -extents.z));	// Right, Top, Back 
+	out_points[3] = center + rotation.RotatePosition(Vector3(extents.x, -extents.y, -extents.z));	// Right, Bottom, Back
+	out_points[4] = center + rotation.RotatePosition(Vector3(extents.x, -extents.y, extents.z));	// Right, Bottom, Front
+	out_points[5] = center + rotation.RotatePosition(Vector3(extents.x, extents.y, extents.z));	// Right, Top, Front
+	out_points[6] = center + rotation.RotatePosition(Vector3(-extents.x, extents.y, extents.z));	// Left, Top, Front
+	out_points[7] = center + rotation.RotatePosition(Vector3(-extents.x, -extents.y, extents.z));	// Left, Bottom, Front
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Vector3 OBB3::GetMinsWs() const
 {
-	return rotation.RotatePoint(center - extents);
+	return rotation.RotatePosition(center - extents);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Vector3 OBB3::GetMaxsWs() const
 {
-	return rotation.RotatePoint(center + extents);
+	return rotation.RotatePosition(center + extents);
 }
 
 
@@ -205,4 +206,20 @@ void OBB3::GetFaceSupportPlanes(std::vector<Plane3>& out_planes) const
 	out_planes.push_back(Plane3(up, maxsWs));
 	out_planes.push_back(Plane3(-1.f * forward, minsWs));
 	out_planes.push_back(Plane3(forward, maxsWs));
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector3 OBB3::TransformPositionIntoSpace(const Vector3& position)
+{
+	Matrix3 basis = Matrix3(rotation);
+	return basis.GetInverse() * (position - center);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector3 OBB3::TransformPositionOutOfSpace(const Vector3& position)
+{
+	Matrix3 basis = Matrix3(rotation);
+	return (basis * position) + center;
 }

@@ -480,6 +480,19 @@ Vector3 Clamp(const Vector3& inValue, float minInclusive, float maxInclusive)
 
 
 //-------------------------------------------------------------------------------------------------
+Vector3 Clamp(const Vector3& inValue, const Vector3& minInclusive, const Vector3& maxInclusive)
+{
+	Vector3 result;
+
+	result.x = Clamp(inValue.x, minInclusive.x, maxInclusive.x);
+	result.y = Clamp(inValue.y, minInclusive.y, maxInclusive.y);
+	result.z = Clamp(inValue.z, minInclusive.z, maxInclusive.z);
+
+	return result;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 float GetFractionInRange(float inValue, float rangeStart, float rangeEnd)
 {
 	float offsetIntoRange = (inValue - rangeStart);

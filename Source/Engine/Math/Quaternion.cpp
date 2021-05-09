@@ -270,13 +270,27 @@ void Quaternion::ConvertToUnitNorm()
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Quaternion::RotatePoint(const Vector3& point) const
+Vector3 Quaternion::RotatePosition(const Vector3& position) const
 {
-	Quaternion pointAsQuat = Quaternion(0.f, point);
+	Quaternion pointAsQuat = Quaternion(0.f, position);
 
 	Quaternion inverse = GetInverse();
 	//Quaternion rotatedResult = inverse * pointAsQuat * (*this);
 	Quaternion rotatedResult = (*this) * pointAsQuat * inverse;
+
+	ASSERT_OR_DIE(AreMostlyEqual(rotatedResult.real, 0.f), "This should be zero!");
+
+	return rotatedResult.v;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector3 Quaternion::InverseRotatePosition(const Vector3& position) const
+{
+	Quaternion pointAsQuat = Quaternion(0.f, position);
+
+	Quaternion inverse = GetInverse();
+	Quaternion rotatedResult = inverse * pointAsQuat * (*this);
 
 	ASSERT_OR_DIE(AreMostlyEqual(rotatedResult.real, 0.f), "This should be zero!");
 

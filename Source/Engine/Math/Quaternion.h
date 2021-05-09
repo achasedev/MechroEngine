@@ -66,7 +66,8 @@ public:
 	void				Normalize();
 	void				ConvertToUnitNorm();
 	
-	Vector3				RotatePoint(const Vector3& point) const;
+	Vector3				RotatePosition(const Vector3& position) const;
+	Vector3				InverseRotatePosition(const Vector3& position) const;
 
 	// "CreateFromXAngles" are angle representations about the standard x, y, and z axes
 	static Quaternion	CreateFromEulerAnglesDegrees(float xDegrees, float yDegrees, float zDegrees);

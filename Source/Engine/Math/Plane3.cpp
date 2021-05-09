@@ -33,7 +33,7 @@
 
 //-------------------------------------------------------------------------------------------------
 Plane3::Plane3(const Vector3& normal, float distance)
-	: normal(normal), distance(distance)
+	: m_normal(normal), m_distance(distance)
 {
 
 }
@@ -41,9 +41,9 @@ Plane3::Plane3(const Vector3& normal, float distance)
 
 //-------------------------------------------------------------------------------------------------
 Plane3::Plane3(const Vector3& normal, const Vector3& pointOnPlane)
-	: normal(normal)
+	: m_normal(normal)
 {
-	distance = DotProduct(normal, pointOnPlane);
+	m_distance = DotProduct(normal, pointOnPlane);
 }
 
 
@@ -71,7 +71,7 @@ bool Plane3::IsPointBehind(const Vector3& point) const
 //-------------------------------------------------------------------------------------------------
 float Plane3::GetDistanceFromPlane(const Vector3& point) const
 {
-	return DotProduct(normal, point) - distance;
+	return DotProduct(m_normal, point) - m_distance;
 }
 
 
@@ -79,5 +79,5 @@ float Plane3::GetDistanceFromPlane(const Vector3& point) const
 Vector3 Plane3::GetProjectedPointOntoPlane(const Vector3& point) const
 {
 	float distance = GetDistanceFromPlane(point);
-	return point - (normal * distance);
+	return point - (m_normal * distance);
 }

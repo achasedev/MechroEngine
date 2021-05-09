@@ -165,6 +165,7 @@
     <ClCompile Include="..\ThirdParty\tinyxml2\tinyxml2.cpp" />
     <ClCompile Include="Collision\BoundingVolumeHierarchy\BoundingVolume.cpp" />
     <ClCompile Include="Collision\CollisionDetector.cpp" />
+    <ClCompile Include="Collision\CollisionPrimitive.cpp" />
     <ClCompile Include="Event\EventSubscription.cpp" />
     <ClCompile Include="Event\EventSystem.cpp" />
     <ClCompile Include="Core\ConsoleCommand.cpp" />

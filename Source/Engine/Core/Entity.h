@@ -9,6 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Collision/BoundingVolumeHierarchy/BoundingVolume.h"
+#include "Engine/Collision/CollisionPrimitive.h"
 #include "Engine/Core/EngineCommon.h"
 #include "Engine/Math/AABB3.h"
 #include "Engine/Math/Transform.h"
@@ -53,7 +54,7 @@ public:
 
 	RigidBody*				rigidBody = nullptr;
 	AABB3					renderShapeLs;
-	AABB3					physicsShapeLs;
+	CollisionBox			boxCollision;
 	BoundingVolumeSphere	physicsBoundingShapeLs;
 
 

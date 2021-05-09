@@ -17,7 +17,7 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class CollisionBox;
-class CollisionData;
+struct CollisionData;
 class CollisionSphere;
 class CollisionHalfSpace;
 

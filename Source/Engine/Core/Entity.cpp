@@ -37,6 +37,7 @@ EntityID Entity::s_nextEntityID = 0;
 Entity::Entity()
 	: m_id(s_nextEntityID)
 	, physicsBoundingShapeLs(BoundingVolumeSphere(Sphere3D(Vector3::ZERO, 1.f)))
+	, boxCollision(CollisionBox(this, OBB3(Vector3::ZERO, Vector3(0.5f), Quaternion::IDENTITY)))
 {
 	++s_nextEntityID;
 }
