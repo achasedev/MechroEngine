@@ -8,7 +8,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Collision/BoundingVolumeHierarchy/BoundingVolume.h"
 #include "Engine/Math/Sphere3D.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -39,7 +38,7 @@ public:
 
 	void	DebugRender() const;
 
-	bool	Overlaps(const BoundingVolumeSphere& sphere);
+	bool	Overlaps(const BoundingVolumeSphere& sphere) const;
 	float	GetSize() const { return radius; }
 	float	GetGrowth(const BoundingVolumeSphere& other) const;
 

@@ -59,11 +59,11 @@ int CollisionDetector::GenerateContacts(const CollisionSphere& a, const Collisio
 	contact->normal = bToA;												// Orientation is set up s.t adding the normal to A would resolve the collision, -normal to B
 	contact->penetration = (aSphere.radius + bSphere.radius) - distance;	// Pen is the overlap
 
-	if (a.HasRigidBody() && b.HasRigidBody())
+	if (a.OwnerHasRigidBody() && b.OwnerHasRigidBody())
 	{
 		// TODO: Figure out restitution and friction
-		contact->bodyA = a.GetRigidBody();
-		contact->bodyB = b.GetRigidBody();	
+		contact->bodyA = a.GetOwnerRigidBody();
+		contact->bodyB = b.GetOwnerRigidBody();	
 		contact->restitution = collisionData.restitution;
 		contact->friction = collisionData.friction;
 	}
@@ -94,9 +94,9 @@ int CollisionDetector::GenerateContacts(const CollisionSphere& sphere, const Col
 	contact->penetration = -distance;
 	contact->position = planeWs.GetProjectedPointOntoPlane(sphereWs.center);
 
-	if (sphere.HasRigidBody())
+	if (sphere.OwnerHasRigidBody())
 	{
-		contact->bodyA = sphere.GetRigidBody();
+		contact->bodyA = sphere.GetOwnerRigidBody();
 		contact->bodyB = nullptr;
 		contact->friction = collisionData.friction;
 		contact->restitution = collisionData.restitution;
@@ -132,9 +132,9 @@ int CollisionDetector::GenerateContacts(const CollisionBox& box, const Collision
 			contact->normal = planeWs.m_normal;
 			contact->penetration = distance;
 
-			if (box.HasRigidBody())
+			if (box.OwnerHasRigidBody())
 			{
-				contact->bodyA = box.GetRigidBody();
+				contact->bodyA = box.GetOwnerRigidBody();
 				contact->bodyB = nullptr;
 				contact->friction = collisionData.friction;
 				contact->restitution = collisionData.restitution;
@@ -192,10 +192,10 @@ int CollisionDetector::GenerateContacts(const CollisionBox& box, const Collision
 	float distance = contact->normal.Normalize();
 	contact->penetration = sphereWs.radius - distance;
 
-	if (box.HasRigidBody() && sphere.HasRigidBody())
+	if (box.OwnerHasRigidBody() && sphere.OwnerHasRigidBody())
 	{
-		contact->bodyA = box.GetRigidBody();
-		contact->bodyB = sphere.GetRigidBody();
+		contact->bodyA = box.GetOwnerRigidBody();
+		contact->bodyB = sphere.GetOwnerRigidBody();
 		contact->restitution = collisionData.restitution;
 		contact->friction = collisionData.friction;
 	}

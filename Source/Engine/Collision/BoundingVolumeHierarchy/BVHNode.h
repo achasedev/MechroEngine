@@ -151,7 +151,7 @@ int BVHNode<BoundingVolumeClass>::GetPotentialCollisions(PotentialCollision* out
 template <class BoundingVolumeClass>
 int BVHNode<BoundingVolumeClass>::GetPotentialCollisionsBetween(const BVHNode<BoundingVolumeClass>* other, PotentialCollision* out_collisions, int limit) const
 {
-	if (limit == 0 || !m_boundingVolume.Overlaps())
+	if (limit == 0 || !m_boundingVolume.Overlaps(other->m_boundingVolume))
 		return 0;
 
 	// These two nodes overlap - if they're leaves, then the two entities could overlap

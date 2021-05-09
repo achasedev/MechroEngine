@@ -23,6 +23,7 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 typedef int EntityID;
+class CollisionPrimitive;
 class RigidBody;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -54,7 +55,7 @@ public:
 
 	RigidBody*				rigidBody = nullptr;
 	AABB3					renderShapeLs;
-	CollisionBox			boxCollision;
+	CollisionPrimitive*		m_collisionPrimitive = nullptr;
 	BoundingVolumeSphere	physicsBoundingShapeLs;
 
 

@@ -102,7 +102,7 @@ void BoundingVolumeSphere::DebugRender() const
 
 
 //-------------------------------------------------------------------------------------------------
-bool BoundingVolumeSphere::Overlaps(const BoundingVolumeSphere& sphere)
+bool BoundingVolumeSphere::Overlaps(const BoundingVolumeSphere& sphere) const
 {
 	return DoSpheresOverlap(*this, sphere);
 }

@@ -31,36 +31,54 @@
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
+//-------------------------------------------------------------------------------------------------
+CollisionPrimitive::CollisionPrimitive(Entity* owningEntity)
+	: entity(owningEntity)
+{
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool CollisionPrimitive::OwnerHasRigidBody() const
+{
+	return (entity->rigidBody != nullptr);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+RigidBody* CollisionPrimitive::GetOwnerRigidBody() const
+{
+	return entity->rigidBody;
+}
+
 
 //-------------------------------------------------------------------------------------------------
 CollisionSphere::CollisionSphere(Entity* owningEntity, const Sphere3D& sphereLs)
-	: CollisionPrimitive(owningEntity)
+	: TypedCollisionPrimitive(owningEntity, sphereLs)
 {
-	dataLs = sphereLs;
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Sphere3D CollisionSphere::GetDataInWorldSpace() const
 {
-	Vector3 centerWs = entity->transform.TransformPosition(dataLs.center);
-	return Sphere3D(centerWs, dataLs.radius);
+	Vector3 centerWs = entity->transform.TransformPosition(m_dataLs.center);
+	return Sphere3D(centerWs, m_dataLs.radius);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 CollisionHalfSpace::CollisionHalfSpace(Entity* owningEntity, const Plane3& planeLs)
-	: CollisionPrimitive(owningEntity)
+	: TypedCollisionPrimitive(owningEntity, planeLs)
 {
-	dataLs = planeLs;
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Plane3 CollisionHalfSpace::GetDataInWorldSpace() const
 {
-	Vector3 normalWs = entity->transform.TransformDirection(dataLs.m_normal);
-	Vector3 positionLs = dataLs.m_normal * dataLs.m_distance;
+	Vector3 normalWs = entity->transform.TransformDirection(m_dataLs.m_normal);
+	Vector3 positionLs = m_dataLs.m_normal * m_dataLs.m_distance;
 	Vector3 positionWs = entity->transform.TransformPosition(positionLs);
 
 	return Plane3(normalWs, positionWs);
@@ -69,17 +87,16 @@ Plane3 CollisionHalfSpace::GetDataInWorldSpace() const
 
 //-------------------------------------------------------------------------------------------------
 CollisionBox::CollisionBox(Entity* owningEntity, const OBB3& boxLs)
-	: CollisionPrimitive(owningEntity)
+	: TypedCollisionPrimitive(owningEntity, boxLs)
 {
-	dataLs = boxLs;
 }
 
 
 //-------------------------------------------------------------------------------------------------
 OBB3 CollisionBox::GetDataInWorldSpace() const
 {
-	Vector3 centerWs = entity->transform.TransformPosition(dataLs.center);
-	Quaternion rotationWs = entity->transform.rotation * dataLs.rotation;
+	Vector3 centerWs = entity->transform.TransformPosition(m_dataLs.center);
+	Quaternion rotationWs = entity->transform.rotation * m_dataLs.rotation;
 
-	return OBB3(centerWs, dataLs.extents, rotationWs);
+	return OBB3(centerWs, m_dataLs.extents, rotationWs);
 }

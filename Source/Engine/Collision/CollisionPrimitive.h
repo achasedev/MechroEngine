@@ -31,7 +31,6 @@ class RigidBody;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-template <typename T>
 class CollisionPrimitive
 {
 public:
@@ -40,31 +39,50 @@ public:
 	CollisionPrimitive() {}
 	CollisionPrimitive(Entity* owningEntity);
 
-	virtual T	GetDataInWorldSpace() const = 0;
-
-	bool		HasRigidBody() const { return entity->rigidBody != nullptr; }
-	RigidBody*	GetRigidBody() const { return entity->rigidBody; }
+	inline bool			OwnerHasRigidBody() const;
+	inline RigidBody*	GetOwnerRigidBody() const;
 
 
-protected:
-	//-----Protected Data-----
+public:
+	//-----Public Data-----
 
-	Entity*		entity = nullptr;	// This entity doesn't need a rigidbody! It just means do the collision detection, but no correction
-	T			dataLs;				// Defined in the owning entity's transform
+	Entity* entity = nullptr;	// This entity doesn't need a rigidbody! It just means do the collision detection, but no correction
 
 };
 
 
 //-------------------------------------------------------------------------------------------------
 template <typename T>
-CollisionPrimitive<T>::CollisionPrimitive(Entity* owningEntity)
-	: entity(owningEntity)
+class TypedCollisionPrimitive : public CollisionPrimitive
 {
-}
+public:
+	//-----Public Methods-----
+
+	TypedCollisionPrimitive() {}
+	TypedCollisionPrimitive(Entity* owningEntity, const T& dataLs);
+
+	virtual T GetDataInWorldSpace() const = 0;
+
+
+protected:
+	//-----Protected Data-----
+
+	T m_dataLs; // Defined in the owning entity's transform
+
+};
 
 
 //-------------------------------------------------------------------------------------------------
-class CollisionSphere : public CollisionPrimitive<Sphere3D>
+template <typename T>
+TypedCollisionPrimitive<T>::TypedCollisionPrimitive(Entity* owningEntity, const T& dataLs)
+	: CollisionPrimitive(owningEntity)
+	, m_dataLs(dataLs)
+{
+}
+ 
+
+//-------------------------------------------------------------------------------------------------
+class CollisionSphere : public TypedCollisionPrimitive<Sphere3D>
 {
 public:
 	//-----Public Methods-----
@@ -82,7 +100,7 @@ private:
 
 
 //-------------------------------------------------------------------------------------------------
-class CollisionHalfSpace : public CollisionPrimitive<Plane3>
+class CollisionHalfSpace : public TypedCollisionPrimitive<Plane3>
 {
 public:
 	//-----Public Methods-----
@@ -99,7 +117,7 @@ private:
 };
 
 //-------------------------------------------------------------------------------------------------
-class CollisionBox : public CollisionPrimitive<OBB3>
+class CollisionBox : public TypedCollisionPrimitive<OBB3>
 {
 public:
 	//-----Public Methods-----
