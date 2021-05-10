@@ -66,7 +66,7 @@ private:
 
 	BVHNode*				m_parent = nullptr;
 	BVHNode*				m_children[2];
-	BoundingVolumeClass		m_boundingVolume; // Encompasses all entities at or below this level
+	BoundingVolumeClass		m_boundingVolumeWs; // Encompasses all entities at or below this level
 	Entity*					m_entity = nullptr; // Only set on leaf nodes
 
 };
@@ -96,7 +96,7 @@ bool BVHNode<BoundingVolumeClass>::IsLeaf() const
 template <class BoundingVolumeClass>
 void BVHNode<BoundingVolumeClass>::DebugRender() const
 {
-	m_boundingVolume.DebugRender();
+	m_boundingVolumeWs.DebugRender();
 	if (!IsLeaf())
 	{
 		m_children[0]->DebugRender();
@@ -126,7 +126,7 @@ BVHNode<BoundingVolumeClass>::~BVHNode()
 //-------------------------------------------------------------------------------------------------
 template <class BoundingVolumeClass>
 BVHNode<BoundingVolumeClass>::BVHNode(const BoundingVolumeClass& boundingVolume)
-	: m_boundingVolume(boundingVolume)
+	: m_boundingVolumeWs(boundingVolume)
 {
 	m_children[0] = nullptr;
 	m_children[1] = nullptr;
@@ -151,7 +151,7 @@ int BVHNode<BoundingVolumeClass>::GetPotentialCollisions(PotentialCollision* out
 template <class BoundingVolumeClass>
 int BVHNode<BoundingVolumeClass>::GetPotentialCollisionsBetween(const BVHNode<BoundingVolumeClass>* other, PotentialCollision* out_collisions, int limit) const
 {
-	if (limit == 0 || !m_boundingVolume.Overlaps(other->m_boundingVolume))
+	if (limit == 0 || !m_boundingVolumeWs.Overlaps(other->m_boundingVolumeWs))
 		return 0;
 
 	// These two nodes overlap - if they're leaves, then the two entities could overlap
@@ -164,7 +164,7 @@ int BVHNode<BoundingVolumeClass>::GetPotentialCollisionsBetween(const BVHNode<Bo
 
 	// At least one of these aren't a leaf - recursively descend
 	// If both aren't leaves, just choose the bounding volume with larger size
-	if (other->IsLeaf() || !IsLeaf() && m_boundingVolume.GetSize() >= other->m_boundingVolume.GetSize())
+	if (other->IsLeaf() || !IsLeaf() && m_boundingVolumeWs.GetSize() >= other->m_boundingVolumeWs.GetSize())
 	{
 		// Recurse on ourself
 		int numAdded = m_children[0]->GetPotentialCollisionsBetween(other, out_collisions, limit);
@@ -245,7 +245,7 @@ BVHNode<BoundingVolumeClass>* BVHNode<BoundingVolumeClass>::Insert(BVHNode<Bound
 	else
 	{
 		// Recurse down the path that would grow less to encompass this node
-		if (m_children[0]->m_boundingVolume.GetGrowth(node->m_boundingVolume) < m_children[1]->m_boundingVolume.GetGrowth(node->m_boundingVolume))
+		if (m_children[0]->m_boundingVolumeWs.GetGrowth(node->m_boundingVolumeWs) < m_children[1]->m_boundingVolumeWs.GetGrowth(node->m_boundingVolumeWs))
 		{
 			return m_children[0]->Insert(node);
 		}
@@ -313,7 +313,7 @@ void BVHNode<BoundingVolumeClass>::RecalculateBoundingVolume()
 	ASSERT_OR_DIE(!IsLeaf(), "Leaf nodes should not be recalculated!");
 	ASSERT_OR_DIE(this != m_parent, "We are our own parent!");
 
-	m_boundingVolume = BoundingVolumeClass(m_children[0]->m_boundingVolume, m_children[1]->m_boundingVolume);
+	m_boundingVolumeWs = BoundingVolumeClass(m_children[0]->m_boundingVolumeWs, m_children[1]->m_boundingVolumeWs);
 	if (m_parent != nullptr)
 	{
 		m_parent->RecalculateBoundingVolume();

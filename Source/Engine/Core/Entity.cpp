@@ -36,11 +36,10 @@ EntityID Entity::s_nextEntityID = 0;
 //-------------------------------------------------------------------------------------------------
 Entity::Entity()
 	: m_id(s_nextEntityID)
-	, physicsBoundingShapeLs(BoundingVolumeSphere(Sphere3D(Vector3::ZERO, 1.f)))
 {
 	++s_nextEntityID;
 
-	m_collisionPrimitive = new CollisionBox(this, OBB3(Vector3::ZERO, Vector3(0.5f), Quaternion::IDENTITY));
+	collisionPrimitive = new CollisionBox(this, OBB3(Vector3::ZERO, Vector3(0.5f), Quaternion::IDENTITY));
 }
 
 
@@ -48,14 +47,4 @@ Entity::Entity()
 void Entity::Render() const
 {
 	DebugDrawCube(Vector3::ZERO, 0.5f * renderShapeLs.GetDimensions(), Rgba::WHITE, 0.f, &transform);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-BoundingVolumeSphere Entity::GetWorldPhysicsBoundingVolume() const
-{
-	BoundingVolumeSphere worldBounds = physicsBoundingShapeLs;
-	worldBounds.center = transform.TransformPosition(worldBounds.center);
-
-	return worldBounds;
 }

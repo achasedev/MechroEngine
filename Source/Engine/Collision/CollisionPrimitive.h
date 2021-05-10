@@ -8,6 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Core/EngineCommon.h"
 #include "Engine/Math/OBB3.h"
 #include "Engine/Math/Sphere3D.h"
 #include "Engine/Math/Transform.h"
@@ -35,6 +36,7 @@ class CollisionPrimitive
 {
 public:
 	//-----Public Methods-----
+	RTTI_BASE_CLASS(CollisionPrimitive);
 
 	CollisionPrimitive() {}
 	CollisionPrimitive(Entity* owningEntity);
@@ -86,6 +88,7 @@ class CollisionSphere : public TypedCollisionPrimitive<Sphere3D>
 {
 public:
 	//-----Public Methods-----
+	RTTI_DERIVED_CLASS(CollisionSphere);
 
 	CollisionSphere() {}
 	CollisionSphere(Entity* owningEntity, const Sphere3D& sphereLs);
@@ -104,6 +107,7 @@ class CollisionHalfSpace : public TypedCollisionPrimitive<Plane3>
 {
 public:
 	//-----Public Methods-----
+	RTTI_DERIVED_CLASS(CollisionHalfSpace);
 
 	CollisionHalfSpace() {}
 	CollisionHalfSpace(Entity* owningEntity, const Plane3& planeLs);
@@ -121,6 +125,7 @@ class CollisionBox : public TypedCollisionPrimitive<OBB3>
 {
 public:
 	//-----Public Methods-----
+	RTTI_DERIVED_CLASS(CollisionBox);
 
 	CollisionBox() {}
 	CollisionBox(Entity* owningEntity, const OBB3& boxLs);

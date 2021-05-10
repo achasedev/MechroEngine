@@ -17,6 +17,9 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class CollisionBox;
+class CollisionSphere;
+class Transform;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -35,12 +38,15 @@ public:
 	BoundingVolumeSphere();
 	BoundingVolumeSphere(const Sphere3D& sphere);
 	BoundingVolumeSphere(const BoundingVolumeSphere& a, const BoundingVolumeSphere& b); // For combining bounding volumes
+	BoundingVolumeSphere(const CollisionSphere& colSphere);
+	BoundingVolumeSphere(const CollisionBox& colBox);
 
-	void	DebugRender() const;
+	BoundingVolumeSphere	GetTransformApplied(const Transform& transform);
+	void					DebugRender() const;
 
-	bool	Overlaps(const BoundingVolumeSphere& sphere) const;
-	float	GetSize() const { return radius; }
-	float	GetGrowth(const BoundingVolumeSphere& other) const;
+	bool					Overlaps(const BoundingVolumeSphere& sphere) const;
+	float					GetSize() const { return radius; }
+	float					GetGrowth(const BoundingVolumeSphere& other) const;
 
 
 private:

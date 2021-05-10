@@ -53,8 +53,8 @@ private:
 
 	void UpdateBVH();
 	void UpdateNode(BVHNode<BoundingVolumeClass>* node, const BoundingVolumeClass& newVolume);
-
 	BVHNode<BoundingVolumeClass>* GetAndEraseLeafNodeForEntity(Entity* entity);
+	BoundingVolumeClass MakeBoundingVolumeForPrimitive(const CollisionPrimitive* primitive) const;
 
 
 private:
@@ -77,16 +77,37 @@ private:
 
 //-------------------------------------------------------------------------------------------------
 template <class BoundingVolumeClass>
+BoundingVolumeClass CollisionScene<BoundingVolumeClass>::MakeBoundingVolumeForPrimitive(const CollisionPrimitive* primitive) const
+{
+	if (primitive->IsOfType<CollisionSphere>())
+	{
+		const CollisionSphere* primAsSphere = primitive->GetAsType<CollisionSphere>();
+		return BoundingVolumeClass(*primAsSphere);
+	}
+	else if (primitive->IsOfType<CollisionBox>())
+	{
+		const CollisionBox* primAsBox = primitive->GetAsType<CollisionBox>();
+		return BoundingVolumeClass(*primAsBox);
+	}
+	else
+	{
+		ERROR_AND_DIE("Unsupported primitive type: %s", primitive->GetTypeAsString());
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+template <class BoundingVolumeClass>
 void CollisionScene<BoundingVolumeClass>::UpdateBVH()
 {
 	// For each node, check if the entity's bounding volume changed a significant amount. If so, update it
 	for (BVHNode<BoundingVolumeClass>* node : m_leaves)
 	{
-		BoundingVolumeSphere worldVolume = node->m_entity->GetWorldPhysicsBoundingVolume();
+		BoundingVolumeClass currVolumeWs = MakeBoundingVolumeForPrimitive(node->m_entity->collisionPrimitive);
 
-		if (!AreMostlyEqual(node->m_boundingVolume, worldVolume))
+		if (!AreMostlyEqual(node->m_boundingVolumeWs, currVolumeWs))
 		{
-			UpdateNode(node, worldVolume);
+			UpdateNode(node, currVolumeWs);
 		}
 	}
 }
@@ -109,7 +130,7 @@ void CollisionScene<BoundingVolumeClass>::DebugRenderLeafBoundingVolumes() const
 {
 	for (BVHNode<BoundingVolumeClass>* leaf : m_leaves)
 	{
-		leaf->m_boundingVolume.DebugRender();
+		leaf->m_boundingVolumeWs.DebugRender();
 	}
 }
 
@@ -127,8 +148,8 @@ CollisionScene<BoundingVolumeClass>::~CollisionScene()
 template <class BoundingVolumeClass>
 void CollisionScene<BoundingVolumeClass>::AddEntity(Entity* entity)
 {
-	BoundingVolumeSphere worldVolume = entity->GetWorldPhysicsBoundingVolume();
-	BVHNode<BoundingVolumeClass>* node = new BVHNode<BoundingVolumeClass>(worldVolume);
+	BoundingVolumeClass boundingVolume = MakeBoundingVolumeForPrimitive(entity->collisionPrimitive);
+	BVHNode<BoundingVolumeClass>* node = new BVHNode<BoundingVolumeClass>(boundingVolume);
 	node->m_entity = entity;
 
 	if (m_boundingTreeRoot != nullptr)
@@ -175,11 +196,9 @@ void CollisionScene<BoundingVolumeClass>::RemoveEntity(Entity* entity)
 template <class BoundingVolumeClass>
 void CollisionScene<BoundingVolumeClass>::DoCollisionStep()
 {
+	// Ensure the BVH is up to date, then get the potential collisions
 	UpdateBVH();
-
 	m_numPotentialCollisions = m_boundingTreeRoot->GetPotentialCollisions(m_potentialCollisions, MAX_POTENTIAL_COLLISION_COUNT);
-
-
 }
 
 
@@ -197,7 +216,7 @@ void CollisionScene<BoundingVolumeClass>::UpdateNode(BVHNode<BoundingVolumeClass
 	}
 
 	// Set the node's new bounding volume
-	node->m_boundingVolume = newVolume;
+	node->m_boundingVolumeWs = newVolume;
 
 	// Re-insert the node into the tree, based on "best fit"
 	newRoot = m_boundingTreeRoot->Insert(node);

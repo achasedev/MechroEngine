@@ -8,9 +8,11 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Collision/BoundingVolumeHierarchy/BoundingVolume.h"
+#include "Engine/Collision/CollisionPrimitive.h"
 #include "Engine/Core/EngineCommon.h"
 #include "Engine/Core/Rgba.h"
 #include "Engine/Math/MathUtils.h"
+#include "Engine/Math/Transform.h"
 #include "Engine/Render/Debug/DebugRenderSystem.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -85,6 +87,36 @@ BoundingVolumeSphere::BoundingVolumeSphere()
 {
 	radius = 1.f;
 	center = Vector3::ZERO;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+BoundingVolumeSphere::BoundingVolumeSphere(const CollisionSphere& colSphere)
+{
+	// Bounding volume sphere.....for a sphere.....is the sphere
+	(*this) = colSphere.GetDataInWorldSpace();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+BoundingVolumeSphere::BoundingVolumeSphere(const CollisionBox& colBox)
+{
+	OBB3 colBoxWs = colBox.GetDataInWorldSpace();
+
+	// Since all points of the box are equidistant from the center, the length of the extents
+	// is the max radius we'd need to include all points
+	center = colBoxWs.center;
+	radius = colBoxWs.extents.GetLength();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+BoundingVolumeSphere BoundingVolumeSphere::GetTransformApplied(const Transform& transform)
+{
+	BoundingVolumeSphere result;
+	result.center = transform.TransformPosition(center);
+	result.radius = radius;
+	return result;
 }
 
 

@@ -45,8 +45,6 @@ public:
 	void Update(float deltaSeconds);
 	void Render() const;
 
-	BoundingVolumeSphere GetWorldPhysicsBoundingVolume() const;
-
 
 public:
 	//-----Public Data-----
@@ -55,8 +53,7 @@ public:
 
 	RigidBody*				rigidBody = nullptr;
 	AABB3					renderShapeLs;
-	CollisionPrimitive*		m_collisionPrimitive = nullptr;
-	BoundingVolumeSphere	physicsBoundingShapeLs;
+	CollisionPrimitive*		collisionPrimitive = nullptr;
 
 
 private:
