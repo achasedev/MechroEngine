@@ -86,24 +86,24 @@ Vector3 OBB3::GetMaxsWs() const
 //-------------------------------------------------------------------------------------------------
 Vector3 OBB3::GetRightVector() const
 {
-	Matrix4 rotAsMatrix = Matrix4::MakeRotation(rotation);
-	return rotAsMatrix.GetIVector().xyz();
+	Matrix3 rotAsMatrix = Matrix3(rotation);
+	return rotAsMatrix.iBasis;
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Vector3 OBB3::GetUpVector() const
 {
-	Matrix4 rotAsMatrix = Matrix4::MakeRotation(rotation);
-	return rotAsMatrix.GetJVector().xyz();
+	Matrix3 rotAsMatrix = Matrix3(rotation);
+	return rotAsMatrix.jBasis;
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Vector3 OBB3::GetForwardVector() const
 {
-	Matrix4 rotAsMatrix = Matrix4::MakeRotation(rotation);
-	return rotAsMatrix.GetKVector().xyz();
+	Matrix3 rotAsMatrix = Matrix3(rotation);
+	return rotAsMatrix.kBasis;
 }
 
 
@@ -210,7 +210,7 @@ void OBB3::GetFaceSupportPlanes(std::vector<Plane3>& out_planes) const
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 OBB3::TransformPositionIntoSpace(const Vector3& position)
+Vector3 OBB3::TransformPositionIntoSpace(const Vector3& position) const
 {
 	Matrix3 basis = Matrix3(rotation);
 	return basis.GetInverse() * (position - center);
@@ -218,7 +218,7 @@ Vector3 OBB3::TransformPositionIntoSpace(const Vector3& position)
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 OBB3::TransformPositionOutOfSpace(const Vector3& position)
+Vector3 OBB3::TransformPositionOutOfSpace(const Vector3& position) const
 {
 	Matrix3 basis = Matrix3(rotation);
 	return (basis * position) + center;

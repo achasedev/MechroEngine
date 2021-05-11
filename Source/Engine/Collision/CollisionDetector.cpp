@@ -8,11 +8,12 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Collision/CollisionDetector.h"
-#include "Engine/Collision/CollisionPrimitive.h"
+#include "Engine/Collision/Collider.h"
 #include "Engine/Collision/Contact.h"
 #include "Engine/Core/EngineCommon.h"
 #include "Engine/Core/Entity.h"
 #include "Engine/Math/MathUtils.h"
+#include "Engine/Math/Matrix3.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -35,7 +36,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-int CollisionDetector::GenerateContacts(const CollisionSphere& a, const CollisionSphere& b, CollisionData& collisionData)
+int CollisionDetector::GenerateContacts(const SphereCollider& a, const SphereCollider& b, CollisionData& collisionData)
 {
 	if (collisionData.numContacts >= MAX_CONTACT_COUNT)
 		return 0;
@@ -55,18 +56,14 @@ int CollisionDetector::GenerateContacts(const CollisionSphere& a, const Collisio
 
 	Contact* contact = &collisionData.contacts[collisionData.numContacts];
 
-	contact->position = bSphere.center + 0.5f * distance * bToA;		// Contact position is the midpoint between the centers
-	contact->normal = bToA;												// Orientation is set up s.t adding the normal to A would resolve the collision, -normal to B
+	contact->position = bSphere.center + 0.5f * distance * bToA;			// Contact position is the midpoint between the centers
+	contact->normal = bToA;													// Orientation is set up s.t adding the normal to A would resolve the collision, -normal to B
 	contact->penetration = (aSphere.radius + bSphere.radius) - distance;	// Pen is the overlap
-
-	if (a.OwnerHasRigidBody() && b.OwnerHasRigidBody())
-	{
-		// TODO: Figure out restitution and friction
-		contact->bodyA = a.GetOwnerRigidBody();
-		contact->bodyB = b.GetOwnerRigidBody();	
-		contact->restitution = collisionData.restitution;
-		contact->friction = collisionData.friction;
-	}
+	// TODO: Figure out restitution and friction
+	contact->bodyA = a.GetOwnerRigidBody();
+	contact->bodyB = b.GetOwnerRigidBody();	
+	contact->restitution = collisionData.restitution;
+	contact->friction = collisionData.friction;
 
 	collisionData.numContacts++;
 	return 1;
@@ -74,7 +71,7 @@ int CollisionDetector::GenerateContacts(const CollisionSphere& a, const Collisio
 
 
 //-------------------------------------------------------------------------------------------------
-int CollisionDetector::GenerateContacts(const CollisionSphere& sphere, const CollisionHalfSpace& halfSpace, CollisionData& collisionData)
+int CollisionDetector::GenerateContacts(const SphereCollider& sphere, const HalfSpaceCollider& halfSpace, CollisionData& collisionData)
 {
 	if (collisionData.numContacts >= MAX_CONTACT_COUNT)
 		return 0;
@@ -93,22 +90,17 @@ int CollisionDetector::GenerateContacts(const CollisionSphere& sphere, const Col
 	contact->normal = planeWs.GetNormal();
 	contact->penetration = -distance;
 	contact->position = planeWs.GetProjectedPointOntoPlane(sphereWs.center);
-
-	if (sphere.OwnerHasRigidBody())
-	{
-		contact->bodyA = sphere.GetOwnerRigidBody();
-		contact->bodyB = nullptr;
-		contact->friction = collisionData.friction;
-		contact->restitution = collisionData.restitution;
-	}
-
+	contact->bodyA = sphere.GetOwnerRigidBody();
+	contact->bodyB = nullptr;
+	contact->friction = collisionData.friction;
+	contact->restitution = collisionData.restitution;
 	collisionData.numContacts++;
 	return 1;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-int CollisionDetector::GenerateContacts(const CollisionBox& box, const CollisionHalfSpace& halfSpace, CollisionData& collisionData)
+int CollisionDetector::GenerateContacts(const BoxCollider& box, const HalfSpaceCollider& halfSpace, CollisionData& collisionData)
 {
 	if (collisionData.numContacts >= MAX_CONTACT_COUNT)
 		return 0;
@@ -131,15 +123,10 @@ int CollisionDetector::GenerateContacts(const CollisionBox& box, const Collision
 			contact->position = 0.5f * (boxVertsWs[i] + planeWs.GetProjectedPointOntoPlane(boxVertsWs[i])); // Position is half way between the box vertex and the plane
 			contact->normal = planeWs.m_normal;
 			contact->penetration = distance;
-
-			if (box.OwnerHasRigidBody())
-			{
-				contact->bodyA = box.GetOwnerRigidBody();
-				contact->bodyB = nullptr;
-				contact->friction = collisionData.friction;
-				contact->restitution = collisionData.restitution;
-			}
-
+			contact->bodyA = box.GetOwnerRigidBody();
+			contact->bodyB = nullptr;
+			contact->friction = collisionData.friction;
+			contact->restitution = collisionData.restitution;
 			collisionData.numContacts++;
 			numContactsAdded++;
 
@@ -155,7 +142,7 @@ int CollisionDetector::GenerateContacts(const CollisionBox& box, const Collision
 
 
 //-------------------------------------------------------------------------------------------------
-int CollisionDetector::GenerateContacts(const CollisionBox& box, const CollisionSphere& sphere, CollisionData& collisionData)
+int CollisionDetector::GenerateContacts(const BoxCollider& box, const SphereCollider& sphere, CollisionData& collisionData)
 {
 	if (collisionData.numContacts >= MAX_CONTACT_COUNT)
 		return 0;
@@ -191,15 +178,125 @@ int CollisionDetector::GenerateContacts(const CollisionBox& box, const Collision
 	contact->normal = sphereToBox;
 	float distance = contact->normal.Normalize();
 	contact->penetration = sphereWs.radius - distance;
-
-	if (box.OwnerHasRigidBody() && sphere.OwnerHasRigidBody())
-	{
-		contact->bodyA = box.GetOwnerRigidBody();
-		contact->bodyB = sphere.GetOwnerRigidBody();
-		contact->restitution = collisionData.restitution;
-		contact->friction = collisionData.friction;
-	}
-
+	contact->bodyA = box.GetOwnerRigidBody();
+	contact->bodyB = sphere.GetOwnerRigidBody();
+	contact->restitution = collisionData.restitution;
+	contact->friction = collisionData.friction;
 	collisionData.numContacts++;
 	return 1;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+static float GetPenetrationOnAxis(const OBB3& boxA, const OBB3& boxB, const Vector3& axis, const Vector3& aToB)
+{
+
+}
+
+
+//-------------------------------------------------------------------------------------------------
+static void CreateVertexFaceContact(const BoxCollider& faceCol, const BoxCollider& vertexCol, const OBB3& vertexBox, const Vector3& faceNormal, const Vector3& faceToVertex, const Matrix3& vertexBoxBasis, float pen, CollisionData& out_collisionData)
+{
+	Vector3 contactNormal = faceNormal;
+
+	// Make the normal points away from the vertex box
+	if (DotProduct(contactNormal, faceToVertex) > 0.f)
+	{
+		contactNormal *= -1.0f;
+	}
+
+	// Find the vertex furthest in this direction
+	Vector3 contactPosLs = vertexBox.extents;
+	if (DotProduct(vertexBoxBasis.iBasis, contactNormal) < 0.f) { contactPosLs.x *= -1.0; }
+	if (DotProduct(vertexBoxBasis.jBasis, contactNormal) < 0.f) { contactPosLs.y *= -1.0; }
+	if (DotProduct(vertexBoxBasis.kBasis, contactNormal) < 0.f) { contactPosLs.z *= -1.0; }
+
+	Contact* contact = &out_collisionData.contacts[out_collisionData.numContacts];
+	contact->position = (vertexBoxBasis * contactPosLs) + vertexBox.center; // Convert from vertex box space to world space
+	contact->normal = contactNormal;
+	contact->penetration = pen;
+	contact->bodyA = faceCol.GetOwnerRigidBody(); // Face box is always A, and the vertex always points away from B towards A. Adding this onto A adheres to how we always do it
+	contact->bodyB = vertexCol.GetOwnerRigidBody();
+	contact->restitution = out_collisionData.restitution;
+	contact->friction = out_collisionData.friction;
+	out_collisionData.numContacts++;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionDetector::GenerateContacts(const BoxCollider& a, const BoxCollider& b, CollisionData& collisionData)
+{
+	if (collisionData.numContacts >= MAX_CONTACT_COUNT)
+		return 0;
+
+	OBB3 boxAWs = a.GetDataInWorldSpace();
+	OBB3 boxBWs = b.GetDataInWorldSpace();
+	Vector3 aToB = boxBWs.center - boxAWs.center;
+
+	// Separating Axis Theorem
+	// Get the 15 axes to check:
+	//  3 face axes on A
+	//  3 face axes on B
+	//  Cross products from edges - 3 unique on A, 3 unique on B, 3 * 3 = 9 axes
+
+	// TODO: Optimize this to calculate axes as we go, so if we early out we don't waste work
+	Matrix3 aBasis = Matrix3(boxAWs.rotation);
+	Matrix3 bBasis = Matrix3(boxBWs.rotation);
+
+	Vector3 axes[15];
+	axes[0] = aBasis.iBasis;
+	axes[1] = aBasis.jBasis;
+	axes[2] = aBasis.kBasis;
+	axes[3] = bBasis.iBasis;
+	axes[4] = bBasis.jBasis;
+	axes[5] = bBasis.kBasis;
+	
+	axes[6] = CrossProduct(axes[0], axes[3]);
+	axes[7] = CrossProduct(axes[0], axes[4]);
+	axes[8] = CrossProduct(axes[0], axes[5]);
+	axes[9] = CrossProduct(axes[1], axes[3]);
+	axes[10] = CrossProduct(axes[1], axes[4]);
+	axes[11] = CrossProduct(axes[1], axes[5]);
+	axes[12] = CrossProduct(axes[2], axes[3]);
+	axes[13] = CrossProduct(axes[2], axes[4]);
+	axes[14] = CrossProduct(axes[2], axes[5]);
+
+	float minPen = FLT_MAX;
+	int bestAxisIndex = -1;
+
+	for (int i = 0; i < 15; ++i)
+	{
+		const Vector3& axis = axes[i];
+
+		// For edge-edge created axes, if they're colinear the result is degenerative
+		if (AreMostlyEqual(axis.GetLengthSquared(), 0.f))
+			continue;
+
+		float penOnAxis = GetPenetrationOnAxis(boxAWs, boxBWs, axis, aToB);
+		if (penOnAxis < 0.f)
+			return 0;
+
+		if (penOnAxis < minPen)
+		{
+			minPen = penOnAxis;
+			bestAxisIndex = i;
+		}
+	}
+
+	if (bestAxisIndex < 3)
+	{
+		// Vertex/Face collision
+		// A is the face box, B is the vertex box
+		CreateVertexFaceContact(a, b, boxBWs, axes[bestAxisIndex], aToB, bBasis, minPen, collisionData);
+	}
+	else if (bestAxisIndex < 6)
+	{
+		// Vertex/Face collision
+		// B is the face box, A is the vertex box
+		CreateVertexFaceContact(b, a, boxAWs, axes[bestAxisIndex], -1.0f * aToB, aBasis, minPen, collisionData);
+	}
+	else
+	{
+		// It's an edge-edge contact - find out which two edges it is
+	}
 }

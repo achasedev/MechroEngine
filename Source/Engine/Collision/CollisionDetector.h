@@ -16,10 +16,10 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class CollisionBox;
+class BoxCollider;
 struct CollisionData;
-class CollisionSphere;
-class CollisionHalfSpace;
+class SphereCollider;
+class HalfSpaceCollider;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -35,10 +35,11 @@ class CollisionDetector
 public:
 	//-----Public Methods-----
 
-	int GenerateContacts(const CollisionSphere& a,		const CollisionSphere& b,				CollisionData& collisionData);
-	int GenerateContacts(const CollisionSphere& sphere, const CollisionHalfSpace& halfSpace,	CollisionData& collisionData);
-	int GenerateContacts(const CollisionBox& box,		const CollisionHalfSpace& halfSpace,	CollisionData& collisionData);
-	int GenerateContacts(const CollisionBox& box,		const CollisionSphere& sphere,			CollisionData& collisionData);
+	int GenerateContacts(const SphereCollider& a,		const SphereCollider& b,			CollisionData& collisionData);
+	int GenerateContacts(const SphereCollider& sphere,	const HalfSpaceCollider& halfSpace,	CollisionData& collisionData);
+	int GenerateContacts(const BoxCollider& box,		const HalfSpaceCollider& halfSpace,	CollisionData& collisionData);
+	int GenerateContacts(const BoxCollider& box,		const SphereCollider& sphere,		CollisionData& collisionData);
+	int GenerateContacts(const BoxCollider& a,			const BoxCollider& b,				CollisionData& collisionData);
 	
 
 private:

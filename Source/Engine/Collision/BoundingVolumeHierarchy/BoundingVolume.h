@@ -17,8 +17,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class CollisionBox;
-class CollisionSphere;
+class BoxCollider;
+class SphereCollider;
 class Transform;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -38,8 +38,8 @@ public:
 	BoundingVolumeSphere();
 	BoundingVolumeSphere(const Sphere3D& sphere);
 	BoundingVolumeSphere(const BoundingVolumeSphere& a, const BoundingVolumeSphere& b); // For combining bounding volumes
-	BoundingVolumeSphere(const CollisionSphere& colSphere);
-	BoundingVolumeSphere(const CollisionBox& colBox);
+	BoundingVolumeSphere(const SphereCollider& colSphere);
+	BoundingVolumeSphere(const BoxCollider& colBox);
 
 	BoundingVolumeSphere	GetTransformApplied(const Transform& transform);
 	void					DebugRender() const;

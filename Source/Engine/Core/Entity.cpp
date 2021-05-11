@@ -39,7 +39,7 @@ Entity::Entity()
 {
 	++s_nextEntityID;
 
-	collisionPrimitive = new CollisionBox(this, OBB3(Vector3::ZERO, Vector3(0.5f), Quaternion::IDENTITY));
+	collisionPrimitive = new BoxCollider(this, OBB3(Vector3::ZERO, Vector3(0.5f), Quaternion::IDENTITY));
 }
 
 

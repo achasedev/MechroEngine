@@ -9,7 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Collision/BoundingVolumeHierarchy/BoundingVolume.h"
-#include "Engine/Collision/CollisionPrimitive.h"
+#include "Engine/Collision/Collider.h"
 #include "Engine/Core/EngineCommon.h"
 #include "Engine/Math/AABB3.h"
 #include "Engine/Math/Transform.h"
@@ -23,7 +23,7 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 typedef int EntityID;
-class CollisionPrimitive;
+class Collider;
 class RigidBody;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -53,7 +53,7 @@ public:
 
 	RigidBody*				rigidBody = nullptr;
 	AABB3					renderShapeLs;
-	CollisionPrimitive*		collisionPrimitive = nullptr;
+	Collider*		collisionPrimitive = nullptr;
 
 
 private:

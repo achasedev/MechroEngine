@@ -1,15 +1,17 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: May 9th, 2021
+/// Date Created: May 8th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Collision/CollisionPrimitive.h"
 #include "Engine/Core/EngineCommon.h"
-#include "Engine/Core/Entity.h"
+#include "Engine/Math/OBB3.h"
+#include "Engine/Math/Sphere3D.h"
+#include "Engine/Math/Transform.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -18,89 +20,124 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-RTTI_TYPE_DEFINE(CollisionPrimitive);
-RTTI_TYPE_DEFINE(CollisionSphere);
-RTTI_TYPE_DEFINE(CollisionHalfSpace);
-RTTI_TYPE_DEFINE(CollisionBox);
+class Entity;
+class RigidBody;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// CLASS DECLARATIONS
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------
+class Collider
+{
+public:
+	//-----Public Methods-----
+	RTTI_BASE_CLASS(Collider);
+
+	Collider() {}
+	Collider(Entity* owningEntity);
+
+	inline bool			OwnerHasRigidBody() const;
+	inline RigidBody*	GetOwnerRigidBody() const;
+
+
+public:
+	//-----Public Data-----
+
+	Entity* entity = nullptr;	// This entity doesn't need a rigidbody! It just means do the collision detection, but no correction
+
+};
+
+
+//-------------------------------------------------------------------------------------------------
+template <typename T>
+class TypedCollider : public Collider
+{
+public:
+	//-----Public Methods-----
+
+	TypedCollider() {}
+	TypedCollider(Entity* owningEntity, const T& dataLs);
+
+	virtual T GetDataInWorldSpace() const = 0;
+
+
+protected:
+	//-----Protected Data-----
+
+	T m_dataLs; // Defined in the owning entity's transform
+
+};
+
+
+//-------------------------------------------------------------------------------------------------
+template <typename T>
+TypedCollider<T>::TypedCollider(Entity* owningEntity, const T& dataLs)
+	: Collider(owningEntity)
+	, m_dataLs(dataLs)
+{
+}
+ 
+
+//-------------------------------------------------------------------------------------------------
+class SphereCollider : public TypedCollider<Sphere3D>
+{
+public:
+	//-----Public Methods-----
+	RTTI_DERIVED_CLASS(SphereCollider);
+
+	SphereCollider() {}
+	SphereCollider(Entity* owningEntity, const Sphere3D& sphereLs);
+
+	virtual Sphere3D GetDataInWorldSpace() const override;
+
+
+private:
+	//-----Private Data-----
+
+};
+
+
+//-------------------------------------------------------------------------------------------------
+class HalfSpaceCollider : public TypedCollider<Plane3>
+{
+public:
+	//-----Public Methods-----
+	RTTI_DERIVED_CLASS(HalfSpaceCollider);
+
+	HalfSpaceCollider() {}
+	HalfSpaceCollider(Entity* owningEntity, const Plane3& planeLs);
+
+	virtual Plane3 GetDataInWorldSpace() const override;
+
+
+private:
+	//-----Private Data-----
+
+};
+
+//-------------------------------------------------------------------------------------------------
+class BoxCollider : public TypedCollider<OBB3>
+{
+public:
+	//-----Public Methods-----
+	RTTI_DERIVED_CLASS(BoxCollider);
+
+	BoxCollider() {}
+	BoxCollider(Entity* owningEntity, const OBB3& boxLs);
+
+	virtual OBB3 GetDataInWorldSpace() const override;
+
+
+private:
+	//-----Private Data-----
+
+};
+
+///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// CLASS IMPLEMENTATIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------------------------------
-CollisionPrimitive::CollisionPrimitive(Entity* owningEntity)
-	: entity(owningEntity)
-{
-}
-
-
-//-------------------------------------------------------------------------------------------------
-bool CollisionPrimitive::OwnerHasRigidBody() const
-{
-	return (entity->rigidBody != nullptr);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-RigidBody* CollisionPrimitive::GetOwnerRigidBody() const
-{
-	return entity->rigidBody;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-CollisionSphere::CollisionSphere(Entity* owningEntity, const Sphere3D& sphereLs)
-	: TypedCollisionPrimitive(owningEntity, sphereLs)
-{
-}
-
-
-//-------------------------------------------------------------------------------------------------
-Sphere3D CollisionSphere::GetDataInWorldSpace() const
-{
-	Vector3 centerWs = entity->transform.TransformPosition(m_dataLs.center);
-	return Sphere3D(centerWs, m_dataLs.radius);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-CollisionHalfSpace::CollisionHalfSpace(Entity* owningEntity, const Plane3& planeLs)
-	: TypedCollisionPrimitive(owningEntity, planeLs)
-{
-}
-
-
-//-------------------------------------------------------------------------------------------------
-Plane3 CollisionHalfSpace::GetDataInWorldSpace() const
-{
-	Vector3 normalWs = entity->transform.TransformDirection(m_dataLs.m_normal);
-	Vector3 positionLs = m_dataLs.m_normal * m_dataLs.m_distance;
-	Vector3 positionWs = entity->transform.TransformPosition(positionLs);
-
-	return Plane3(normalWs, positionWs);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-CollisionBox::CollisionBox(Entity* owningEntity, const OBB3& boxLs)
-	: TypedCollisionPrimitive(owningEntity, boxLs)
-{
-}
-
-
-//-------------------------------------------------------------------------------------------------
-OBB3 CollisionBox::GetDataInWorldSpace() const
-{
-	Vector3 centerWs = entity->transform.TransformPosition(m_dataLs.center);
-	Quaternion rotationWs = entity->transform.rotation * m_dataLs.rotation;
-
-	return OBB3(centerWs, m_dataLs.extents, rotationWs);
-}

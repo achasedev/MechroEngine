@@ -55,8 +55,8 @@ public:
 	Face3		GetFaceInDirection(const Vector3& direction) const;
 
 	void		GetFaceSupportPlanes(std::vector<Plane3>& out_planes) const;
-	Vector3		TransformPositionIntoSpace(const Vector3& position);
-	Vector3		TransformPositionOutOfSpace(const Vector3& position);
+	Vector3		TransformPositionIntoSpace(const Vector3& position) const;
+	Vector3		TransformPositionOutOfSpace(const Vector3& position) const;
 
 
 public:

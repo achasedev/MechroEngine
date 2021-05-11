@@ -8,7 +8,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Collision/BoundingVolumeHierarchy/BoundingVolume.h"
-#include "Engine/Collision/CollisionPrimitive.h"
+#include "Engine/Collision/Collider.h"
 #include "Engine/Core/EngineCommon.h"
 #include "Engine/Core/Rgba.h"
 #include "Engine/Math/MathUtils.h"
@@ -91,7 +91,7 @@ BoundingVolumeSphere::BoundingVolumeSphere()
 
 
 //-------------------------------------------------------------------------------------------------
-BoundingVolumeSphere::BoundingVolumeSphere(const CollisionSphere& colSphere)
+BoundingVolumeSphere::BoundingVolumeSphere(const SphereCollider& colSphere)
 {
 	// Bounding volume sphere.....for a sphere.....is the sphere
 	(*this) = colSphere.GetDataInWorldSpace();
@@ -99,7 +99,7 @@ BoundingVolumeSphere::BoundingVolumeSphere(const CollisionSphere& colSphere)
 
 
 //-------------------------------------------------------------------------------------------------
-BoundingVolumeSphere::BoundingVolumeSphere(const CollisionBox& colBox)
+BoundingVolumeSphere::BoundingVolumeSphere(const BoxCollider& colBox)
 {
 	OBB3 colBoxWs = colBox.GetDataInWorldSpace();
 

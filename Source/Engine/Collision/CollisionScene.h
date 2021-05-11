@@ -54,7 +54,7 @@ private:
 	void UpdateBVH();
 	void UpdateNode(BVHNode<BoundingVolumeClass>* node, const BoundingVolumeClass& newVolume);
 	BVHNode<BoundingVolumeClass>* GetAndEraseLeafNodeForEntity(Entity* entity);
-	BoundingVolumeClass MakeBoundingVolumeForPrimitive(const CollisionPrimitive* primitive) const;
+	BoundingVolumeClass MakeBoundingVolumeForPrimitive(const Collider* primitive) const;
 
 
 private:
@@ -77,16 +77,16 @@ private:
 
 //-------------------------------------------------------------------------------------------------
 template <class BoundingVolumeClass>
-BoundingVolumeClass CollisionScene<BoundingVolumeClass>::MakeBoundingVolumeForPrimitive(const CollisionPrimitive* primitive) const
+BoundingVolumeClass CollisionScene<BoundingVolumeClass>::MakeBoundingVolumeForPrimitive(const Collider* primitive) const
 {
-	if (primitive->IsOfType<CollisionSphere>())
+	if (primitive->IsOfType<SphereCollider>())
 	{
-		const CollisionSphere* primAsSphere = primitive->GetAsType<CollisionSphere>();
+		const SphereCollider* primAsSphere = primitive->GetAsType<SphereCollider>();
 		return BoundingVolumeClass(*primAsSphere);
 	}
-	else if (primitive->IsOfType<CollisionBox>())
+	else if (primitive->IsOfType<BoxCollider>())
 	{
-		const CollisionBox* primAsBox = primitive->GetAsType<CollisionBox>();
+		const BoxCollider* primAsBox = primitive->GetAsType<BoxCollider>();
 		return BoundingVolumeClass(*primAsBox);
 	}
 	else
