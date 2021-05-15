@@ -11,6 +11,8 @@
 #include <vector>
 #include "Engine/Collision/BoundingVolumeHierarchy/BVHNode.h"
 #include "Engine/Collision/CollisionDetector.h"
+#include "Engine/Collision/Contact.h"
+#include "Engine/Collision/ContactResolver.h"
 #include "Engine/Core/Entity.h"
 #include "Engine/Math/MathUtils.h"
 
@@ -43,7 +45,7 @@ public:
 	void AddEntity(Entity* entity);
 	void RemoveEntity(Entity* entity);
 
-	void DoCollisionStep();
+	void DoCollisionStep(float deltaSeconds);
 	void DebugRenderBoundingHierarchy() const;
 	void DebugRenderLeafBoundingVolumes() const;
 
@@ -52,6 +54,10 @@ private:
 	//-----Private Methods-----
 
 	void UpdateBVH();
+	void PerformBroadphase();
+	void GenerateContacts();
+	void ResolveContacts(float deltaSeconds);
+
 	void UpdateNode(BVHNode<BoundingVolumeClass>* node, const BoundingVolumeClass& newVolume);
 	BVHNode<BoundingVolumeClass>* GetAndEraseLeafNodeForEntity(Entity* entity);
 	BoundingVolumeClass MakeBoundingVolumeForPrimitive(const Collider* primitive) const;
@@ -62,6 +68,7 @@ private:
 
 	static constexpr int MAX_POTENTIAL_COLLISION_COUNT = 50;
 
+
 private:
 	//-----Private Data-----
 
@@ -69,8 +76,11 @@ private:
 	std::vector<BVHNode<BoundingVolumeClass>*>	m_leaves;  // Optimization, faster search
 
 	PotentialCollision							m_potentialCollisions[MAX_POTENTIAL_COLLISION_COUNT];
-	int											m_numPotentialCollisions;
+	int											m_numPotentialCollisions = 0;
+
+	CollisionData								m_collisionData;
 	CollisionDetector							m_detector;
+	ContactResolver								m_resolver;
 
 };
 
@@ -110,6 +120,108 @@ void CollisionScene<BoundingVolumeClass>::UpdateBVH()
 			UpdateNode(node, currVolumeWs);
 		}
 	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+template <class BoundingVolumeClass>
+void CollisionScene<BoundingVolumeClass>::PerformBroadphase()
+{
+	m_numPotentialCollisions = m_boundingTreeRoot->GetPotentialCollisions(m_potentialCollisions, MAX_POTENTIAL_COLLISION_COUNT);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+template <class BoundingVolumeClass>
+void CollisionScene<BoundingVolumeClass>::GenerateContacts()
+{
+	m_collisionData.numContacts = 0;
+
+	for (int i = 0; i < m_numPotentialCollisions; ++i)
+	{
+		PotentialCollision& collision = m_potentialCollisions[i];
+
+		Collider* colOne = collision.entities[0]->collisionPrimitive;
+		Collider* colTwo = collision.entities[1]->collisionPrimitive;
+
+		bool oneIsSphere = colOne->IsOfType<SphereCollider>();
+		bool twoIsSphere = colTwo->IsOfType<SphereCollider>();
+		bool oneIsHalfSpace = colOne->IsOfType<HalfSpaceCollider>();
+		bool twoIsHalfSpace = colTwo->IsOfType<HalfSpaceCollider>();
+		bool oneIsBox = colOne->IsOfType<BoxCollider>();
+		bool twoIsBox = colTwo->IsOfType<BoxCollider>();
+
+		ASSERT_OR_DIE(oneIsSphere || oneIsHalfSpace || oneIsBox, "Invalid collider: %s", colOne->GetTypeAsString());
+		ASSERT_OR_DIE(twoIsSphere || twoIsHalfSpace || twoIsBox, "Invalid collider: %s", colTwo->GetTypeAsString());
+
+		// Don't do halfspace-halfspace collisions
+		if (oneIsHalfSpace && twoIsHalfSpace)
+			continue;
+
+		if (oneIsSphere)
+		{
+			SphereCollider* oneAsSphere = colOne->GetAsType<SphereCollider>();
+
+			if (twoIsSphere)
+			{
+				SphereCollider* twoAsSphere = colTwo->GetAsType<SphereCollider>();
+				m_detector.GenerateContacts(*oneAsSphere, *twoAsSphere, m_collisionData);
+			}
+			else if (twoIsHalfSpace)
+			{
+				HalfSpaceCollider* twoAsHalfSpace = colTwo->GetAsType<HalfSpaceCollider>();
+				m_detector.GenerateContacts(*oneAsSphere, *twoAsHalfSpace, m_collisionData);
+			}
+			else if (twoIsBox)
+			{
+				BoxCollider* twoAsBox = colTwo->GetAsType<BoxCollider>();
+				m_detector.GenerateContacts(*twoAsBox, *oneAsSphere, m_collisionData);
+			}
+		}
+		else if (oneIsBox)
+		{
+			BoxCollider* oneAsBox = colOne->GetAsType<BoxCollider>();
+
+			if (twoIsSphere)
+			{
+				SphereCollider* twoAsSphere = colTwo->GetAsType<SphereCollider>();
+				m_detector.GenerateContacts(*oneAsBox, *twoAsSphere, m_collisionData);
+			}
+			else if (twoIsHalfSpace)
+			{
+				HalfSpaceCollider* twoAsHalfSpace = colTwo->GetAsType<HalfSpaceCollider>();
+				m_detector.GenerateContacts(*oneAsBox, *twoAsHalfSpace, m_collisionData);
+			}
+			else if (twoIsBox)
+			{
+				BoxCollider* twoAsBox = colTwo->GetAsType<BoxCollider>();
+				m_detector.GenerateContacts(*oneAsBox, *twoAsBox, m_collisionData);
+			}
+		}
+		else if (oneIsHalfSpace)
+		{
+			HalfSpaceCollider* oneAsHalfSpace = colOne->GetAsType<HalfSpaceCollider>();
+
+			if (twoIsSphere)
+			{
+				SphereCollider* twoAsSphere = colTwo->GetAsType<SphereCollider>();
+				m_detector.GenerateContacts(*twoAsSphere, *oneAsHalfSpace, m_collisionData);
+			}
+			else if (twoIsBox)
+			{
+				BoxCollider* twoAsBox = colTwo->GetAsType<BoxCollider>();
+				m_detector.GenerateContacts(*twoAsBox, *oneAsHalfSpace, m_collisionData);
+			}
+		}
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+template <class BoundingVolumeClass>
+void CollisionScene<BoundingVolumeClass>::ResolveContacts(float deltaSeconds)
+{
+	m_resolver.ResolveContacts(m_collisionData.contacts, m_collisionData.numContacts, deltaSeconds);
 }
 
 
@@ -198,7 +310,9 @@ void CollisionScene<BoundingVolumeClass>::DoCollisionStep()
 {
 	// Ensure the BVH is up to date, then get the potential collisions
 	UpdateBVH();
-	m_numPotentialCollisions = m_boundingTreeRoot->GetPotentialCollisions(m_potentialCollisions, MAX_POTENTIAL_COLLISION_COUNT);
+	PerformBroadphase();
+	GenerateContacts();
+	ResolveContacts();
 }
 
 

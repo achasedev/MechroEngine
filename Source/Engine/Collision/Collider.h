@@ -41,8 +41,8 @@ public:
 	Collider() {}
 	Collider(Entity* owningEntity);
 
-	inline bool			OwnerHasRigidBody() const;
-	inline RigidBody*	GetOwnerRigidBody() const;
+	bool		OwnerHasRigidBody() const;
+	RigidBody*	GetOwnerRigidBody() const;
 
 
 public:

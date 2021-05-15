@@ -64,13 +64,14 @@ void PhysicsScene::DoPhysicsStep(float deltaSeconds)
 	// Apply all forces
 	m_forceRegistry.GenerateAndAddForces(deltaSeconds);
 
-	if (m_collisionScene != nullptr)
-	{
-		m_collisionScene->DoCollisionStep();
-	}
-
 	// Update positions and velocities
 	Integrate(deltaSeconds);
+
+	// Check for collisions, then correct
+	if (m_collisionScene != nullptr)
+	{
+		m_collisionScene->DoCollisionStep(deltaSeconds);
+	}
 }
 
 

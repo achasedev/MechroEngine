@@ -84,6 +84,13 @@ void RigidBody::AddLocalForceAtWorldPoint(const Vector3& forceLs, const Vector3&
 
 
 //-------------------------------------------------------------------------------------------------
+void RigidBody::GetWorldInverseInertiaTensor(Matrix3& out_inverseInertiaTensor) const
+{
+	out_inverseInertiaTensor = m_inverseInertiaTensorWorld;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 RigidBody::RigidBody(Transform* transform)
 	: transform(transform)
 {
