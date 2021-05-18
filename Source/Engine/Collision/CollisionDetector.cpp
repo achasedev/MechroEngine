@@ -60,8 +60,8 @@ int CollisionDetector::GenerateContacts(const SphereCollider& a, const SphereCol
 	contact->normal = bToA;													// Orientation is set up s.t adding the normal to A would resolve the collision, -normal to B
 	contact->penetration = (aSphere.radius + bSphere.radius) - distance;	// Pen is the overlap
 	// TODO: Figure out restitution and friction
-	contact->bodyA = a.GetOwnerRigidBody();
-	contact->bodyB = b.GetOwnerRigidBody();	
+	contact->bodies[0] = a.GetOwnerRigidBody();
+	contact->bodies[1] = b.GetOwnerRigidBody();	
 	contact->restitution = collisionData.restitution;
 	contact->friction = collisionData.friction;
 
@@ -90,8 +90,8 @@ int CollisionDetector::GenerateContacts(const SphereCollider& sphere, const Half
 	contact->normal = planeWs.GetNormal();
 	contact->penetration = -distance;
 	contact->position = planeWs.GetProjectedPointOntoPlane(sphereWs.center);
-	contact->bodyA = sphere.GetOwnerRigidBody();
-	contact->bodyB = nullptr;
+	contact->bodies[0] = sphere.GetOwnerRigidBody();
+	contact->bodies[1] = nullptr;
 	contact->friction = collisionData.friction;
 	contact->restitution = collisionData.restitution;
 	collisionData.numContacts++;
@@ -123,8 +123,8 @@ int CollisionDetector::GenerateContacts(const BoxCollider& box, const HalfSpaceC
 			contact->position = 0.5f * (boxVertsWs[i] + planeWs.GetProjectedPointOntoPlane(boxVertsWs[i])); // Position is half way between the box vertex and the plane
 			contact->normal = planeWs.m_normal;
 			contact->penetration = distance;
-			contact->bodyA = box.GetOwnerRigidBody();
-			contact->bodyB = nullptr;
+			contact->bodies[0] = box.GetOwnerRigidBody();
+			contact->bodies[1] = nullptr;
 			contact->friction = collisionData.friction;
 			contact->restitution = collisionData.restitution;
 			collisionData.numContacts++;
@@ -178,8 +178,8 @@ int CollisionDetector::GenerateContacts(const BoxCollider& box, const SphereColl
 	contact->normal = sphereToBox;
 	float distance = contact->normal.Normalize();
 	contact->penetration = sphereWs.radius - distance;
-	contact->bodyA = box.GetOwnerRigidBody();
-	contact->bodyB = sphere.GetOwnerRigidBody();
+	contact->bodies[0] = box.GetOwnerRigidBody();
+	contact->bodies[1] = sphere.GetOwnerRigidBody();
 	contact->restitution = collisionData.restitution;
 	contact->friction = collisionData.friction;
 	collisionData.numContacts++;
@@ -228,8 +228,8 @@ static void CreateVertexFaceContact(const BoxCollider& faceCol, const BoxCollide
 	contact->position = (vertexBoxBasis * contactPosLs) + vertexBox.center; // Convert from vertex box space to world space
 	contact->normal = contactNormal;
 	contact->penetration = pen;
-	contact->bodyA = faceCol.GetOwnerRigidBody(); // Face box is always A, and the vertex always points away from B towards A. Adding this onto A adheres to how we always do it
-	contact->bodyB = vertexCol.GetOwnerRigidBody();
+	contact->bodies[0] = faceCol.GetOwnerRigidBody(); // Face box is always A, and the vertex always points away from B towards A. Adding this onto A adheres to how we always do it
+	contact->bodies[1] = vertexCol.GetOwnerRigidBody();
 	contact->restitution = out_collisionData.restitution;
 	contact->friction = out_collisionData.friction;
 	out_collisionData.numContacts++;
@@ -382,8 +382,8 @@ int CollisionDetector::GenerateContacts(const BoxCollider& a, const BoxCollider&
 		contact->position = finalMidpoint;
 		contact->normal = seperatingAxis;
 		contact->penetration = minPen;
-		contact->bodyA = a.GetOwnerRigidBody();
-		contact->bodyB = b.GetOwnerRigidBody();
+		contact->bodies[0] = a.GetOwnerRigidBody();
+		contact->bodies[1] = b.GetOwnerRigidBody();
 		contact->restitution = collisionData.restitution;
 		contact->friction = collisionData.friction;
 		collisionData.numContacts++;

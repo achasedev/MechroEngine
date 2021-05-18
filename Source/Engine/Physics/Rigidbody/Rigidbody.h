@@ -37,6 +37,7 @@ public:
 
 	RigidBody(Transform* transform);
 
+	void CalculateDerivedData();
 	void Integrate(float deltaSeconds);
 	
 	void AddWorldForce(const Vector3& forceWs);
@@ -52,8 +53,11 @@ public:
 	void SetAngularDamping(float angularDamping) { m_angularDamping = angularDamping; }
 	void SetLocalInverseInertiaTensor(const Matrix3& inverseInertiaTensor) { m_inverseInertiaTensorLocal = inverseInertiaTensor; }
 
-	float GetInverseMass() const { return m_iMass; }
-	void GetWorldInverseInertiaTensor(Matrix3& out_inverseInertiaTensor) const;
+	float	GetInverseMass() const { return m_iMass; }
+	void	GetWorldInverseInertiaTensor(Matrix3& out_inverseInertiaTensor) const;
+	Vector3 GetLinearVelocity() const { return m_velocity; }
+	Vector3	GetAngularVelocityRadians() const { return m_angularVelocityRadians; }
+	bool	IsAwake() const { return m_isAwake; }
 
 
 public:
@@ -65,7 +69,6 @@ public:
 private:
 	//-----Private Methods-----
 
-	void CalculateDerivedData();
 	void ClearForces();
 
 

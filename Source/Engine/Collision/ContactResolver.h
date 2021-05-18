@@ -17,6 +17,7 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Contact;
+class Quaternion;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -36,9 +37,10 @@ public:
 
 
 private:
-	//-----Private Methods-----
+	//-----Private Data-----
 
-	void ResolvePenetration(Contact* contact);
+	int m_maxVelocityIterations = 10;
+	int m_maxPenetrationIterations = 10;
 
 };
 

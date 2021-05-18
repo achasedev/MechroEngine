@@ -306,13 +306,13 @@ void CollisionScene<BoundingVolumeClass>::RemoveEntity(Entity* entity)
 
 //-------------------------------------------------------------------------------------------------
 template <class BoundingVolumeClass>
-void CollisionScene<BoundingVolumeClass>::DoCollisionStep()
+void CollisionScene<BoundingVolumeClass>::DoCollisionStep(float deltaSeconds)
 {
 	// Ensure the BVH is up to date, then get the potential collisions
 	UpdateBVH();
 	PerformBroadphase();
 	GenerateContacts();
-	ResolveContacts();
+	ResolveContacts(deltaSeconds);
 }
 
 

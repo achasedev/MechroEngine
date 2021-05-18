@@ -166,6 +166,7 @@
     <ClCompile Include="Collision\BoundingVolumeHierarchy\BoundingVolume.cpp" />
     <ClCompile Include="Collision\CollisionDetector.cpp" />
     <ClCompile Include="Collision\Collider.cpp" />
+    <ClCompile Include="Collision\Contact.cpp" />
     <ClCompile Include="Collision\ContactResolver.cpp" />
     <ClCompile Include="Event\EventSubscription.cpp" />
     <ClCompile Include="Event\EventSystem.cpp" />
