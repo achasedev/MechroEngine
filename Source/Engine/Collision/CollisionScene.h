@@ -56,7 +56,7 @@ private:
 	void UpdateBVH();
 	void PerformBroadphase();
 	void GenerateContacts();
-	void ResolveContacts(float deltaSeconds);
+	void ResolveContacts();
 
 	void UpdateNode(BVHNode<BoundingVolumeClass>* node, const BoundingVolumeClass& newVolume);
 	BVHNode<BoundingVolumeClass>* GetAndEraseLeafNodeForEntity(Entity* entity);
@@ -98,6 +98,11 @@ BoundingVolumeClass CollisionScene<BoundingVolumeClass>::MakeBoundingVolumeForPr
 	{
 		const BoxCollider* primAsBox = primitive->GetAsType<BoxCollider>();
 		return BoundingVolumeClass(*primAsBox);
+	}
+	else if (primitive->IsOfType<HalfSpaceCollider>())
+	{
+		const HalfSpaceCollider* primAsHalfSpace = primitive->GetAsType<HalfSpaceCollider>();
+		return BoundingVolumeClass(*primAsHalfSpace);
 	}
 	else
 	{
@@ -219,9 +224,12 @@ void CollisionScene<BoundingVolumeClass>::GenerateContacts()
 
 //-------------------------------------------------------------------------------------------------
 template <class BoundingVolumeClass>
-void CollisionScene<BoundingVolumeClass>::ResolveContacts(float deltaSeconds)
+void CollisionScene<BoundingVolumeClass>::ResolveContacts()
 {
-	m_resolver.ResolveContacts(m_collisionData.contacts, m_collisionData.numContacts, deltaSeconds);
+	if (m_collisionData.numContacts > 0)
+	{
+		m_resolver.ResolveContacts(m_collisionData.contacts, m_collisionData.numContacts);
+	}
 }
 
 
@@ -308,11 +316,13 @@ void CollisionScene<BoundingVolumeClass>::RemoveEntity(Entity* entity)
 template <class BoundingVolumeClass>
 void CollisionScene<BoundingVolumeClass>::DoCollisionStep(float deltaSeconds)
 {
+	UNUSED(deltaSeconds);
+
 	// Ensure the BVH is up to date, then get the potential collisions
 	UpdateBVH();
 	PerformBroadphase();
 	GenerateContacts();
-	ResolveContacts(deltaSeconds);
+	ResolveContacts();
 }
 
 

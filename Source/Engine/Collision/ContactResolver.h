@@ -33,14 +33,14 @@ class ContactResolver
 public:
 	//-----Public Methods-----
 
-	void ResolveContacts(Contact* contacts, int numContacts, float deltaSeconds);
+	void ResolveContacts(Contact* contacts, int numContacts);
 
 
 private:
 	//-----Private Data-----
 
-	int m_maxVelocityIterations = 10;
-	int m_maxPenetrationIterations = 10;
+	int m_defaultNumVelocityIterations = 10;
+	int m_defaultNumPenetrationIterations = 10;
 
 };
 

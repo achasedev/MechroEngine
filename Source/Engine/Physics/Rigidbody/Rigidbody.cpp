@@ -101,23 +101,23 @@ RigidBody::RigidBody(Transform* transform)
 void RigidBody::Integrate(float deltaSeconds)
 {
 	// Calculate accelerations
-	Vector3 acceleration = m_acceleration;
+	Vector3 acceleration = m_accelerationWs;
 	acceleration += (m_forceAccumWs * m_iMass);
 
 	Vector3 angularAcceleration = m_inverseInertiaTensorWorld * m_torqueAccumWs;
 
 	// Update velocities
-	m_velocity += acceleration * deltaSeconds;
-	m_angularVelocityRadians += angularAcceleration * deltaSeconds;
+	m_velocityWs += acceleration * deltaSeconds;
+	m_angularVelocityRadiansWs += angularAcceleration * deltaSeconds;
 
 	// Impose damping
-	m_velocity *= Pow(m_linearDamping, deltaSeconds);
-	m_angularVelocityRadians *= Pow(m_angularDamping, deltaSeconds);
+	m_velocityWs *= Pow(m_linearDamping, deltaSeconds);
+	m_angularVelocityRadiansWs *= Pow(m_angularDamping, deltaSeconds);
 
 	// Update position/rotation
-	transform->position += m_velocity * deltaSeconds;
+	transform->position += m_velocityWs * deltaSeconds;
 
-	Quaternion deltaRotation = Quaternion::CreateFromEulerAnglesRadians(m_angularVelocityRadians * deltaSeconds);
+	Quaternion deltaRotation = Quaternion::CreateFromEulerAnglesRadians(m_angularVelocityRadiansWs * deltaSeconds);
 	transform->Rotate(deltaRotation, RELATIVE_TO_WORLD); // Forces/torques are world space, so velocity/angular velocity is ws....so this is a rotation about the world axes
 
 	CalculateDerivedData();

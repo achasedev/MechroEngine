@@ -18,6 +18,7 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class BoxCollider;
+class HalfSpaceCollider;
 class SphereCollider;
 class Transform;
 
@@ -40,6 +41,7 @@ public:
 	BoundingVolumeSphere(const BoundingVolumeSphere& a, const BoundingVolumeSphere& b); // For combining bounding volumes
 	BoundingVolumeSphere(const SphereCollider& colSphere);
 	BoundingVolumeSphere(const BoxCollider& colBox);
+	BoundingVolumeSphere(const HalfSpaceCollider& colHalfSpace);
 
 	BoundingVolumeSphere	GetTransformApplied(const Transform& transform);
 	void					DebugRender() const;

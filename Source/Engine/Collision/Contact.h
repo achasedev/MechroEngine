@@ -37,7 +37,8 @@ public:
 
 	Contact();
 
-	void CalculateInternals(float deltaSeconds);
+	void CalculateInternals();
+	void CalculateDesiredVelocityInContactSpace();
 	void MatchAwakeState();
 
 
@@ -46,7 +47,6 @@ private:
 
 	void CalculateBasis();
 	void CalculateClosingVelocityInContactSpace();
-	void CalculateDesiredVelocityInContactSpace();
 
 
 public:
@@ -71,7 +71,7 @@ struct CollisionData
 {
 	Contact		contacts[MAX_CONTACT_COUNT];
 	int			numContacts = 0;
-	float		restitution = 1.f;
+	float		restitution = 0.4f;
 	float		friction = 0.f;
 };
 

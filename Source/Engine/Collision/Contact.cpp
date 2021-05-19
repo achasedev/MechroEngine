@@ -43,12 +43,11 @@ Contact::Contact()
 
 
 //-------------------------------------------------------------------------------------------------
-void Contact::CalculateInternals(float deltaSeconds)
+void Contact::CalculateInternals()
 {
 	ASSERT_OR_DIE(bodies[0] != nullptr, "First body was nullptr!");
 
 	CalculateBasis();
-
 
 	// Get R1, R2
 	bodyToContact[0] = position - bodies[0]->transform->position;
@@ -101,4 +100,11 @@ void Contact::CalculateDesiredVelocityInContactSpace()
 {
 	// TODO: Limit restitution on low velocities
 	desiredDeltaVelocity = -closingVelocityContactSpace.x - restitution * closingVelocityContactSpace.x;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Contact::MatchAwakeState()
+{
+	// TODO
 }

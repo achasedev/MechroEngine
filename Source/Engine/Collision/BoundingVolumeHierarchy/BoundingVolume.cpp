@@ -111,6 +111,17 @@ BoundingVolumeSphere::BoundingVolumeSphere(const BoxCollider& colBox)
 
 
 //-------------------------------------------------------------------------------------------------
+BoundingVolumeSphere::BoundingVolumeSphere(const HalfSpaceCollider& colHalfSpace)
+{
+	Plane3 colHalfSpaceWs = colHalfSpace.GetDataInWorldSpace();
+
+	// TODO: Half space colliders can't be bound....so move them out of the bounding volume hierarchy?
+	center = colHalfSpaceWs.m_normal * colHalfSpaceWs.m_distance;
+	radius = 999999999.f;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 BoundingVolumeSphere BoundingVolumeSphere::GetTransformApplied(const Transform& transform)
 {
 	BoundingVolumeSphere result;

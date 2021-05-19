@@ -31,11 +31,11 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-static void PrepareContacts(Contact* contacts, int numContacts, float deltaSeconds)
+static void PrepareContacts(Contact* contacts, int numContacts)
 {
 	for (int i = 0; i < numContacts; ++i)
 	{
-		contacts[i].CalculateInternals(deltaSeconds);
+		contacts[i].CalculateInternals();
 	}
 }
 
@@ -50,6 +50,7 @@ static void ResolveContactPenetration(Contact* contact, Vector3* out_linearChang
 	float angularInertia[2]; // Change in linear velocity along normal from rotation induced from impulse, per unit of impulse. Think of it as "due to the rotation from this impulse, how much would that move me along the normal?"
 	float totalInertia = 0.f;
 	Vector3 deltaAngularVelocityPerImpulse[2]; // We reuse these values when updating position
+	const float angularLimit = 0.2f;
 
 	for (int bodyIndex = 0; bodyIndex < 2; ++bodyIndex)
 	{
@@ -100,26 +101,139 @@ static void ResolveContactPenetration(Contact* contact, Vector3* out_linearChang
 
 		// To move this contact by the linear amount, we can just add it to the object (linear move of the object linearly moves the contact)
 		out_linearChanges[bodyIndex] = contact->normal * linearMove[bodyIndex];
-		body->transform->position += out_linearChanges[bodyIndex];
 
 		// For the movement from angular component of impulse, we need to calculate the amount of rotation that would create this much movement
 		Matrix3 inverseInertiaTensor;
 		body->GetWorldInverseInertiaTensor(inverseInertiaTensor);
+		angularMove[bodyIndex] = sign * angularInertia[bodyIndex] * inverseTotalInverseInertia;
+
+		// Limit the amount of movement that comes from angular rotation
+		float limit = angularLimit * contact->bodyToContact[bodyIndex].GetLength();
+		if (Abs(angularMove[bodyIndex]) > limit)
+		{
+			float totalMove = angularMove[bodyIndex] + linearMove[bodyIndex];
+
+			if (angularMove[bodyIndex] >= 0)
+			{
+				angularMove[bodyIndex] = limit;
+			}
+			else
+			{
+				angularMove[bodyIndex] = -limit;
+			}
+
+			linearMove[bodyIndex] = totalMove - angularMove[bodyIndex];
+		}
 
 		Vector3 rotationPerMovement = (deltaAngularVelocityPerImpulse[bodyIndex] / angularInertia[bodyIndex]); // angularInertia === deltaLinearVelocityFromRotationPerUnitImpulse - "Per Impulse" cancels out, so this becomes a ratio of angular change per linear change :)
 		out_angularChanges[bodyIndex] = angularMove[bodyIndex] * rotationPerMovement;
 
 		// Now apply delta rotations
+		body->transform->position += out_linearChanges[bodyIndex];
 		body->transform->rotation *= Quaternion::CreateFromEulerAnglesRadians(out_angularChanges[bodyIndex]);
 
-		if (!body->IsAwake())
-		{
-			// If the object is sleeping, it's derived data wasn't calculated
-			// Make sure our inertia tensor in world space is up-to-date
-			body->CalculateDerivedData();
-		}
+		// Make sure our inertia tensor in world space is up-to-date
+		body->CalculateDerivedData();	
 	}
 }
+
+
+//-------------------------------------------------------------------------------------------------
+static Vector3 CalculateFrictionlessImpulse(Contact* contact)
+{
+	// Calculate how much delta velocity is created from 1 unit of impulse along the contact normal
+	float deltaVelocityAlongNormalPerUnitOfImpulse = 0.f;
+
+	// First body
+	{
+		Matrix3 inverseInertiaTensorWs;
+		contact->bodies[0]->GetWorldInverseInertiaTensor(inverseInertiaTensorWs);
+
+		Vector3 deltaVelocityWs = CrossProduct(contact->bodyToContact[0], contact->normal);	
+		deltaVelocityWs = inverseInertiaTensorWs * deltaVelocityWs;
+		deltaVelocityWs = CrossProduct(deltaVelocityWs, contact->bodyToContact[0]);
+
+		// Angular part
+		deltaVelocityAlongNormalPerUnitOfImpulse = DotProduct(deltaVelocityWs, contact->normal);
+
+		// Linear part
+		deltaVelocityAlongNormalPerUnitOfImpulse += contact->bodies[0]->GetInverseMass();
+	}
+	
+	// Second body
+	if (contact->bodies[1] != nullptr)
+	{
+		Matrix3 inverseInertiaTensorWs;
+		contact->bodies[1]->GetWorldInverseInertiaTensor(inverseInertiaTensorWs);
+
+		Vector3 deltaVelocityWs = CrossProduct(contact->bodyToContact[1], contact->normal);
+		deltaVelocityWs = inverseInertiaTensorWs * deltaVelocityWs;
+		deltaVelocityWs = CrossProduct(deltaVelocityWs, contact->bodyToContact[1]);
+
+		// Angular part
+		deltaVelocityAlongNormalPerUnitOfImpulse += DotProduct(deltaVelocityWs, contact->normal);
+
+		// Linear part
+		deltaVelocityAlongNormalPerUnitOfImpulse += contact->bodies[1]->GetInverseMass();
+	}
+
+	// Then calculate how much impulse we'd need to get our desired velocity along the normal
+	return Vector3(contact->desiredDeltaVelocity / deltaVelocityAlongNormalPerUnitOfImpulse, 0.f, 0.f); // X vector in contact space is the normal, 0 out the other directions for no friction
+}
+
+
+//-------------------------------------------------------------------------------------------------
+static void ResolveContactVelocity(Contact* contact, Vector3* out_linearDeltaVelocities, Vector3* out_angularDeltaVelocities)
+{
+	Matrix3 inverseInertiaTensorsWs[2];
+	contact->bodies[0]->GetWorldInverseInertiaTensor(inverseInertiaTensorsWs[0]);
+	if (contact->bodies[1] != nullptr)
+	{
+		contact->bodies[1]->GetWorldInverseInertiaTensor(inverseInertiaTensorsWs[1]);
+	}
+
+	Vector3 impulseInContactSpace = Vector3::ZERO;
+
+	if (contact->friction == 0.f)
+	{
+		impulseInContactSpace = CalculateFrictionlessImpulse(contact);
+	}
+	else
+	{
+		// TODO: Friction impulse
+		ERROR_AND_DIE("No friction!");
+	}
+
+	Vector3 impulseWs = contact->contactToWorld * impulseInContactSpace;
+
+	// Calculate first body delta velocities
+	{
+		Vector3 torqueWs = CrossProduct(contact->bodyToContact[0], impulseWs);
+
+		// Calculate changes
+		out_linearDeltaVelocities[0] = impulseWs * contact->bodies[0]->GetInverseMass();
+		out_angularDeltaVelocities[0] = inverseInertiaTensorsWs[0] * torqueWs;
+
+		// Apply them
+		contact->bodies[0]->AddWorldVelocity(out_linearDeltaVelocities[0]);
+		contact->bodies[0]->AddWorldAngularVelocityRadians(out_angularDeltaVelocities[0]);
+	}
+
+	// Calculate second bodies velocities
+	if (contact->bodies[1] != nullptr)
+	{
+		Vector3 torqueWs = CrossProduct(impulseWs, contact->bodyToContact[1]); // Switched cross, since torque would be in opposite direction
+
+		// Calculate changes
+		out_linearDeltaVelocities[1] = -1.0f * impulseWs * contact->bodies[1]->GetInverseMass(); // Velocity change would be opposite the first
+		out_angularDeltaVelocities[1] = inverseInertiaTensorsWs[1] * torqueWs;
+
+		// Apply them
+		contact->bodies[1]->AddWorldVelocity(out_linearDeltaVelocities[0]);
+		contact->bodies[1]->AddWorldAngularVelocityRadians(out_angularDeltaVelocities[0]);
+	}
+}
+
 
 //-------------------------------------------------------------------------------------------------
 static void UpdateContactPenetrations(Contact* contacts, int numContacts, Vector3* linearChanges, Vector3* angularChanges, Contact* resolvedContact)
@@ -128,9 +242,6 @@ static void UpdateContactPenetrations(Contact* contacts, int numContacts, Vector
 	for (int contactIndex = 0; contactIndex < numContacts; ++contactIndex)
 	{
 		Contact* contact = &contacts[contactIndex];
-
-		if (contact == resolvedContact)
-			continue;
 
 		// Check each body in the contact
 		for (int bodyIndex = 0; bodyIndex < 2; ++bodyIndex)
@@ -142,7 +253,7 @@ static void UpdateContactPenetrations(Contact* contacts, int numContacts, Vector
 			// Find if this contact shares a body with the contact we just resolved
 			for (int resolvedBodyIndex = 0; resolvedBodyIndex < 2; ++resolvedBodyIndex)
 			{
-				RigidBody* resolvedBody = resolvedContact->bodies[bodyIndex];
+				RigidBody* resolvedBody = resolvedContact->bodies[resolvedBodyIndex];
 
 				if (body == resolvedBody)
 				{
@@ -150,6 +261,9 @@ static void UpdateContactPenetrations(Contact* contacts, int numContacts, Vector
 					Vector3 deltaPosition = linearChanges[resolvedBodyIndex] + CrossProduct(angularChanges[resolvedBodyIndex], contact->bodyToContact[bodyIndex]);
 					float sign = (bodyIndex == 1 ? 1.f : -1.0f); // If we're body A, any movement along this normal would reduce this penetration, so negative sign. If we're body B, any movement along the normal makes the penetration worse.
 					contact->penetration += sign * DotProduct(deltaPosition, contact->normal);
+
+					// TODO: Is this needed?
+					contact->position += deltaPosition;
 				}
 			}
 		}
@@ -158,9 +272,47 @@ static void UpdateContactPenetrations(Contact* contacts, int numContacts, Vector
 
 
 //-------------------------------------------------------------------------------------------------
-static void ResolvePenetrations(Contact* contacts, int numContacts, int maxIterations)
+static void UpdateContactVelocities(Contact* contacts, int numContacts, Vector3* linearVelocityChanges, Vector3* angularVelocityChanges, Contact* resolvedContact)
 {
-	for (int iteration = 0; iteration < maxIterations; ++iteration)
+	// For each contact
+	for (int contactIndex = 0; contactIndex < numContacts; ++contactIndex)
+	{
+		Contact* contact = &contacts[contactIndex];
+
+		// Check each body in the contact
+		for (int bodyIndex = 0; bodyIndex < 2; ++bodyIndex)
+		{
+			RigidBody* body = contact->bodies[bodyIndex];
+			if (body == nullptr)
+				continue;
+
+			// Find if this contact shares a body with the contact we just resolved
+			for (int resolvedBodyIndex = 0; resolvedBodyIndex < 2; ++resolvedBodyIndex)
+			{
+				RigidBody* resolvedBody = resolvedContact->bodies[resolvedBodyIndex];
+
+				if (body == resolvedBody)
+				{
+					// If so, find and update the new penetration for this contact
+					Vector3 deltaVelocityWs = linearVelocityChanges[resolvedBodyIndex] + CrossProduct(angularVelocityChanges[resolvedBodyIndex], contact->bodyToContact[bodyIndex]);
+					float sign = (bodyIndex == 1 ? -1.f : 1.f); // From the perspective of A
+					
+					Vector3 deltaVelocityContactSpace = contact->contactToWorld.GetTranspose() * deltaVelocityWs;
+					contact->closingVelocityContactSpace += sign * deltaVelocityContactSpace;
+
+					// Recalculate the desired velocity
+					contact->CalculateDesiredVelocityInContactSpace();
+				}
+			}
+		}
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+static void ResolvePenetrations(Contact* contacts, int numContacts, int numIterations)
+{
+	for (int iteration = 0; iteration < numIterations; ++iteration)
 	{
 		Contact* contactToResolve = nullptr;
 
@@ -192,9 +344,9 @@ static void ResolvePenetrations(Contact* contacts, int numContacts, int maxItera
 
 
 //-------------------------------------------------------------------------------------------------
-static void ResolveVelocities(Contact* contacts, int numContacts, float deltaSeconds, int maxIterations)
+static void ResolveVelocities(Contact* contacts, int numContacts, int numIterations)
 {
-	for (int iteration = 0; iteration < maxIterations; ++iteration)
+	for (int iteration = 0; iteration < numIterations; ++iteration)
 	{
 		Contact* contactToResolve = nullptr;
 
@@ -202,8 +354,8 @@ static void ResolveVelocities(Contact* contacts, int numContacts, float deltaSec
 		{
 			Contact* contact = &contacts[contactIndex];
 
-			// Find the contact with the worst pen (< 0.f is no pen, > 0.f is pen)
-			if (contact->closingVelocityContactSpace > 0.f && (contactToResolve == nullptr || contact->penetration > contactToResolve->penetration))
+			// Find the contact the greatest desired change on velocity
+			if (contact->desiredDeltaVelocity > 0.f && (contactToResolve == nullptr || contact->desiredDeltaVelocity > contactToResolve->desiredDeltaVelocity))
 			{
 				contactToResolve = contact;
 			}
@@ -214,7 +366,11 @@ static void ResolveVelocities(Contact* contacts, int numContacts, float deltaSec
 
 		contactToResolve->MatchAwakeState();
 
-		blah blah blah
+		Vector3 linearVelocityChanges[2];
+		Vector3 angularVelocityChanges[2];
+
+		ResolveContactVelocity(contactToResolve, linearVelocityChanges, angularVelocityChanges);
+		UpdateContactVelocities(contacts, numContacts, linearVelocityChanges, angularVelocityChanges, contactToResolve);
 	}
 }
 
@@ -223,9 +379,9 @@ static void ResolveVelocities(Contact* contacts, int numContacts, float deltaSec
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-void ContactResolver::ResolveContacts(Contact* contacts, int numContacts, float deltaSeconds)
+void ContactResolver::ResolveContacts(Contact* contacts, int numContacts)
 {
-	PrepareContacts(contacts, numContacts, deltaSeconds);
-	ResolveVelocities(contacts, numContacts, deltaSeconds, m_maxVelocityIterations);
-	ResolvePenetrations(contacts, numContacts, m_maxPenetrationIterations);
+	PrepareContacts(contacts, numContacts);
+	ResolveVelocities(contacts, numContacts, m_defaultNumVelocityIterations);
+	ResolvePenetrations(contacts, numContacts, m_defaultNumPenetrationIterations);
 }
