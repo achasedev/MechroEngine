@@ -88,7 +88,7 @@ static bool DevConsoleMessageHandler(unsigned int msg, size_t wparam, size_t lpa
 
 
 //-------------------------------------------------------------------------------------------------
-static void ConsolePrintv(const Rgba& color, char const* format, va_list args)
+static void ConsoleLogv(const Rgba& color, char const* format, va_list args)
 {
 	//ASSERT_RETURN(g_devConsole != nullptr, NO_RETURN_VAL, "DevConsole not initialized!");
 	if (g_devConsole != nullptr)
@@ -102,62 +102,102 @@ static void ConsolePrintv(const Rgba& color, char const* format, va_list args)
 		colorText.m_text = std::string(textLiteral);
 		colorText.m_color = color;
 
-		g_devConsole->AddToMessageQueue(colorText);
+		g_devConsole->AddToLogQueue(colorText);
 	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void ConsolePrintf(const Rgba &color, char const *format, ...)
+static void ConsolePrintv(const Rgba& color, float lifetimeSeconds, char const* format, va_list args)
+{
+	//ASSERT_RETURN(g_devConsole != nullptr, NO_RETURN_VAL, "DevConsole not initialized!");
+	if (g_devConsole != nullptr)
+	{
+		char textLiteral[VARIABLE_ARG_STACK_LOCAL_TEMP_LENGTH];
+		vsnprintf_s(textLiteral, VARIABLE_ARG_STACK_LOCAL_TEMP_LENGTH, _TRUNCATE, format, args);
+		textLiteral[VARIABLE_ARG_STACK_LOCAL_TEMP_LENGTH - 1] = '\0'; // In case vsnprintf overran (doesn't auto-terminate)
+
+		// Add it to the console log
+		ColoredText colorText;
+		colorText.m_text = std::string(textLiteral);
+		colorText.m_color = color;
+
+		g_devConsole->AddToMessageQueue(colorText, lifetimeSeconds);
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void ConsoleLogf(const Rgba &color, char const *format, ...)
 {
 	va_list variableArgumentList;
 	va_start(variableArgumentList, format);
-	ConsolePrintv(color, format, variableArgumentList);
+	ConsoleLogv(color, format, variableArgumentList);
 	va_end(variableArgumentList);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void ConsolePrintf(char const *format, ...)
+void ConsoleLogf(char const *format, ...)
 {
 	// Construct the string
 	va_list variableArgumentList;
 	va_start(variableArgumentList, format);
-	ConsolePrintv(DevConsole::DEFAULT_CONSOLE_LOG_COLOR, format, variableArgumentList);
+	ConsoleLogv(DevConsole::DEFAULT_CONSOLE_LOG_COLOR, format, variableArgumentList);
 	va_end(variableArgumentList);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void ConsolePrintf(const Rgba& color, const std::string& text)
+void ConsoleLogf(const Rgba& color, const std::string& text)
 {
-	ConsolePrintf(color, text.c_str());
+	ConsoleLogf(color, text.c_str());
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void ConsolePrintf(const std::string& text)
+void ConsoleLogf(const std::string& text)
 {
-	ConsolePrintf(DevConsole::DEFAULT_CONSOLE_LOG_COLOR, text.c_str());
+	ConsoleLogf(DevConsole::DEFAULT_CONSOLE_LOG_COLOR, text.c_str());
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void ConsoleWarningf(char const *format, ...)
+void ConsoleLogWarningf(char const *format, ...)
 {
 	va_list variableArgumentList;
 	va_start(variableArgumentList, format);
-	ConsolePrintv(Rgba::ORANGE, format, variableArgumentList);
+	ConsoleLogv(Rgba::ORANGE, format, variableArgumentList);
 	va_end(variableArgumentList);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void ConsoleErrorf(char const *format, ...)
+void ConsoleLogErrorf(char const *format, ...)
 {
 	va_list variableArgumentList;
 	va_start(variableArgumentList, format);
-	ConsolePrintv(Rgba::RED, format, variableArgumentList);
+	ConsoleLogv(Rgba::RED, format, variableArgumentList);
+	va_end(variableArgumentList);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void ConsolePrintf(char const* format, ...)
+{
+	va_list variableArgumentList;
+	va_start(variableArgumentList, format);
+	ConsolePrintv(Rgba::WHITE, 0.f, format, variableArgumentList);
+	va_end(variableArgumentList);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void ConsolePrintf(const Rgba& color, float lifetimeSeconds, char const* format, ...)
+{
+	va_list variableArgumentList;
+	va_start(variableArgumentList, format);
+	ConsolePrintv(color, lifetimeSeconds, format, variableArgumentList);
 	va_end(variableArgumentList);
 }
 
@@ -312,6 +352,16 @@ void DevConsole::ProcessKeyUp(unsigned char keyCode)
 //-------------------------------------------------------------------------------------------------
 void DevConsole::BeginFrame()
 {
+	// Check for any new messages added, active or not
+	std::pair<ColoredText, float> message;
+	while (m_messageQueue.Dequeue(message))
+	{
+		m_messageScrollView->AddTextToScroll(message.first.m_text, message.first.m_color);
+
+		FrameTimer timer;
+		timer.SetInterval(message.second);
+		m_messageTimers.push_back(timer);
+	}
 }
 
 
@@ -325,26 +375,29 @@ void DevConsole::ProcessInput()
 //-------------------------------------------------------------------------------------------------
 void DevConsole::Update()
 {
-	if (!HasInputSelection() && m_cursorTimer.CheckAndDecrementAll())
+	if (m_isActive)
 	{
-		m_showInputCursor = !m_showInputCursor;
+		if (!HasInputSelection() && m_cursorTimer.CheckAndDecrementAll())
+		{
+			m_showInputCursor = !m_showInputCursor;
 
-		UIElementRenderMode mode = (m_showInputCursor ? ELEMENT_RENDER_ALL : ELEMENT_RENDER_NONE);
-		m_inputCursor->SetRenderMode(mode);
+			UIElementRenderMode mode = (m_showInputCursor ? ELEMENT_RENDER_ALL : ELEMENT_RENDER_NONE);
+			m_inputCursor->SetRenderMode(mode);
+		}
+
+		// Cursor gets moved from many functions, easiest to just update its position constantly
+		// also it's cheap, so why not
+		UpdateInputCursorUI();
+
+		// Update the message logs with messages in the queue
+		ColoredText text;
+		while (m_logQueue.Dequeue(text)) // returns false when empty
+		{
+			m_logScrollView->AddTextToScroll(text.m_text, text.m_color);
+		}
 	}
 
-	// Cursor gets moved from many functions, easiest to just update its position constantly
-	// also it's cheap, so why not
-	UpdateInputCursorUI();
-
-	// Update the message logs with messages in the queue
-	ColoredText text;
-	while (m_outputQueue.Dequeue(text)) // returns false when empty
-	{
-		m_logScrollView->AddTextToScroll(text.m_text, text.m_color);
-	}
-
-	// Update FPS display
+	// Always update FPS display
 	if (m_fpsUpdateTimer.CheckAndDecrementAll())
 	{
 		Clock* masterClock = Clock::GetMasterClock();
@@ -366,22 +419,29 @@ void DevConsole::Update()
 //-------------------------------------------------------------------------------------------------
 void DevConsole::EndFrame()
 {
+	// Clean up any expired messages
+	// Messages that last a single frame (lifetime <= 0.f) will be created and destroyed in the same frame
+	for (int i = (int)m_messageTimers.size() - 1; i >= 0; --i)
+	{
+		if (m_messageTimers[i].HasIntervalElapsed())
+		{
+			m_messageTimers.erase(m_messageTimers.begin() + i);
+			m_messageScrollView->RemoveLineFromScroll(i);
+		}
+	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void DevConsole::Render() const
 {
-	if (m_isActive)
-	{
-		Camera camera;
-		camera.SetRenderTarget(m_canvas->GetOutputTexture(), false);
-		camera.SetProjection(CAMERA_PROJECTION_ORTHOGRAPHIC, m_canvas->GenerateOrthoMatrix());
+	Camera camera;
+	camera.SetRenderTarget(m_canvas->GetOutputTexture(), false);
+	camera.SetProjection(CAMERA_PROJECTION_ORTHOGRAPHIC, m_canvas->GenerateOrthoMatrix());
 
-		g_renderContext->BeginCamera(&camera);
-		m_canvas->Render();
-		g_renderContext->EndCamera();
-	}
+	g_renderContext->BeginCamera(&camera);
+	m_canvas->Render();
+	g_renderContext->EndCamera();
 }
 
 
@@ -405,6 +465,10 @@ void DevConsole::SetIsActive(bool isActive)
 		mouse.ShowMouseCursor(true);
 		mouse.LockCursorToClient(false);
 		mouse.SetCursorMode(CURSORMODE_ABSOLUTE);
+
+		// Show the active panel, hide the inactive panel
+		m_activePanel->SetRenderMode(ELEMENT_RENDER_ALL);
+		m_inactivePanel->SetRenderMode(ELEMENT_RENDER_NONE);
 	}
 	else
 	{
@@ -412,14 +476,29 @@ void DevConsole::SetIsActive(bool isActive)
 		mouse.ShowMouseCursor(m_wasMouseShown);
 		mouse.LockCursorToClient(m_wasMouseLocked);
 		mouse.SetCursorMode(m_prevMouseCursorMode);
+
+		// Show the inactive panel, hide the active panel
+		m_activePanel->SetRenderMode(ELEMENT_RENDER_NONE);
+		m_inactivePanel->SetRenderMode(ELEMENT_RENDER_ALL);
 	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void DevConsole::AddToMessageQueue(const ColoredText& outputText)
+void DevConsole::AddToLogQueue(const ColoredText& outputText)
 {
-	m_outputQueue.Enqueue(outputText);
+	m_logQueue.Enqueue(outputText);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void DevConsole::AddToMessageQueue(const ColoredText& outputText, float lifetimeSeconds)
+{
+	std::pair<ColoredText, float> message;
+	message.first = outputText;
+	message.second = lifetimeSeconds;
+
+	m_messageQueue.Enqueue(message);
 }
 
 
@@ -502,10 +581,14 @@ DevConsole::DevConsole()
 	m_canvas = new Canvas();
 	m_canvas->InitializeFromXML("Data/Engine/Console_Layout.canvas");
 
-	m_backPanel = m_canvas->FindElementAsType<UIPanel>(SID("background_panel"));
+	m_activePanel = m_canvas->FindElementAsType<UIPanel>(SID("active_panel"));
+	m_activePanel->SetRenderMode(ELEMENT_RENDER_NONE);
+	m_inactivePanel = m_canvas->FindElementAsType<UIPanel>(SID("inactive_panel"));
+	m_inactivePanel->SetRenderMode(ELEMENT_RENDER_ALL);
 	m_inputPanel = m_canvas->FindElementAsType<UIPanel>(SID("input_panel"));
 	m_inputFieldText = m_canvas->FindElementAsType<UIText>(SID("input_text"));
 	m_logScrollView = m_canvas->FindElementAsType<UIScrollView>(SID("log_scrollview"));
+	m_messageScrollView = m_canvas->FindElementAsType<UIScrollView>(SID("message_scrollview"));
 	m_inputCursor = m_canvas->FindElementAsType<UIImage>(SID("input_cursor_image"));
 	m_popUpImage = m_canvas->FindElementAsType<UIImage>(SID("popup_image"));
 	m_popUpText = m_canvas->FindElementAsType<UIText>(SID("popup_text"));
@@ -536,7 +619,7 @@ DevConsole::~DevConsole()
 	m_popUpImage = nullptr;
 	m_popUpPanel = nullptr;
 	m_logScrollView = nullptr;
-	m_backPanel = nullptr;
+	m_activePanel = nullptr;
 	m_inputPanel = nullptr;
 	m_inputFieldText = nullptr;
 

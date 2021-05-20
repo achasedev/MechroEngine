@@ -61,7 +61,7 @@ public:
 	virtual void		Render() override;
 
 	AABB2				GenerateOrthoBounds() const;
-	Matrix4			GenerateOrthoMatrix() const;
+	Matrix4				GenerateOrthoMatrix() const;
 
 	void				SetScreenMatchMode(ScreenMatchMode mode, float widthHeightBlend = 1.0f);
 	void				SetResolution(const Vector2& resolution);

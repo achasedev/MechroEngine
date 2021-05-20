@@ -49,7 +49,7 @@ bool Material::Load(const char* filepath)
 {
 	if (!DoesFilePathHaveExtension(filepath, "material"))
 	{
-		ConsoleErrorf("File \"%s\" expected extension \?%s\"", filepath, "material");
+		ConsoleLogErrorf("File \"%s\" expected extension \?%s\"", filepath, "material");
 	}
 
 	XMLDoc doc;
@@ -57,7 +57,7 @@ bool Material::Load(const char* filepath)
 
 	if (error != tinyxml2::XML_SUCCESS)
 	{
-		ConsoleErrorf("Couldn't load material file %s", filepath);
+		ConsoleLogErrorf("Couldn't load material file %s", filepath);
 		return false;
 	}
 

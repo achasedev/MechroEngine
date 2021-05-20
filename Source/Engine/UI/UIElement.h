@@ -108,8 +108,8 @@ public:
 	void				SetRenderMode(UIElementRenderMode mode) { m_renderMode = mode; }
 
 	OBB2				GetCanvasBounds() const;
-	Matrix4			CreateModelMatrix() const;
-	Matrix4			CreateModelMatrix(const OBB2& finalBounds) const;
+	Matrix4				CreateModelMatrix() const;
+	Matrix4				CreateModelMatrix(const OBB2& finalBounds) const;
 	
 	static UIElement*	CreateUIElementFromXML(const XMLElem& element, UIElement* parent, Canvas* canvas);
 

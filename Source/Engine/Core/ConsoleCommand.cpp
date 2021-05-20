@@ -58,7 +58,7 @@ void ConsoleCommand::Run(const std::string& commandLine)
 	}
 	else
 	{
-		ConsoleWarningf("Unknown command: %s", commandID.ToString());
+		ConsoleLogWarningf("Unknown command: %s", commandID.ToString());
 	}
 }
 
@@ -144,7 +144,7 @@ std::string CommandArgs::GetNextString(bool printError /*= true*/)
 
 		if (closingQuoteIndex == std::string::npos)
 		{
-			ConsoleErrorf("Quote in command line wasn't closed!");
+			ConsoleLogErrorf("Quote in command line wasn't closed!");
 			return "";
 		}
 
@@ -174,7 +174,7 @@ std::string CommandArgs::GetNextToken(bool printError)
 	{
 		if (printError)
 		{
-			ConsoleErrorf("Not enough arguments!");
+			ConsoleLogErrorf("Not enough arguments!");
 		}
 
 		return "";

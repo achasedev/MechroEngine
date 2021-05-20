@@ -120,7 +120,7 @@ Image* ResourceSystem::CreateOrGetImage(const char* filepath)
 	else
 	{
 		SAFE_DELETE(image);
-		ConsoleErrorf("Could not load Image %s", filepath);
+		ConsoleLogErrorf("Could not load Image %s", filepath);
 	}
 
 	m_images[id] = image;
@@ -149,7 +149,7 @@ Shader* ResourceSystem::CreateOrGetShader(const char* filepath)
 	else
 	{
 		SAFE_DELETE(shader);
-		ConsoleErrorf("Could not load Shader %s", filepath);
+		ConsoleLogErrorf("Could not load Shader %s", filepath);
 	}
 
 	m_shaders[id] = shader;
@@ -178,7 +178,7 @@ Material* ResourceSystem::CreateOrGetMaterial(const char* filepath)
 	else
 	{
 		SAFE_DELETE(material);
-		ConsoleErrorf("Could not load Texture2D %s", filepath);
+		ConsoleLogErrorf("Could not load Texture2D %s", filepath);
 	}
 
 	m_materials[id] = material;
@@ -207,7 +207,7 @@ Texture2D* ResourceSystem::CreateOrGetTexture2D(const char* filepath, TextureUsa
 	else
 	{
 		SAFE_DELETE(texture);
-		ConsoleErrorf("Could not load Texture2D %s", filepath);
+		ConsoleLogErrorf("Could not load Texture2D %s", filepath);
 	}
 	
 	m_texture2Ds[id] = texture;
@@ -232,11 +232,11 @@ Font* ResourceSystem::CreateOrGetFont(const char* filepath)
 
 	if (error == FT_Err_Unknown_File_Format)
 	{
-		ConsoleErrorf("Unsupported font format for file %s", filepath);
+		ConsoleLogErrorf("Unsupported font format for file %s", filepath);
 	}
 	else if (error)
 	{
-		ConsoleErrorf("Couldn't load font file %s", filepath);
+		ConsoleLogErrorf("Couldn't load font file %s", filepath);
 	}
 	else
 	{

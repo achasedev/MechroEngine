@@ -38,6 +38,9 @@ public:
 	bool Dequeue(T& out_value);
 	bool IsEmpty();
 
+	void AcquireLock();
+	void ReleaseLock();
+
 
 private:
 	//-----Private Data-----
@@ -84,6 +87,21 @@ bool ThreadSafeQueue<T>::IsEmpty()
 	return isEmpty;
 }
 
+
+//-------------------------------------------------------------------------------------------------
+template <typename T>
+void ThreadSafeQueue<T>::AcquireLock()
+{
+	m_lock.lock();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+template <typename T>
+void ThreadSafeQueue<T>::ReleaseLock()
+{
+	m_lock.unlock();
+}
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS

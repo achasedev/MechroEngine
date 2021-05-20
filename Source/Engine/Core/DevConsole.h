@@ -78,7 +78,8 @@ public:
 	bool		HasInputSelection() const;
 
 	void		SetIsActive(bool isActive);
-	void		AddToMessageQueue(const ColoredText& outputText);
+	void		AddToLogQueue(const ColoredText& outputText);
+	void		AddToMessageQueue(const ColoredText& outputText, float lifetimeSeconds);
 	void		MoveCursor(int valueToAddToCursor);
 	void		SetCursor(int valueToBeSetTo);
 	void		SetCursorToEnd();
@@ -130,13 +131,15 @@ private:
 	int									m_cursorIndex = 0;
 	int									m_historyIndex = 0;
 	std::vector<std::string>			m_commandHistory;
-	ThreadSafeQueue<ColoredText>		m_outputQueue;
+	ThreadSafeQueue<ColoredText>		m_logQueue;
+	ThreadSafeQueue<std::pair<ColoredText, float>> m_messageQueue;
+	std::vector<FrameTimer>				m_messageTimers;
 	int									m_autocompleteIndex = 0;
 	PopUpUIState						m_popUpState = POP_UP_HIDDEN;
 
-	// Rendering
+	// Rendering - active
 	Canvas*								m_canvas = nullptr;
-	UIPanel*							m_backPanel = nullptr;
+	UIPanel*							m_activePanel = nullptr;
 	UIPanel*							m_inputPanel = nullptr;
 	UIText*								m_inputFieldText = nullptr;
 	UIScrollView*						m_logScrollView = nullptr;
@@ -145,6 +148,10 @@ private:
 	UIImage*							m_popUpImage = nullptr;
 	UIText*								m_popUpText = nullptr;
 	UIText*								m_fpsText = nullptr;
+
+	// Rendering - inactive
+	UIPanel*							m_inactivePanel = nullptr;
+	UIScrollView*						m_messageScrollView = nullptr;
 
 	FrameTimer							m_cursorTimer;
 	bool								m_showInputCursor = false;
@@ -174,9 +181,12 @@ private:
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-void ConsolePrintf(const Rgba &color, char const *format, ...);
-void ConsolePrintf(char const *format, ...);
-void ConsolePrintf(const std::string& text);
-void ConsolePrintf(const Rgba& color, const std::string& text);
-void ConsoleWarningf(char const *format, ...); // Orange Font
-void ConsoleErrorf(char const *format, ...); // Red Font
+void ConsoleLogf(const Rgba &color, char const *format, ...);
+void ConsoleLogf(char const *format, ...);
+void ConsoleLogf(const std::string& text);
+void ConsoleLogf(const Rgba& color, const std::string& text);
+void ConsoleLogWarningf(char const *format, ...); // Orange Font
+void ConsoleLogErrorf(char const *format, ...); // Red Font
+
+void ConsolePrintf(char const* format, ...);
+void ConsolePrintf(const Rgba& color, float lifetimeSeconds, char const* format, ...);

@@ -342,7 +342,7 @@ void RenderContext::DrawRenderable(Renderable& renderable)
 		}
 		else
 		{
-			ConsoleErrorf("Draw attempted with a null mesh!");
+			ConsoleLogErrorf("Draw attempted with a null mesh!");
 		}
 	}
 }

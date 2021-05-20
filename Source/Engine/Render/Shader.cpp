@@ -159,7 +159,7 @@ BlendPreset StringToBlendPreset(const std::string& blendText)
 	else if (blendText == "additive" || blendText == "add") { return BLEND_PRESET_ADDITIVE; }
 	else
 	{
-		ConsoleErrorf("Invalid BlendPreset %s, defaulting to opaque", blendText.c_str());
+		ConsoleLogErrorf("Invalid BlendPreset %s, defaulting to opaque", blendText.c_str());
 		return BLEND_PRESET_OPAQUE;
 	}
 }
@@ -172,7 +172,7 @@ FillMode StringToFillMode(const std::string& fillText)
 	else if (fillText == "solid") { return FILL_MODE_SOLID; }
 	else
 	{
-		ConsoleErrorf("Invalid FillMode %s, defaulting to solid", fillText.c_str());
+		ConsoleLogErrorf("Invalid FillMode %s, defaulting to solid", fillText.c_str());
 		return FILL_MODE_SOLID;
 	}
 }
@@ -256,7 +256,7 @@ bool Shader::Load(const char* filepath)
 {
 	if (!DoesFilePathHaveExtension(filepath, "shader"))
 	{
-		ConsoleErrorf("File \"%s\" expected extension \?%s\"", filepath, "shader");
+		ConsoleLogErrorf("File \"%s\" expected extension \?%s\"", filepath, "shader");
 	}
 
 	XMLDoc doc;
@@ -264,7 +264,7 @@ bool Shader::Load(const char* filepath)
 
 	if (error != tinyxml2::XML_SUCCESS)
 	{
-		ConsoleErrorf("Couldn't load resource file %s", filepath);
+		ConsoleLogErrorf("Couldn't load resource file %s", filepath);
 		return false;
 	}
 
@@ -281,7 +281,7 @@ bool Shader::Load(const char* filepath)
 
 	if (!success)
 	{
-		ConsoleErrorf("Couldn't load shader source file %s", sourceFilepath.c_str());
+		ConsoleLogErrorf("Couldn't load shader source file %s", sourceFilepath.c_str());
 		Clear();
 		return false;
 	}

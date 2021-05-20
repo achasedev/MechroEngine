@@ -64,8 +64,9 @@ public:
 
 	void			SetFont(Font* font);
 	void			SetFontHeight(float height);
-	void			AddTextToScroll(const std::string& text, Rgba color = Rgba::WHITE);
-	void			AddTextToScroll(const ColoredText& coloredText);
+	int 			AddTextToScroll(const std::string& text, Rgba color = Rgba::WHITE);
+	int 			AddTextToScroll(const ColoredText& coloredText);
+	void			RemoveLineFromScroll(int lineIndex);
 	void			ScrollVerticalWithTranslation(float translation);
 	void			ScrollHorizontalWithTranslation(float translation);
 	void			ScrollFromVerticalSlider(float deltaScroll);
@@ -108,7 +109,7 @@ private:
 	UIButton*					m_leftButton = nullptr;
 	UIButton*					m_rightButton = nullptr;
 	UIImage*					m_horizontalSlider = nullptr;
-	HorizontalScrollbarType	m_horizontalScrollbarType = NO_HORIZONTAL_SCROLLBAR;
+	HorizontalScrollbarType		m_horizontalScrollbarType = NO_HORIZONTAL_SCROLLBAR;
 
 };
 

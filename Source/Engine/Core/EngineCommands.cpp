@@ -52,7 +52,7 @@ void Command_Add(CommandArgs& args)
 
 	if (aSpecified && bSpecified)
 	{
-		ConsolePrintf("%.2f + %.2f = %.2f", a, b, a + b);
+		ConsoleLogf("%.2f + %.2f = %.2f", a, b, a + b);
 	}
 }
 
@@ -74,7 +74,7 @@ void Command_Help(CommandArgs& args)
 
 	if (!printEngineCommands && !printGameCommands)
 	{
-		ConsoleWarningf("Unrecognized type of command: %s", type.c_str());
+		ConsoleLogWarningf("Unrecognized type of command: %s", type.c_str());
 		return;
 	}
 
@@ -85,7 +85,7 @@ void Command_Help(CommandArgs& args)
 	int numEngineCommands = 0;
 	if (printEngineCommands)
 	{
-		ConsolePrintf(Rgba::CYAN, "-----Engine Commands-----");
+		ConsoleLogf(Rgba::CYAN, "-----Engine Commands-----");
 
 		for (int commandIndex = 0; commandIndex < static_cast<int>(commands.size()); ++commandIndex)
 		{
@@ -93,18 +93,18 @@ void Command_Help(CommandArgs& args)
 
 			if (currCommand->IsEngineCommand())
 			{
-				ConsolePrintf(commands[commandIndex]->GetIDWithDescription());
+				ConsoleLogf(commands[commandIndex]->GetIDWithDescription());
 				numEngineCommands++;
 			}
 		}
 
-		ConsolePrintf(Rgba::CYAN, "-----End Engine Commands, %i total-----", numEngineCommands);
+		ConsoleLogf(Rgba::CYAN, "-----End Engine Commands, %i total-----", numEngineCommands);
 	}
 
 	int numGameCommands = 0;
 	if (printGameCommands)
 	{
-		ConsolePrintf(Rgba::CYAN, "-----Game Commands-----");
+		ConsoleLogf(Rgba::CYAN, "-----Game Commands-----");
 
 		for (int commandIndex = 0; commandIndex < static_cast<int>(commands.size()); ++commandIndex)
 		{
@@ -112,11 +112,11 @@ void Command_Help(CommandArgs& args)
 
 			if (currCommand->IsGameCommand())
 			{
-				ConsolePrintf(commands[commandIndex]->GetIDWithDescription());
+				ConsoleLogf(commands[commandIndex]->GetIDWithDescription());
 				numGameCommands++;
 			}
 		}
 
-		ConsolePrintf(Rgba::CYAN, "-----End Game Commands, %i total-----", numGameCommands);
+		ConsoleLogf(Rgba::CYAN, "-----End Game Commands, %i total-----", numGameCommands);
 	}
 }

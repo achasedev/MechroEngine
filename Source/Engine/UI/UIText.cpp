@@ -307,10 +307,12 @@ void UIText::SetColor(int lineIndex, const Rgba& color)
 
 
 //-------------------------------------------------------------------------------------------------
-void UIText::AddLine(const std::string& text, const Rgba& color /*= Rgba::WHITE*/)
+int UIText::AddLine(const std::string& text, const Rgba& color /*= Rgba::WHITE*/)
 {
 	m_lines.push_back(ColoredText(text, color));
 	m_isDirty = true;
+
+	return (int)m_lines.size() - 1;
 }
 
 
@@ -321,6 +323,13 @@ void UIText::AddLines(const std::vector<std::string>& lines, const Rgba& color /
 	{
 		m_lines.push_back(ColoredText(lines[lineIndex], color));
 	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void UIText::RemoveLine(int lineIndex)
+{
+	m_lines.erase(m_lines.begin() + lineIndex);
 }
 
 

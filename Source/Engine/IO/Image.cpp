@@ -86,7 +86,7 @@ bool Image::Load(const char* filepath, bool flipVertically /*= true*/)
 	}
 	else
 	{
-		ConsolePrintf("Couldn't load image %s", filepath);
+		ConsoleLogf("Couldn't load image %s", filepath);
 	}
 
 	return (m_data != nullptr);

@@ -73,8 +73,9 @@ public:
 	void						SetLine(int lineIndex, const std::string& text, const Rgba& color);
 	void						SetLines(const std::vector<std::string>& lines);
 	void						SetLines(const std::vector<std::string>& lines, const Rgba& color);
-	void						AddLine(const std::string& text, const Rgba& color = Rgba::WHITE);
+	int							AddLine(const std::string& text, const Rgba& color = Rgba::WHITE);
 	void						AddLines(const std::vector<std::string>& lines, const Rgba& color = Rgba::WHITE);
+	void						RemoveLine(int lineIndex);
 	void						SetColor(const Rgba& color);
 	void						SetColor(int lineIndex, const Rgba& color);
 	void						SetFont(Font* font);

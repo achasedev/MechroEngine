@@ -219,7 +219,105 @@ static bool OnMouseClick_Slider(UIElement* element, const UIMouseInfo& info)
 
 
 //-------------------------------------------------------------------------------------------------
-void ShrinkTextElementBoundsToFit(UIText* textElement)
+static void SetupTextElementTransform(UIText* textElement, HorizontalAlignment horizAlign, VerticalAlignment vertAlign)
+{
+	AnchorPreset anchorPreset = AnchorPreset::BOTTOM_LEFT;
+
+	switch (horizAlign)
+	{
+	case ALIGNMENT_LEFT:
+		switch (vertAlign)
+		{
+		case ALIGNMENT_TOP:
+			anchorPreset = AnchorPreset::TOP_LEFT;
+			break;
+		case ALIGNMENT_MIDDLE:
+			anchorPreset = AnchorPreset::MIDDLE_LEFT;
+			break;
+		case ALIGNMENT_BOTTOM:
+			anchorPreset = AnchorPreset::BOTTOM_LEFT;
+			break;
+		default:
+			break;
+		}
+		break;
+	case ALIGNMENT_CENTER:
+		switch (vertAlign)
+		{
+		case ALIGNMENT_TOP:
+			anchorPreset = AnchorPreset::TOP_CENTER;
+			break;
+		case ALIGNMENT_MIDDLE:
+			anchorPreset = AnchorPreset::MIDDLE_CENTER;
+			break;
+		case ALIGNMENT_BOTTOM:
+			anchorPreset = AnchorPreset::BOTTOM_CENTER;
+			break;
+		default:
+			break;
+		}
+		break;
+	case ALIGNMENT_RIGHT:
+		switch (vertAlign)
+		{
+		case ALIGNMENT_TOP:
+			anchorPreset = AnchorPreset::TOP_RIGHT;
+			break;
+		case ALIGNMENT_MIDDLE:
+			anchorPreset = AnchorPreset::MIDDLE_RIGHT;
+			break;
+		case ALIGNMENT_BOTTOM:
+			anchorPreset = AnchorPreset::BOTTOM_RIGHT;
+			break;
+		default:
+			break;
+		}
+		break;
+	default:
+		break;
+	}
+
+	textElement->m_transform.SetAnchors(anchorPreset);
+
+	Vector2 pivot;
+	
+	switch (horizAlign)
+	{
+	case ALIGNMENT_LEFT:
+		pivot.x = 0.f;
+		break;
+	case ALIGNMENT_CENTER:
+		pivot.x = 0.5f;
+		break;
+	case ALIGNMENT_RIGHT:
+		pivot.x = 1.0f;
+		break;
+	default:
+		break;
+	}
+
+	switch (vertAlign)
+	{
+	case ALIGNMENT_TOP:
+		pivot.y = 1.0f;
+		break;
+	case ALIGNMENT_MIDDLE:
+		pivot.y = 0.5f;
+		break;
+	case ALIGNMENT_BOTTOM:
+		pivot.y = 0.f;
+		break;
+	default:
+		break;
+	}
+
+	textElement->m_transform.SetPivot(pivot);
+	textElement->m_transform.SetPosition(Vector2::ZERO);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+static void ShrinkTextElementBoundsToFit(UIText* textElement)
 {
 	// NOTE: Word wrap does not work with this, as it is done in the render step and can add an
 	//		 unknown number of lines to it
@@ -330,10 +428,8 @@ void UIScrollView::InitializeFromXML(const XMLElem& element)
 	m_textElement->SetFontHeight(fontHeight);
 	m_textElement->AddLines(lines, textColor);
 	m_textElement->SetTextAlignment(horizAlign, vertAlign);
+	SetupTextElementTransform(m_textElement, horizAlign, vertAlign);
 
-	m_textElement->m_transform.SetAnchors(AnchorPreset::BOTTOM_LEFT);
-	m_textElement->m_transform.SetPivot(Vector2::ZERO);
-	m_textElement->m_transform.SetPosition(Vector2::ZERO);
 	m_textElement->m_onHover = PassInputToNextElement;
 	m_textElement->m_onMouseClick = PassInputToNextElement;
 
@@ -400,18 +496,27 @@ void UIScrollView::SetFontHeight(float height)
 
 
 //-------------------------------------------------------------------------------------------------
-void UIScrollView::AddTextToScroll(const ColoredText& coloredText)
+int UIScrollView::AddTextToScroll(const ColoredText& coloredText)
 {
-	AddTextToScroll(coloredText.m_text, coloredText.m_color);
+	return AddTextToScroll(coloredText.m_text, coloredText.m_color);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void UIScrollView::AddTextToScroll(const std::string& text, Rgba color /*= Rgba::WHITE*/)
+int UIScrollView::AddTextToScroll(const std::string& text, Rgba color /*= Rgba::WHITE*/)
 {
-	m_textElement->AddLine(text, color);
+	int lineIndex = m_textElement->AddLine(text, color);
 	UpdateVerticalSlider();
 	UpdateHorizontalSlider();
+
+	return lineIndex;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void UIScrollView::RemoveLineFromScroll(int lineIndex)
+{
+	m_textElement->RemoveLine(lineIndex);
 }
 
 
