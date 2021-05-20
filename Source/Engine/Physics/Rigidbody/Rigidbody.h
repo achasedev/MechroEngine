@@ -49,6 +49,8 @@ public:
 	void AddWorldVelocity(const Vector3& velocity) { m_velocityWs += velocity; }
 	void AddWorldAngularVelocityRadians(const Vector3& angularVelocityRadians) { m_angularVelocityRadiansWs += angularVelocityRadians; }
 
+	void SetVelocityWs(const Vector3& velocityWs) { m_velocityWs = velocityWs; }
+	void SetAngularVelocityRadiansWs(const Vector3& angularVelocityRadiansWs) { m_angularVelocityRadiansWs = angularVelocityRadiansWs; }
 	void SetAcceleration(const Vector3& acceleration) { m_accelerationWs = acceleration; }
 	void SetInverseMass(float iMass) { m_iMass = iMass; }
 	void SetLinearDamping(float linearDamping) { m_linearDamping = linearDamping; }

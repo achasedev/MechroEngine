@@ -9,6 +9,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Collision/Contact.h"
 #include "Engine/Collision/ContactResolver.h"
+#include "Engine/Core/DevConsole.h"
 #include "Engine/Core/EngineCommon.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Math/Quaternion.h"
@@ -43,14 +44,44 @@ static void PrepareContacts(Contact* contacts, int numContacts)
 //-------------------------------------------------------------------------------------------------
 static void ResolveContactPenetration(Contact* contact, Vector3* out_linearChanges, Vector3* out_angularChanges)
 {
-	// First calculate inertias
-	// These stand for "change in linear velocity along normal per unit of impulse" given this contact's position, normal, etc. Delta position along normal can come from the object moving *and* the object rotating - this is non-linear projection
-	// Greater inertia here === more of the correction received. It's not the inertia of the object, but the inertia "gained" from the correction!
-	float linearInertia[2]; // Change in linear velocity along normal directly from the impulse. Since the impulse is in the direction of the normal, this just becomes inverse mass. Greater mass === Lesser inverse mass === lesser inertia === less response received
-	float angularInertia[2]; // Change in linear velocity along normal from rotation induced from impulse, per unit of impulse. Think of it as "due to the rotation from this impulse, how much would that move me along the normal?"
-	float totalInertia = 0.f;
-	Vector3 deltaAngularVelocityPerImpulse[2]; // We reuse these values when updating position
 	const float angularLimit = 0.2f;
+	float angularMove[2];
+	float linearMove[2];
+
+	float totalInertia = 0.f;
+	float linearInertia[2];
+	float angularInertia[2];
+
+	//// We need to work out the inertia of each object in the direction
+	//// of the contact normal, due to angular inertia only.
+	//for (unsigned i = 0; i < 2; i++) if (contact->bodies[i])
+	//{
+	//	Matrix3 inverseInertiaTensor;
+	//	contact->bodies[i]->GetWorldInverseInertiaTensor(inverseInertiaTensor);
+
+	//	// Use the same procedure as for calculating frictionless
+	//	// velocity change to work out the angular inertia.
+	//	Vector3 angularInertiaWorld =
+	//		CrossProduct(contact->bodyToContact[i], contact->normal);
+	//	angularInertiaWorld =
+	//		inverseInertiaTensor * angularInertiaWorld;
+	//	angularInertiaWorld =
+	//		CrossProduct(angularInertiaWorld, contact->bodyToContact[i]);
+	//	angularInertia[i] =
+	//		DotProduct(angularInertiaWorld, contact->normal);
+
+	//	// The linear component is simply the inverse mass
+	//	linearInertia[i] = contact->bodies[i]->GetInverseMass();
+
+	//	// Keep track of the total inertia from all components
+	//	totalInertia += linearInertia[i] + angularInertia[i];
+
+	//	// We break the loop here so that the totalInertia value is
+	//	// completely calculated (by both iterations) before
+	//	// continuing.
+	//}
+
+	Vector3 deltaAngularVelocityPerImpulse[2];
 
 	for (int bodyIndex = 0; bodyIndex < 2; ++bodyIndex)
 	{
@@ -79,61 +110,52 @@ static void ResolveContactPenetration(Contact* contact, Vector3* out_linearChang
 		totalInertia += linearInertia[bodyIndex] + angularInertia[bodyIndex];
 	}
 
-	// Now calculate the translations of this contact in world space from linear and angular change
-	float linearMove[2];
-	float angularMove[2];
-	float inverseTotalInverseInertia = 1.0f / totalInertia;
-
-	for (int bodyIndex = 0; bodyIndex < 2; ++bodyIndex)
+	// Loop through again calculating and applying the changes
+	for (unsigned i = 0; i < 2; i++) if (contact->bodies[i])
 	{
-		RigidBody* body = contact->bodies[bodyIndex];
-		if (body == nullptr)
-		{
-			out_linearChanges[bodyIndex] = Vector3::ZERO;
-			out_angularChanges[bodyIndex] = Vector3::ZERO;
-			continue;
-		}
+		float sign = (i == 0 ? 1.0f : -1.0f);
 
-		float sign = (bodyIndex == 0 ? 1.0f : -1.0f);
+		// Calculate the amount of linear movement from both the linear and angular components
+		linearMove[i] = sign * contact->penetration * linearInertia[i] / totalInertia;
+		angularMove[i] = sign * contact->penetration * angularInertia[i] / totalInertia;
 
-		// Calculate the amount of movement from the linear component of impulse
-		linearMove[bodyIndex] = sign * contact->penetration * linearInertia[bodyIndex] * inverseTotalInverseInertia;
-
-		// To move this contact by the linear amount, we can just add it to the object (linear move of the object linearly moves the contact)
-		out_linearChanges[bodyIndex] = contact->normal * linearMove[bodyIndex];
-
-		// For the movement from angular component of impulse, we need to calculate the amount of rotation that would create this much movement
-		Matrix3 inverseInertiaTensor;
-		body->GetWorldInverseInertiaTensor(inverseInertiaTensor);
-		angularMove[bodyIndex] = sign * angularInertia[bodyIndex] * inverseTotalInverseInertia;
+		// To avoid angular projections that are too great (when mass is large
+		// but inertia tensor is small) limit the angular move.
+		Vector3 projection = contact->bodyToContact[i];
+		projection += contact->normal * DotProduct(-1.0f * contact->bodyToContact[i], contact->normal);
 
 		// Limit the amount of movement that comes from angular rotation
-		float limit = angularLimit * contact->bodyToContact[bodyIndex].GetLength();
-		if (Abs(angularMove[bodyIndex]) > limit)
+		float limit = angularLimit * contact->bodyToContact[i].GetLength(); // Normally this would be sin(angularLimit) * hypotenuse, but small angle approximation sin(angle) ~= angle
+		if (Abs(angularMove[i]) > limit)
 		{
-			float totalMove = angularMove[bodyIndex] + linearMove[bodyIndex];
+			float totalMove = angularMove[i] + linearMove[i];
 
-			if (angularMove[bodyIndex] >= 0)
+			if (angularMove[i] >= 0)
 			{
-				angularMove[bodyIndex] = limit;
+				angularMove[i] = limit;
 			}
 			else
 			{
-				angularMove[bodyIndex] = -limit;
+				angularMove[i] = -limit;
 			}
 
-			linearMove[bodyIndex] = totalMove - angularMove[bodyIndex];
+			linearMove[i] = totalMove - limit;
 		}
 
-		Vector3 rotationPerMovement = (deltaAngularVelocityPerImpulse[bodyIndex] / angularInertia[bodyIndex]); // angularInertia === deltaLinearVelocityFromRotationPerUnitImpulse - "Per Impulse" cancels out, so this becomes a ratio of angular change per linear change :)
-		out_angularChanges[bodyIndex] = angularMove[bodyIndex] * rotationPerMovement;
+		// Calculate changes
+		out_linearChanges[i] = contact->normal * linearMove[i];
+		Vector3 rotationPerMovement = (deltaAngularVelocityPerImpulse[i] / angularInertia[i]); // angularInertia === deltaLinearVelocityFromRotationPerUnitImpulse - "Per Impulse" cancels out, so this becomes a ratio of angular change per linear change :)
+		out_angularChanges[i] = angularMove[i] * rotationPerMovement; // This is the linear movement we need from rotation * amount of rotation needed for 1 unit of linear movement
 
-		// Now apply delta rotations
-		body->transform->position += out_linearChanges[bodyIndex];
-		body->transform->rotation *= Quaternion::CreateFromEulerAnglesRadians(out_angularChanges[bodyIndex]);
+		// Apply changes
+		contact->bodies[i]->transform->position += (contact->normal * linearMove[i]);
+		contact->bodies[i]->transform->RotateRadians(out_angularChanges[i], RELATIVE_TO_WORLD);
 
-		// Make sure our inertia tensor in world space is up-to-date
-		body->CalculateDerivedData();	
+		// Probably not necessary, but update the contact position as well
+		contact->position += (linearMove[i] + angularMove[i]) * contact->normal;
+
+		// Update the world inertia tensor, since we rotated
+		contact->bodies[i]->CalculateDerivedData();
 	}
 }
 

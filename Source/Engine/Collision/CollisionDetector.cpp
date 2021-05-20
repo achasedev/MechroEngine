@@ -122,7 +122,7 @@ int CollisionDetector::GenerateContacts(const BoxCollider& box, const HalfSpaceC
 
 			contact->position = 0.5f * (boxVertsWs[i] + planeWs.GetProjectedPointOntoPlane(boxVertsWs[i])); // Position is half way between the box vertex and the plane
 			contact->normal = planeWs.m_normal;
-			contact->penetration = distance;
+			contact->penetration = Abs(distance);
 			contact->bodies[0] = box.GetOwnerRigidBody();
 			contact->bodies[1] = nullptr;
 			contact->friction = collisionData.friction;

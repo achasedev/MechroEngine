@@ -7,6 +7,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Core/DevConsole.h"
 #include "Engine/Core/EngineCommon.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Physics/RigidBody/RigidBody.h"
@@ -115,7 +116,9 @@ void RigidBody::Integrate(float deltaSeconds)
 	m_angularVelocityRadiansWs *= Pow(m_angularDamping, deltaSeconds);
 
 	// Update position/rotation
-	transform->position += m_velocityWs * deltaSeconds;
+	Vector3 deltaPos = m_velocityWs * deltaSeconds;
+	transform->position += deltaPos;
+	ConsolePrintf(Rgba::CYAN, 0.f, "Delta Position: (%.4f, %.4f, %.4f)", deltaPos.x, deltaPos.y, deltaPos.z);
 
 	Quaternion deltaRotation = Quaternion::CreateFromEulerAnglesRadians(m_angularVelocityRadiansWs * deltaSeconds);
 	transform->Rotate(deltaRotation, RELATIVE_TO_WORLD); // Forces/torques are world space, so velocity/angular velocity is ws....so this is a rotation about the world axes
