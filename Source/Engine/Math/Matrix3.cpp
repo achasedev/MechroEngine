@@ -74,9 +74,29 @@ Matrix3::Matrix3(const Quaternion& quaternion)
 
 
 //-------------------------------------------------------------------------------------------------
+void Matrix3::operator+=(const Matrix3& other)
+{
+	for (int i = 0; i < 9; ++i)
+	{
+		data[i] += other.data[i];
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
 bool Matrix3::operator==(const Matrix3& other) const
 {
 	return (iBasis == other.iBasis) && (jBasis == other.jBasis) && (kBasis == other.kBasis);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Matrix3::operator*=(const float scalar)
+{
+	for (int i = 0; i < 9; ++i)
+	{
+		data[i] *= scalar;
+	}
 }
 
 
@@ -116,6 +136,20 @@ Vector3 Matrix3::operator*(const Vector3& v) const
 	result.x = DotProduct(GetXVector(), v);
 	result.y = DotProduct(GetYVector(), v);
 	result.z = DotProduct(GetZVector(), v);
+
+	return result;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Matrix3 Matrix3::operator*(const float scalar) const
+{
+	Matrix3 result = *this;
+
+	for (int i = 0; i < 9; ++i)
+	{
+		result.data[i] *= scalar;
+	}
 
 	return result;
 }
@@ -181,6 +215,24 @@ void Matrix3::SetFromQuaternion(const Quaternion& q)
 	Kx = 2.f * (q.x * q.z + q.y * q.w);
 	Ky = 2.f * (q.y * q.z - q.x * q.w);
 	Kz = 1.f - 2.f * (q.x * q.x + q.y * q.y);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Makes a matrix s.t. thisMatrix * vector == CrossProduct(lhsCrossVector, vector)
+void Matrix3::SetAsSkewSymmetric(const Vector3& lhsCrossVector)
+{
+	Ix = 0.f;
+	Iy = lhsCrossVector.z;
+	Iz = -lhsCrossVector.y;
+
+	Jx = -lhsCrossVector.z;
+	Jy = 0.f;
+	Jz = lhsCrossVector.x;
+
+	Kx = lhsCrossVector.y;
+	Ky = -lhsCrossVector.x;
+	Kz = 0.f;
 }
 
 

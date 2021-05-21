@@ -60,7 +60,7 @@ public:
 	RigidBody*	bodies[2];
 	Matrix3		contactToWorld = Matrix3::IDENTITY;
 	Vector3		closingVelocityContactSpace = Vector3::ZERO;
-	float		desiredDeltaVelocity = 0.f;
+	float		desiredDeltaVelocityAlongNormal = 0.f;
 	Vector3		bodyToContact[2];
 
 };
@@ -71,8 +71,8 @@ struct CollisionData
 {
 	Contact		contacts[MAX_CONTACT_COUNT];
 	int			numContacts = 0;
-	float		restitution = 0.f;
-	float		friction = 0.f;
+	float		restitution = 0.3f;
+	float		friction = 0.5f;
 };
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

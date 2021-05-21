@@ -173,7 +173,92 @@ static Vector3 CalculateFrictionlessImpulse(Contact* contact)
 	}
 
 	// Then calculate how much impulse we'd need to get our desired velocity along the normal
-	return Vector3(contact->desiredDeltaVelocity / deltaVelocityAlongNormalPerUnitOfImpulse, 0.f, 0.f); // X vector in contact space is the normal, 0 out the other directions for no friction
+	return Vector3(contact->desiredDeltaVelocityAlongNormal / deltaVelocityAlongNormalPerUnitOfImpulse, 0.f, 0.f); // X vector in contact space is the normal, 0 out the other directions for no friction
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Isotropic, Static/Dynamic depends on coplanar velocity. No rolling friction.
+static Vector3 CalculateFrictionImpulse(Contact* contact)
+{
+
+	// Create a skew matrix to allow us to do cross products at once instead of separate on each contact basis vector
+	Matrix3 impulseToTorque;
+	impulseToTorque.SetAsSkewSymmetric(contact->bodyToContact[0]);
+
+	// Create matrix to convert impulse in contact space to velocity in world space
+	Matrix3 deltaVelocityWs = impulseToTorque;
+
+	// Body 1
+	{
+		Matrix3 inverseInertiaTensorWorld;
+		contact->bodies[0]->GetWorldInverseInertiaTensor(inverseInertiaTensorWorld);
+
+		deltaVelocityWs *= inverseInertiaTensorWorld;
+		deltaVelocityWs *= impulseToTorque;
+		deltaVelocityWs *= -1.0f;
+	}
+
+	float inverseMass = contact->bodies[0]->GetInverseMass();
+
+	// Check if there's a second body, and if so repeat
+	if (contact->bodies[1])
+	{
+		// Set the cross product matrix
+		impulseToTorque.SetAsSkewSymmetric(contact->bodyToContact[1]);
+
+		Matrix3 inverseInertiaTensorWorld;
+		contact->bodies[1]->GetWorldInverseInertiaTensor(inverseInertiaTensorWorld);
+
+		// Calculate the velocity change matrix
+		Matrix3 deltaVelocityWs2 = impulseToTorque;
+		deltaVelocityWs2 *= inverseInertiaTensorWorld;
+		deltaVelocityWs2 *= impulseToTorque;
+		deltaVelocityWs2 *= -1.0f;
+
+		// Add to the total delta velocity.
+		deltaVelocityWs += deltaVelocityWs2;
+
+		// Also update inverse mass
+		inverseMass += contact->bodies[1]->GetInverseMass();
+	}
+
+	// Apply a change of basis operation operator to keep computations in contact space
+	Matrix3 velocityPerUnitImpulseContactSpace = contact->contactToWorld.GetTranspose();
+	velocityPerUnitImpulseContactSpace *= deltaVelocityWs;
+	velocityPerUnitImpulseContactSpace *= contact->contactToWorld;
+
+	// Add in the linear velocity change - it's proportional to inverse mass (F = ma)
+	velocityPerUnitImpulseContactSpace.Ix += inverseMass;
+	velocityPerUnitImpulseContactSpace.Jy += inverseMass;
+	velocityPerUnitImpulseContactSpace.Kz += inverseMass;
+
+	// Now we have the amount of velocity from each unit of impulse
+	// Inverting the matrix gives us the amount of impulse required for 1 unit of impulse
+	Matrix3 impulsePerUnitVelocityContactSpace = velocityPerUnitImpulseContactSpace.GetInverse();
+
+	// Find the target velocities to kill
+	Vector3 velocityToKill(contact->desiredDeltaVelocityAlongNormal, -contact->closingVelocityContactSpace.y, -contact->closingVelocityContactSpace.z); // - because friction will oppose
+
+	// Find the impulse to kill target velocities
+	Vector3 impulseContactSpace = impulsePerUnitVelocityContactSpace * velocityToKill;
+
+	// Check for exceeding static friction
+	float planarImpulse = Sqrt(impulseContactSpace.y * impulseContactSpace.y + impulseContactSpace.z * impulseContactSpace.z);
+
+	if (planarImpulse > impulseContactSpace.x * contact->friction)
+	{
+		// Dynamic friction
+		impulseContactSpace.y /= planarImpulse;
+		impulseContactSpace.z /= planarImpulse;
+
+		impulseContactSpace.x = velocityPerUnitImpulseContactSpace.data[0] + (velocityPerUnitImpulseContactSpace.data[1] * contact->friction * impulseContactSpace.y) + (velocityPerUnitImpulseContactSpace.data[2] * contact->friction * impulseContactSpace.z);
+		impulseContactSpace.x = contact->desiredDeltaVelocityAlongNormal / impulseContactSpace.x;
+		impulseContactSpace.y *= contact->friction * impulseContactSpace.x;
+		impulseContactSpace.z *= contact->friction * impulseContactSpace.x;
+	}
+
+	return impulseContactSpace;
 }
 
 
@@ -189,14 +274,13 @@ static void ResolveContactVelocity(Contact* contact, Vector3* out_linearDeltaVel
 
 	Vector3 impulseInContactSpace = Vector3::ZERO;
 
-	if (contact->friction == 0.f)
+	if (AreMostlyEqual(contact->friction, 0.f))
 	{
 		impulseInContactSpace = CalculateFrictionlessImpulse(contact);
 	}
 	else
 	{
-		// TODO: Friction impulse
-		ERROR_AND_DIE("No friction!");
+		impulseInContactSpace = CalculateFrictionImpulse(contact);
 	}
 
 	Vector3 impulseWs = contact->contactToWorld * impulseInContactSpace;
@@ -350,7 +434,7 @@ static void ResolveVelocities(Contact* contacts, int numContacts, int numIterati
 			Contact* contact = &contacts[contactIndex];
 
 			// Find the contact the greatest desired change on velocity
-			if (contact->desiredDeltaVelocity > 0.f && (contactToResolve == nullptr || contact->desiredDeltaVelocity > contactToResolve->desiredDeltaVelocity))
+			if (contact->desiredDeltaVelocityAlongNormal > 0.f && (contactToResolve == nullptr || contact->desiredDeltaVelocityAlongNormal > contactToResolve->desiredDeltaVelocityAlongNormal))
 			{
 				contactToResolve = contact;
 			}

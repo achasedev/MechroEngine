@@ -117,7 +117,7 @@ void Contact::CalculateDesiredVelocityInContactSpace(float deltaSeconds)
 
 	// When applying restitution, don't factor in acceleration from last frame
 	// This prevents bouncing while resting or pushing against something solid
-	desiredDeltaVelocity = -closingVelocityContactSpace.x - restitution * (closingVelocityContactSpace.x - closingVelocityAddedLastIntegrate);
+	desiredDeltaVelocityAlongNormal = -closingVelocityContactSpace.x - restitution * (closingVelocityContactSpace.x - closingVelocityAddedLastIntegrate);
 }
 
 

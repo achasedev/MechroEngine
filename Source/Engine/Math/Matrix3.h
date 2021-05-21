@@ -41,14 +41,18 @@ public:
 	Matrix3(const Matrix3& other);
 	
 	void operator=(const Matrix3& other);
+	void operator*=(const float scalar);
+	void operator+=(const Matrix3& other);
 	void operator*=(const Matrix3& other);
 	bool operator==(const Matrix3& other) const;
+	Matrix3 operator*(const float scalar) const;
 	Matrix3 operator*(const Matrix3& other) const;
 	Vector3 operator*(const Vector3& v) const;
 
 	void	Transpose();
 	void	Invert();
 	void	SetFromQuaternion(const Quaternion& quaternion);
+	void	SetAsSkewSymmetric(const Vector3& lhsCrossVector);
 
 	Matrix3 GetTranspose() const;
 	Matrix3 GetInverse() const;
