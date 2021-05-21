@@ -43,7 +43,7 @@ Contact::Contact()
 
 
 //-------------------------------------------------------------------------------------------------
-void Contact::CalculateInternals()
+void Contact::CalculateInternals(float deltaSeconds)
 {
 	ASSERT_OR_DIE(bodies[0] != nullptr, "First body was nullptr!");
 
@@ -58,7 +58,7 @@ void Contact::CalculateInternals()
 
 	// Calculate velocities in contact space
 	CalculateClosingVelocityInContactSpace();
-	CalculateDesiredVelocityInContactSpace();
+	CalculateDesiredVelocityInContactSpace(deltaSeconds);
 }
 
 
@@ -88,7 +88,7 @@ void Contact::CalculateClosingVelocityInContactSpace()
 		Vector3 velocityWs = CrossProduct(body->GetAngularVelocityRadians(), bodyToContact[bodyIndex]) + body->GetLinearVelocity();
 		Vector3 velocityContactSpace = contactToWorld.GetTranspose() * velocityWs; // Transpose == inverse
 
-		// TODO: Add in velocity from acceration, when friction is added
+		// TODO: Add in velocity from acceleration, when friction is added
 		float sign = (bodyIndex == 0 ? 1.0f : -1.0f);
 		closingVelocityContactSpace += sign * velocityContactSpace;
 	}
@@ -96,10 +96,28 @@ void Contact::CalculateClosingVelocityInContactSpace()
 
 
 //-------------------------------------------------------------------------------------------------
-void Contact::CalculateDesiredVelocityInContactSpace()
+void Contact::CalculateDesiredVelocityInContactSpace(float deltaSeconds)
 {
-	// TODO: Limit restitution on low velocities
-	desiredDeltaVelocity = -closingVelocityContactSpace.x - restitution * closingVelocityContactSpace.x;
+	// If the velocity of the body along the normal is below a certain limit (practically resting), then don't apply restitution
+	// This helps with slow collisions bouncing too much
+	const float minClosingVelocityForRestitution = 0.25f;
+	float restitutionToApply = restitution;
+
+	if (Abs(closingVelocityContactSpace.x < minClosingVelocityForRestitution))
+	{
+		restitutionToApply = 0.f;
+	}
+
+	// Determine the amount of velocity from this frame's acceleration
+	float closingVelocityAddedLastIntegrate = DotProduct(bodies[0]->GetLastFrameAcceleration() * deltaSeconds, normal);
+	if (bodies[1] != nullptr)
+	{
+		closingVelocityAddedLastIntegrate -= DotProduct(bodies[1]->GetLastFrameAcceleration() * deltaSeconds, normal);
+	}
+
+	// When applying restitution, don't factor in acceleration from last frame
+	// This prevents bouncing while resting or pushing against something solid
+	desiredDeltaVelocity = -closingVelocityContactSpace.x - restitution * (closingVelocityContactSpace.x - closingVelocityAddedLastIntegrate);
 }
 
 

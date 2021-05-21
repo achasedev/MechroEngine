@@ -37,8 +37,8 @@ public:
 
 	Contact();
 
-	void CalculateInternals();
-	void CalculateDesiredVelocityInContactSpace();
+	void CalculateInternals(float deltaSeconds);
+	void CalculateDesiredVelocityInContactSpace(float deltaSeconds);
 	void MatchAwakeState();
 
 

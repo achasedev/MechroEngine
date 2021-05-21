@@ -57,6 +57,7 @@ public:
 	void SetAngularDamping(float angularDamping) { m_angularDamping = angularDamping; }
 	void SetLocalInverseInertiaTensor(const Matrix3& inverseInertiaTensor) { m_inverseInertiaTensorLocal = inverseInertiaTensor; }
 
+	Vector3 GetLastFrameAcceleration() const { return m_lastFrameAccelerationWs; }
 	float	GetInverseMass() const { return m_iMass; }
 	void	GetWorldInverseInertiaTensor(Matrix3& out_inverseInertiaTensor) const;
 	Vector3 GetLinearVelocity() const { return m_velocityWs; }
@@ -81,6 +82,7 @@ private:
 
 	Vector3		m_velocityWs = Vector3::ZERO;
 	Vector3		m_accelerationWs = Vector3::ZERO;
+	Vector3		m_lastFrameAccelerationWs = Vector3::ZERO;
 	Vector3		m_angularVelocityRadiansWs = Vector3::ZERO;
 	Vector3		m_forceAccumWs = Vector3::ZERO;
 	Vector3		m_torqueAccumWs = Vector3::ZERO;

@@ -123,6 +123,9 @@ void RigidBody::Integrate(float deltaSeconds)
 	Quaternion deltaRotation = Quaternion::CreateFromEulerAnglesRadians(m_angularVelocityRadiansWs * deltaSeconds);
 	transform->Rotate(deltaRotation, RELATIVE_TO_WORLD); // Forces/torques are world space, so velocity/angular velocity is ws....so this is a rotation about the world axes
 
+	// Remember what our acceleration was last frame
+	m_lastFrameAccelerationWs = acceleration;
+
 	CalculateDerivedData();
 	ClearForces();
 }

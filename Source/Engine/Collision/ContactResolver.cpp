@@ -32,11 +32,11 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-static void PrepareContacts(Contact* contacts, int numContacts)
+static void PrepareContacts(Contact* contacts, int numContacts, float deltaSeconds)
 {
 	for (int i = 0; i < numContacts; ++i)
 	{
-		contacts[i].CalculateInternals();
+		contacts[i].CalculateInternals(deltaSeconds);
 	}
 }
 
@@ -51,35 +51,6 @@ static void ResolveContactPenetration(Contact* contact, Vector3* out_linearChang
 	float totalInertia = 0.f;
 	float linearInertia[2];
 	float angularInertia[2];
-
-	//// We need to work out the inertia of each object in the direction
-	//// of the contact normal, due to angular inertia only.
-	//for (unsigned i = 0; i < 2; i++) if (contact->bodies[i])
-	//{
-	//	Matrix3 inverseInertiaTensor;
-	//	contact->bodies[i]->GetWorldInverseInertiaTensor(inverseInertiaTensor);
-
-	//	// Use the same procedure as for calculating frictionless
-	//	// velocity change to work out the angular inertia.
-	//	Vector3 angularInertiaWorld =
-	//		CrossProduct(contact->bodyToContact[i], contact->normal);
-	//	angularInertiaWorld =
-	//		inverseInertiaTensor * angularInertiaWorld;
-	//	angularInertiaWorld =
-	//		CrossProduct(angularInertiaWorld, contact->bodyToContact[i]);
-	//	angularInertia[i] =
-	//		DotProduct(angularInertiaWorld, contact->normal);
-
-	//	// The linear component is simply the inverse mass
-	//	linearInertia[i] = contact->bodies[i]->GetInverseMass();
-
-	//	// Keep track of the total inertia from all components
-	//	totalInertia += linearInertia[i] + angularInertia[i];
-
-	//	// We break the loop here so that the totalInertia value is
-	//	// completely calculated (by both iterations) before
-	//	// continuing.
-	//}
 
 	Vector3 deltaAngularVelocityPerImpulse[2];
 
@@ -109,6 +80,8 @@ static void ResolveContactPenetration(Contact* contact, Vector3* out_linearChang
 		// Track total inertia for distributing proportional to mass. Greater inertia here means *greater* correction!
 		totalInertia += linearInertia[bodyIndex] + angularInertia[bodyIndex];
 	}
+
+	// Don't use a single loop - we need the inertias fully calculated before proceeding
 
 	// Loop through again calculating and applying the changes
 	for (unsigned i = 0; i < 2; i++) if (contact->bodies[i])
@@ -294,7 +267,7 @@ static void UpdateContactPenetrations(Contact* contacts, int numContacts, Vector
 
 
 //-------------------------------------------------------------------------------------------------
-static void UpdateContactVelocities(Contact* contacts, int numContacts, Vector3* linearVelocityChanges, Vector3* angularVelocityChanges, Contact* resolvedContact)
+static void UpdateContactVelocities(Contact* contacts, int numContacts, Vector3* linearVelocityChanges, Vector3* angularVelocityChanges, Contact* resolvedContact, float deltaSeconds)
 {
 	// For each contact
 	for (int contactIndex = 0; contactIndex < numContacts; ++contactIndex)
@@ -323,7 +296,7 @@ static void UpdateContactVelocities(Contact* contacts, int numContacts, Vector3*
 					contact->closingVelocityContactSpace += sign * deltaVelocityContactSpace;
 
 					// Recalculate the desired velocity
-					contact->CalculateDesiredVelocityInContactSpace();
+					contact->CalculateDesiredVelocityInContactSpace(deltaSeconds);
 				}
 			}
 		}
@@ -366,7 +339,7 @@ static void ResolvePenetrations(Contact* contacts, int numContacts, int numItera
 
 
 //-------------------------------------------------------------------------------------------------
-static void ResolveVelocities(Contact* contacts, int numContacts, int numIterations)
+static void ResolveVelocities(Contact* contacts, int numContacts, int numIterations, float deltaSeconds)
 {
 	for (int iteration = 0; iteration < numIterations; ++iteration)
 	{
@@ -392,7 +365,7 @@ static void ResolveVelocities(Contact* contacts, int numContacts, int numIterati
 		Vector3 angularVelocityChanges[2];
 
 		ResolveContactVelocity(contactToResolve, linearVelocityChanges, angularVelocityChanges);
-		UpdateContactVelocities(contacts, numContacts, linearVelocityChanges, angularVelocityChanges, contactToResolve);
+		UpdateContactVelocities(contacts, numContacts, linearVelocityChanges, angularVelocityChanges, contactToResolve, deltaSeconds);
 	}
 }
 
@@ -401,9 +374,9 @@ static void ResolveVelocities(Contact* contacts, int numContacts, int numIterati
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-void ContactResolver::ResolveContacts(Contact* contacts, int numContacts)
+void ContactResolver::ResolveContacts(Contact* contacts, int numContacts, float deltaSeconds)
 {
-	PrepareContacts(contacts, numContacts);
-	ResolveVelocities(contacts, numContacts, m_defaultNumVelocityIterations);
+	PrepareContacts(contacts, numContacts, deltaSeconds);
+	ResolveVelocities(contacts, numContacts, m_defaultNumVelocityIterations, deltaSeconds);
 	ResolvePenetrations(contacts, numContacts, m_defaultNumPenetrationIterations);
 }

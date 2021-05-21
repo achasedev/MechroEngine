@@ -56,7 +56,7 @@ private:
 	void UpdateBVH();
 	void PerformBroadphase();
 	void GenerateContacts();
-	void ResolveContacts();
+	void ResolveContacts(float deltaSeconds);
 
 	void UpdateNode(BVHNode<BoundingVolumeClass>* node, const BoundingVolumeClass& newVolume);
 	BVHNode<BoundingVolumeClass>* GetAndEraseLeafNodeForEntity(Entity* entity);
@@ -224,11 +224,11 @@ void CollisionScene<BoundingVolumeClass>::GenerateContacts()
 
 //-------------------------------------------------------------------------------------------------
 template <class BoundingVolumeClass>
-void CollisionScene<BoundingVolumeClass>::ResolveContacts()
+void CollisionScene<BoundingVolumeClass>::ResolveContacts(float deltaSeconds)
 {
 	if (m_collisionData.numContacts > 0)
 	{
-		m_resolver.ResolveContacts(m_collisionData.contacts, m_collisionData.numContacts);
+		m_resolver.ResolveContacts(m_collisionData.contacts, m_collisionData.numContacts, deltaSeconds);
 	}
 }
 
@@ -316,13 +316,11 @@ void CollisionScene<BoundingVolumeClass>::RemoveEntity(Entity* entity)
 template <class BoundingVolumeClass>
 void CollisionScene<BoundingVolumeClass>::DoCollisionStep(float deltaSeconds)
 {
-	UNUSED(deltaSeconds);
-
 	// Ensure the BVH is up to date, then get the potential collisions
 	UpdateBVH();
 	PerformBroadphase();
 	GenerateContacts();
-	ResolveContacts();
+	ResolveContacts(deltaSeconds);
 }
 
 

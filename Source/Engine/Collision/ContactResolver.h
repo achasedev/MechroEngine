@@ -33,7 +33,7 @@ class ContactResolver
 public:
 	//-----Public Methods-----
 
-	void ResolveContacts(Contact* contacts, int numContacts);
+	void ResolveContacts(Contact* contacts, int numContacts, float deltaSeconds);
 
 
 private:
