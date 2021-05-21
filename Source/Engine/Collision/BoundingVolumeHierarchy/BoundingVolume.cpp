@@ -117,7 +117,7 @@ BoundingVolumeSphere::BoundingVolumeSphere(const HalfSpaceCollider& colHalfSpace
 
 	// TODO: Half space colliders can't be bound....so move them out of the bounding volume hierarchy?
 	center = colHalfSpaceWs.m_normal * colHalfSpaceWs.m_distance;
-	radius = 999999999.f;
+	radius = 9999.f;
 }
 
 

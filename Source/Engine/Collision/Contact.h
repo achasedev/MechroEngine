@@ -71,7 +71,7 @@ struct CollisionData
 {
 	Contact		contacts[MAX_CONTACT_COUNT];
 	int			numContacts = 0;
-	float		restitution = 0.3f;
+	float		restitution = 0.8f;
 	float		friction = 0.5f;
 };
 

@@ -143,7 +143,21 @@ int BVHNode<BoundingVolumeClass>::GetPotentialCollisions(PotentialCollision* out
 
 	// Check for collisions between our children
 	// The way the hierarchy is built, all non-leafs will always have 2 non-null children
-	return m_children[0]->GetPotentialCollisionsBetween(m_children[1], out_collisions, limit);
+	int numAdded = m_children[0]->GetPotentialCollisionsBetween(m_children[1], out_collisions, limit);
+
+	// Check internally on first child
+	if (limit > numAdded && !m_children[0]->IsLeaf())
+	{
+		numAdded += m_children[0]->GetPotentialCollisions(out_collisions + numAdded, limit - numAdded);
+	}
+
+	// Check internally on second child 
+	if (limit > numAdded && !m_children[1]->IsLeaf())
+	{
+		numAdded += m_children[1]->GetPotentialCollisions(out_collisions + numAdded, limit - numAdded);
+	}
+
+	return numAdded;
 }
 
 
@@ -161,39 +175,34 @@ int BVHNode<BoundingVolumeClass>::GetPotentialCollisionsBetween(const BVHNode<Bo
 		out_collisions->entities[1] = other->m_entity;
 		return 1;
 	}
+	
+	int numAdded = 0;
 
-	// At least one of these aren't a leaf - recursively descend
-	// If both aren't leaves, just choose the bounding volume with larger size
+	// If both aren't leaves, recurse our children together, choosing the larger volume's children
 	if (other->IsLeaf() || !IsLeaf() && m_boundingVolumeWs.GetSize() >= other->m_boundingVolumeWs.GetSize())
 	{
-		// Recurse on ourself
-		int numAdded = m_children[0]->GetPotentialCollisionsBetween(other, out_collisions, limit);
+		// Recurse on our first child
+		numAdded = m_children[0]->GetPotentialCollisionsBetween(other, out_collisions, limit);
 
 		if (limit > numAdded)
 		{
-			return numAdded + m_children[1]->GetPotentialCollisionsBetween(other, out_collisions + numAdded, limit - numAdded);
-		}
-		else
-		{
-			// The first child took up all the remaining room, so just stop here
-			return numAdded;
+			// Recurse on our second child
+			numAdded += m_children[1]->GetPotentialCollisionsBetween(other, out_collisions + numAdded, limit - numAdded);
 		}
 	}
 	else
 	{
-		// Recurse on other
-		int numAdded = GetPotentialCollisionsBetween(other->m_children[0], out_collisions, limit);
+		// Recurse on other's first child
+		numAdded = GetPotentialCollisionsBetween(other->m_children[0], out_collisions, limit);
 
 		if (limit > numAdded)
 		{
-			return numAdded + GetPotentialCollisionsBetween(other->m_children[1], out_collisions + numAdded, limit - numAdded);
-		}
-		else
-		{
-			// The first child took up all the remaining room, so just stop here
-			return numAdded;
+			// Recurse on other's second child
+			numAdded += GetPotentialCollisionsBetween(other->m_children[1], out_collisions + numAdded, limit - numAdded);
 		}
 	}
+
+	return numAdded;
 }
 
 
