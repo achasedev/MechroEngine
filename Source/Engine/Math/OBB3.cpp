@@ -58,14 +58,24 @@ void OBB3::GetPoints(Vector3 out_points[8]) const
 	//out_points[6] = rotation.RotatePoint(center) + Vector3(-extents.x, extents.y, extents.z);	// Left, Top, Front
 	//out_points[7] = rotation.RotatePoint(center) + Vector3(-extents.x, -extents.y, extents.z);	// Left, Bottom, Front
 
-	out_points[0] = center + rotation.RotatePosition(Vector3(-extents.x, -extents.y, -extents.z)); // Left, Bottom, Back
-	out_points[1] = center + rotation.RotatePosition(Vector3(-extents.x, extents.y, -extents.z));	// Left, Top, Back
-	out_points[2] = center + rotation.RotatePosition(Vector3(extents.x, extents.y, -extents.z));	// Right, Top, Back 
-	out_points[3] = center + rotation.RotatePosition(Vector3(extents.x, -extents.y, -extents.z));	// Right, Bottom, Back
-	out_points[4] = center + rotation.RotatePosition(Vector3(extents.x, -extents.y, extents.z));	// Right, Bottom, Front
-	out_points[5] = center + rotation.RotatePosition(Vector3(extents.x, extents.y, extents.z));	// Right, Top, Front
-	out_points[6] = center + rotation.RotatePosition(Vector3(-extents.x, extents.y, extents.z));	// Left, Top, Front
-	out_points[7] = center + rotation.RotatePosition(Vector3(-extents.x, -extents.y, extents.z));	// Left, Bottom, Front
+	Transform transform(center, rotation, extents);
+	out_points[0] = transform.TransformPosition(Vector3(-1.f, -1.f, -1.f)); // Left, Bottom, Back
+	out_points[1] = transform.TransformPosition(Vector3(-1.f, 1.f, -1.f));	// Left, Top, Back
+	out_points[2] = transform.TransformPosition(Vector3(1.f, 1.f, -1.f));	// Right, Top, Back 
+	out_points[3] = transform.TransformPosition(Vector3(1.f, -1.f, -1.f));	// Right, Bottom, Back
+	out_points[4] = transform.TransformPosition(Vector3(1.f, -1.f, 1.f));	// Right, Bottom, Front
+	out_points[5] = transform.TransformPosition(Vector3(1.f, 1.f, 1.f));	// Right, Top, Front
+	out_points[6] = transform.TransformPosition(Vector3(-1.f, 1.f, 1.f));	// Left, Top, Front
+	out_points[7] = transform.TransformPosition(Vector3(-1.f, -1.f, 1.f));	// Left, Bottom, Front
+
+	//out_points[0] = center + rotation.RotatePosition(Vector3(-extents.x, -extents.y, -extents.z)); // Left, Bottom, Back
+	//out_points[1] = center + rotation.RotatePosition(Vector3(-extents.x, extents.y, -extents.z));	// Left, Top, Back
+	//out_points[2] = center + rotation.RotatePosition(Vector3(extents.x, extents.y, -extents.z));	// Right, Top, Back 
+	//out_points[3] = center + rotation.RotatePosition(Vector3(extents.x, -extents.y, -extents.z));	// Right, Bottom, Back
+	//out_points[4] = center + rotation.RotatePosition(Vector3(extents.x, -extents.y, extents.z));	// Right, Bottom, Front
+	//out_points[5] = center + rotation.RotatePosition(Vector3(extents.x, extents.y, extents.z));	// Right, Top, Front
+	//out_points[6] = center + rotation.RotatePosition(Vector3(-extents.x, extents.y, extents.z));	// Left, Top, Front
+	//out_points[7] = center + rotation.RotatePosition(Vector3(-extents.x, -extents.y, extents.z));	// Left, Bottom, Front
 }
 
 

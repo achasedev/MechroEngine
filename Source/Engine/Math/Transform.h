@@ -47,6 +47,7 @@ public:
 
 	Transform();
 	Transform(const Vector3& startPosition, const Vector3& startRotation, const Vector3& startScale);
+	Transform(const Vector3& startPosition, const Quaternion& startRotation, const Vector3& startScale);
 	void operator=(const Transform& copyFrom);
 
 	void SetPosition(const Vector3& newPosition);

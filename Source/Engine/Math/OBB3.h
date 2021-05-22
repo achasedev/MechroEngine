@@ -62,11 +62,9 @@ public:
 public:
 	//-----Public Data-----
 
-	// The center, dimensions, and rotation are all baked into the transform, with (-1, -1, -1) being the "mins" and (1, 1, 1) the "maxs"
-	// The center is then (0, 0, 0)
-	Vector3 center;
-	Vector3 extents;
-	Quaternion rotation;
+	Vector3		center;
+	Vector3		extents;
+	Quaternion	rotation;
 
 };
 

@@ -46,6 +46,13 @@ Transform::Transform(const Vector3& startPosition, const Vector3& startRotation,
 
 
 //-------------------------------------------------------------------------------------------------
+Transform::Transform(const Vector3& startPosition, const Quaternion& startRotation, const Vector3& startScale)
+	: position(startPosition), rotation(startRotation), scale(startScale)
+{
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void Transform::operator=(const Transform& copyFrom)
 {
 	position = copyFrom.position;

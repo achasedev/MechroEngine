@@ -68,6 +68,7 @@ private:
 	//-----Private Static Data
 
 	static constexpr int MAX_POTENTIAL_COLLISION_COUNT = 50;
+	static constexpr int MAX_CONTACT_COUNT = 50;
 
 
 private:
@@ -79,7 +80,8 @@ private:
 	PotentialCollision							m_potentialCollisions[MAX_POTENTIAL_COLLISION_COUNT];
 	int											m_numPotentialCollisions = 0;
 
-	CollisionData								m_collisionData;
+	int											m_numContacts = 0;
+	Contact										m_contacts[MAX_CONTACT_COUNT];
 	CollisionDetector							m_detector;
 
 	int											m_defaultNumVelocityIterations = 100;
@@ -150,11 +152,11 @@ void CollisionScene<BoundingVolumeClass>::PerformBroadphase()
 template <class BoundingVolumeClass>
 void CollisionScene<BoundingVolumeClass>::GenerateContacts()
 {
-	m_collisionData.numContacts = 0;
+	m_numContacts = 0;
 
 	for (int i = 0; i < m_numPotentialCollisions; ++i)
 	{
-		if (m_collisionData.numContacts >= MAX_CONTACT_COUNT)
+		if (m_numContacts >= MAX_CONTACT_COUNT)
 		{
 			ConsoleWarningf("CollisionDetector ran out of room for contacts!");
 			return;
@@ -186,17 +188,17 @@ void CollisionScene<BoundingVolumeClass>::GenerateContacts()
 			if (twoIsSphere)
 			{
 				SphereCollider* twoAsSphere = colTwo->GetAsType<SphereCollider>();
-				m_detector.GenerateContacts(*oneAsSphere, *twoAsSphere, m_collisionData);
+				m_numContacts += m_detector.GenerateContacts(*oneAsSphere, *twoAsSphere, &m_contacts[m_numContacts], MAX_CONTACT_COUNT - m_numContacts);
 			}
 			else if (twoIsHalfSpace)
 			{
 				HalfSpaceCollider* twoAsHalfSpace = colTwo->GetAsType<HalfSpaceCollider>();
-				m_detector.GenerateContacts(*oneAsSphere, *twoAsHalfSpace, m_collisionData);
+				m_numContacts += m_detector.GenerateContacts(*oneAsSphere, *twoAsHalfSpace, &m_contacts[m_numContacts], MAX_CONTACT_COUNT - m_numContacts);
 			}
 			else if (twoIsBox)
 			{
 				BoxCollider* twoAsBox = colTwo->GetAsType<BoxCollider>();
-				m_detector.GenerateContacts(*twoAsBox, *oneAsSphere, m_collisionData);
+				m_numContacts += m_detector.GenerateContacts(*twoAsBox, *oneAsSphere, &m_contacts[m_numContacts], MAX_CONTACT_COUNT - m_numContacts);
 			}
 		}
 		else if (oneIsBox)
@@ -206,17 +208,17 @@ void CollisionScene<BoundingVolumeClass>::GenerateContacts()
 			if (twoIsSphere)
 			{
 				SphereCollider* twoAsSphere = colTwo->GetAsType<SphereCollider>();
-				m_detector.GenerateContacts(*oneAsBox, *twoAsSphere, m_collisionData);
+				m_numContacts += m_detector.GenerateContacts(*oneAsBox, *twoAsSphere, &m_contacts[m_numContacts], MAX_CONTACT_COUNT - m_numContacts);
 			}
 			else if (twoIsHalfSpace)
 			{
 				HalfSpaceCollider* twoAsHalfSpace = colTwo->GetAsType<HalfSpaceCollider>();
-				m_detector.GenerateContacts(*oneAsBox, *twoAsHalfSpace, m_collisionData);
+				m_numContacts += m_detector.GenerateContacts(*oneAsBox, *twoAsHalfSpace, &m_contacts[m_numContacts], MAX_CONTACT_COUNT - m_numContacts);
 			}
 			else if (twoIsBox)
 			{
 				BoxCollider* twoAsBox = colTwo->GetAsType<BoxCollider>();
-				m_detector.GenerateContacts(*oneAsBox, *twoAsBox, m_collisionData);
+				m_numContacts += m_detector.GenerateContacts(*oneAsBox, *twoAsBox, &m_contacts[m_numContacts], MAX_CONTACT_COUNT - m_numContacts);
 			}
 		}
 		else if (oneIsHalfSpace)
@@ -226,12 +228,12 @@ void CollisionScene<BoundingVolumeClass>::GenerateContacts()
 			if (twoIsSphere)
 			{
 				SphereCollider* twoAsSphere = colTwo->GetAsType<SphereCollider>();
-				m_detector.GenerateContacts(*twoAsSphere, *oneAsHalfSpace, m_collisionData);
+				m_numContacts += m_detector.GenerateContacts(*twoAsSphere, *oneAsHalfSpace, &m_contacts[m_numContacts], MAX_CONTACT_COUNT - m_numContacts);
 			}
 			else if (twoIsBox)
 			{
 				BoxCollider* twoAsBox = colTwo->GetAsType<BoxCollider>();
-				m_detector.GenerateContacts(*twoAsBox, *oneAsHalfSpace, m_collisionData);
+				m_numContacts += m_detector.GenerateContacts(*twoAsBox, *oneAsHalfSpace, &m_contacts[m_numContacts], MAX_CONTACT_COUNT - m_numContacts);
 			}
 		}
 	}
@@ -242,12 +244,12 @@ void CollisionScene<BoundingVolumeClass>::GenerateContacts()
 template <class BoundingVolumeClass>
 void CollisionScene<BoundingVolumeClass>::ResolveContacts(float deltaSeconds)
 {
-	if (m_collisionData.numContacts > 0)
+	if (m_numContacts > 0)
 	{
-		m_resolver.SetMaxVelocityIterations(Min(m_defaultNumVelocityIterations, 2 * m_collisionData.numContacts));
-		m_resolver.SetMaxPenetrationIterations(Min(m_defaultNumPenetrationIterations, 2 * m_collisionData.numContacts));
+		m_resolver.SetMaxVelocityIterations(Min(m_defaultNumVelocityIterations, 2 * m_numContacts));
+		m_resolver.SetMaxPenetrationIterations(Min(m_defaultNumPenetrationIterations, 2 * m_numContacts));
 
-		m_resolver.ResolveContacts(m_collisionData.contacts, m_collisionData.numContacts, deltaSeconds);
+		m_resolver.ResolveContacts(m_contacts, m_numContacts, deltaSeconds);
 	}
 }
 
