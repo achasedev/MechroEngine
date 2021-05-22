@@ -92,6 +92,8 @@ public:
 			Vector3 kBasis;
 		};
 
+		Vector3 columnVectors[3];
+
 		float data[9];
 	};
 

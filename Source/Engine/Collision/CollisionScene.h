@@ -13,6 +13,7 @@
 #include "Engine/Collision/CollisionDetector.h"
 #include "Engine/Collision/Contact.h"
 #include "Engine/Collision/ContactResolver.h"
+#include "Engine/Core/DevConsole.h"
 #include "Engine/Core/Entity.h"
 #include "Engine/Math/MathUtils.h"
 
@@ -144,6 +145,12 @@ void CollisionScene<BoundingVolumeClass>::GenerateContacts()
 
 	for (int i = 0; i < m_numPotentialCollisions; ++i)
 	{
+		if (m_collisionData.numContacts >= MAX_CONTACT_COUNT)
+		{
+			ConsoleWarningf("CollisionDetector ran out of room for contacts!");
+			return;
+		}
+
 		PotentialCollision& collision = m_potentialCollisions[i];
 
 		Collider* colOne = collision.entities[0]->collisionPrimitive;

@@ -94,6 +94,7 @@ public:
 	//-----Public Data-----
 
 	static const Rgba DEFAULT_CONSOLE_LOG_COLOR;
+	static constexpr float DEFAULT_PRINT_LIFETIME_SECONDS = 0.f;
 
 
 private:
@@ -190,3 +191,7 @@ void ConsoleLogErrorf(char const *format, ...); // Red Font
 
 void ConsolePrintf(char const* format, ...);
 void ConsolePrintf(const Rgba& color, float lifetimeSeconds, char const* format, ...);
+void ConsoleErrorf(char const* format, ...);
+void ConsoleErrorf(float lifetimeSeconds, char const* format, ...);
+void ConsoleWarningf(char const* format, ...);
+void ConsoleWarningf(float lifetimeSeconds, char const* format, ...);

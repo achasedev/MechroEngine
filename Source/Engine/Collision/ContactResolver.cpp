@@ -246,7 +246,7 @@ static Vector3 CalculateFrictionImpulse(Contact* contact)
 	// Check for exceeding static friction
 	float planarImpulse = Sqrt(impulseContactSpace.y * impulseContactSpace.y + impulseContactSpace.z * impulseContactSpace.z);
 
-	if (planarImpulse > impulseContactSpace.x * contact->friction)
+	if (!AreMostlyEqual(planarImpulse, 0.f) && planarImpulse > impulseContactSpace.x * contact->friction)
 	{
 		// Dynamic friction
 		impulseContactSpace.y /= planarImpulse;
@@ -308,8 +308,8 @@ static void ResolveContactVelocity(Contact* contact, Vector3* out_linearDeltaVel
 		out_angularDeltaVelocities[1] = inverseInertiaTensorsWs[1] * torqueWs;
 
 		// Apply them
-		contact->bodies[1]->AddWorldVelocity(out_linearDeltaVelocities[0]);
-		contact->bodies[1]->AddWorldAngularVelocityRadians(out_angularDeltaVelocities[0]);
+		contact->bodies[1]->AddWorldVelocity(out_linearDeltaVelocities[1]);
+		contact->bodies[1]->AddWorldAngularVelocityRadians(out_angularDeltaVelocities[1]);
 	}
 }
 
@@ -425,6 +425,9 @@ static void ResolvePenetrations(Contact* contacts, int numContacts, int numItera
 //-------------------------------------------------------------------------------------------------
 static void ResolveVelocities(Contact* contacts, int numContacts, int numIterations, float deltaSeconds)
 {
+	Vector3 linearVelocityChanges[2];
+	Vector3 angularVelocityChanges[2];
+
 	for (int iteration = 0; iteration < numIterations; ++iteration)
 	{
 		Contact* contactToResolve = nullptr;
@@ -444,9 +447,6 @@ static void ResolveVelocities(Contact* contacts, int numContacts, int numIterati
 			break;
 
 		contactToResolve->MatchAwakeState();
-
-		Vector3 linearVelocityChanges[2];
-		Vector3 angularVelocityChanges[2];
 
 		ResolveContactVelocity(contactToResolve, linearVelocityChanges, angularVelocityChanges);
 		UpdateContactVelocities(contacts, numContacts, linearVelocityChanges, angularVelocityChanges, contactToResolve, deltaSeconds);

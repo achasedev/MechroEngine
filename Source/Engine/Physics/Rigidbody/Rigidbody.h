@@ -60,8 +60,8 @@ public:
 	Vector3 GetLastFrameAcceleration() const { return m_lastFrameAccelerationWs; }
 	float	GetInverseMass() const { return m_iMass; }
 	void	GetWorldInverseInertiaTensor(Matrix3& out_inverseInertiaTensor) const;
-	Vector3 GetLinearVelocity() const { return m_velocityWs; }
-	Vector3	GetAngularVelocityRadians() const { return m_angularVelocityRadiansWs; }
+	Vector3 GetVelocityWs() const { return m_velocityWs; }
+	Vector3	GetAngularVelocityRadiansWs() const { return m_angularVelocityRadiansWs; }
 	bool	IsAwake() const { return m_isAwake; }
 
 

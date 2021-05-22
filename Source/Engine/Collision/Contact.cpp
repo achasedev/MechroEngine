@@ -85,7 +85,7 @@ void Contact::CalculateClosingVelocityInContactSpace()
 		if (body == nullptr)
 			continue;
 
-		Vector3 velocityWs = CrossProduct(body->GetAngularVelocityRadians(), bodyToContact[bodyIndex]) + body->GetLinearVelocity();
+		Vector3 velocityWs = CrossProduct(body->GetAngularVelocityRadiansWs(), bodyToContact[bodyIndex]) + body->GetVelocityWs();
 		Vector3 velocityContactSpace = contactToWorld.GetTranspose() * velocityWs; // Transpose == inverse
 
 		// TODO: Add in velocity from acceleration, when friction is added

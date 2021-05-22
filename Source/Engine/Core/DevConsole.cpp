@@ -187,7 +187,7 @@ void ConsolePrintf(char const* format, ...)
 {
 	va_list variableArgumentList;
 	va_start(variableArgumentList, format);
-	ConsolePrintv(Rgba::WHITE, 0.f, format, variableArgumentList);
+	ConsolePrintv(Rgba::WHITE, DevConsole::DEFAULT_PRINT_LIFETIME_SECONDS, format, variableArgumentList);
 	va_end(variableArgumentList);
 }
 
@@ -198,6 +198,46 @@ void ConsolePrintf(const Rgba& color, float lifetimeSeconds, char const* format,
 	va_list variableArgumentList;
 	va_start(variableArgumentList, format);
 	ConsolePrintv(color, lifetimeSeconds, format, variableArgumentList);
+	va_end(variableArgumentList);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void ConsoleErrorf(char const* format, ...)
+{
+	va_list variableArgumentList;
+	va_start(variableArgumentList, format);
+	ConsolePrintv(Rgba::RED, DevConsole::DEFAULT_PRINT_LIFETIME_SECONDS, format, variableArgumentList);
+	va_end(variableArgumentList);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void ConsoleErrorf(float lifetimeSeconds, char const* format, ...)
+{
+	va_list variableArgumentList;
+	va_start(variableArgumentList, format);
+	ConsolePrintv(Rgba::RED, lifetimeSeconds, format, variableArgumentList);
+	va_end(variableArgumentList);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void ConsoleWarningf(char const* format, ...)
+{
+	va_list variableArgumentList;
+	va_start(variableArgumentList, format);
+	ConsolePrintv(Rgba::ORANGE, DevConsole::DEFAULT_PRINT_LIFETIME_SECONDS, format, variableArgumentList);
+	va_end(variableArgumentList);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void ConsoleWarningf(float lifetimeSeconds, char const* format, ...)
+{
+	va_list variableArgumentList;
+	va_start(variableArgumentList, format);
+	ConsolePrintv(Rgba::ORANGE, lifetimeSeconds, format, variableArgumentList);
 	va_end(variableArgumentList);
 }
 
