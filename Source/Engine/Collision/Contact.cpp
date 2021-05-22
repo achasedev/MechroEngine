@@ -57,7 +57,7 @@ void Contact::CalculateInternals(float deltaSeconds)
 	}
 
 	// Calculate velocities in contact space
-	CalculateClosingVelocityInContactSpace();
+	CalculateClosingVelocityInContactSpace(deltaSeconds);
 	CalculateDesiredVelocityInContactSpace(deltaSeconds);
 }
 
@@ -75,22 +75,57 @@ void Contact::CalculateBasis()
 
 
 //-------------------------------------------------------------------------------------------------
-void Contact::CalculateClosingVelocityInContactSpace()
+void Contact::CalculateClosingVelocityInContactSpace(float deltaSeconds)
 {
 	closingVelocityContactSpace = Vector3::ZERO;
 
+	//for (int bodyIndex = 0; bodyIndex < 2; ++bodyIndex)
+	//{
+	//	RigidBody* body = bodies[bodyIndex];
+	//	if (body == nullptr)
+	//		continue;
+
+	//	Vector3 velocityWs = CrossProduct(body->GetAngularVelocityRadiansWs(), bodyToContact[bodyIndex]) + body->GetVelocityWs();
+	//	Vector3 velocityContactSpace = contactToWorld.GetTranspose() * velocityWs; // Transpose == inverse
+
+	//	// TODO: Add in velocity from acceleration, when friction is added
+	//	float sign = (bodyIndex == 0 ? 1.0f : -1.0f);
+	//	closingVelocityContactSpace += sign * velocityContactSpace;
+	//}
+
+
 	for (int bodyIndex = 0; bodyIndex < 2; ++bodyIndex)
 	{
-		RigidBody* body = bodies[bodyIndex];
-		if (body == nullptr)
+		RigidBody* thisBody = bodies[bodyIndex];
+
+		if (thisBody == nullptr)
 			continue;
 
-		Vector3 velocityWs = CrossProduct(body->GetAngularVelocityRadiansWs(), bodyToContact[bodyIndex]) + body->GetVelocityWs();
-		Vector3 velocityContactSpace = contactToWorld.GetTranspose() * velocityWs; // Transpose == inverse
+		// Work out the velocity of the contact point.
+		Vector3 velocity =
+			CrossProduct(thisBody->GetAngularVelocityRadiansWs(), bodyToContact[bodyIndex]);
+		velocity += thisBody->GetVelocityWs();
 
-		// TODO: Add in velocity from acceleration, when friction is added
+		// Turn the velocity into contact-coordinates.
+		Vector3 contactVelocity = contactToWorld.GetTranspose() * velocity;
+
+		// Calculate the amount of velocity that is due to forces without
+		// reactions.
+		Vector3 accVelocity = thisBody->GetLastFrameAcceleration() * deltaSeconds;
+
+		// Calculate the velocity in contact-coordinates.
+		accVelocity = contactToWorld.GetTranspose() * accVelocity;
+
+		// We ignore any component of acceleration in the contact normal
+		// direction, we are only interested in planar acceleration
+		accVelocity.x = 0;
+
+		// Add the planar velocities - if there's enough friction they will
+		// be removed during velocity resolution
 		float sign = (bodyIndex == 0 ? 1.0f : -1.0f);
-		closingVelocityContactSpace += sign * velocityContactSpace;
+		contactVelocity += (sign * accVelocity);
+
+		closingVelocityContactSpace += contactVelocity;
 	}
 }
 
@@ -109,8 +144,14 @@ void Contact::CalculateDesiredVelocityInContactSpace(float deltaSeconds)
 	}
 
 	// Determine the amount of velocity from this frame's acceleration
-	float closingVelocityAddedLastIntegrate = DotProduct(bodies[0]->GetLastFrameAcceleration() * deltaSeconds, normal);
-	if (bodies[1] != nullptr)
+	float closingVelocityAddedLastIntegrate = 0.f;
+	
+	if (bodies[0]->IsAwake())
+	{
+		closingVelocityAddedLastIntegrate += DotProduct(bodies[0]->GetLastFrameAcceleration() * deltaSeconds, normal);
+	}
+
+	if (bodies[1] != nullptr && bodies[1]->IsAwake())
 	{
 		closingVelocityAddedLastIntegrate -= DotProduct(bodies[1]->GetLastFrameAcceleration() * deltaSeconds, normal);
 	}
@@ -124,5 +165,19 @@ void Contact::CalculateDesiredVelocityInContactSpace(float deltaSeconds)
 //-------------------------------------------------------------------------------------------------
 void Contact::MatchAwakeState()
 {
-	// TODO
+	// This is what prevents sleeping bodies colliding with the world from waking up
+	if (bodies[1] == nullptr)
+		return;
+
+	bool bodyZeroAwake = bodies[0]->IsAwake();
+	bool bodyOneAwake = bodies[1]->IsAwake();
+
+	if (bodyZeroAwake && !bodyOneAwake)
+	{
+		bodies[1]->SetIsAwake(true);
+	}
+	else if (bodyOneAwake && !bodyZeroAwake)
+	{
+		bodies[0]->SetIsAwake(true);
+	}
 }

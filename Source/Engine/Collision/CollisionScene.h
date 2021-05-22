@@ -81,6 +81,10 @@ private:
 
 	CollisionData								m_collisionData;
 	CollisionDetector							m_detector;
+
+	int											m_defaultNumVelocityIterations = 100;
+	int											m_defaultNumPenetrationIterations = 100;
+
 	ContactResolver								m_resolver;
 
 };
@@ -134,6 +138,11 @@ template <class BoundingVolumeClass>
 void CollisionScene<BoundingVolumeClass>::PerformBroadphase()
 {
 	m_numPotentialCollisions = m_boundingTreeRoot->GetPotentialCollisions(m_potentialCollisions, MAX_POTENTIAL_COLLISION_COUNT);
+
+	if (m_numPotentialCollisions == MAX_POTENTIAL_COLLISION_COUNT)
+	{
+		ConsoleWarningf("Collision scene hit the limit for number of potential collisions per frame at: %i", m_numPotentialCollisions);
+	}
 }
 
 
@@ -235,6 +244,9 @@ void CollisionScene<BoundingVolumeClass>::ResolveContacts(float deltaSeconds)
 {
 	if (m_collisionData.numContacts > 0)
 	{
+		m_resolver.SetMaxVelocityIterations(Min(m_defaultNumVelocityIterations, 2 * m_collisionData.numContacts));
+		m_resolver.SetMaxPenetrationIterations(Min(m_defaultNumPenetrationIterations, 2 * m_collisionData.numContacts));
+
 		m_resolver.ResolveContacts(m_collisionData.contacts, m_collisionData.numContacts, deltaSeconds);
 	}
 }

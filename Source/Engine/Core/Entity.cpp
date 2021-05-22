@@ -10,6 +10,7 @@
 #include "Engine/Core/EngineCommon.h"
 #include "Engine/Core/Entity.h"
 #include "Engine/Core/Rgba.h"
+#include "Engine/Physics/RigidBody/RigidBody.h"
 #include "Engine/Render/Debug/DebugRenderSystem.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -46,5 +47,6 @@ Entity::Entity()
 //-------------------------------------------------------------------------------------------------
 void Entity::Render() const
 {
-	DebugDrawCube(Vector3::ZERO, 0.5f * renderShapeLs.GetDimensions(), Rgba::WHITE, 0.f, &transform);
+	Rgba tint = (rigidBody->IsAwake() ? Rgba::WHITE : Rgba::RED);
+	DebugDrawCube(Vector3::ZERO, 0.5f * renderShapeLs.GetDimensions(), tint, 0.f, &transform);
 }

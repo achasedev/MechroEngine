@@ -85,6 +85,37 @@ void RigidBody::AddLocalForceAtWorldPoint(const Vector3& forceLs, const Vector3&
 
 
 //-------------------------------------------------------------------------------------------------
+void RigidBody::SetIsAwake(bool isAwake)
+{
+	m_isAwake = isAwake;
+
+	if (m_isAwake)
+	{
+		m_motion += 2.f * SLEEP_EPSILON; // Add motion now to prevent it from immediately falling asleep
+	}
+	else
+	{
+		// Clear so when we wake up again we start from no movement
+		m_velocityWs = Vector3::ZERO;
+		m_angularVelocityRadiansWs = Vector3::ZERO;
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RigidBody::SetCanSleep(bool canSleep)
+{
+	m_canSleep = canSleep;
+
+	// Wake me up if I'm asleep and am not allowed to be
+	if (!m_canSleep && !m_isAwake)
+	{
+		SetIsAwake(true);
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void RigidBody::GetWorldInverseInertiaTensor(Matrix3& out_inverseInertiaTensor) const
 {
 	out_inverseInertiaTensor = m_inverseInertiaTensorWorld;
@@ -101,6 +132,13 @@ RigidBody::RigidBody(Transform* transform)
 //-------------------------------------------------------------------------------------------------
 void RigidBody::Integrate(float deltaSeconds)
 {
+	if (!m_isAwake)
+		return;
+
+	// Corrections after last frame's integrate (as well as any rotations applied during the game frame)
+	// will have changed the world moment of inertia - ensure that's up-to-date
+	CalculateDerivedData();
+
 	// Calculate accelerations
 	Vector3 acceleration = m_accelerationWs;
 	acceleration += (m_forceAccumWs * m_iMass);
@@ -126,6 +164,26 @@ void RigidBody::Integrate(float deltaSeconds)
 
 	CalculateDerivedData();
 	ClearForces();
+
+	// Update the kinetic energy store, and possibly put the body to sleep.
+	if (m_canSleep) {
+		float currentMotion = DotProduct(m_velocityWs, m_velocityWs) + DotProduct(m_angularVelocityRadiansWs, m_angularVelocityRadiansWs);
+
+		// Do a recency weighted average - this way quickly moving objects that suddenly stop won't sleep immediately
+		float bias = Pow(0.2f, deltaSeconds);
+		m_motion = bias * m_motion + (1.f - bias) * currentMotion;
+
+		if (m_motion < SLEEP_EPSILON)
+		{
+			SetIsAwake(false);
+		}
+		else if (m_motion > 10.f * SLEEP_EPSILON)
+		{
+			// Keep motion from growing too much
+			// Since we're using RWA, a sudden burst of speed will make this skyrocket and take a while to come back down if it suddenly stops
+			m_motion = 10.f * SLEEP_EPSILON;
+		}
+	}
 }
 
 

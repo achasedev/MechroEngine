@@ -33,14 +33,22 @@ class ContactResolver
 public:
 	//-----Public Methods-----
 
+	void SetMaxVelocityIterations(int maxIterations) { m_maxVelocityIterations = maxIterations; }
+	void SetMaxPenetrationIterations(int maxIterations) { m_maxPenetrationIterations = maxIterations; }
 	void ResolveContacts(Contact* contacts, int numContacts, float deltaSeconds);
 
+public:
+
+	bool m_doHisStuff = true;
 
 private:
 	//-----Private Data-----
 
-	int m_defaultNumVelocityIterations = 10;
-	int m_defaultNumPenetrationIterations = 10;
+	int m_maxVelocityIterations = 10;
+	int m_maxPenetrationIterations = 10;
+
+	float m_velocityEpsilon = 0.01f; // For faster objects, use a use a larger value, for slow use a smaller value
+	float m_penetrationEpsilon = 0.01f; // For larger objects use a larger value, for small objects use a smaller value
 
 };
 

@@ -50,11 +50,6 @@ PhysicsScene::~PhysicsScene()
 //-------------------------------------------------------------------------------------------------
 void PhysicsScene::BeginFrame()
 {
-	for (RigidBody* body : m_bodies)
-	{
-		body->CalculateDerivedData();
-		body->ClearForces();
-	}
 }
 
 

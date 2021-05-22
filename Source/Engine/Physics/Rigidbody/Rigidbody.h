@@ -56,6 +56,8 @@ public:
 	void SetLinearDamping(float linearDamping) { m_linearDamping = linearDamping; }
 	void SetAngularDamping(float angularDamping) { m_angularDamping = angularDamping; }
 	void SetLocalInverseInertiaTensor(const Matrix3& inverseInertiaTensor) { m_inverseInertiaTensorLocal = inverseInertiaTensor; }
+	void SetIsAwake(bool isAwake);
+	void SetCanSleep(bool canSleep);
 
 	Vector3 GetLastFrameAcceleration() const { return m_lastFrameAccelerationWs; }
 	float	GetInverseMass() const { return m_iMass; }
@@ -63,6 +65,7 @@ public:
 	Vector3 GetVelocityWs() const { return m_velocityWs; }
 	Vector3	GetAngularVelocityRadiansWs() const { return m_angularVelocityRadiansWs; }
 	bool	IsAwake() const { return m_isAwake; }
+	bool	CanSleep() const { return m_canSleep; }
 
 
 public:
@@ -86,12 +89,15 @@ private:
 	Vector3		m_angularVelocityRadiansWs = Vector3::ZERO;
 	Vector3		m_forceAccumWs = Vector3::ZERO;
 	Vector3		m_torqueAccumWs = Vector3::ZERO;
-	bool		m_isAwake = false;
 	float		m_iMass = 1.f;
 	float		m_linearDamping = 0.999f;
 	float		m_angularDamping = 0.999f;
 	Matrix3		m_inverseInertiaTensorLocal;
 	Matrix3		m_inverseInertiaTensorWorld;
+	bool		m_isAwake = true;
+	bool		m_canSleep = true;
+	static constexpr float SLEEP_EPSILON = 0.1f;
+	float		m_motion = 2.f * SLEEP_EPSILON;
 
 };
 
