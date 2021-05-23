@@ -43,33 +43,30 @@ public:
 
 	Contact();
 
-	void CalculateInternals(float deltaSeconds);
-	void CalculateDesiredVelocityInContactSpace(float deltaSeconds);
 	void MatchAwakeState();
 
-
-private:
-	//-----Private Methods-----
-
+	void CalculateInternals(float deltaSeconds);
 	void CalculateBasis();
 	void CalculateClosingVelocityInContactSpace(float deltaSeconds);
+	void CalculateDesiredVelocityInContactSpace(float deltaSeconds);
+	void CheckValuesAreReasonable() const;
 
 
 public:
 	//-----Public Data-----
 
-	Vector3		position = Vector3::ZERO;
-	Vector3		normal = Vector3::ZERO;
-	float		penetration = 0.f;
-	float		restitution = 1.f;
-	float		friction = 0.f;
-	RigidBody*	bodies[2];
-	Matrix3		contactToWorld = Matrix3::IDENTITY;
-	Vector3		closingVelocityContactSpace = Vector3::ZERO;
-	float		desiredDeltaVelocityAlongNormal = 0.f;
-	Vector3		bodyToContact[2];
+	Vector3			position = Vector3::ZERO;
+	Vector3			normal = Vector3::ZERO;
+	float			penetration = 0.f;
+	float			restitution = 1.f;
+	float			friction = 0.f;
+	RigidBody*		bodies[2];
+	Matrix3			contactToWorld = Matrix3::IDENTITY;
+	Vector3			closingVelocityContactSpace = Vector3::ZERO;
+	float			desiredDeltaVelocityAlongNormal = 0.f;
+	Vector3			bodyToContact[2];
+	FeatureRecord	featureRecord;
 
-	FeatureRecord featureRecord;
 };
 
 

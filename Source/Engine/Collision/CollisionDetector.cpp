@@ -79,10 +79,11 @@ int CollisionDetector::GenerateContacts(const SphereCollider& a, const SphereCol
 	float distance = bToA.Normalize();
 
 	out_contacts->position = bSphere.center + 0.5f * distance * bToA;			// Contact position is the midpoint between the centers
-	out_contacts->normal = bToA;													// Orientation is set up s.t adding the normal to A would resolve the collision, -normal to B
+	out_contacts->normal = bToA;												// Orientation is set up s.t adding the normal to A would resolve the collision, -normal to B
 	out_contacts->penetration = (aSphere.radius + bSphere.radius) - distance;	// Pen is the overlap
 	FillOutColliderInfo(out_contacts, a, b);
 
+	out_contacts->CheckValuesAreReasonable();
 	return 1;
 }
 
@@ -107,6 +108,7 @@ int CollisionDetector::GenerateContacts(const SphereCollider& sphere, const Half
 	out_contacts->position = planeWs.GetProjectedPointOntoPlane(sphereWs.center);
 	FillOutColliderInfo(out_contacts, sphere, halfSpace);
 
+	out_contacts->CheckValuesAreReasonable();
 	return 1;
 }
 
@@ -137,6 +139,7 @@ int CollisionDetector::GenerateContacts(const BoxCollider& box, const HalfSpaceC
 			contactToFill->penetration = Abs(distance);
 			FillOutColliderInfo(contactToFill, box, halfSpace);
 			
+			contactToFill->CheckValuesAreReasonable();
 			numContactsAdded++;
 
 			if (numContactsAdded < limit)
@@ -192,6 +195,7 @@ int CollisionDetector::GenerateContacts(const BoxCollider& box, const SphereColl
 	out_contacts->penetration = sphereWs.radius - distance;
 	FillOutColliderInfo(out_contacts, box, sphere);
 
+	out_contacts->CheckValuesAreReasonable();
 	return 1;
 }
 
@@ -200,11 +204,14 @@ int CollisionDetector::GenerateContacts(const BoxCollider& box, const SphereColl
 static inline float TransformToAxis(const BoxCollider& box, const Vector3 &axis)
 {
 	OBB3 boxWs = box.GetDataInWorldSpace();
+	Matrix3 boxBasis = Matrix3(boxWs.rotation);
+	ASSERT_REASONABLE(boxBasis);
+	ASSERT_REASONABLE(axis);
 
 	return
-		boxWs.extents.x * Abs(DotProduct(axis, boxWs.GetRightVector())) +
-		boxWs.extents.y * Abs(DotProduct(axis, boxWs.GetUpVector())) +
-		boxWs.extents.z * Abs(DotProduct(axis, boxWs.GetForwardVector()));
+		boxWs.extents.x * Abs(DotProduct(axis, boxBasis.iBasis)) +
+		boxWs.extents.y * Abs(DotProduct(axis, boxBasis.jBasis)) +
+		boxWs.extents.z * Abs(DotProduct(axis, boxBasis.kBasis));
 }
 
 /*
@@ -216,6 +223,10 @@ static inline float TransformToAxis(const BoxCollider& box, const Vector3 &axis)
  */
 static inline float GetPenetrationOnAxis(const BoxCollider& a, const BoxCollider& b, const Vector3 &axis, const Vector3 &aToB)
 {
+	ASSERT_REASONABLE(axis);
+	ASSERT_REASONABLE(aToB);
+	ASSERT_OR_DIE(AreMostlyEqual(axis.GetLength(), 1.0f), "Axis not unit!");
+
 	// Project the half-size of one onto axis
 	float oneProject = TransformToAxis(a, axis);
 	float twoProject = TransformToAxis(b, axis);
@@ -229,13 +240,15 @@ static inline float GetPenetrationOnAxis(const BoxCollider& a, const BoxCollider
 }
 
 
-static inline bool TryAxis(const BoxCollider& one, const BoxCollider& two, const Vector3& axisP, const Vector3& toCentre, unsigned index, float& out_smallestPen, unsigned &out_smallestIndex)
+//-------------------------------------------------------------------------------------------------
+// Returns true to signal we haven't found a gap yet and to keep checking axes
+static inline bool TryAxis(const BoxCollider& one, const BoxCollider& two, Vector3 axis, const Vector3& toCentre, unsigned index, float& out_smallestPen, unsigned &out_smallestIndex)
 {
 	// Make sure we have a normalized axis, and don't check almost parallel axes
-	if (axisP.GetLengthSquared() < 0.0001f) 
+	if (AreMostlyEqual(axis.GetLengthSquared(), 0.f)) 
 		return true;
 
-	Vector3 axis = axisP.GetNormalized();
+	axis.Normalize();
 	float penetration = GetPenetrationOnAxis(one, two, axis, toCentre);
 
 	if (penetration < 0.f) 

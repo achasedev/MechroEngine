@@ -9,6 +9,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Math/Matrix3.h"
+#include "Engine/Math/OBB3.h"
 #include "Engine/Math/Vector2.h"
 #include <math.h>
 #include <cstdlib>
@@ -1080,6 +1081,49 @@ bool AreMostlyEqual(const Matrix3& a, const Matrix3& b, float epsilon /*= DEFAUL
 bool AreMostlyEqual(const Sphere3D& a, const Sphere3D& b, float epsilon /*= DEFAULT_EPSILON*/)
 {
 	return AreMostlyEqual(a.center, b.center, epsilon) && AreMostlyEqual(a.radius, b.radius, epsilon);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool IsReasonable(float value)
+{
+	return !isinf(value) && !isnan(value);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool IsReasonable(const Vector3& value)
+{
+	return IsReasonable(value.x) && IsReasonable(value.y) && IsReasonable(value.z);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool IsReasonable(const Matrix3& value)
+{
+	for (int i = 0; i < 9; ++i)
+	{
+		if (!IsReasonable(value.data[i]))
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool IsReasonable(const OBB3& value)
+{
+	return IsReasonable(value.center) && IsReasonable(value.extents) && IsReasonable(value.rotation);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool IsReasonable(const Quaternion& value)
+{
+	return IsReasonable(value.w) && IsReasonable(value.x) && IsReasonable(value.y) && IsReasonable(value.z) && AreMostlyEqual(value.GetMagnitude(), 1.0f); // Also make sure it's normalized
 }
 
 

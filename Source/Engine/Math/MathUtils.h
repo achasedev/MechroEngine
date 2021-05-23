@@ -189,6 +189,13 @@ bool AreMostlyEqual(const Matrix3& a, const Matrix3& b, float epsilon = DEFAULT_
 bool AreMostlyEqual(const Quaternion& a, const Quaternion& b, float epsilon = DEFAULT_EPSILON);
 bool AreMostlyEqual(const Sphere3D& a, const Sphere3D& b, float epsilon = DEFAULT_EPSILON);
 
+bool IsReasonable(float value);
+bool IsReasonable(const Vector2& value);
+bool IsReasonable(const Vector3& value);
+bool IsReasonable(const Matrix3& value);
+bool IsReasonable(const Quaternion& value);
+bool IsReasonable(const OBB3& value);
+
 
 //-------------------------------------------------------------------------------------------------
 // Geometry

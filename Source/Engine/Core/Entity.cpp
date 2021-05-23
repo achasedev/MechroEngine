@@ -49,4 +49,5 @@ void Entity::Render() const
 {
 	Rgba tint = (rigidBody->IsAwake() ? Rgba::WHITE : Rgba::RED);
 	DebugDrawCube(Vector3::ZERO, 0.5f * renderShapeLs.GetDimensions(), tint, 0.f, &transform);
+	//DebugDrawSphere(Vector3::ZERO, 1.0f, tint, 0.f, &transform);
 }

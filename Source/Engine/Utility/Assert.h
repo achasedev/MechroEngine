@@ -211,3 +211,22 @@ int SystemDialogue_YesNoCancel(const std::string& messageTitle, const std::strin
 	}																							\
 }
 #endif
+
+//-----------------------------------------------------------------------------------------------
+// ASSERT_REASONABLE
+//
+// Helper for checking if a value is reasonable. Behaves the same as ASSERT_OR_DIE
+//
+#if defined(DISABLE_ASSERTS)
+#define ASSERT_REASONABLE(value) { (void)(value); }
+#else
+#define ASSERT_REASONABLE(value)																\
+{																								\
+	if(!(IsReasonable(value)))																	\
+	{																							\
+		const char* valueText = #value;															\
+		std::string errorMessageText = Stringf("%s not reasonable!", valueText);				\
+		FatalError(__FILE__,  __FUNCTION__, __LINE__, errorMessageText, valueText);				\
+	}																							\
+}
+#endif
