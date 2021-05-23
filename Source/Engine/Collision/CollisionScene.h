@@ -49,6 +49,7 @@ public:
 	void DoCollisionStep(float deltaSeconds);
 	void DebugRenderBoundingHierarchy() const;
 	void DebugRenderLeafBoundingVolumes() const;
+	void DebugDrawContacts() const;
 
 
 private:
@@ -90,6 +91,18 @@ private:
 	ContactResolver								m_resolver;
 
 };
+
+
+//-------------------------------------------------------------------------------------------------
+template <class BoundingVolumeClass>
+void CollisionScene<BoundingVolumeClass>::DebugDrawContacts() const
+{
+	for (int i = 0; i < m_numContacts; ++i)
+	{
+		const Contact& contact = m_contacts[i];
+		DebugDrawSphere(contact.position, 0.1f, Rgba::CYAN, 0.f);
+	}
+}
 
 
 //-------------------------------------------------------------------------------------------------

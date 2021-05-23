@@ -452,7 +452,7 @@ int CollisionDetector::GenerateContacts(const BoxCollider& a, const BoxCollider&
 		// of the other axes is closest.
 		Vector3 ptOnOneEdgeLs = aBox.extents;
 		Vector3 ptOnTwoEdgeLs = bBox.extents;
-		for (unsigned i = 0; i < 3; i++)
+		for (int i = 0; i < 3; i++)
 		{
 			if (i == oneAxisIndex)
 			{

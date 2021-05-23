@@ -171,6 +171,11 @@ void Contact::CheckValuesAreReasonable() const
 	ASSERT_REASONABLE(friction);
 	ASSERT_REASONABLE(closingVelocityContactSpace);
 	ASSERT_REASONABLE(desiredDeltaVelocityAlongNormal);
+	ASSERT_REASONABLE(bodyToContact[0]);
+	if (bodies[1] != nullptr)
+	{
+		ASSERT_REASONABLE(bodyToContact[1]);
+	}
 }
 
 

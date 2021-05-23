@@ -36,7 +36,9 @@ static void PrepareContacts(Contact* contacts, int numContacts, float deltaSecon
 {
 	for (int i = 0; i < numContacts; ++i)
 	{
+		contacts[i].CheckValuesAreReasonable();
 		contacts[i].CalculateInternals(deltaSeconds);
+		contacts[i].CheckValuesAreReasonable();
 	}
 }
 
@@ -44,6 +46,8 @@ static void PrepareContacts(Contact* contacts, int numContacts, float deltaSecon
 //-------------------------------------------------------------------------------------------------
 static void ResolveContactPenetration(Contact* contact, Vector3* out_linearChanges, Vector3* out_angularChanges)
 {
+	contact->CheckValuesAreReasonable();
+
 	const float angularLimit = 0.2f;
 	float angularMove[2];
 	float linearMove[2];
@@ -52,7 +56,7 @@ static void ResolveContactPenetration(Contact* contact, Vector3* out_linearChang
 	float linearInertia[2];
 	float angularInertia[2];
 
-	Vector3 deltaAngularVelocityPerImpulse[2];
+	Vector3 deltaAngularVelocityPerUnitImpulse[2];
 
 	for (int bodyIndex = 0; bodyIndex < 2; ++bodyIndex)
 	{
@@ -67,12 +71,17 @@ static void ResolveContactPenetration(Contact* contact, Vector3* out_linearChang
 		// Calculate angular inertia at the contact
 		Matrix3 inverseInertiaTensor;
 		body->GetWorldInverseInertiaTensor(inverseInertiaTensor);
+		ASSERT_REASONABLE(inverseInertiaTensor);
 
-		Vector3 torquePerImpulse = CrossProduct(contact->bodyToContact[bodyIndex], contact->normal);
-		deltaAngularVelocityPerImpulse[bodyIndex] = inverseInertiaTensor * torquePerImpulse;
-		Vector3 linearVelocityPerImpulse = CrossProduct(deltaAngularVelocityPerImpulse[bodyIndex], contact->bodyToContact[bodyIndex]);
+		Vector3 torquePerUnitImpulse = CrossProduct(contact->bodyToContact[bodyIndex], contact->normal);
+		ASSERT_REASONABLE(torquePerUnitImpulse);
+		deltaAngularVelocityPerUnitImpulse[bodyIndex] = inverseInertiaTensor * torquePerUnitImpulse;
+		ASSERT_REASONABLE(deltaAngularVelocityPerUnitImpulse[bodyIndex]);
+		Vector3 linearVelocityPerImpulse = CrossProduct(deltaAngularVelocityPerUnitImpulse[bodyIndex], contact->bodyToContact[bodyIndex]);
+		ASSERT_REASONABLE(linearVelocityPerImpulse);
 
 		angularInertia[bodyIndex] = DotProduct(linearVelocityPerImpulse, contact->normal); // More resistant object (massive) === less linearVelocityPerImpulse === lesser inertia === less change
+		ASSERT_REASONABLE(angularInertia[bodyIndex]);
 
 		// Linear component is just inverse mass
 		linearInertia[bodyIndex] = body->GetInverseMass();
@@ -91,6 +100,8 @@ static void ResolveContactPenetration(Contact* contact, Vector3* out_linearChang
 		// Calculate the amount of linear movement from both the linear and angular components
 		linearMove[i] = sign * contact->penetration * linearInertia[i] / totalInertia;
 		angularMove[i] = sign * contact->penetration * angularInertia[i] / totalInertia;
+		ASSERT_REASONABLE(linearMove[i]);
+		ASSERT_REASONABLE(angularMove[i]);
 
 		// To avoid angular projections that are too great (when mass is large
 		// but inertia tensor is small) limit the angular move.
@@ -98,34 +109,34 @@ static void ResolveContactPenetration(Contact* contact, Vector3* out_linearChang
 		projection += contact->normal * DotProduct(-1.0f * contact->bodyToContact[i], contact->normal);
 
 		// Limit the amount of movement that comes from angular rotation
-		float limit = angularLimit * contact->bodyToContact[i].GetLength(); // Normally this would be sin(angularLimit) * hypotenuse, but small angle approximation sin(angle) ~= angle
-		if (Abs(angularMove[i]) > limit)
+		float limit = angularLimit * projection.GetLength(); // Normally this would be sin(angularLimit) * hypotenuse, but small angle approximation sin(angle) ~= angle
+		if (angularMove[i] < -limit)
 		{
 			float totalMove = angularMove[i] + linearMove[i];
-
-			if (angularMove[i] >= 0)
-			{
-				angularMove[i] = limit;
-			}
-			else
-			{
-				angularMove[i] = -limit;
-			}
-
-			linearMove[i] = totalMove - limit;
+			angularMove[i] = -limit;
+			linearMove[i] = totalMove - angularMove[i];
+		}
+		else if (angularMove[i] > limit)
+		{
+			float totalMove = angularMove[i] + linearMove[i];
+			angularMove[i] = limit;
+			linearMove[i] = totalMove - angularMove[i];
 		}
 
 		// Calculate changes
 		out_linearChanges[i] = contact->normal * linearMove[i];
-		Vector3 rotationPerMovement = (deltaAngularVelocityPerImpulse[i] / angularInertia[i]); // angularInertia === deltaLinearVelocityFromRotationPerUnitImpulse - "Per Impulse" cancels out, so this becomes a ratio of angular change per linear change :)
+		ASSERT_REASONABLE(out_linearChanges[i]);
+		Vector3 rotationPerMovement = (deltaAngularVelocityPerUnitImpulse[i] / angularInertia[i]); // angularInertia === deltaLinearVelocityFromRotationPerUnitImpulse - "Per Impulse" cancels out, so this becomes a ratio of angular change per linear change :)
+		ASSERT_REASONABLE(rotationPerMovement);
 		out_angularChanges[i] = angularMove[i] * rotationPerMovement; // This is the linear movement we need from rotation * amount of rotation needed for 1 unit of linear movement
+		ASSERT_REASONABLE(out_angularChanges[i]);
 
 		// Apply changes
 		contact->bodies[i]->transform->position += (contact->normal * linearMove[i]);
 		contact->bodies[i]->transform->RotateRadians(out_angularChanges[i], RELATIVE_TO_WORLD);
 
 		// Probably not necessary, but update the contact position as well
-		contact->position += (linearMove[i] + angularMove[i]) * contact->normal;
+		contact->CheckValuesAreReasonable();
 	}
 }
 
@@ -133,6 +144,8 @@ static void ResolveContactPenetration(Contact* contact, Vector3* out_linearChang
 //-------------------------------------------------------------------------------------------------
 static Vector3 CalculateFrictionlessImpulse(Contact* contact)
 {
+	contact->CheckValuesAreReasonable();
+
 	// Calculate how much delta velocity is created from 1 unit of impulse along the contact normal
 	float deltaVelocityAlongNormalPerUnitOfImpulse = 0.f;
 
@@ -140,10 +153,12 @@ static Vector3 CalculateFrictionlessImpulse(Contact* contact)
 	{
 		Matrix3 inverseInertiaTensorWs;
 		contact->bodies[0]->GetWorldInverseInertiaTensor(inverseInertiaTensorWs);
+		ASSERT_REASONABLE(inverseInertiaTensorWs);
 
 		Vector3 deltaVelocityWs = CrossProduct(contact->bodyToContact[0], contact->normal);	
 		deltaVelocityWs = inverseInertiaTensorWs * deltaVelocityWs;
 		deltaVelocityWs = CrossProduct(deltaVelocityWs, contact->bodyToContact[0]);
+		ASSERT_REASONABLE(deltaVelocityWs);
 
 		// Angular part
 		deltaVelocityAlongNormalPerUnitOfImpulse = DotProduct(deltaVelocityWs, contact->normal);
@@ -157,10 +172,12 @@ static Vector3 CalculateFrictionlessImpulse(Contact* contact)
 	{
 		Matrix3 inverseInertiaTensorWs;
 		contact->bodies[1]->GetWorldInverseInertiaTensor(inverseInertiaTensorWs);
+		ASSERT_REASONABLE(inverseInertiaTensorWs);
 
 		Vector3 deltaVelocityWs = CrossProduct(contact->bodyToContact[1], contact->normal);
 		deltaVelocityWs = inverseInertiaTensorWs * deltaVelocityWs;
 		deltaVelocityWs = CrossProduct(deltaVelocityWs, contact->bodyToContact[1]);
+		ASSERT_REASONABLE(deltaVelocityWs);
 
 		// Angular part
 		deltaVelocityAlongNormalPerUnitOfImpulse += DotProduct(deltaVelocityWs, contact->normal);
@@ -178,84 +195,90 @@ static Vector3 CalculateFrictionlessImpulse(Contact* contact)
 // Isotropic, Static/Dynamic depends on coplanar velocity. No rolling friction.
 static Vector3 CalculateFrictionImpulse(Contact* contact)
 {
+	contact->CheckValuesAreReasonable();
 
-	// Create a skew matrix to allow us to do cross products at once instead of separate on each contact basis vector
+	Vector3 impulseContact;
+	float inverseMass = contact->bodies[0]->GetInverseMass();
+
+	// The equivalent of a cross product in matrices is multiplication
+	// by a skew symmetric matrix - we build the matrix for converting
+	// between linear and angular quantities.
 	Matrix3 impulseToTorque;
 	impulseToTorque.SetAsSkewSymmetric(contact->bodyToContact[0]);
 
-	// Create matrix to convert impulse in contact space to velocity in world space
-	Matrix3 deltaVelocityWs = impulseToTorque;
+	// Build the matrix to convert contact impulse to change in velocity
+	// in world coordinates.
+	Matrix3 inverseInertiaTensorWorld;
+	contact->bodies[0]->GetWorldInverseInertiaTensor(inverseInertiaTensorWorld);
 
-	// Body 1
-	{
-		Matrix3 inverseInertiaTensorWorld;
-		contact->bodies[0]->GetWorldInverseInertiaTensor(inverseInertiaTensorWorld);
+	Matrix3 deltaVelWorld = impulseToTorque;
+	deltaVelWorld *= inverseInertiaTensorWorld;
+	deltaVelWorld *= impulseToTorque;
+	deltaVelWorld *= -1.f;
 
-		deltaVelocityWs *= inverseInertiaTensorWorld;
-		deltaVelocityWs *= impulseToTorque;
-		deltaVelocityWs *= -1.0f;
-	}
-
-	float inverseMass = contact->bodies[0]->GetInverseMass();
-
-	// Check if there's a second body, and if so repeat
+	// Check if we need to add body two's data
 	if (contact->bodies[1])
 	{
 		// Set the cross product matrix
 		impulseToTorque.SetAsSkewSymmetric(contact->bodyToContact[1]);
 
-		Matrix3 inverseInertiaTensorWorld;
-		contact->bodies[1]->GetWorldInverseInertiaTensor(inverseInertiaTensorWorld);
-
 		// Calculate the velocity change matrix
-		Matrix3 deltaVelocityWs2 = impulseToTorque;
-		deltaVelocityWs2 *= inverseInertiaTensorWorld;
-		deltaVelocityWs2 *= impulseToTorque;
-		deltaVelocityWs2 *= -1.0f;
+		Matrix3 inverseInertiaTensorWorld2;
+		contact->bodies[1]->GetWorldInverseInertiaTensor(inverseInertiaTensorWorld2);
+
+		Matrix3 deltaVelWorld2 = impulseToTorque;
+		deltaVelWorld2 *= inverseInertiaTensorWorld2;
+		deltaVelWorld2 *= impulseToTorque;
+		deltaVelWorld2 *= -1;
 
 		// Add to the total delta velocity.
-		deltaVelocityWs += deltaVelocityWs2;
+		deltaVelWorld += deltaVelWorld2;
 
-		// Also update inverse mass
+		// Add to the inverse mass
 		inverseMass += contact->bodies[1]->GetInverseMass();
 	}
 
-	// Apply a change of basis operation operator to keep computations in contact space
-	Matrix3 velocityPerUnitImpulseContactSpace = contact->contactToWorld.GetTranspose();
-	velocityPerUnitImpulseContactSpace *= deltaVelocityWs;
-	velocityPerUnitImpulseContactSpace *= contact->contactToWorld;
+	// Do a change of basis to convert into contact coordinates.
+	Matrix3 deltaVelocity = contact->contactToWorld.GetTranspose();
+	deltaVelocity *= deltaVelWorld;
+	deltaVelocity *= contact->contactToWorld;
 
-	// Add in the linear velocity change - it's proportional to inverse mass (F = ma)
-	velocityPerUnitImpulseContactSpace.Ix += inverseMass;
-	velocityPerUnitImpulseContactSpace.Jy += inverseMass;
-	velocityPerUnitImpulseContactSpace.Kz += inverseMass;
+	// Add in the linear velocity change
+	deltaVelocity.data[0] += inverseMass;
+	deltaVelocity.data[4] += inverseMass;
+	deltaVelocity.data[8] += inverseMass;
 
-	// Now we have the amount of velocity from each unit of impulse
-	// Inverting the matrix gives us the amount of impulse required for 1 unit of impulse
-	Matrix3 impulsePerUnitVelocityContactSpace = velocityPerUnitImpulseContactSpace.GetInverse();
+	// Invert to get the impulse needed per unit velocity
+	Matrix3 impulseMatrix = deltaVelocity.GetInverse();
 
 	// Find the target velocities to kill
-	Vector3 velocityToKill(contact->desiredDeltaVelocityAlongNormal, -contact->closingVelocityContactSpace.y, -contact->closingVelocityContactSpace.z); // - because friction will oppose
+	Vector3 velKill(contact->desiredDeltaVelocityAlongNormal,
+		-contact->closingVelocityContactSpace.y,
+		-contact->closingVelocityContactSpace.z);
 
 	// Find the impulse to kill target velocities
-	Vector3 impulseContactSpace = impulsePerUnitVelocityContactSpace * velocityToKill;
+	impulseContact = impulseMatrix * velKill;
 
-	// Check for exceeding static friction
-	float planarImpulse = Sqrt(impulseContactSpace.y * impulseContactSpace.y + impulseContactSpace.z * impulseContactSpace.z);
-
-	if (!AreMostlyEqual(planarImpulse, 0.f) && planarImpulse > impulseContactSpace.x * contact->friction)
+	// Check for exceeding friction
+	float planarImpulse = Sqrt(
+		impulseContact.y*impulseContact.y +
+		impulseContact.z*impulseContact.z
+	);
+	if (!AreMostlyEqual(planarImpulse, 0.f) && planarImpulse > impulseContact.x * contact->friction)
 	{
-		// Dynamic friction
-		impulseContactSpace.y /= planarImpulse;
-		impulseContactSpace.z /= planarImpulse;
+		// We need to use dynamic friction
+		impulseContact.y /= planarImpulse;
+		impulseContact.z /= planarImpulse;
 
-		impulseContactSpace.x = velocityPerUnitImpulseContactSpace.data[0] + (velocityPerUnitImpulseContactSpace.data[1] * contact->friction * impulseContactSpace.y) + (velocityPerUnitImpulseContactSpace.data[2] * contact->friction * impulseContactSpace.z);
-		impulseContactSpace.x = contact->desiredDeltaVelocityAlongNormal / impulseContactSpace.x;
-		impulseContactSpace.y *= contact->friction * impulseContactSpace.x;
-		impulseContactSpace.z *= contact->friction * impulseContactSpace.x;
+		impulseContact.x = deltaVelocity.data[0] +
+			deltaVelocity.data[1] * contact->friction*impulseContact.y +
+			deltaVelocity.data[2] * contact->friction*impulseContact.z;
+		impulseContact.x = contact->desiredDeltaVelocityAlongNormal / impulseContact.x;
+		impulseContact.y *= contact->friction * impulseContact.x;
+		impulseContact.z *= contact->friction * impulseContact.x;
 	}
 
-	return impulseContactSpace;
+	return impulseContact;
 }
 
 
@@ -349,6 +372,11 @@ static void UpdateContactPenetrations(Contact* contacts, int numContacts, Vector
 
 					// TODO: Is this needed?
 					contact->position += deltaPosition;
+					contact->bodyToContact[0] = contact->position - contact->bodies[0]->transform->position;
+					if (contact->bodies[1] != nullptr)
+					{
+						contact->bodyToContact[1] = contact->position - contact->bodies[1]->transform->position;
+					}
 				}
 			}
 		}

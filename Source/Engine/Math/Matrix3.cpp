@@ -103,7 +103,7 @@ void Matrix3::operator*=(const float scalar)
 //-------------------------------------------------------------------------------------------------
 void Matrix3::operator*=(const Matrix3& other)
 {
-	*this = (*this * other);
+	*this = ((*this) * other);
 }
 
 
