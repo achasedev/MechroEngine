@@ -210,11 +210,13 @@ static Vector3 CalculateFrictionImpulse(Contact* contact)
 	// in world coordinates.
 	Matrix3 inverseInertiaTensorWorld;
 	contact->bodies[0]->GetWorldInverseInertiaTensor(inverseInertiaTensorWorld);
+	ASSERT_REASONABLE(inverseInertiaTensorWorld);
 
 	Matrix3 deltaVelWorld = impulseToTorque;
 	deltaVelWorld *= inverseInertiaTensorWorld;
 	deltaVelWorld *= impulseToTorque;
 	deltaVelWorld *= -1.f;
+	ASSERT_REASONABLE(deltaVelWorld);
 
 	// Check if we need to add body two's data
 	if (contact->bodies[1])
@@ -230,6 +232,7 @@ static Vector3 CalculateFrictionImpulse(Contact* contact)
 		deltaVelWorld2 *= inverseInertiaTensorWorld2;
 		deltaVelWorld2 *= impulseToTorque;
 		deltaVelWorld2 *= -1;
+		ASSERT_REASONABLE(deltaVelWorld2);
 
 		// Add to the total delta velocity.
 		deltaVelWorld += deltaVelWorld2;
@@ -242,37 +245,32 @@ static Vector3 CalculateFrictionImpulse(Contact* contact)
 	Matrix3 deltaVelocity = contact->contactToWorld.GetTranspose();
 	deltaVelocity *= deltaVelWorld;
 	deltaVelocity *= contact->contactToWorld;
-
+	
 	// Add in the linear velocity change
 	deltaVelocity.data[0] += inverseMass;
 	deltaVelocity.data[4] += inverseMass;
 	deltaVelocity.data[8] += inverseMass;
+	ASSERT_REASONABLE(deltaVelocity);
 
 	// Invert to get the impulse needed per unit velocity
 	Matrix3 impulseMatrix = deltaVelocity.GetInverse();
 
 	// Find the target velocities to kill
-	Vector3 velKill(contact->desiredDeltaVelocityAlongNormal,
-		-contact->closingVelocityContactSpace.y,
-		-contact->closingVelocityContactSpace.z);
+	Vector3 killVelocity(contact->desiredDeltaVelocityAlongNormal, -contact->closingVelocityContactSpace.y, -contact->closingVelocityContactSpace.z);
 
 	// Find the impulse to kill target velocities
-	impulseContact = impulseMatrix * velKill;
+	impulseContact = impulseMatrix * killVelocity;
 
 	// Check for exceeding friction
-	float planarImpulse = Sqrt(
-		impulseContact.y*impulseContact.y +
-		impulseContact.z*impulseContact.z
-	);
-	if (!AreMostlyEqual(planarImpulse, 0.f) && planarImpulse > impulseContact.x * contact->friction)
+	float planarImpulse = Sqrt(impulseContact.y * impulseContact.y + impulseContact.z * impulseContact.z);
+
+	if (!AreMostlyEqual(planarImpulse, 0.f) && planarImpulse > impulseContact.x * contact->friction) // AreMostlyEqual check to protect against near-zero cases
 	{
 		// We need to use dynamic friction
 		impulseContact.y /= planarImpulse;
 		impulseContact.z /= planarImpulse;
 
-		impulseContact.x = deltaVelocity.data[0] +
-			deltaVelocity.data[1] * contact->friction*impulseContact.y +
-			deltaVelocity.data[2] * contact->friction*impulseContact.z;
+		impulseContact.x = deltaVelocity.data[0] + deltaVelocity.data[1] * contact->friction*impulseContact.y + deltaVelocity.data[2] * contact->friction*impulseContact.z;
 		impulseContact.x = contact->desiredDeltaVelocityAlongNormal / impulseContact.x;
 		impulseContact.y *= contact->friction * impulseContact.x;
 		impulseContact.z *= contact->friction * impulseContact.x;
@@ -296,9 +294,12 @@ static void ResolveContactVelocity(Contact* contact, Vector3* out_linearDeltaVel
 
 	Matrix3 inverseInertiaTensorsWs[2];
 	contact->bodies[0]->GetWorldInverseInertiaTensor(inverseInertiaTensorsWs[0]);
+	ASSERT_REASONABLE(inverseInertiaTensorsWs[0]);
+
 	if (contact->bodies[1] != nullptr)
 	{
 		contact->bodies[1]->GetWorldInverseInertiaTensor(inverseInertiaTensorsWs[1]);
+		ASSERT_REASONABLE(inverseInertiaTensorsWs[1]);
 	}
 
 	Vector3 impulseInContactSpace = Vector3::ZERO;
@@ -312,15 +313,22 @@ static void ResolveContactVelocity(Contact* contact, Vector3* out_linearDeltaVel
 		impulseInContactSpace = CalculateFrictionImpulse(contact);
 	}
 
+	ASSERT_REASONABLE(impulseInContactSpace);
+
 	Vector3 impulseWs = contact->contactToWorld * impulseInContactSpace;
+	ASSERT_REASONABLE(impulseWs);
 
 	// Calculate first body delta velocities
 	{
 		Vector3 torqueWs = CrossProduct(contact->bodyToContact[0], impulseWs);
+		ASSERT_REASONABLE(torqueWs);
 
 		// Calculate changes
 		out_linearDeltaVelocities[0] = impulseWs * contact->bodies[0]->GetInverseMass();
 		out_angularDeltaVelocities[0] = inverseInertiaTensorsWs[0] * torqueWs;
+
+		ASSERT_REASONABLE(out_linearDeltaVelocities[0]);
+		ASSERT_REASONABLE(out_angularDeltaVelocities[0]);
 
 		// Apply them
 		contact->bodies[0]->AddWorldVelocity(out_linearDeltaVelocities[0]);
@@ -331,10 +339,14 @@ static void ResolveContactVelocity(Contact* contact, Vector3* out_linearDeltaVel
 	if (contact->bodies[1] != nullptr)
 	{
 		Vector3 torqueWs = CrossProduct(impulseWs, contact->bodyToContact[1]); // Switched cross, since torque would be in opposite direction
+		ASSERT_REASONABLE(torqueWs);
 
 		// Calculate changes
 		out_linearDeltaVelocities[1] = -1.0f * impulseWs * contact->bodies[1]->GetInverseMass(); // Velocity change would be opposite the first
 		out_angularDeltaVelocities[1] = inverseInertiaTensorsWs[1] * torqueWs;
+
+		ASSERT_REASONABLE(out_linearDeltaVelocities[1]);
+		ASSERT_REASONABLE(out_angularDeltaVelocities[1]);
 
 		// Apply them
 		contact->bodies[1]->AddWorldVelocity(out_linearDeltaVelocities[1]);
@@ -350,6 +362,8 @@ static void UpdateContactPenetrations(Contact* contacts, int numContacts, Vector
 	for (int contactIndex = 0; contactIndex < numContacts; ++contactIndex)
 	{
 		Contact* contact = &contacts[contactIndex];
+
+		contact->CheckValuesAreReasonable();
 
 		// Check each body in the contact
 		for (int bodyIndex = 0; bodyIndex < 2; ++bodyIndex)
@@ -367,6 +381,8 @@ static void UpdateContactPenetrations(Contact* contacts, int numContacts, Vector
 				{
 					// If so, find and update the new penetration for this contact
 					Vector3 deltaPosition = linearChanges[resolvedBodyIndex] + CrossProduct(angularChanges[resolvedBodyIndex], contact->bodyToContact[bodyIndex]);
+					ASSERT_REASONABLE(deltaPosition);
+
 					float sign = (bodyIndex == 1 ? 1.f : -1.0f); // If we're body A, any movement along this normal would reduce this penetration, so negative sign. If we're body B, any movement along the normal makes the penetration worse.
 					contact->penetration += sign * DotProduct(deltaPosition, contact->normal);
 
@@ -380,6 +396,8 @@ static void UpdateContactPenetrations(Contact* contacts, int numContacts, Vector
 				}
 			}
 		}
+
+		contact->CheckValuesAreReasonable();
 	}
 }
 
@@ -391,6 +409,7 @@ static void UpdateContactVelocities(Contact* contacts, int numContacts, Vector3*
 	for (int contactIndex = 0; contactIndex < numContacts; ++contactIndex)
 	{
 		Contact* contact = &contacts[contactIndex];
+		contact->CheckValuesAreReasonable();
 
 		// Check each body in the contact
 		for (int bodyIndex = 0; bodyIndex < 2; ++bodyIndex)
@@ -418,6 +437,8 @@ static void UpdateContactVelocities(Contact* contacts, int numContacts, Vector3*
 				}
 			}
 		}
+
+		contact->CheckValuesAreReasonable();
 	}
 }
 
@@ -447,6 +468,7 @@ static void ResolvePenetrations(Contact* contacts, int numContacts, int numItera
 		Vector3 linearChanges[2];
 		Vector3 angularChanges[2];
 
+		contactToResolve->CheckValuesAreReasonable();
 		contactToResolve->MatchAwakeState();
 
 		ResolveContactPenetration(contactToResolve, linearChanges, angularChanges);
@@ -487,6 +509,7 @@ static void ResolveVelocities(Contact* contacts, int numContacts, int numIterati
 		if (contactToResolve == nullptr)
 			break;
 
+		contactToResolve->CheckValuesAreReasonable();
 		contactToResolve->MatchAwakeState();
 
 		ResolveContactVelocity(contactToResolve, linearVelocityChanges, angularVelocityChanges);
