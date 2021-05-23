@@ -271,6 +271,8 @@ static void CreateFaceVertexContact(const BoxCollider& faceCol, const BoxCollide
 	// box two is in contact with box one.
 	OBB3 one = faceCol.GetDataInWorldSpace();
 	OBB3 two = vertexCol.GetDataInWorldSpace();
+	ASSERT_REASONABLE(one);
+	ASSERT_REASONABLE(two);
 
 	// We know which axis the collision is on (i.e. best),
 	// but we need to work out which of the two faces on
@@ -280,6 +282,8 @@ static void CreateFaceVertexContact(const BoxCollider& faceCol, const BoxCollide
 	{
 		normal = normal * -1.0f;
 	}
+
+	ASSERT_OR_DIE(AreMostlyEqual(normal.GetLength(), 1.0f), "Normal not unit!");
 
 	// Work out which vertex of box two we're colliding with.
 	// Using toCentre doesn't work!
@@ -294,38 +298,36 @@ static void CreateFaceVertexContact(const BoxCollider& faceCol, const BoxCollide
 	out_contact->penetration = pen;
 	out_contact->position = (Matrix3(two.rotation) * vertex) + two.center; // Convert from vertex box space to world space
 	FillOutColliderInfo(out_contact, faceCol, vertexCol);
+
+	out_contact->CheckValuesAreReasonable();
 }
 
-static inline Vector3 contactPoint(
-	const Vector3 &pOne,
-	const Vector3 &dOne,
-	float oneSize,
-	const Vector3 &pTwo,
-	const Vector3 &dTwo,
-	float twoSize,
 
-	// If this is true, and the contact point is outside
-	// the edge (in the case of an edge-face contact) then
-	// we use one's midpoint, otherwise we use two's.
-	bool useOne)
+//-------------------------------------------------------------------------------------------------
+// Regarding useOne param: if this is true, and the contact point is outside
+// the edge (in the case of an edge-face contact) then
+// we use one's midpoint, otherwise we use two's.
+static inline Vector3 CalculateEdgeEdgeContactPosition(const Vector3& ptOnEdgeOne, const Vector3& oneAxis, float oneSize, const Vector3& ptOnEdgeTwo, const Vector3& twoAxis, float twoSize, bool useOne)
 {
+	ASSERT_REASONABLE(ptOnEdgeOne);
+
 	Vector3 toSt, cOne, cTwo;
 	float dpStaOne, dpStaTwo, dpOneTwo, smOne, smTwo;
 	float denom, mua, mub;
 
-	smOne = dOne.GetLengthSquared();
-	smTwo = dTwo.GetLengthSquared();
-	dpOneTwo = DotProduct(dTwo, dOne);
+	smOne = oneAxis.GetLengthSquared();
+	smTwo = twoAxis.GetLengthSquared();
+	dpOneTwo = DotProduct(twoAxis, oneAxis);
 
-	toSt = pOne - pTwo;
-	dpStaOne = DotProduct(dOne, toSt);
-	dpStaTwo = DotProduct(dTwo, toSt);
+	toSt = ptOnEdgeOne - ptOnEdgeTwo;
+	dpStaOne = DotProduct(oneAxis, toSt);
+	dpStaTwo = DotProduct(twoAxis, toSt);
 
 	denom = smOne * smTwo - dpOneTwo * dpOneTwo;
 
 	// Zero denominator indicates parallel lines
 	if (Abs(denom) < 0.0001f) {
-		return useOne ? pOne : pTwo;
+		return useOne ? ptOnEdgeOne : ptOnEdgeTwo;
 	}
 
 	mua = (dpOneTwo * dpStaTwo - smTwo * dpStaOne) / denom;
@@ -340,12 +342,12 @@ static inline Vector3 contactPoint(
 		mub > twoSize ||
 		mub < -twoSize)
 	{
-		return useOne ? pOne : pTwo;
+		return useOne ? ptOnEdgeOne : ptOnEdgeTwo;
 	}
 	else
 	{
-		cOne = pOne + dOne * mua;
-		cTwo = pTwo + dTwo * mub;
+		cOne = ptOnEdgeOne + oneAxis * mua;
+		cTwo = ptOnEdgeTwo + twoAxis * mub;
 
 		return cOne * 0.5 + cTwo * 0.5;
 	}
@@ -363,11 +365,16 @@ int CollisionDetector::GenerateContacts(const BoxCollider& a, const BoxCollider&
 
 	OBB3 aBox = a.GetDataInWorldSpace();
 	OBB3 bBox = b.GetDataInWorldSpace();
+	ASSERT_REASONABLE(aBox);
+	ASSERT_REASONABLE(bBox);
 
-	Matrix3 oneBasis(aBox.GetRightVector(), aBox.GetUpVector(), aBox.GetForwardVector());
-	Matrix3 twoBasis(bBox.GetRightVector(), bBox.GetUpVector(), bBox.GetForwardVector());
+	Matrix3 aBasis(aBox.GetRightVector(), aBox.GetUpVector(), aBox.GetForwardVector());
+	Matrix3 bBasis(bBox.GetRightVector(), bBox.GetUpVector(), bBox.GetForwardVector());
+	ASSERT_REASONABLE(aBasis);
+	ASSERT_REASONABLE(bBasis);
 
 	Vector3 aToB = bBox.center - aBox.center;
+	ASSERT_REASONABLE(aToB);
 
 	// We start assuming there is no contact
 	float pen = FLT_MAX;
@@ -376,30 +383,30 @@ int CollisionDetector::GenerateContacts(const BoxCollider& a, const BoxCollider&
 	// Now we check each axes, returning if it gives us
 	// a separating axis, and keeping track of the axis with
 	// the smallest penetration otherwise.
-	CHECK_OVERLAP(oneBasis.columnVectors[0], 0);
-	CHECK_OVERLAP(oneBasis.columnVectors[1], 1);
-	CHECK_OVERLAP(oneBasis.columnVectors[2], 2);
+	CHECK_OVERLAP(aBasis.columnVectors[0], 0);
+	CHECK_OVERLAP(aBasis.columnVectors[1], 1);
+	CHECK_OVERLAP(aBasis.columnVectors[2], 2);
 
-	CHECK_OVERLAP(twoBasis.columnVectors[0], 3);
-	CHECK_OVERLAP(twoBasis.columnVectors[1], 4);
-	CHECK_OVERLAP(twoBasis.columnVectors[2], 5);
+	CHECK_OVERLAP(bBasis.columnVectors[0], 3);
+	CHECK_OVERLAP(bBasis.columnVectors[1], 4);
+	CHECK_OVERLAP(bBasis.columnVectors[2], 5);
 
 	// Store the best axis-major, in case we run into almost
 	// parallel edge collisions later
 	unsigned bestSingleAxis = best;
 
-	CHECK_OVERLAP(CrossProduct(oneBasis.columnVectors[0], twoBasis.columnVectors[0]), 6);
-	CHECK_OVERLAP(CrossProduct(oneBasis.columnVectors[0], twoBasis.columnVectors[1]), 7);
-	CHECK_OVERLAP(CrossProduct(oneBasis.columnVectors[0], twoBasis.columnVectors[2]), 8);
-	CHECK_OVERLAP(CrossProduct(oneBasis.columnVectors[1], twoBasis.columnVectors[0]), 9);
-	CHECK_OVERLAP(CrossProduct(oneBasis.columnVectors[1], twoBasis.columnVectors[1]), 10);
-	CHECK_OVERLAP(CrossProduct(oneBasis.columnVectors[1], twoBasis.columnVectors[2]), 11);
-	CHECK_OVERLAP(CrossProduct(oneBasis.columnVectors[2], twoBasis.columnVectors[0]), 12);
-	CHECK_OVERLAP(CrossProduct(oneBasis.columnVectors[2], twoBasis.columnVectors[1]), 13);
-	CHECK_OVERLAP(CrossProduct(oneBasis.columnVectors[2], twoBasis.columnVectors[2]), 14);
+	CHECK_OVERLAP(CrossProduct(aBasis.columnVectors[0], bBasis.columnVectors[0]), 6);
+	CHECK_OVERLAP(CrossProduct(aBasis.columnVectors[0], bBasis.columnVectors[1]), 7);
+	CHECK_OVERLAP(CrossProduct(aBasis.columnVectors[0], bBasis.columnVectors[2]), 8);
+	CHECK_OVERLAP(CrossProduct(aBasis.columnVectors[1], bBasis.columnVectors[0]), 9);
+	CHECK_OVERLAP(CrossProduct(aBasis.columnVectors[1], bBasis.columnVectors[1]), 10);
+	CHECK_OVERLAP(CrossProduct(aBasis.columnVectors[1], bBasis.columnVectors[2]), 11);
+	CHECK_OVERLAP(CrossProduct(aBasis.columnVectors[2], bBasis.columnVectors[0]), 12);
+	CHECK_OVERLAP(CrossProduct(aBasis.columnVectors[2], bBasis.columnVectors[1]), 13);
+	CHECK_OVERLAP(CrossProduct(aBasis.columnVectors[2], bBasis.columnVectors[2]), 14);
 
 	// Make sure we've got a result.
-	ASSERT_OR_DIE(best != 0xffffff, "oof ouch my bones we failed the thing");
+	ASSERT_OR_DIE(best != 0xffffff, "No best index found!");
 
 	// We now know there's a collision, and we know which
 	// of the axes gave the smallest penetration. We now
@@ -424,15 +431,18 @@ int CollisionDetector::GenerateContacts(const BoxCollider& a, const BoxCollider&
 	{
 		// We've got an edge-edge contact. Find out which axes
 		best -= 6;
-		unsigned oneAxisIndex = best / 3;
-		unsigned twoAxisIndex = best % 3;
-		Vector3 oneAxis = oneBasis.columnVectors[oneAxisIndex];
-		Vector3 twoAxis = twoBasis.columnVectors[twoAxisIndex];
+		int oneAxisIndex = best / 3;
+		int twoAxisIndex = best % 3;
+		Vector3 oneAxis = aBasis.columnVectors[oneAxisIndex];
+		Vector3 twoAxis = bBasis.columnVectors[twoAxisIndex];
 		Vector3 axis = CrossProduct(oneAxis, twoAxis);
 		axis.Normalize();
 
 		// The axis should point from box one to box two.
-		if (DotProduct(axis, aToB) > 0.f) axis = axis * -1.0f;
+		if (DotProduct(axis, aToB) > 0.f)
+		{
+			axis = axis * -1.0f;
+		}
 
 		// We have the axes, but not the edges: each axis has 4 edges parallel
 		// to it, we need to find which of the 4 for each object. We do
@@ -440,28 +450,40 @@ int CollisionDetector::GenerateContacts(const BoxCollider& a, const BoxCollider&
 		// its component in the direction of the box's collision axis is zero
 		// (its a mid-point) and we determine which of the extremes in each
 		// of the other axes is closest.
-		Vector3 ptOnOneEdge = aBox.extents;
-		Vector3 ptOnTwoEdge = bBox.extents;
+		Vector3 ptOnOneEdgeLs = aBox.extents;
+		Vector3 ptOnTwoEdgeLs = bBox.extents;
 		for (unsigned i = 0; i < 3; i++)
 		{
-			if (i == oneAxisIndex) ptOnOneEdge.data[i] = 0.f;
-			else if (DotProduct(oneBasis.columnVectors[i], axis) > 0.f) ptOnOneEdge.data[i] = -ptOnOneEdge.data[i];
+			if (i == oneAxisIndex)
+			{
+				ptOnOneEdgeLs.data[i] = 0.f;
+			}
+			else if (DotProduct(aBasis.columnVectors[i], axis) > 0.f)
+			{
+				ptOnOneEdgeLs.data[i] = -ptOnOneEdgeLs.data[i];
+			}
 
-			if (i == twoAxisIndex) ptOnTwoEdge.data[i] = 0.f;
-			else if (DotProduct(twoBasis.columnVectors[i], axis) < 0.f) ptOnTwoEdge.data[i] = -ptOnTwoEdge.data[i];
+			if (i == twoAxisIndex)
+			{
+				ptOnTwoEdgeLs.data[i] = 0.f;
+			}
+			else if (DotProduct(bBasis.columnVectors[i], axis) < 0.f)
+			{
+				ptOnTwoEdgeLs.data[i] = -ptOnTwoEdgeLs.data[i];
+			}
 		}
 
 		// Move them into world coordinates (they are already oriented
 		// correctly, since they have been derived from the axes).
-		ptOnOneEdge = (oneBasis * ptOnOneEdge) + aBox.center;
-		ptOnTwoEdge = (twoBasis * ptOnTwoEdge) + bBox.center;
+		Vector3 ptOnOneEdgeWs = (aBasis * ptOnOneEdgeLs) + aBox.center;
+		Vector3 ptOnTwoEdgeWs = (bBasis * ptOnTwoEdgeLs) + bBox.center;
 
 		// So we have a point and a direction for the colliding edges.
 		// We need to find out point of closest approach of the two
 		// line-segments.
-		Vector3 vertex = contactPoint(
-			ptOnOneEdge, oneAxis, aBox.extents.data[oneAxisIndex],
-			ptOnTwoEdge, twoAxis, bBox.extents.data[twoAxisIndex],
+		Vector3 vertex = CalculateEdgeEdgeContactPosition(
+			ptOnOneEdgeWs, oneAxis, aBox.extents.data[oneAxisIndex],
+			ptOnTwoEdgeWs, twoAxis, bBox.extents.data[twoAxisIndex],
 			bestSingleAxis > 2
 		);
 
@@ -471,6 +493,7 @@ int CollisionDetector::GenerateContacts(const BoxCollider& a, const BoxCollider&
 		out_contacts->position = vertex;
 		FillOutColliderInfo(out_contacts, a, b);
 
+		out_contacts->CheckValuesAreReasonable();
 		return 1;
 	}
 
