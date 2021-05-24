@@ -266,7 +266,7 @@ static inline bool TryAxis(const BoxCollider& one, const BoxCollider& two, Vecto
 
 //-------------------------------------------------------------------------------------------------
 // 0/1 is +x/-x, 2/3 is +y/-y, 4/5 is +z/-z
-static ContactFeatureID GetIDForFaceOffset(const int bestAxisIndex, bool flip)
+static ContactFeatureID EncodeFaceInfo(const int bestAxisIndex, bool flip)
 {
 	ContactFeatureID id = 2 * bestAxisIndex;
 
@@ -280,7 +280,7 @@ static ContactFeatureID GetIDForFaceOffset(const int bestAxisIndex, bool flip)
 
 
 //-------------------------------------------------------------------------------------------------
-static Vector3 GetNormalFromFaceID(ContactFeatureID id, const Matrix3& basis)
+static Vector3 DecodeFaceID(ContactFeatureID id, const Matrix3& basis)
 {
 	bool flip = false;
 	if (id % 2 == 1)
@@ -304,7 +304,7 @@ static Vector3 GetNormalFromFaceID(ContactFeatureID id, const Matrix3& basis)
 
 //-------------------------------------------------------------------------------------------------
 // First bit is 0 for +x, 1 for -x, second bit is 0 for +y, 1 for -y, third bit is 0 for +z, 1 for -z
-static ContactFeatureID GetIDForVertexOffset(const Vector3& vertexOffset)
+static ContactFeatureID EncodeVertexInfo(const Vector3& vertexOffset)
 {
 	unsigned int bits = 0;
 
@@ -317,7 +317,7 @@ static ContactFeatureID GetIDForVertexOffset(const Vector3& vertexOffset)
 
 
 //-------------------------------------------------------------------------------------------------
-static Vector3 GetVertexOffsetFromID(ContactFeatureID id, const Vector3& extents)
+static Vector3 DecodeVertexID(ContactFeatureID id, const Vector3& extents)
 {
 	Vector3 signs(1.f);
 
@@ -326,6 +326,64 @@ static Vector3 GetVertexOffsetFromID(ContactFeatureID id, const Vector3& extents
 	if (IsBitSet(id, 2)) { signs.z = -1.f; }
 
 	return Vector3(signs.x * extents.x, signs.y * extents.y, signs.z * extents.z);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+static int DecodeEdgeID(const ContactFeatureID& id, const Vector3& extents, Vector3& out_edgeOffset, bool* out_flippedAxis = nullptr)
+{
+	Vector3 signs = Vector3::ZERO;
+
+	if		(IsBitSet(id, 0)) { signs.x = 1.f; }
+	else if (IsBitSet(id, 1)) { signs.x = -1.f; }
+
+	if		(IsBitSet(id, 2)) { signs.y = 1.f; }
+	else if (IsBitSet(id, 3)) { signs.y = -1.f; }
+
+	if		(IsBitSet(id, 4)) { signs.z = 1.f; }
+	else if (IsBitSet(id, 5)) { signs.z = -1.f; }
+
+	out_edgeOffset = Vector3(signs.x * extents.x, signs.y * extents.y, signs.z * extents.z);
+
+	int axisIndex = -1;
+
+	if		(IsBitSet(id, 6)) { axisIndex = 0; }
+	else if (IsBitSet(id, 7)) { axisIndex = 1; }
+	else if (IsBitSet(id, 8)) { axisIndex = 2; }
+
+	ASSERT_OR_DIE(axisIndex >= 0, "Missing axis index!");
+
+	if (out_flippedAxis != nullptr)
+	{
+		*out_flippedAxis = IsBitSet(id, 9);
+	}
+
+	return axisIndex;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+static ContactFeatureID EncodeEdgeInfoIntoID(const Vector3& edgeOffset, const int axisIndex, const bool* encodeFlip = nullptr)
+{
+	unsigned int bits = 0;
+
+	if (edgeOffset.x > 0.f) { SetBit(bits, 0); }
+	else if (edgeOffset.x < 0.f) { SetBit(bits, 1); }
+
+	if (edgeOffset.y > 0.f) { SetBit(bits, 2); }
+	else if (edgeOffset.y < 0.f) { SetBit(bits, 3); }
+
+	if (edgeOffset.z > 0.f) { SetBit(bits, 4); }
+	else if (edgeOffset.z > 0.f) { SetBit(bits, 5); }
+
+	SetBit(bits, axisIndex + 6);
+
+	if (encodeFlip != nullptr && *encodeFlip == true)
+	{
+		SetBit(bits, 9);
+	}
+
+	return bits;
 }
 
 
@@ -367,10 +425,10 @@ static void CreateFaceVertexContact(const BoxCollider& faceCol, const BoxCollide
 	FillOutColliderInfo(out_contact, faceCol, vertexCol);
 
 	// Initialize record for coherence
-	ContactFeatureID faceID = GetIDForFaceOffset(bestAxisIndex, flippedNormal);
-	ContactFeatureID vertexID = GetIDForVertexOffset(vertexOffset);
+	ContactFeatureID faceID = EncodeFaceInfo(bestAxisIndex, flippedNormal);
+	ContactFeatureID vertexID = EncodeVertexInfo(vertexOffset);
 
-	out_contact->featureRecord = ContactFeatureRecord(ContactRecordType::BOX_BOX_FACE_VERTEX, &faceCol, &vertexCol, GetIDForFaceOffset(bestAxisIndex, flippedNormal), GetIDForVertexOffset(vertexOffset));
+	out_contact->featureRecord = ContactFeatureRecord(ContactRecordType::BOX_BOX_FACE_VERTEX, &faceCol, &vertexCol, faceID, vertexID);
 
 	out_contact->CheckValuesAreReasonable();
 }
@@ -512,9 +570,11 @@ int CollisionDetector::GenerateContacts(const BoxCollider& a, const BoxCollider&
 		axis.Normalize();
 
 		// The axis should point from box one to box two.
+		bool flippedAxis = false;
 		if (DotProduct(axis, aToB) > 0.f)
 		{
 			axis = axis * -1.0f;
+			flippedAxis = true;
 		}
 
 		// We have the axes, but not the edges: each axis has 4 edges parallel
@@ -565,6 +625,12 @@ int CollisionDetector::GenerateContacts(const BoxCollider& a, const BoxCollider&
 		out_contacts->normal = axis;
 		out_contacts->position = vertex;
 		FillOutColliderInfo(out_contacts, a, b);
+
+		// Create a record for coherence
+		ContactFeatureID aID = EncodeEdgeInfoIntoID(ptOnOneEdgeLs, oneAxisIndex, &flippedAxis);
+		ContactFeatureID bID = EncodeEdgeInfoIntoID(ptOnTwoEdgeLs, twoAxisIndex);
+
+		out_contacts->featureRecord = ContactFeatureRecord(ContactRecordType::BOX_BOX_EDGE_EDGE, &a, &b, aID, bID);
 
 		out_contacts->CheckValuesAreReasonable();
 		return 1;
