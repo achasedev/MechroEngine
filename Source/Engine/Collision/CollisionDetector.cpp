@@ -265,6 +265,71 @@ static inline bool TryAxis(const BoxCollider& one, const BoxCollider& two, Vecto
 
 
 //-------------------------------------------------------------------------------------------------
+// 0/1 is +x/-x, 2/3 is +y/-y, 4/5 is +z/-z
+static ContactFeatureID GetIDForFaceOffset(const int bestAxisIndex, bool flip)
+{
+	ContactFeatureID id = 2 * bestAxisIndex;
+
+	if (flip)
+	{
+		id += 1;
+	}
+
+	return id;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+static Vector3 GetNormalFromFaceID(ContactFeatureID id, const Matrix3& basis)
+{
+	bool flip = false;
+	if (id % 2 == 1)
+	{
+		id--;
+		flip = true;
+	}
+
+	int bestAxisIndex = id / 2;
+	ASSERT_OR_DIE(bestAxisIndex > 0 && bestAxisIndex < 3, "Bad index!");
+
+	Vector3 normal = basis.columnVectors[bestAxisIndex];
+	if (flip)
+	{
+		normal *= -1.f;
+	}
+
+	return normal;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// First bit is 0 for +x, 1 for -x, second bit is 0 for +y, 1 for -y, third bit is 0 for +z, 1 for -z
+static ContactFeatureID GetIDForVertexOffset(const Vector3& vertexOffset)
+{
+	unsigned int bits = 0;
+
+	if (vertexOffset.x < 0.f) { SetBit(bits, 0); }
+	if (vertexOffset.y < 0.f) { SetBit(bits, 1); }
+	if (vertexOffset.z < 0.f) { SetBit(bits, 2); }
+
+	return bits;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+static Vector3 GetVertexOffsetFromID(ContactFeatureID id, const Vector3& extents)
+{
+	Vector3 signs(1.f);
+
+	if (IsBitSet(id, 0)) { signs.x = -1.f; }
+	if (IsBitSet(id, 1)) { signs.y = -1.f; }
+	if (IsBitSet(id, 2)) { signs.z = -1.f; }
+
+	return Vector3(signs.x * extents.x, signs.y * extents.y, signs.z * extents.z);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 static void CreateFaceVertexContact(const BoxCollider& faceCol, const BoxCollider& vertexCol, const Vector3 &aToB, Contact* out_contact, const int bestAxisIndex, float pen)
 {
 	// This method is called when we know that a vertex from
@@ -278,26 +343,34 @@ static void CreateFaceVertexContact(const BoxCollider& faceCol, const BoxCollide
 	// but we need to work out which of the two faces on
 	// this axis.
 	Vector3 normal = Matrix3(one.rotation).columnVectors[bestAxisIndex];
+	bool flippedNormal = false;
 	if (DotProduct(normal, aToB) > 0.f)
 	{
 		normal = normal * -1.0f;
+		flippedNormal = true;
 	}
 
 	ASSERT_OR_DIE(AreMostlyEqual(normal.GetLength(), 1.0f), "Normal not unit!");
 
 	// Work out which vertex of box two we're colliding with.
 	// Using toCentre doesn't work!
-	Vector3 vertex = two.extents;
-	if (DotProduct(two.GetRightVector(), normal) < 0.f) vertex.x = -vertex.x;
-	if (DotProduct(two.GetUpVector(), normal) < 0.f) vertex.y = -vertex.y;
-	if (DotProduct(two.GetForwardVector(), normal) < 0.f) vertex.z = -vertex.z;
+	Vector3 vertexOffset = two.extents;
+	if (DotProduct(two.GetRightVector(), normal) < 0.f)		{ vertexOffset.x = -vertexOffset.x; }
+	if (DotProduct(two.GetUpVector(), normal) < 0.f)		{ vertexOffset.y = -vertexOffset.y; }
+	if (DotProduct(two.GetForwardVector(), normal) < 0.f)	{ vertexOffset.z = -vertexOffset.z; }
 
 
 	// Create the contact data
 	out_contact->normal = normal;
 	out_contact->penetration = pen;
-	out_contact->position = (Matrix3(two.rotation) * vertex) + two.center; // Convert from vertex box space to world space
+	out_contact->position = (Matrix3(two.rotation) * vertexOffset) + two.center; // Convert from vertex box space to world space
 	FillOutColliderInfo(out_contact, faceCol, vertexCol);
+
+	// Initialize record for coherence
+	ContactFeatureID faceID = GetIDForFaceOffset(bestAxisIndex, flippedNormal);
+	ContactFeatureID vertexID = GetIDForVertexOffset(vertexOffset);
+
+	out_contact->featureRecord = ContactFeatureRecord(ContactRecordType::BOX_BOX_FACE_VERTEX, &faceCol, &vertexCol, GetIDForFaceOffset(bestAxisIndex, flippedNormal), GetIDForVertexOffset(vertexOffset));
 
 	out_contact->CheckValuesAreReasonable();
 }

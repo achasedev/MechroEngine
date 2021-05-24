@@ -138,10 +138,13 @@ Vector3 CalculateNormalForTriangle(const Vector3& a, const Vector3& b, const Vec
 
 //-------------------------------------------------------------------------------------------------
 // Bitflag utilities
+bool		IsBitSet(const unsigned int bits, unsigned int indexFromRight);
 bool		AreBitsSet(unsigned char bitFlags8, unsigned char flagsToCheck);
 bool		AreBitsSet(unsigned int bitFlags32, unsigned int flagsToCheck);
+void		SetBit(unsigned int& bits, unsigned int indexFromRight);
 void		SetBits(unsigned char& bitFlags8, unsigned char flagsToSet);
 void		SetBits(unsigned int& bitFlags32, unsigned int flagsToSet);
+void		ClearBit(unsigned int& bits, unsigned int indexFromRight);
 void		ClearBits(unsigned char& bitFlags8, unsigned char flagsToClear);
 void		ClearBits(unsigned int& bitFlags32, unsigned int flagsToClear);
 uint32_t	GetBitsReversed(const uint32_t& bits);

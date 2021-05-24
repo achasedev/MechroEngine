@@ -18,13 +18,14 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class Collider;
 class RigidBody;
-
-typedef Vector3 FeatureID;
-struct FeatureRecord
+typedef unsigned int ContactFeatureID;
+enum class ContactRecordType
 {
-	FeatureID first;
-	FeatureID second;
+	INVALID = -1,
+	BOX_BOX_EDGE_EDGE,
+	BOX_BOX_FACE_VERTEX,
 };
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -34,6 +35,33 @@ struct FeatureRecord
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------
+class ContactFeatureRecord
+{
+public:
+	//-----Public Methods-----
+
+	ContactFeatureRecord() {}
+	ContactFeatureRecord(ContactRecordType type, const Collider* firstCollider, const Collider* secondCollider, ContactFeatureID firstID, ContactFeatureID secondID);
+
+	bool operator==(const ContactFeatureRecord& other) const;
+	bool operator!=(const ContactFeatureRecord& other) const;
+
+	bool IsValid() const { return m_type != ContactRecordType::INVALID; }
+
+
+private:
+	//-----Private Data-----
+
+	ContactRecordType	m_type = ContactRecordType::INVALID;
+	const Collider*		m_firstCollider = nullptr;
+	const Collider*		m_secondCollider = nullptr;
+	ContactFeatureID	m_firstID = 0;
+	ContactFeatureID	m_secondID = 0;
+
+};
+
 
 //-------------------------------------------------------------------------------------------------
 class Contact
@@ -55,17 +83,17 @@ public:
 public:
 	//-----Public Data-----
 
-	Vector3			position = Vector3::ZERO;
-	Vector3			normal = Vector3::ZERO;
-	float			penetration = 0.f;
-	float			restitution = 1.f;
-	float			friction = 0.f;
-	RigidBody*		bodies[2];
-	Matrix3			contactToWorld = Matrix3::IDENTITY;
-	Vector3			closingVelocityContactSpace = Vector3::ZERO;
-	float			desiredDeltaVelocityAlongNormal = 0.f;
-	Vector3			bodyToContact[2];
-	FeatureRecord	featureRecord;
+	Vector3					position = Vector3::ZERO;
+	Vector3					normal = Vector3::ZERO;
+	float					penetration = 0.f;
+	float					restitution = 1.f;
+	float					friction = 0.f;
+	RigidBody*				bodies[2];
+	Matrix3					contactToWorld = Matrix3::IDENTITY;
+	Vector3					closingVelocityContactSpace = Vector3::ZERO;
+	float					desiredDeltaVelocityAlongNormal = 0.f;
+	Vector3					bodyToContact[2];
+	ContactFeatureRecord	featureRecord;
 
 };
 

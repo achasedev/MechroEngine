@@ -200,3 +200,28 @@ void Contact::MatchAwakeState()
 		bodies[0]->SetIsAwake(true);
 	}
 }
+
+
+//-------------------------------------------------------------------------------------------------
+ContactFeatureRecord::ContactFeatureRecord(ContactRecordType type, const Collider* firstCollider, const Collider* secondCollider, ContactFeatureID firstID, ContactFeatureID secondID)
+	: m_type(type)
+	, m_firstCollider(firstCollider)
+	, m_secondCollider(secondCollider)
+	, m_firstID(firstID)
+	, m_secondID(secondID)
+{
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool ContactFeatureRecord::operator==(const ContactFeatureRecord& other) const
+{
+	return (m_type == other.m_type) && (m_firstCollider == other.m_firstCollider) && (m_secondCollider == other.m_secondCollider) && (m_firstID == other.m_firstID) && (m_secondID == other.m_secondID);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool ContactFeatureRecord::operator!=(const ContactFeatureRecord& other) const
+{
+	return !((*this) == other);
+}

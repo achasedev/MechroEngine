@@ -708,6 +708,14 @@ Vector3 CalculateNormalForTriangle(const Vector3& a, const Vector3& b, const Vec
 
 
 //-------------------------------------------------------------------------------------------------
+bool IsBitSet(const unsigned int bits, unsigned int indexFromRight)
+{
+	unsigned int bitmask = (1 << indexFromRight);
+	return ((bits & bitmask) == bitmask);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 bool AreBitsSet(unsigned char bitFlags8, unsigned char flagsToCheck)
 {
 	return ((bitFlags8 & flagsToCheck) == flagsToCheck);
@@ -722,6 +730,15 @@ bool AreBitsSet(unsigned int bitFlags32, unsigned int flagsToCheck)
 
 
 //-------------------------------------------------------------------------------------------------
+void SetBit(unsigned int& bits, unsigned int indexFromRight)
+{
+	ASSERT_OR_DIE(indexFromRight < 32U, "Invalid index!");
+
+	bits |= (1 << indexFromRight);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void SetBits(unsigned char& bitFlags8, unsigned char flagsToSet)
 {
 	bitFlags8 |= flagsToSet;
@@ -732,6 +749,16 @@ void SetBits(unsigned char& bitFlags8, unsigned char flagsToSet)
 void SetBits(unsigned int& bitFlags32, unsigned int flagsToSet)
 {
 	bitFlags32 |= flagsToSet;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void ClearBit(unsigned int& bits, unsigned int indexFromRight)
+{
+	ASSERT_OR_DIE(indexFromRight < 32, "Bad index!");
+
+	unsigned int bitMask = ~(1 << indexFromRight);
+	bits &= bitMask;
 }
 
 
