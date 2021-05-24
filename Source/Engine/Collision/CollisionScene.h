@@ -64,18 +64,12 @@ private:
 	BVHNode<BoundingVolumeClass>* GetAndEraseLeafNodeForEntity(Entity* entity);
 	BoundingVolumeClass MakeBoundingVolumeForPrimitive(const Collider* primitive) const;
 
-	// Coherency
-	void FinalizeContacts();
-	void IncrementCoherentContactAges();
-	void MoveNewContactsToCoherentArray();
-	void RefreshOrRemoveCoherentContacts();
-
 
 private:
 	//-----Private Static Data
 
 	static constexpr int MAX_POTENTIAL_COLLISION_COUNT = 50;
-	static constexpr int MAX_CONTACT_COUNT = 50;
+	static constexpr int MAX_CONTACT_COUNT = 100;
 
 
 private:
@@ -87,17 +81,13 @@ private:
 	PotentialCollision							m_potentialCollisions[MAX_POTENTIAL_COLLISION_COUNT];
 	int											m_numPotentialCollisions = 0;
 
-	bool										m_isDoingCoherency = false;
 	int											m_numNewContacts = 0;
 	Contact*									m_newContacts = nullptr;
-	int											m_numCoherentContacts = 0;
-	Contact*									m_coherentContacts = nullptr;
 
 	CollisionDetector							m_detector;
 
-	int											m_defaultNumVelocityIterations = 100;
-	int											m_defaultNumPenetrationIterations = 100;
-
+	int											m_defaultNumVelocityIterations = 20;
+	int											m_defaultNumPenetrationIterations = 20;
 	ContactResolver								m_resolver;
 
 };
@@ -105,152 +95,13 @@ private:
 
 //-------------------------------------------------------------------------------------------------
 template <class BoundingVolumeClass>
-void CollisionScene<BoundingVolumeClass>::RefreshOrRemoveCoherentContacts()
-{
-	const int maxAge = 5;
-	const float penLimit = -2.f * m_resolver.GetPenetrationEpsilon();
-	for (int i = m_numCoherentContacts - 1; i >= 0; --i)
-	{
-		Contact& contact = m_coherentContacts[i];
-		ASSERT_OR_DIE(contact.isValid, "Coherent contact array is fragmented!");
-
-		// Don't update new contacts
-		if (contact.ageInFrames > 0)
-		{
-			if (contact.featureRecord.GetType() != CONTACT_RECORD_INVALID)
-			{
-				if (contact.ageInFrames > 0)
-				{
-					m_detector.RefreshContact(&contact); // We can't tell if this contact isn't penning anymore without refreshing first
-
-					if (contact.ageInFrames > maxAge || contact.penetration < penLimit)
-					{
-						if (i < m_numCoherentContacts - 1)
-						{
-							contact = m_coherentContacts[m_numCoherentContacts - 1];
-						}
-
-						m_coherentContacts[m_numCoherentContacts - 1].isValid = false;
-						m_numCoherentContacts--;
-					}
-				}
-			}
-			else
-			{
-				// Old contact that can't be refreshed, so just delete it
-				if (i < m_numCoherentContacts - 1)
-				{
-					contact = m_coherentContacts[m_numCoherentContacts - 1];
-				}
-
-				m_coherentContacts[m_numCoherentContacts - 1].isValid = false;
-				m_numCoherentContacts--;
-			}
-		}
-	}
-}
-
-
-//-------------------------------------------------------------------------------------------------
-template <class BoundingVolumeClass>
-void CollisionScene<BoundingVolumeClass>::MoveNewContactsToCoherentArray()
-{
-	ASSERT_OR_DIE(m_isDoingCoherency, "CollisionScene isn't doing coherency!");
-
-	for (int newContactIndex = 0; newContactIndex < m_numNewContacts; ++newContactIndex)
-	{
-		Contact& newContact = m_newContacts[newContactIndex];
-		bool foundMatch = false;
-
-		// Find if this contact already exists from a recent collision check
-		if (newContact.featureRecord.GetType() != CONTACT_RECORD_INVALID)
-		{
-			for (int coherentContactIndex = 0; coherentContactIndex < m_numCoherentContacts; ++coherentContactIndex)
-			{
-				if (m_coherentContacts[coherentContactIndex].isValid)
-				{
-					if (m_coherentContacts[coherentContactIndex].featureRecord == newContact.featureRecord)
-					{
-						// Update in place
-						m_coherentContacts[coherentContactIndex] = newContact;
-						newContact.isValid = false;
-						ASSERT_OR_DIE(m_coherentContacts[coherentContactIndex].ageInFrames == 0, "Bad age!"); // Sanity check
-						foundMatch = true;
-						break;
-					}
-				}
-			}
-		}
-
-		if (!foundMatch)
-		{
-			// It's a brand new contact, so add it to the array
-			if (m_numCoherentContacts < MAX_CONTACT_COUNT)
-			{
-				m_coherentContacts[m_numCoherentContacts] = newContact;
-				m_numCoherentContacts++;
-			}
-			else
-			{
-				ConsoleWarningf("Ran out of room for coherent contacts! Had to drop a contact");
-			}
-
-			newContact.isValid = false;
-		}
-	}
-
-	m_numNewContacts = 0;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-template <class BoundingVolumeClass>
-void CollisionScene<BoundingVolumeClass>::IncrementCoherentContactAges()
-{
-	ASSERT_OR_DIE(m_isDoingCoherency, "CollisionScene isn't doing coherency!");
-
-	for (int i = 0; i < m_numCoherentContacts; ++i)
-	{
-		if (m_coherentContacts[i].isValid)
-		{
-			m_coherentContacts[i].ageInFrames++;
-		}
-	}
-}
-
-
-//-------------------------------------------------------------------------------------------------
-template <class BoundingVolumeClass>
-void CollisionScene<BoundingVolumeClass>::FinalizeContacts()
-{
-	IncrementCoherentContactAges();
-	MoveNewContactsToCoherentArray();
-	RefreshOrRemoveCoherentContacts();
-}
-
-
-//-------------------------------------------------------------------------------------------------
-template <class BoundingVolumeClass>
 CollisionScene<BoundingVolumeClass>::CollisionScene()
 {
-	if (m_isDoingCoherency)
-	{
-		m_newContacts = (Contact*)malloc(sizeof(Contact) * 2 * MAX_CONTACT_COUNT);
-		m_coherentContacts = m_newContacts + MAX_CONTACT_COUNT;
+	m_newContacts = (Contact*)malloc(sizeof(Contact) * MAX_CONTACT_COUNT);
 
-		for (int i = 0; i < 2 * MAX_CONTACT_COUNT; ++i)
-		{
-			m_newContacts[i] = Contact();
-		}
-	}
-	else
+	for (int i = 0; i < MAX_CONTACT_COUNT; ++i)
 	{
-		m_newContacts = (Contact*)malloc(sizeof(Contact) * MAX_CONTACT_COUNT);
-
-		for (int i = 0; i < MAX_CONTACT_COUNT; ++i)
-		{
-			m_newContacts[i] = Contact();
-		}
+		m_newContacts[i] = Contact();
 	}
 }
 
@@ -259,21 +110,10 @@ CollisionScene<BoundingVolumeClass>::CollisionScene()
 template <class BoundingVolumeClass>
 void CollisionScene<BoundingVolumeClass>::DebugDrawContacts() const
 {
-	if (m_isDoingCoherency)
+	for (int i = 0; i < m_numNewContacts; ++i)
 	{
-		for (int i = 0; i < m_numCoherentContacts; ++i)
-		{
-			const Contact& contact = m_coherentContacts[i];
-			DebugDrawSphere(contact.position, 0.1f, Rgba::CYAN, 0.f);
-		}
-	}
-	else
-	{
-		for (int i = 0; i < m_numNewContacts; ++i)
-		{
-			const Contact& contact = m_newContacts[i];
-			DebugDrawSphere(contact.position, 0.1f, Rgba::CYAN, 0.f);
-		}
+		const Contact& contact = m_newContacts[i];
+		DebugDrawSphere(contact.position, 0.1f, Rgba::CYAN, 0.f);
 	}
 }
 
@@ -430,25 +270,11 @@ void CollisionScene<BoundingVolumeClass>::GenerateContacts()
 template <class BoundingVolumeClass>
 void CollisionScene<BoundingVolumeClass>::ResolveContacts(float deltaSeconds)
 {
-	Contact* contactsToResolve = m_newContacts;
-	int numContactsToResolve = m_numNewContacts;
-
-	if (m_isDoingCoherency && (m_numNewContacts + m_numCoherentContacts) > 0)
-	{
-		ConsolePrintf("New Contacts: %i", m_numNewContacts);
-		ConsolePrintf("Contacts From Last Frame: %i", m_numCoherentContacts);
-		FinalizeContacts();
-		contactsToResolve = m_coherentContacts;
-		numContactsToResolve = m_numCoherentContacts;
-
-		ConsolePrintf("Merged Contacts: %i", m_numCoherentContacts);
-	}
-
-	if (numContactsToResolve > 0)
+	if (m_numNewContacts > 0)
 	{	
-		m_resolver.SetMaxVelocityIterations(Min(m_defaultNumVelocityIterations, 2 * numContactsToResolve));
-		m_resolver.SetMaxPenetrationIterations(Min(m_defaultNumPenetrationIterations, 2 * numContactsToResolve));
-		m_resolver.ResolveContacts(contactsToResolve, numContactsToResolve, deltaSeconds);
+		m_resolver.SetMaxVelocityIterations(Min(m_defaultNumVelocityIterations, 2 * m_numNewContacts));
+		m_resolver.SetMaxPenetrationIterations(Min(m_defaultNumPenetrationIterations, 2 * m_numNewContacts));
+		m_resolver.ResolveContacts(m_newContacts, m_numNewContacts, deltaSeconds);
 	}
 }
 

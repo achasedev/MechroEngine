@@ -41,8 +41,6 @@ public:
 	int GenerateContacts(const BoxCollider& box,		const SphereCollider& sphere,		Contact* out_contacts, int limit);
 	int GenerateContacts(const BoxCollider& a,			const BoxCollider& b,				Contact* out_contacts, int limit);
 
-	void RefreshContact(Contact* contact);
-
 
 private:
 	//-----Private Data-----

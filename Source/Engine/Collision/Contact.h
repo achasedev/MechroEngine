@@ -18,15 +18,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Collider;
 class RigidBody;
-typedef unsigned int ContactFeatureID;
-enum ContactRecordType
-{
-	CONTACT_RECORD_INVALID = -1,
-	CONTACT_RECORD_BOX_BOX_EDGE_EDGE,
-	CONTACT_RECORD_BOX_BOX_FACE_VERTEX,
-};
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -35,37 +27,6 @@ enum ContactRecordType
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------------------------------
-class ContactFeatureRecord
-{
-public:
-	//-----Public Methods-----
-
-	ContactFeatureRecord() {}
-	ContactFeatureRecord(ContactRecordType type, const Collider* firstCollider, const Collider* secondCollider, ContactFeatureID firstID, ContactFeatureID secondID);
-
-	bool operator==(const ContactFeatureRecord& other) const;
-	bool operator!=(const ContactFeatureRecord& other) const;
-
-	bool IsValid() const { return m_type != CONTACT_RECORD_INVALID; }
-	ContactRecordType GetType() const { return m_type; }
-	const Collider* GetFirstCollider() const { return m_firstCollider; }
-	const Collider* GetSecondCollider() const { return m_secondCollider; }
-	ContactFeatureID GetFirstID() const { return m_firstID; }
-	ContactFeatureID GetSecondID() const { return m_secondID; }
-
-
-private:
-	//-----Private Data-----
-
-	ContactRecordType	m_type = CONTACT_RECORD_INVALID;
-	const Collider*		m_firstCollider = nullptr;
-	const Collider*		m_secondCollider = nullptr;
-	ContactFeatureID	m_firstID = 0;
-	ContactFeatureID	m_secondID = 0;
-
-};
 
 
 //-------------------------------------------------------------------------------------------------
@@ -98,9 +59,6 @@ public:
 	Vector3					closingVelocityContactSpace = Vector3::ZERO;
 	float					desiredDeltaVelocityAlongNormal = 0.f;
 	Vector3					bodyToContact[2];
-	ContactFeatureRecord	featureRecord;
-	bool					isValid = false;
-	int						ageInFrames = 0;
 
 };
 

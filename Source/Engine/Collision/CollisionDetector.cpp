@@ -49,12 +49,20 @@ static float CalculateRestitutionBetween(const Collider& a, const Collider& b)
 //-------------------------------------------------------------------------------------------------
 static void FillOutColliderInfo(Contact* contact, const Collider& a, const Collider& b)
 {
-	contact->bodies[0] = a.GetOwnerRigidBody();
-	contact->bodies[1] = b.GetOwnerRigidBody();
+	if (a.GetOwnerRigidBody() == nullptr)
+	{
+		contact->bodies[0] = b.GetOwnerRigidBody();
+		contact->bodies[1] = a.GetOwnerRigidBody();
+		contact->normal *= -1.f;
+	}
+	else
+	{
+		contact->bodies[0] = a.GetOwnerRigidBody();
+		contact->bodies[1] = b.GetOwnerRigidBody();
+	}
+
 	contact->restitution = CalculateRestitutionBetween(a, b);
 	contact->friction = CalculateFrictionBetween(a, b);
-	contact->isValid = true;
-	contact->ageInFrames = 0;
 }
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -244,7 +252,7 @@ static inline float GetPenetrationOnAxis(const BoxCollider& a, const BoxCollider
 
 //-------------------------------------------------------------------------------------------------
 // Returns true to signal we haven't found a gap yet and to keep checking axes
-static inline bool GetAxisPen(const BoxCollider& one, const BoxCollider& two, Vector3 axis, const Vector3& toCentre, unsigned index, float& out_smallestPen, unsigned &out_smallestIndex)
+static inline bool CheckAxis(const BoxCollider& one, const BoxCollider& two, Vector3 axis, const Vector3& toCentre, unsigned index, float& out_smallestPen, unsigned &out_smallestIndex)
 {
 	// Make sure we have a normalized axis, and don't check almost parallel axes
 	if (AreMostlyEqual(axis.GetLengthSquared(), 0.f)) 
@@ -263,146 +271,6 @@ static inline bool GetAxisPen(const BoxCollider& one, const BoxCollider& two, Ve
 	}
 
 	return true;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-// 0/1 is +x/-x, 2/3 is +y/-y, 4/5 is +z/-z
-static ContactFeatureID EncodeFaceInfo(const int bestAxisIndex, bool flip)
-{
-	ContactFeatureID id = 2 * bestAxisIndex;
-
-	if (flip)
-	{
-		id += 1;
-	}
-
-	return id;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-static Vector3 DecodeFaceID(ContactFeatureID id, const Matrix3& basis)
-{
-	bool flip = false;
-	if (id % 2 == 1)
-	{
-		id--;
-		flip = true;
-	}
-
-	int bestAxisIndex = id / 2;
-	ASSERT_OR_DIE(bestAxisIndex > 0 && bestAxisIndex < 3, "Bad index!");
-
-	Vector3 normal = basis.columnVectors[bestAxisIndex];
-	if (flip)
-	{
-		normal *= -1.f;
-	}
-
-	return normal;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-// First bit is 0 for +x, 1 for -x, second bit is 0 for +y, 1 for -y, third bit is 0 for +z, 1 for -z
-static ContactFeatureID EncodeVertexInfo(const Vector3& vertexOffset)
-{
-	unsigned int bits = 0;
-
-	if (vertexOffset.x < 0.f) { SetBit(bits, 0); }
-	if (vertexOffset.y < 0.f) { SetBit(bits, 1); }
-	if (vertexOffset.z < 0.f) { SetBit(bits, 2); }
-
-	return bits;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-static Vector3 DecodeVertexID(ContactFeatureID id, const Vector3& extents)
-{
-	Vector3 signs(1.f);
-
-	if (IsBitSet(id, 0)) { signs.x = -1.f; }
-	if (IsBitSet(id, 1)) { signs.y = -1.f; }
-	if (IsBitSet(id, 2)) { signs.z = -1.f; }
-
-	return Vector3(signs.x * extents.x, signs.y * extents.y, signs.z * extents.z);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-static int DecodeEdgeID(const ContactFeatureID& id, const Vector3& extents, Vector3& out_edgeOffset, bool* out_flippedAxis = nullptr, unsigned int* out_bestSingleAxisIndex = nullptr)
-{
-	Vector3 signs = Vector3::ZERO;
-
-	if		(IsBitSet(id, 0)) { signs.x = 1.f; }
-	else if (IsBitSet(id, 1)) { signs.x = -1.f; }
-
-	if		(IsBitSet(id, 2)) { signs.y = 1.f; }
-	else if (IsBitSet(id, 3)) { signs.y = -1.f; }
-
-	if		(IsBitSet(id, 4)) { signs.z = 1.f; }
-	else if (IsBitSet(id, 5)) { signs.z = -1.f; }
-
-	out_edgeOffset = Vector3(signs.x * extents.x, signs.y * extents.y, signs.z * extents.z);
-
-	int axisIndex = -1;
-
-	if		(IsBitSet(id, 6)) { axisIndex = 0; }
-	else if (IsBitSet(id, 7)) { axisIndex = 1; }
-	else if (IsBitSet(id, 8)) { axisIndex = 2; }
-
-	ASSERT_OR_DIE(axisIndex >= 0, "Missing axis index!");
-
-	if (out_flippedAxis != nullptr)
-	{
-		*out_flippedAxis = IsBitSet(id, 9);
-	}
-
-	if (out_bestSingleAxisIndex != nullptr)
-	{
-		for (unsigned int i = 0; i < 6; ++i)
-		{
-			if (IsBitSet(id, 10U + i))
-			{
-				*out_bestSingleAxisIndex = i;
-				break;
-			}
-		}
-	}
-
-	return axisIndex;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-static ContactFeatureID EncodeEdgeInfoIntoID(const Vector3& edgeOffset, const int axisIndex, const bool* encodeFlip = nullptr, const unsigned int* bestSingleAxis = nullptr)
-{
-	unsigned int bits = 0;
-
-	if (edgeOffset.x > 0.f) { SetBit(bits, 0); }
-	else if (edgeOffset.x < 0.f) { SetBit(bits, 1); }
-
-	if (edgeOffset.y > 0.f) { SetBit(bits, 2); }
-	else if (edgeOffset.y < 0.f) { SetBit(bits, 3); }
-
-	if (edgeOffset.z > 0.f) { SetBit(bits, 4); }
-	else if (edgeOffset.z > 0.f) { SetBit(bits, 5); }
-
-	SetBit(bits, axisIndex + 6);
-
-	if (encodeFlip != nullptr && *encodeFlip == true)
-	{
-		SetBit(bits, 9);
-	}
-
-	if (bestSingleAxis != nullptr)
-	{
-		SetBit(bits, *bestSingleAxis + 10);
-	}
-
-	return bits;
 }
 
 
@@ -442,12 +310,6 @@ static void CreateFaceVertexContact(const BoxCollider& faceCol, const BoxCollide
 	out_contact->penetration = pen;
 	out_contact->position = (Matrix3(two.rotation) * vertexOffset) + two.center; // Convert from vertex box space to world space
 	FillOutColliderInfo(out_contact, faceCol, vertexCol);
-
-	// Initialize record for coherence
-	ContactFeatureID faceID = EncodeFaceInfo(bestAxisIndex, flippedNormal);
-	ContactFeatureID vertexID = EncodeVertexInfo(vertexOffset);
-
-	out_contact->featureRecord = ContactFeatureRecord(ContactRecordType::CONTACT_RECORD_BOX_BOX_FACE_VERTEX, &faceCol, &vertexCol, faceID, vertexID);
 
 	out_contact->CheckValuesAreReasonable();
 }
@@ -506,7 +368,7 @@ static inline Vector3 CalculateEdgeEdgeContactPosition(const Vector3& ptOnEdgeOn
 // This preprocessor definition is only used as a convenience
 // in the boxAndBox contact generation method.
 #define CHECK_OVERLAP(axis, index) \
-    if (!GetAxisPen(a, b, (axis), aToB, (index), pen, best)) return 0;
+    if (!CheckAxis(a, b, (axis), aToB, (index), pen, best)) return 0;
 
 int CollisionDetector::GenerateContacts(const BoxCollider& a, const BoxCollider& b, Contact* out_contacts, int limit)
 {
@@ -645,12 +507,6 @@ int CollisionDetector::GenerateContacts(const BoxCollider& a, const BoxCollider&
 		out_contacts->position = vertex;
 		FillOutColliderInfo(out_contacts, a, b);
 
-		// Create a record for coherence
-		ContactFeatureID aID = EncodeEdgeInfoIntoID(ptOnOneEdgeLs, oneAxisIndex, &flippedAxis, &bestSingleAxis);
-		ContactFeatureID bID = EncodeEdgeInfoIntoID(ptOnTwoEdgeLs, twoAxisIndex);
-
-		out_contacts->featureRecord = ContactFeatureRecord(ContactRecordType::CONTACT_RECORD_BOX_BOX_EDGE_EDGE, &a, &b, aID, bID);
-
 		out_contacts->CheckValuesAreReasonable();
 		return 1;
 	}
@@ -658,83 +514,3 @@ int CollisionDetector::GenerateContacts(const BoxCollider& a, const BoxCollider&
 	return 0;
 }
 #undef CHECK_OVERLAP
-
-
-//-------------------------------------------------------------------------------------------------
-static void RefreshEdgeEdgeContact(Contact* contact)
-{
-	ContactFeatureID firstID = contact->featureRecord.GetFirstID();
-	ContactFeatureID secondID = contact->featureRecord.GetSecondID();
-
-	const BoxCollider* a = contact->featureRecord.GetFirstCollider()->GetAsType<BoxCollider>();
-	const BoxCollider* b = contact->featureRecord.GetSecondCollider()->GetAsType<BoxCollider>();
-
-	OBB3 aBoxWs = a->GetDataInWorldSpace();
-	OBB3 bBoxWs = b->GetDataInWorldSpace();
-	Vector3 aToB = bBoxWs.center - aBoxWs.center;
-
-	Matrix3 aBasis(aBoxWs.rotation);
-	Matrix3 bBasis(bBoxWs.rotation);
-
-	Vector3 ptOnOneEdgeLs = Vector3::ZERO;
-	bool flippedAxis = false;
-	unsigned int bestSingleAxis = 0;
-	int oneAxisIndex = DecodeEdgeID(firstID, aBoxWs.extents, ptOnOneEdgeLs, &flippedAxis, &bestSingleAxis);
-
-	Vector3 ptOnTwoEdgeLs = Vector3::ZERO;
-	int twoAxisIndex = DecodeEdgeID(secondID, bBoxWs.extents, ptOnTwoEdgeLs);
-
-	Vector3 ptOnOneEdgeWs = (aBasis * ptOnOneEdgeLs) + aBoxWs.center;
-	Vector3 ptOnTwoEdgeWs = (bBasis * ptOnTwoEdgeLs) + bBoxWs.center;
-
-	unsigned unused = 0xffffff;
-	Vector3 axis = (flippedAxis ? -1.0f : 1.0f) * CrossProduct(aBasis.columnVectors[oneAxisIndex], bBasis.columnVectors[twoAxisIndex]);
-	GetAxisPen(*a, *b, axis, aToB, 0, contact->penetration, unused);
-	contact->normal = axis;
-	contact->position = CalculateEdgeEdgeContactPosition(ptOnOneEdgeWs, aBasis.columnVectors[oneAxisIndex], aBoxWs.extents.data[oneAxisIndex], ptOnTwoEdgeWs, bBasis.columnVectors[twoAxisIndex], bBoxWs.extents.data[twoAxisIndex], bestSingleAxis > 2);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-static void RefreshFaceVertexContact(Contact* contact)
-{
-	ContactFeatureID firstID = contact->featureRecord.GetFirstID();
-	ContactFeatureID secondID = contact->featureRecord.GetSecondID();
-
-	const BoxCollider* a = contact->featureRecord.GetFirstCollider()->GetAsType<BoxCollider>();
-	const BoxCollider* b = contact->featureRecord.GetSecondCollider()->GetAsType<BoxCollider>();
-
-	OBB3 aBoxWs = a->GetDataInWorldSpace();
-	OBB3 bBoxWs = b->GetDataInWorldSpace();
-	Vector3 aToB = bBoxWs.center - aBoxWs.center;
-
-	Matrix3 aBasis(aBoxWs.rotation);
-	Matrix3 bBasis(bBoxWs.rotation);
-
-	contact->normal = DecodeFaceID(firstID, aBasis);
-	Vector3 positionLs = DecodeVertexID(secondID, bBoxWs.extents);
-	contact->position = bBasis * positionLs + bBoxWs.center;
-	
-	unsigned unused = 0xffffff;
-	GetAxisPen(*a, *b, contact->normal, aToB, 0, contact->penetration, unused);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void CollisionDetector::RefreshContact(Contact* contact)
-{
-	contact->CheckValuesAreReasonable();
-
-	switch (contact->featureRecord.GetType())
-	{
-	case ContactRecordType::CONTACT_RECORD_BOX_BOX_EDGE_EDGE:
-		RefreshEdgeEdgeContact(contact);
-		break;
-	case ContactRecordType::CONTACT_RECORD_BOX_BOX_FACE_VERTEX:
-		RefreshFaceVertexContact(contact);
-		break;
-	default:
-		ERROR_AND_DIE("Invalid record type!");
-		break;
-	}
-}

@@ -69,9 +69,10 @@ void Contact::CalculateBasis()
 {
 	CheckValuesAreReasonable();
 
-	ASSERT_OR_DIE(AreMostlyEqual(normal.GetLength(), 1.0f), "Normal isn't unit!");
+	float length = normal.GetLength();
+	ASSERT_OR_DIE(AreMostlyEqual(length, 1.0f), "Normal isn't unit!");
 
-	Vector3 crossReference	= (!AreMostlyEqual(normal, Vector3::Y_AXIS) ? Vector3::Y_AXIS : Vector3::X_AXIS);
+	Vector3 crossReference	= (!AreMostlyEqual(Abs(DotProduct(normal, Vector3::Y_AXIS)), 1.0f) ? Vector3::Y_AXIS : Vector3::X_AXIS);
 	Vector3 tangent			= CrossProduct(crossReference, normal).GetNormalized();
 	Vector3 bitangent		= CrossProduct(normal, tangent);
 	ASSERT_OR_DIE(AreMostlyEqual(bitangent.GetLength(), 1.0f), "bitangent isn't unit!");
@@ -166,18 +167,19 @@ void Contact::CheckValuesAreReasonable() const
 {
 	ASSERT_REASONABLE(position);
 	ASSERT_REASONABLE(normal);
+	float length = normal.GetLength();
+	ASSERT_OR_DIE(AreMostlyEqual(length, 1.0f), "Normal not unit!");
 	ASSERT_REASONABLE(penetration);
 	ASSERT_REASONABLE(restitution);
 	ASSERT_REASONABLE(friction);
 	ASSERT_REASONABLE(closingVelocityContactSpace);
 	ASSERT_REASONABLE(desiredDeltaVelocityAlongNormal);
 	ASSERT_REASONABLE(bodyToContact[0]);
+
 	if (bodies[1] != nullptr)
 	{
 		ASSERT_REASONABLE(bodyToContact[1]);
 	}
-
-	ASSERT_OR_DIE(isValid, "Processing an invalid contact!");
 }
 
 
@@ -201,29 +203,4 @@ void Contact::MatchAwakeState()
 	{
 		bodies[0]->SetIsAwake(true);
 	}
-}
-
-
-//-------------------------------------------------------------------------------------------------
-ContactFeatureRecord::ContactFeatureRecord(ContactRecordType type, const Collider* firstCollider, const Collider* secondCollider, ContactFeatureID firstID, ContactFeatureID secondID)
-	: m_type(type)
-	, m_firstCollider(firstCollider)
-	, m_secondCollider(secondCollider)
-	, m_firstID(firstID)
-	, m_secondID(secondID)
-{
-}
-
-
-//-------------------------------------------------------------------------------------------------
-bool ContactFeatureRecord::operator==(const ContactFeatureRecord& other) const
-{
-	return (m_type == other.m_type) && (m_firstCollider == other.m_firstCollider) && (m_secondCollider == other.m_secondCollider) && (m_firstID == other.m_firstID) && (m_secondID == other.m_secondID);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-bool ContactFeatureRecord::operator!=(const ContactFeatureRecord& other) const
-{
-	return !((*this) == other);
 }
