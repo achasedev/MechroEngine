@@ -176,6 +176,8 @@ void Contact::CheckValuesAreReasonable() const
 	{
 		ASSERT_REASONABLE(bodyToContact[1]);
 	}
+
+	ASSERT_OR_DIE(isValid, "Processing an invalid contact!");
 }
 
 

@@ -37,6 +37,9 @@ public:
 	void SetMaxPenetrationIterations(int maxIterations) { m_maxPenetrationIterations = maxIterations; }
 	void ResolveContacts(Contact* contacts, int numContacts, float deltaSeconds);
 
+	float GetPenetrationEpsilon() const { return m_penetrationEpsilon; }
+	float GetVelocityEpsilon() const { return m_velocityEpsilon; }
+
 
 private:
 	//-----Private Data-----

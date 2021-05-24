@@ -21,11 +21,11 @@
 class Collider;
 class RigidBody;
 typedef unsigned int ContactFeatureID;
-enum class ContactRecordType
+enum ContactRecordType
 {
-	INVALID = -1,
-	BOX_BOX_EDGE_EDGE,
-	BOX_BOX_FACE_VERTEX,
+	CONTACT_RECORD_INVALID = -1,
+	CONTACT_RECORD_BOX_BOX_EDGE_EDGE,
+	CONTACT_RECORD_BOX_BOX_FACE_VERTEX,
 };
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -48,13 +48,18 @@ public:
 	bool operator==(const ContactFeatureRecord& other) const;
 	bool operator!=(const ContactFeatureRecord& other) const;
 
-	bool IsValid() const { return m_type != ContactRecordType::INVALID; }
+	bool IsValid() const { return m_type != CONTACT_RECORD_INVALID; }
+	ContactRecordType GetType() const { return m_type; }
+	const Collider* GetFirstCollider() const { return m_firstCollider; }
+	const Collider* GetSecondCollider() const { return m_secondCollider; }
+	ContactFeatureID GetFirstID() const { return m_firstID; }
+	ContactFeatureID GetSecondID() const { return m_secondID; }
 
 
 private:
 	//-----Private Data-----
 
-	ContactRecordType	m_type = ContactRecordType::INVALID;
+	ContactRecordType	m_type = CONTACT_RECORD_INVALID;
 	const Collider*		m_firstCollider = nullptr;
 	const Collider*		m_secondCollider = nullptr;
 	ContactFeatureID	m_firstID = 0;
@@ -94,6 +99,8 @@ public:
 	float					desiredDeltaVelocityAlongNormal = 0.f;
 	Vector3					bodyToContact[2];
 	ContactFeatureRecord	featureRecord;
+	bool					isValid = false;
+	int						ageInFrames = 0;
 
 };
 
