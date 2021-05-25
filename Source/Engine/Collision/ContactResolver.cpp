@@ -126,7 +126,13 @@ static void ResolveContactPenetration(Contact* contact, Vector3* out_linearChang
 		// Calculate changes
 		out_linearChanges[i] = contact->normal * linearMove[i];
 		ASSERT_REASONABLE(out_linearChanges[i]);
-		Vector3 rotationPerMovement = (deltaAngularVelocityPerUnitImpulse[i] / angularInertia[i]); // angularInertia === deltaLinearVelocityFromRotationPerUnitImpulse - "Per Impulse" cancels out, so this becomes a ratio of angular change per linear change :)
+
+		Vector3 rotationPerMovement = Vector3::ZERO;
+		if (!AreMostlyEqual(angularInertia[i], 0.f))
+		{
+			rotationPerMovement = (deltaAngularVelocityPerUnitImpulse[i] / angularInertia[i]); // angularInertia === deltaLinearVelocityFromRotationPerUnitImpulse - "Per Impulse" cancels out, so this becomes a ratio of angular change per linear change :)
+		}
+
 		ASSERT_REASONABLE(rotationPerMovement);
 		out_angularChanges[i] = angularMove[i] * rotationPerMovement; // This is the linear movement we need from rotation * amount of rotation needed for 1 unit of linear movement
 		ASSERT_REASONABLE(out_angularChanges[i]);

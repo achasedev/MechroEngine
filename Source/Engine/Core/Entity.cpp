@@ -7,6 +7,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Core/DevConsole.h"
 #include "Engine/Core/EngineCommon.h"
 #include "Engine/Core/Entity.h"
 #include "Engine/Core/Rgba.h"
@@ -48,6 +49,22 @@ Entity::Entity()
 void Entity::Render() const
 {
 	Rgba tint = (rigidBody == nullptr || rigidBody->IsAwake() ? Rgba::WHITE : Rgba::RED);
-	DebugDrawCube(Vector3::ZERO, 0.5f * renderShapeLs.GetDimensions(), tint, 0.f, &transform);
-	//DebugDrawSphere(Vector3::ZERO, 1.0f, tint, 0.f, &transform);
+
+	if (collisionPrimitive->IsOfType<BoxCollider>())
+	{
+		DebugDrawCube(Vector3::ZERO, 0.5f * renderShapeLs.GetDimensions(), tint, 0.f, &transform);
+
+	}
+	else if (collisionPrimitive->IsOfType<SphereCollider>())
+	{
+		DebugDrawSphere(Vector3::ZERO, 1.0f, tint, 0.f, &transform);
+	}
+	else if (collisionPrimitive->IsOfType<HalfSpaceCollider>())
+	{
+		ConsoleErrorf("Can't debug draw planes yet");
+	}
+	else
+	{
+		ERROR_AND_DIE("Cannot debug draw collider!");
+	}
 }
