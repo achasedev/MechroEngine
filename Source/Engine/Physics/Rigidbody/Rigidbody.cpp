@@ -167,10 +167,11 @@ void RigidBody::Integrate(float deltaSeconds)
 
 	// Update the kinetic energy store, and possibly put the body to sleep.
 	if (m_canSleep) {
+
 		float currentMotion = DotProduct(m_velocityWs, m_velocityWs) + DotProduct(m_angularVelocityRadiansWs, m_angularVelocityRadiansWs);
 
 		// Do a recency weighted average - this way quickly moving objects that suddenly stop won't sleep immediately
-		float bias = Pow(0.2f, deltaSeconds);
+		float bias = Pow(0.1f, deltaSeconds);
 		m_motion = bias * m_motion + (1.f - bias) * currentMotion;
 
 		if (m_motion < SLEEP_EPSILON)
