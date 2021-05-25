@@ -195,13 +195,13 @@ int CollisionDetector::GenerateContacts(const BoxCollider& box, const SphereColl
 	float distanceSquared = sphereToBox.GetLengthSquared();
 	float radiusSquared = sphereWs.radius * sphereWs.radius;
 
-	if (distanceSquared >= radiusSquared)
+	if (AreMostlyEqual(distanceSquared, radiusSquared))
 		return 0;
 
 	// Create the contact
 	out_contacts->position = closestPointWs;
 	out_contacts->normal = sphereToBox;
-	float distance = out_contacts->normal.Normalize();
+	float distance = out_contacts->normal.SafeNormalize(Vector3::Y_AXIS);
 	out_contacts->penetration = sphereWs.radius - distance;
 	FillOutColliderInfo(out_contacts, box, sphere);
 
