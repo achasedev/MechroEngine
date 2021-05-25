@@ -233,3 +233,12 @@ Vector3 OBB3::TransformPositionOutOfSpace(const Vector3& position) const
 	Matrix3 basis = Matrix3(rotation);
 	return (basis * position) + center;
 }
+
+
+//-------------------------------------------------------------------------------------------------
+bool OBB3::ContainsWorldSpacePoint(const Vector3& pointWs)
+{
+	Vector3 pointLs = TransformPositionIntoSpace(pointWs);
+
+	return (pointLs.x > -extents.x) && (pointLs.x < extents.x) && (pointLs.y > -extents.y) && (pointLs.y < extents.y) && (pointLs.z > -extents.z) && (pointLs.z < extents.z);
+}

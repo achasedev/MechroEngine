@@ -144,7 +144,8 @@ int CollisionDetector::GenerateContacts(const BoxCollider& box, const HalfSpaceC
 
 		if (distance < 0.f)
 		{
-			contactToFill->position = 0.5f * (boxVertsWs[i] + planeWs.GetProjectedPointOntoPlane(boxVertsWs[i])); // Position is half way between the box vertex and the plane
+			//contactToFill->position = 0.5f * (boxVertsWs[i] + planeWs.GetProjectedPointOntoPlane(boxVertsWs[i])); // Position is half way between the box vertex and the plane
+			contactToFill->position = boxVertsWs[i]; // Position is half way between the box vertex and the plane
 			contactToFill->normal = planeWs.m_normal;
 			contactToFill->penetration = Abs(distance);
 			FillOutColliderInfo(contactToFill, box, halfSpace);
@@ -275,7 +276,7 @@ static inline bool CheckAxis(const BoxCollider& one, const BoxCollider& two, Vec
 
 
 //-------------------------------------------------------------------------------------------------
-static void CreateFaceVertexContact(const BoxCollider& faceCol, const BoxCollider& vertexCol, const Vector3 &aToB, Contact* out_contact, const int bestAxisIndex, float pen)
+static int CreateFaceVertexContact(const BoxCollider& faceCol, const BoxCollider& vertexCol, const Vector3 &aToB, Contact* out_contact, const int bestAxisIndex, float pen, int limit)
 {
 	// This method is called when we know that a vertex from
 	// box two is in contact with box one.
@@ -288,28 +289,60 @@ static void CreateFaceVertexContact(const BoxCollider& faceCol, const BoxCollide
 	// but we need to work out which of the two faces on
 	// this axis.
 	Vector3 normal = Matrix3(one.rotation).columnVectors[bestAxisIndex];
-	bool flippedNormal = false;
 	if (DotProduct(normal, aToB) > 0.f)
 	{
 		normal = normal * -1.0f;
-		flippedNormal = true;
 	}
 
 	ASSERT_OR_DIE(AreMostlyEqual(normal.GetLength(), 1.0f), "Normal not unit!");
 
-	// Work out which vertex of box two we're colliding with.
-	// Using toCentre doesn't work!
-	Vector3 vertexOffset = two.extents;
-	if (DotProduct(two.GetRightVector(), normal) < 0.f)		{ vertexOffset.x = -vertexOffset.x; }
-	if (DotProduct(two.GetUpVector(), normal) < 0.f)		{ vertexOffset.y = -vertexOffset.y; }
-	if (DotProduct(two.GetForwardVector(), normal) < 0.f)	{ vertexOffset.z = -vertexOffset.z; }
+
+	Vector3 vertexOffsetOne = one.extents;
+	if (DotProduct(one.GetRightVector(), normal) > 0.f) { vertexOffsetOne.x = -vertexOffsetOne.x; }
+	if (DotProduct(one.GetUpVector(), normal) > 0.f) { vertexOffsetOne.y = -vertexOffsetOne.y; }
+	if (DotProduct(one.GetForwardVector(), normal) > 0.f) { vertexOffsetOne.z = -vertexOffsetOne.z; }
+
+	Plane3 plane(normal, Matrix3(one.rotation) * vertexOffsetOne + one.center);
+
+	Vector3 points[8];
+	two.GetPoints(points);
+
+	int numContactsAdded = 0;
+	for (int i = 0; i < 8; ++i)
+	{
+		float distance = plane.GetDistanceFromPlane(points[i]);
+
+		if (distance > 0.f && one.ContainsWorldSpacePoint(points[i]))
+		{
+			out_contact->normal = normal;
+			out_contact->penetration = distance;
+			out_contact->position = points[i]; 
+			FillOutColliderInfo(out_contact, faceCol, vertexCol);
+
+			out_contact++;
+			numContactsAdded++;
+
+			if (numContactsAdded >= limit)
+				break;
+
+		}
+	}
+
+	return numContactsAdded;
+
+	//// Work out which vertex of box two we're colliding with.
+	//// Using toCentre doesn't work!
+	//Vector3 vertexOffset = two.extents;
+	//if (DotProduct(two.GetRightVector(), normal) < 0.f)		{ vertexOffset.x = -vertexOffset.x; }
+	//if (DotProduct(two.GetUpVector(), normal) < 0.f)		{ vertexOffset.y = -vertexOffset.y; }
+	//if (DotProduct(two.GetForwardVector(), normal) < 0.f)	{ vertexOffset.z = -vertexOffset.z; }
 
 
-	// Create the contact data
-	out_contact->normal = normal;
-	out_contact->penetration = pen;
-	out_contact->position = (Matrix3(two.rotation) * vertexOffset) + two.center; // Convert from vertex box space to world space
-	FillOutColliderInfo(out_contact, faceCol, vertexCol);
+	//// Create the contact data
+	//out_contact->normal = normal;
+	//out_contact->penetration = pen;
+	//out_contact->position = (Matrix3(two.rotation) * vertexOffset) + two.center; // Convert from vertex box space to world space
+	//FillOutColliderInfo(out_contact, faceCol, vertexCol);
 
 	out_contact->CheckValuesAreReasonable();
 }
@@ -427,8 +460,8 @@ int CollisionDetector::GenerateContacts(const BoxCollider& a, const BoxCollider&
 	if (best < 3)
 	{
 		// We've got a vertex of box two on a face of box one.
-		CreateFaceVertexContact(a, b, aToB, out_contacts, best, pen);
-		return 1;
+		return CreateFaceVertexContact(a, b, aToB, out_contacts, best, pen, limit);
+		//return 1;
 	}
 	else if (best < 6)
 	{
@@ -436,8 +469,8 @@ int CollisionDetector::GenerateContacts(const BoxCollider& a, const BoxCollider&
 		// We use the same algorithm as above, but swap around
 		// one and two (and therefore also the vector between their
 		// centres).
-		CreateFaceVertexContact(b, a, aToB*-1.0f, out_contacts, best - 3, pen);
-		return 1;
+		return CreateFaceVertexContact(b, a, aToB*-1.0f, out_contacts, best - 3, pen, limit);
+		//return 1;
 	}
 	else
 	{

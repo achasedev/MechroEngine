@@ -106,7 +106,7 @@ static void ResolveContactPenetration(Contact* contact, Vector3* out_linearChang
 		// To avoid angular projections that are too great (when mass is large
 		// but inertia tensor is small) limit the angular move.
 		Vector3 projection = contact->bodyToContact[i];
-		projection += contact->normal * DotProduct(-1.0f * contact->bodyToContact[i], contact->normal);
+		projection = contact->normal * DotProduct(-1.0f * contact->bodyToContact[i], contact->normal);
 
 		// Limit the amount of movement that comes from angular rotation
 		float limit = angularLimit * projection.GetLength(); // Normally this would be sin(angularLimit) * hypotenuse, but small angle approximation sin(angle) ~= angle
