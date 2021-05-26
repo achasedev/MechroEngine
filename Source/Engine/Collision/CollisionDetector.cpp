@@ -276,7 +276,7 @@ static inline bool CheckAxis(const BoxCollider& one, const BoxCollider& two, Vec
 
 
 //-------------------------------------------------------------------------------------------------
-static int CreateFaceVertexContact(const BoxCollider& faceCol, const BoxCollider& vertexCol, const Vector3 &aToB, Contact* out_contact, const int bestAxisIndex, float pen, int limit)
+static int CreateFaceVertexContact(const BoxCollider& faceCol, const BoxCollider& vertexCol, const Vector3 &aToB, Contact* out_contact, const int bestAxisIndex, int limit)
 {
 	// This method is called when we know that a vertex from
 	// box two is in contact with box one.
@@ -319,32 +319,31 @@ static int CreateFaceVertexContact(const BoxCollider& faceCol, const BoxCollider
 			out_contact->position = points[i]; 
 			FillOutColliderInfo(out_contact, faceCol, vertexCol);
 
+			out_contact->CheckValuesAreReasonable();
 			out_contact++;
+
 			numContactsAdded++;
 
 			if (numContactsAdded >= limit)
 				break;
-
 		}
 	}
 
 	return numContactsAdded;
 
-	//// Work out which vertex of box two we're colliding with.
-	//// Using toCentre doesn't work!
-	//Vector3 vertexOffset = two.extents;
-	//if (DotProduct(two.GetRightVector(), normal) < 0.f)		{ vertexOffset.x = -vertexOffset.x; }
-	//if (DotProduct(two.GetUpVector(), normal) < 0.f)		{ vertexOffset.y = -vertexOffset.y; }
-	//if (DotProduct(two.GetForwardVector(), normal) < 0.f)	{ vertexOffset.z = -vertexOffset.z; }
+	// Single vertex version - just finds the vertex most in the direction of the normal, and uses the axis pen as the amount of pen
 
+	/*Vector3 vertexOffset = two.extents;
+	if (DotProduct(two.GetRightVector(), normal) < 0.f)	{ vertexOffset.x = -vertexOffset.x; }
+	if (DotProduct(two.GetUpVector(), normal) < 0.f)		{ vertexOffset.y = -vertexOffset.y; }
+	if (DotProduct(two.GetForwardVector(), normal) < 0.f)	{ vertexOffset.z = -vertexOffset.z; }
 
-	//// Create the contact data
-	//out_contact->normal = normal;
-	//out_contact->penetration = pen;
-	//out_contact->position = (Matrix3(two.rotation) * vertexOffset) + two.center; // Convert from vertex box space to world space
-	//FillOutColliderInfo(out_contact, faceCol, vertexCol);
+	// Create the contact data
+	out_contact->normal = normal;
+	out_contact->penetration = pen;
+	out_contact->position = (Matrix3(two.rotation) * vertexOffset) + two.center; // Convert from vertex box space to world space
+	FillOutColliderInfo(out_contact, faceCol, vertexCol);*/
 
-	out_contact->CheckValuesAreReasonable();
 }
 
 
@@ -459,18 +458,16 @@ int CollisionDetector::GenerateContacts(const BoxCollider& a, const BoxCollider&
 	// the case.
 	if (best < 3)
 	{
-		// We've got a vertex of box two on a face of box one.
-		return CreateFaceVertexContact(a, b, aToB, out_contacts, best, pen, limit);
-		//return 1;
+		// We've vertices of box two on a face of box one.
+		return CreateFaceVertexContact(a, b, aToB, out_contacts, best, limit);
 	}
 	else if (best < 6)
 	{
-		// We've got a vertex of box one on a face of box two.
+		// We've got vertices of box one on a face of box two.
 		// We use the same algorithm as above, but swap around
 		// one and two (and therefore also the vector between their
-		// centres).
-		return CreateFaceVertexContact(b, a, aToB*-1.0f, out_contacts, best - 3, pen, limit);
-		//return 1;
+		// centers).
+		return CreateFaceVertexContact(b, a, aToB*-1.0f, out_contacts, best - 3, limit);
 	}
 	else
 	{
@@ -493,7 +490,7 @@ int CollisionDetector::GenerateContacts(const BoxCollider& a, const BoxCollider&
 
 		// We have the axes, but not the edges: each axis has 4 edges parallel
 		// to it, we need to find which of the 4 for each object. We do
-		// that by finding the point in the centre of the edge. We know
+		// that by finding the point in the centers of the edge. We know
 		// its component in the direction of the box's collision axis is zero
 		// (its a mid-point) and we determine which of the extremes in each
 		// of the other axes is closest.

@@ -46,7 +46,7 @@ private:
 
 	int		m_maxVelocityIterations = 10;
 	int		m_maxPenetrationIterations = 10;
-	float	m_velocityEpsilon = 0.1f; // For faster objects, use a use a larger value, for slow use a smaller value
+	float	m_velocityEpsilon = 0.f; // For faster objects, use a use a larger value, for slow use a smaller value
 	float	m_penetrationEpsilon = 0.f; // For larger objects use a larger value, for small objects use a smaller value
 
 };

@@ -184,6 +184,18 @@ void Contact::CheckValuesAreReasonable() const
 
 
 //-------------------------------------------------------------------------------------------------
+bool Contact::ShouldBeResolved() const
+{
+	if ((bodies[0] != nullptr && bodies[0]->IsAwake()) || (bodies[1] != nullptr && bodies[1]->IsAwake()))
+	{
+		return true;
+	}
+	
+	return false;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void Contact::MatchAwakeState()
 {
 	// This is what prevents sleeping bodies colliding with the world from waking up

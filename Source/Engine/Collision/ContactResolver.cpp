@@ -46,6 +46,15 @@ static void PrepareContacts(Contact* contacts, int numContacts, float deltaSecon
 //-------------------------------------------------------------------------------------------------
 static void ResolveContactPenetration(Contact* contact, Vector3* out_linearChanges, Vector3* out_angularChanges)
 {
+	if (contact->bodies[1] == nullptr)
+	{
+		ASSERT_OR_DIE(contact->bodies[0]->IsAwake(), "Sleeping body attempted to resolve velocity!");
+	}
+	else
+	{
+		ASSERT_OR_DIE(contact->bodies[0]->IsAwake() || contact->bodies[1]->IsAwake(), "Two sleeping bodies attempted to resolve velocity!")
+	}
+
 	contact->CheckValuesAreReasonable();
 
 	const float angularLimit = 0.2f;
@@ -289,6 +298,9 @@ static Vector3 CalculateFrictionImpulse(Contact* contact)
 //-------------------------------------------------------------------------------------------------
 static void ResolveContactVelocity(Contact* contact, Vector3* out_linearDeltaVelocities, Vector3* out_angularDeltaVelocities)
 {
+	if (!contact->bodies[0]->IsAwake() && (contact->bodies[1] == nullptr || !contact->bodies[1]->IsAwake()))
+		return;
+
 	if (contact->bodies[1] == nullptr)
 	{
 		ASSERT_OR_DIE(contact->bodies[0]->IsAwake(), "Sleeping body attempted to resolve velocity!");
@@ -461,6 +473,9 @@ static void ResolvePenetrations(Contact* contacts, int numContacts, int numItera
 		{
 			Contact* contact = &contacts[contactIndex];
 
+			if (!contact->ShouldBeResolved())
+				continue;
+
 			// Find the contact with the worst pen (< 0.f is no pen, > 0.f is pen)
 			if (contact->penetration > penetrationEpsilon && (contactToResolve == nullptr || contact->penetration > contactToResolve->penetration))
 			{
@@ -483,10 +498,7 @@ static void ResolvePenetrations(Contact* contacts, int numContacts, int numItera
 		UpdateContactPenetrations(contacts, numContacts, linearChanges, angularChanges, contactToResolve);
 	}
 
-	if (numIterationsUsed == numIterations)
-	{
-		ConsoleWarningf("Resolver hit the max iteration count for penetrations at %i", numIterationsUsed);
-	}
+	ConsolePrintf("Penetration iterations: %i of %i", numIterationsUsed, numIterations);
 }
 
 
@@ -505,6 +517,9 @@ static void ResolveVelocities(Contact* contacts, int numContacts, int numIterati
 		{
 			Contact* contact = &contacts[contactIndex];
 
+			if (!contact->ShouldBeResolved())
+				continue;
+
 			// Find the contact the greatest desired change on velocity
 			if (contact->desiredDeltaVelocityAlongNormal > velocityEpsilon && (contactToResolve == nullptr || contact->desiredDeltaVelocityAlongNormal > contactToResolve->desiredDeltaVelocityAlongNormal))
 			{
@@ -522,10 +537,7 @@ static void ResolveVelocities(Contact* contacts, int numContacts, int numIterati
 		UpdateContactVelocities(contacts, numContacts, linearVelocityChanges, angularVelocityChanges, contactToResolve, deltaSeconds);
 	}
 
-	if (numIterationsUsed == numIterations)
-	{
-		ConsoleWarningf("Resolver hit the max iteration count for velocities at %i", numIterationsUsed);
-	}
+	ConsolePrintf("Velocity iterations: %i of %i", numIterationsUsed, numIterations);
 }
 
 

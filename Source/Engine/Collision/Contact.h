@@ -45,6 +45,8 @@ public:
 	void CalculateDesiredVelocityInContactSpace(float deltaSeconds);
 	void CheckValuesAreReasonable() const;
 
+	bool ShouldBeResolved() const;
+
 
 public:
 	//-----Public Data-----
