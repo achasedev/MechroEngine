@@ -63,6 +63,12 @@ void Entity::Render() const
 	{
 		ConsoleErrorf("Can't debug draw planes yet");
 	}
+	else if (collisionPrimitive->IsOfType<CapsuleCollider>())
+	{
+		DebugDrawSphere(Vector3(0.f, 0.5f, 0.f), 0.5f, tint, 0.f, &transform);
+		DebugDrawSphere(Vector3(0.f, -0.5f, 0.f), 0.5f, tint, 0.f, &transform);
+		DebugDrawCube(Vector3::ZERO, Vector3(0.2f, 0.8f, 0.2f), tint, 0.f, &transform);
+	}
 	else
 	{
 		ERROR_AND_DIE("Cannot debug draw collider!");

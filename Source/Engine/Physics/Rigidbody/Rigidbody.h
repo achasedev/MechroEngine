@@ -49,13 +49,17 @@ public:
 	void AddWorldVelocity(const Vector3& velocity) { m_velocityWs += velocity; }
 	void AddWorldAngularVelocityRadians(const Vector3& angularVelocityRadians) { m_angularVelocityRadiansWs += angularVelocityRadians; }
 
+	void SetInertiaTensor_Capsule(float cylinderHeight, float radius);
+	void SetInertiaTensor_Box(const Vector3& extents);
+	void SetInertiaTensor_Sphere(float radius);
+	void SetInverseInertiaTensor(const Matrix3& inverseInertiaTensor) { m_inverseInertiaTensorLocal = inverseInertiaTensor; }
+
 	void SetVelocityWs(const Vector3& velocityWs) { m_velocityWs = velocityWs; }
 	void SetAngularVelocityRadiansWs(const Vector3& angularVelocityRadiansWs) { m_angularVelocityRadiansWs = angularVelocityRadiansWs; }
 	void SetAcceleration(const Vector3& acceleration) { m_accelerationWs = acceleration; }
 	void SetInverseMass(float iMass) { m_iMass = iMass; }
 	void SetLinearDamping(float linearDamping) { m_linearDamping = linearDamping; }
 	void SetAngularDamping(float angularDamping) { m_angularDamping = angularDamping; }
-	void SetLocalInverseInertiaTensor(const Matrix3& inverseInertiaTensor) { m_inverseInertiaTensorLocal = inverseInertiaTensor; }
 	void SetIsAwake(bool isAwake);
 	void SetCanSleep(bool canSleep);
 

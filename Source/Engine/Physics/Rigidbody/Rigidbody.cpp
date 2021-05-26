@@ -85,6 +85,23 @@ void RigidBody::AddLocalForceAtWorldPoint(const Vector3& forceLs, const Vector3&
 
 
 //-------------------------------------------------------------------------------------------------
+void RigidBody::SetInertiaTensor_Capsule(float h, float r)
+{
+	float mcyl = h * (r * r) * PI; // Cylinder mass
+	float mhs = (2.f / 3.f) * (r * r * r) * PI; // Hemisphere mass
+	float mass = mcyl + 2.f * mhs; // 2 half spheres, on top and bottom of cylinder
+
+	Matrix3 inertiaTensor = Matrix3::IDENTITY;
+
+	inertiaTensor.Ix = mcyl * ((1.f / 12.f) * (h * h) + 0.25f * (r * r)) + 2.f * mhs * ((0.4f * r * r) + (0.5f * h * h) + 0.375f * h * r);
+	inertiaTensor.Jy = mcyl * (0.5f * r * r) + 2.f * mhs * (0.4f * r * r);
+	inertiaTensor.Kz = mcyl * ((1.f / 12.f) * (h * h) + 0.25f * (r * r)) + 2.f * mhs * ((0.4f * r * r) + (0.5f * h * h) + 0.375f * h * r);
+
+	m_inverseInertiaTensorLocal = inertiaTensor.GetInverse();
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void RigidBody::SetIsAwake(bool isAwake)
 {
 	m_isAwake = isAwake;

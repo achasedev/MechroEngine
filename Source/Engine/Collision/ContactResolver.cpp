@@ -298,9 +298,6 @@ static Vector3 CalculateFrictionImpulse(Contact* contact)
 //-------------------------------------------------------------------------------------------------
 static void ResolveContactVelocity(Contact* contact, Vector3* out_linearDeltaVelocities, Vector3* out_angularDeltaVelocities)
 {
-	if (!contact->bodies[0]->IsAwake() && (contact->bodies[1] == nullptr || !contact->bodies[1]->IsAwake()))
-		return;
-
 	if (contact->bodies[1] == nullptr)
 	{
 		ASSERT_OR_DIE(contact->bodies[0]->IsAwake(), "Sleeping body attempted to resolve velocity!");

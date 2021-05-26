@@ -22,6 +22,7 @@ RTTI_TYPE_DEFINE(Collider);
 RTTI_TYPE_DEFINE(SphereCollider);
 RTTI_TYPE_DEFINE(HalfSpaceCollider);
 RTTI_TYPE_DEFINE(BoxCollider);
+RTTI_TYPE_DEFINE(CapsuleCollider);
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -103,4 +104,21 @@ OBB3 BoxCollider::GetDataInWorldSpace() const
 	Quaternion rotationWs = entity->transform.rotation * m_dataLs.rotation;
 
 	return OBB3(centerWs, m_dataLs.extents, rotationWs);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+CapsuleCollider::CapsuleCollider(Entity* owningEntity, const Capsule3D& capsuleLs)
+	: TypedCollider(owningEntity, capsuleLs)
+{
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Capsule3D CapsuleCollider::GetDataInWorldSpace() const
+{
+	Vector3 startWs = entity->transform.TransformPosition(m_dataLs.start);
+	Vector3 endWs = entity->transform.TransformPosition(m_dataLs.end);
+
+	return Capsule3D(startWs, endWs, m_dataLs.radius);
 }

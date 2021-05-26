@@ -171,6 +171,7 @@
     <ClCompile Include="Event\EventSubscription.cpp" />
     <ClCompile Include="Event\EventSystem.cpp" />
     <ClCompile Include="Core\ConsoleCommand.cpp" />
+    <ClCompile Include="Math\Capsule3D.cpp" />
     <ClCompile Include="Math\Matrix3.cpp" />
     <ClCompile Include="Math\ScaledAxisRotation.cpp" />
     <ClCompile Include="Physics\Particle\Particle.cpp" />
@@ -314,7 +315,7 @@
     <ClInclude Include="Physics\RigidBody\PhysicsScene.h" />
     <ClInclude Include="Physics\RigidBody\RigidBodySpring.h" />
     <ClInclude Include="Resource\Resource.h" />
-    <ClInclude Include="Math\Capsule3d.h" />
+    <ClInclude Include="Math\Capsule3D.h" />
     <ClInclude Include="Math\Edge3.h" />
     <ClInclude Include="Math\Line3.h" />
     <ClInclude Include="Math\OBB3.h" />

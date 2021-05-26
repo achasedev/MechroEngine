@@ -544,3 +544,47 @@ int CollisionDetector::GenerateContacts(const BoxCollider& a, const BoxCollider&
 	return 0;
 }
 #undef CHECK_OVERLAP
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionDetector::GenerateContacts(const CapsuleCollider& capsule, const HalfSpaceCollider& halfSpace, Contact* out_contacts, int limit)
+{
+	if (limit <= 0)
+		return 0;
+
+	Capsule3D capsuleWs = capsule.GetDataInWorldSpace();
+	Plane3 planeWs = halfSpace.GetDataInWorldSpace();
+
+	float startDistance = planeWs.GetDistanceFromPlane(capsuleWs.start) - capsuleWs.radius;
+	float endDistance = planeWs.GetDistanceFromPlane(capsuleWs.end) - capsuleWs.radius;
+
+	if (startDistance >= 0.f && endDistance >= 0.f)
+		return 0;
+
+	int numAdded = 0;
+	if (startDistance < 0.f)
+	{
+		out_contacts->normal = planeWs.GetNormal();
+		out_contacts->penetration = -startDistance;
+		out_contacts->position = capsuleWs.start - out_contacts->normal * capsuleWs.radius;
+		FillOutColliderInfo(out_contacts, capsule, halfSpace);
+		out_contacts->CheckValuesAreReasonable();
+		numAdded++;
+		out_contacts++;
+
+		if (limit == 1)
+			return 1;
+	}
+
+	if (endDistance < 0.f)
+	{
+		out_contacts->normal = planeWs.GetNormal();
+		out_contacts->penetration = -endDistance;
+		out_contacts->position = capsuleWs.end - out_contacts->normal * capsuleWs.radius;
+		FillOutColliderInfo(out_contacts, capsule, halfSpace);
+		out_contacts->CheckValuesAreReasonable();
+		numAdded++;
+	}
+
+	return numAdded;
+}

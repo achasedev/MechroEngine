@@ -27,18 +27,21 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Capsule3d
+class Capsule3D
 {
 public:
 	//-----Public Methods-----
+
+	Capsule3D() {}
+	Capsule3D(const Vector3& start, const Vector3& end, float radius);
 
 
 public:
 	//-----Public Data-----
 
-	Vector3 m_start;
-	Vector3 m_end;
-	float	m_radius;
+	Vector3 start = Vector3::ZERO;
+	Vector3	end = Vector3::ZERO;
+	float	radius = 1.f;
 
 };
 

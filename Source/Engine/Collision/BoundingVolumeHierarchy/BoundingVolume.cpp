@@ -122,6 +122,16 @@ BoundingVolumeSphere::BoundingVolumeSphere(const HalfSpaceCollider& colHalfSpace
 
 
 //-------------------------------------------------------------------------------------------------
+BoundingVolumeSphere::BoundingVolumeSphere(const CapsuleCollider& capsuleCol)
+{
+	Capsule3D capsuleWs = capsuleCol.GetDataInWorldSpace();
+
+	center = 0.5f * (capsuleWs.start + capsuleWs.end);
+	radius = 0.5f * (capsuleWs.start - capsuleWs.end).GetLength() + capsuleWs.radius;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 BoundingVolumeSphere BoundingVolumeSphere::GetTransformApplied(const Transform& transform)
 {
 	BoundingVolumeSphere result;

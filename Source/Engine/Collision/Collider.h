@@ -9,6 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/EngineCommon.h"
+#include "Engine/Math/Capsule3D.h"
 #include "Engine/Math/OBB3.h"
 #include "Engine/Math/Sphere3D.h"
 #include "Engine/Math/Transform.h"
@@ -133,6 +134,24 @@ public:
 	BoxCollider(Entity* owningEntity, const OBB3& boxLs);
 
 	virtual OBB3 GetDataInWorldSpace() const override;
+
+
+private:
+	//-----Private Data-----
+
+};
+
+//-------------------------------------------------------------------------------------------------
+class CapsuleCollider : public TypedCollider<Capsule3D>
+{
+public:
+	//-----Public Methods-----
+	RTTI_DERIVED_CLASS(CapsuleCollider);
+
+	CapsuleCollider() {}
+	CapsuleCollider(Entity* owningEntity, const Capsule3D& capsuleLs);
+
+	virtual Capsule3D GetDataInWorldSpace() const override;
 
 
 private:

@@ -137,6 +137,11 @@ BoundingVolumeClass CollisionScene<BoundingVolumeClass>::MakeBoundingVolumeForPr
 		const HalfSpaceCollider* primAsHalfSpace = primitive->GetAsType<HalfSpaceCollider>();
 		return BoundingVolumeClass(*primAsHalfSpace);
 	}
+	else if (primitive->IsOfType<CapsuleCollider>())
+	{
+		const CapsuleCollider* primAsCapsule = primitive->GetAsType<CapsuleCollider>();
+		return BoundingVolumeClass(*primAsCapsule);
+	}
 	else
 	{
 		ERROR_AND_DIE("Unsupported primitive type: %s", primitive->GetTypeAsString());
@@ -199,9 +204,11 @@ void CollisionScene<BoundingVolumeClass>::GenerateContacts()
 		bool twoIsHalfSpace = colTwo->IsOfType<HalfSpaceCollider>();
 		bool oneIsBox = colOne->IsOfType<BoxCollider>();
 		bool twoIsBox = colTwo->IsOfType<BoxCollider>();
+		bool oneIsCapsule = colOne->IsOfType<CapsuleCollider>();
+		bool twoIsCapsule = colTwo->IsOfType<CapsuleCollider>();
 
-		ASSERT_OR_DIE(oneIsSphere || oneIsHalfSpace || oneIsBox, "Invalid collider: %s", colOne->GetTypeAsString());
-		ASSERT_OR_DIE(twoIsSphere || twoIsHalfSpace || twoIsBox, "Invalid collider: %s", colTwo->GetTypeAsString());
+		ASSERT_OR_DIE(oneIsSphere || oneIsHalfSpace || oneIsBox || oneIsCapsule, "Invalid collider: %s", colOne->GetTypeAsString());
+		ASSERT_OR_DIE(twoIsSphere || twoIsHalfSpace || twoIsBox || twoIsCapsule, "Invalid collider: %s", colTwo->GetTypeAsString());
 
 		// Don't do halfspace-halfspace collisions
 		if (oneIsHalfSpace && twoIsHalfSpace)
@@ -260,6 +267,37 @@ void CollisionScene<BoundingVolumeClass>::GenerateContacts()
 			{
 				BoxCollider* twoAsBox = colTwo->GetAsType<BoxCollider>();
 				m_numNewContacts += m_detector.GenerateContacts(*twoAsBox, *oneAsHalfSpace, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
+			}
+			else if (twoIsCapsule)
+			{
+				CapsuleCollider* twoAsCapsule = colTwo->GetAsType<CapsuleCollider>();
+				m_numNewContacts += m_detector.GenerateContacts(*twoAsCapsule, *oneAsHalfSpace, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
+			}
+		}
+		else if (oneIsCapsule)
+		{
+			CapsuleCollider* oneAsCapsule = colOne->GetAsType<CapsuleCollider>();
+
+			if (twoIsSphere)
+			{
+				UNIMPLEMENTED();
+				//SphereCollider* twoAsSphere = colTwo->GetAsType<SphereCollider>();
+				//m_numNewContacts += m_detector.GenerateContacts(*twoAsSphere, *oneAsHalfSpace, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
+			}
+			else if (twoIsBox)
+			{
+				UNIMPLEMENTED();
+				//BoxCollider* twoAsBox = colTwo->GetAsType<BoxCollider>();
+				//m_numNewContacts += m_detector.GenerateContacts(*twoAsBox, *oneAsHalfSpace, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
+			}
+			else if (twoIsCapsule)
+			{
+				UNIMPLEMENTED();
+			}
+			else if (twoIsHalfSpace)
+			{
+				HalfSpaceCollider* twoAsHalfSpace = colTwo->GetAsType<HalfSpaceCollider>();
+				m_numNewContacts += m_detector.GenerateContacts(*oneAsCapsule, *twoAsHalfSpace, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
 			}
 		}
 	}
