@@ -1312,7 +1312,7 @@ float GetClosestPointOnLineSegment(const Vector3& start, const Vector3& end, con
 	}
 	else
 	{
-		out_closestPoint = start + t * direction;
+		out_closestPoint = start + t * (end - start);
 	}
 
 	return (out_closestPoint - point).GetLength();
@@ -1322,32 +1322,90 @@ float GetClosestPointOnLineSegment(const Vector3& start, const Vector3& end, con
 //-------------------------------------------------------------------------------------------------
 float FindClosestPointsOnLineSegments(const Vector3& startA, const Vector3& endA, const Vector3& startB, const Vector3& endB, Vector3& out_pointOnA, Vector3& out_pointOnB)
 {
-	// Make a plane on startB with normal of B
-	Vector3 normal = (endB - startB).GetNormalized();
-	Plane3 plane(normal, startB);
+	float EPS = 0.00000001f;
 
-	// Project A's endpoints onto the plane
-	Vector3 inPlaneStartA = plane.GetProjectedPointOntoPlane(startA);
-	Vector3 inPlaneEndA = plane.GetProjectedPointOntoPlane(endA);
+	Vector3 delta21 = endA - startA;
+	Vector3 delta41 = endB - startB;
+	Vector3 delta13 = startA - startB;
 
-	// Find the T value for A's closest point - since we're in startB's plane, startB will be the closest point
-	Vector3 inPlaneA = inPlaneEndA - inPlaneStartA;
-	float tA = DotProduct(startB - inPlaneStartA, inPlaneA) / DotProduct(inPlaneA, inPlaneA);	
-	
-	// If A and B are parallel, just use t == 0
-	if (inPlaneA == Vector3::ZERO)
+	float a = DotProduct(delta21, delta21);
+	float b = DotProduct(delta21, delta41);
+	float c = DotProduct(delta41, delta41);
+	float d = DotProduct(delta21, delta13);
+	float e = DotProduct(delta41, delta13);
+	float D = a * c - b * b;
+
+	float sc, sN, sD = D;
+	float tc, tN, tD = D;
+
+	if (D < EPS)
 	{
-		tA = 0;
+		sN = 0.f;
+		sD = 1.f;
+		tN = e;
+		tD = c;
+	}
+	else
+	{
+		sN = (b * e - c * d);
+		tN = (a * e - b * d);
+		if (sN < 0.f)
+		{
+			sN = 0.f;
+			tN = e;
+			tD = c;
+		}
+		else if (sN > sD)
+		{
+			sN = sD;
+			tN = e + b;
+			tD = c;
+		}
 	}
 
-	// Clamp tA to the segment
-	tA = Clamp(tA, 0.f, 1.0f);
+	if (tN < 0.f)
+	{
+		tN = 0.f;
 
-	// Find the closest point on A
-	out_pointOnA = Interpolate(startA, endA, tA);
+		if (-d < 0.f)
+			sN = 0.f;
+		else if (-d > a)
+			sN = sD;
+		else
+		{
+			sN = -d;
+			sD = a;
+		}
+	}
+	else if (tN > tD)
+	{
+		tN = tD;
+		if ((-d + b) < 0.f)
+			sN = 0.f;
+		else if ((-d + b) > a)
+			sN = sD;
+		else
+		{
+			sN = (-d + b);
+			sD = a;
+		}
+	}
 
-	// Find the closest point on B to this point on A
-	return GetClosestPointOnLineSegment(startB, endB, out_pointOnA, out_pointOnB);
+	if (Abs(sN) < EPS) 
+		sc = 0.f;
+	else 
+		sc = sN / sD;
+
+	if (Abs(tN) < EPS) 
+		tc = 0.f;
+	else 
+		tc = tN / tD;
+
+	Vector3 dP = delta13 + (sc * delta21) - (tc * delta41);
+	out_pointOnA = startA + (sc * delta21);
+	out_pointOnB = startB + (tc * delta41);
+
+	return dP.GetLength();
 }
 
 

@@ -44,6 +44,7 @@ public:
 	void DoPhysicsStep(float deltaSeconds);
 
 	void SetGravityAcceleration(const Vector3& gravityAcc) { m_gravityAcc = gravityAcc; }
+	void SetGravityEnabled(bool enabled) { m_gravityEnabled = enabled; }
 	void AddRigidbody(RigidBody* body);
 	void AddForceGenerator(RigidBodyForceGenerator* forceGen, RigidBody* body);
 
@@ -63,6 +64,7 @@ public:
 private:
 	//-----Private Data-----
 
+	bool									m_gravityEnabled = true;
 	Vector3									m_gravityAcc = DEFAULT_GRAVITY;
 	std::vector<RigidBody*>					m_bodies;
 	std::vector<RigidBodyForceGenerator*>	m_forceGens;

@@ -108,7 +108,7 @@ void PhysicsScene::Integrate(float deltaSeconds)
 		// Calculate gravity acceleration
 		Vector3 gravityAcc = Vector3::ZERO;
 		
-		if (body->IsAffectedByGravity())
+		if (body->IsAffectedByGravity() && m_gravityEnabled)
 		{
 			gravityAcc = m_gravityAcc * body->GetGravityScale();
 		}
