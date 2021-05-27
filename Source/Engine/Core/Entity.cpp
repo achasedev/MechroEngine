@@ -41,36 +41,14 @@ Entity::Entity()
 {
 	++s_nextEntityID;
 
-	collisionPrimitive = new BoxCollider(this, OBB3(Vector3::ZERO, Vector3(0.5f), Quaternion::IDENTITY));
+	collider = new BoxCollider(this, OBB3(Vector3::ZERO, Vector3(0.5f), Quaternion::IDENTITY));
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void Entity::Render() const
 {
-	Rgba tint = (rigidBody == nullptr || rigidBody->IsAwake() ? Rgba::WHITE : Rgba::RED);
+	Rgba tint = (rigidBody == nullptr || rigidBody->IsAwake() ? Rgba::CYAN : Rgba::RED);
 
-	if (collisionPrimitive->IsOfType<BoxCollider>())
-	{
-		DebugDrawCube(Vector3::ZERO, 0.5f * renderShapeLs.GetDimensions(), tint, 0.f, &transform);
-
-	}
-	else if (collisionPrimitive->IsOfType<SphereCollider>())
-	{
-		DebugDrawSphere(Vector3::ZERO, 1.0f, tint, 0.f, &transform);
-	}
-	else if (collisionPrimitive->IsOfType<HalfSpaceCollider>())
-	{
-		ConsoleErrorf("Can't debug draw planes yet");
-	}
-	else if (collisionPrimitive->IsOfType<CapsuleCollider>())
-	{
-		DebugDrawSphere(Vector3(0.f, 0.5f, 0.f), 0.5f, tint, 0.f, &transform);
-		DebugDrawSphere(Vector3(0.f, -0.5f, 0.f), 0.5f, tint, 0.f, &transform);
-		DebugDrawCube(Vector3::ZERO, Vector3(0.2f, 0.8f, 0.2f), tint, 0.f, &transform);
-	}
-	else
-	{
-		ERROR_AND_DIE("Cannot debug draw collider!");
-	}
+	collider->DebugRender(tint);
 }

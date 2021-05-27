@@ -23,6 +23,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+const Vector3 PhysicsScene::DEFAULT_GRAVITY = Vector3(0.f, -10.f, 0.f);
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
@@ -103,6 +105,14 @@ void PhysicsScene::Integrate(float deltaSeconds)
 {
 	for (RigidBody* body : m_bodies)
 	{
-		body->Integrate(deltaSeconds);
+		// Calculate gravity acceleration
+		Vector3 gravityAcc = Vector3::ZERO;
+		
+		if (body->IsAffectedByGravity())
+		{
+			gravityAcc = m_gravityAcc * body->GetGravityScale();
+		}
+
+		body->Integrate(deltaSeconds, gravityAcc);
 	}
 }

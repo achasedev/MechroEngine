@@ -43,6 +43,7 @@ public:
 	void BeginFrame();
 	void DoPhysicsStep(float deltaSeconds);
 
+	void SetGravityAcceleration(const Vector3& gravityAcc) { m_gravityAcc = gravityAcc; }
 	void AddRigidbody(RigidBody* body);
 	void AddForceGenerator(RigidBodyForceGenerator* forceGen, RigidBody* body);
 
@@ -53,9 +54,16 @@ private:
 	void Integrate(float deltaSeconds);
 
 
+public:
+	//-----Public Methods-----
+
+	static const Vector3 DEFAULT_GRAVITY;
+
+
 private:
 	//-----Private Data-----
 
+	Vector3									m_gravityAcc = DEFAULT_GRAVITY;
 	std::vector<RigidBody*>					m_bodies;
 	std::vector<RigidBodyForceGenerator*>	m_forceGens;
 	RigidBodyForceRegistry					m_forceRegistry;

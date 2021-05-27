@@ -87,17 +87,76 @@ void RigidBody::AddLocalForceAtWorldPoint(const Vector3& forceLs, const Vector3&
 //-------------------------------------------------------------------------------------------------
 void RigidBody::SetInertiaTensor_Capsule(float h, float r)
 {
-	float mcyl = h * (r * r) * PI; // Cylinder mass
-	float mhs = (2.f / 3.f) * (r * r * r) * PI; // Hemisphere mass
-	float mass = mcyl + 2.f * mhs; // 2 half spheres, on top and bottom of cylinder
+	if (m_iMass == 0.f)
+	{
+		ConsoleWarningf("Attempting to set the inertia tensor of an immovable object to that of a capsule. Ignoring...");
+		return;
+	}
+
+	float vcyl = h * (r * r) * PI; // Cylinder
+	float vhs = (2.f / 3.f) * (r * r * r) * PI; // Hemisphere
+	float volume = vcyl + 2.f * vhs; // 2 half spheres, on top and bottom of cylinder
+
+	float mass = (1.f / m_iMass);
+	float density = (mass / volume);
+
+	float mcyl = vcyl * density; // Cylinder mass
+	float mhs = vhs * density; // Hemisphere mass
 
 	Matrix3 inertiaTensor = Matrix3::IDENTITY;
-
 	inertiaTensor.Ix = mcyl * ((1.f / 12.f) * (h * h) + 0.25f * (r * r)) + 2.f * mhs * ((0.4f * r * r) + (0.5f * h * h) + 0.375f * h * r);
 	inertiaTensor.Jy = mcyl * (0.5f * r * r) + 2.f * mhs * (0.4f * r * r);
-	inertiaTensor.Kz = mcyl * ((1.f / 12.f) * (h * h) + 0.25f * (r * r)) + 2.f * mhs * ((0.4f * r * r) + (0.5f * h * h) + 0.375f * h * r);
+	inertiaTensor.Kz = inertiaTensor.Ix;
 
 	m_inverseInertiaTensorLocal = inertiaTensor.GetInverse();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RigidBody::SetInertiaTensor_Box(const Vector3& extents)
+{
+	if (m_iMass == 0.f)
+	{
+		ConsoleWarningf("Attempting to set the inertia tensor of an immovable object to that of a box. Ignoring...");
+		return;
+	}
+
+	float mass = (1.f / m_iMass);
+
+	Matrix3 inertiaTensor = Matrix3::IDENTITY;
+	inertiaTensor.Ix = (1.f / 12.f) * mass * (extents.y * extents.y + extents.z * extents.z);
+	inertiaTensor.Jy = (1.f / 12.f) * mass * (extents.x * extents.x + extents.z * extents.z);
+	inertiaTensor.Kz = (1.f / 12.f) * mass * (extents.x * extents.x + extents.y * extents.y);
+
+	SetInverseInertiaTensor(inertiaTensor.GetInverse());
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RigidBody::SetInertiaTensor_Sphere(float radius)
+{
+	if (m_iMass == 0.f)
+	{
+		ConsoleWarningf("Attempting to set the inertia tensor of an immovable object to that of a sphere. Ignoring...");
+		return;
+	}
+
+	float mass = (1.f / m_iMass);
+	float moment = (2.f / 5.f) * mass * (radius * radius);
+
+	Matrix3 inertiaTensor = Matrix3::IDENTITY;
+	inertiaTensor.Ix = moment;
+	inertiaTensor.Jy = moment;
+	inertiaTensor.Kz = moment;
+
+	SetInverseInertiaTensor(inertiaTensor.GetInverse());
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RigidBody::SetAngularVelocityDegreesWs(const Vector3& angularVelocityDegreesWs)
+{
+	SetAngularVelocityRadiansWs(DegreesToRadians(angularVelocityDegreesWs));
 }
 
 
@@ -147,7 +206,7 @@ RigidBody::RigidBody(Transform* transform)
 
 
 //-------------------------------------------------------------------------------------------------
-void RigidBody::Integrate(float deltaSeconds)
+void RigidBody::Integrate(float deltaSeconds, const Vector3& gravityAcc)
 {
 	if (!m_isAwake)
 		return;
@@ -157,7 +216,7 @@ void RigidBody::Integrate(float deltaSeconds)
 	CalculateDerivedData();
 
 	// Calculate accelerations
-	Vector3 acceleration = m_accelerationWs;
+	Vector3 acceleration = m_accelerationWs + gravityAcc;
 	acceleration += (m_forceAccumWs * m_iMass);
 
 	Vector3 angularAcceleration = m_inverseInertiaTensorWorld * m_torqueAccumWs;

@@ -10,6 +10,8 @@
 #include "Engine/Collision/Collider.h"
 #include "Engine/Core/EngineCommon.h"
 #include "Engine/Core/Entity.h"
+#include "Engine/Core/Rgba.h"
+#include "Engine/Render/Debug/DebugRenderSystem.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -65,6 +67,13 @@ SphereCollider::SphereCollider(Entity* owningEntity, const Sphere3D& sphereLs)
 
 
 //-------------------------------------------------------------------------------------------------
+void SphereCollider::DebugRender(const Rgba& color) const
+{
+	DebugDrawSphere(m_dataLs.center, m_dataLs.radius, color, 0.f, &entity->transform);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 Sphere3D SphereCollider::GetDataInWorldSpace() const
 {
 	Vector3 centerWs = entity->transform.TransformPosition(m_dataLs.center);
@@ -76,6 +85,13 @@ Sphere3D SphereCollider::GetDataInWorldSpace() const
 HalfSpaceCollider::HalfSpaceCollider(Entity* owningEntity, const Plane3& planeLs)
 	: TypedCollider(owningEntity, planeLs)
 {
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void HalfSpaceCollider::DebugRender(const Rgba& color) const
+{
+	// TODO:
 }
 
 
@@ -98,6 +114,13 @@ BoxCollider::BoxCollider(Entity* owningEntity, const OBB3& boxLs)
 
 
 //-------------------------------------------------------------------------------------------------
+void BoxCollider::DebugRender(const Rgba& color) const
+{
+	DebugDrawCube(m_dataLs.center, m_dataLs.extents, color, 0.f, &entity->transform);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 OBB3 BoxCollider::GetDataInWorldSpace() const
 {
 	Vector3 centerWs = entity->transform.TransformPosition(m_dataLs.center);
@@ -111,6 +134,14 @@ OBB3 BoxCollider::GetDataInWorldSpace() const
 CapsuleCollider::CapsuleCollider(Entity* owningEntity, const Capsule3D& capsuleLs)
 	: TypedCollider(owningEntity, capsuleLs)
 {
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void CapsuleCollider::DebugRender(const Rgba& color) const
+{
+	DebugDrawSphere(m_dataLs.start, m_dataLs.radius, color, 0.f, &entity->transform);
+	DebugDrawSphere(m_dataLs.end, m_dataLs.radius, color, 0.f, &entity->transform);
 }
 
 

@@ -38,7 +38,7 @@ public:
 	RigidBody(Transform* transform);
 
 	void CalculateDerivedData();
-	void Integrate(float deltaSeconds);
+	void Integrate(float deltaSeconds, const Vector3& gravityAcc);
 	
 	void AddWorldForce(const Vector3& forceWs);
 	void AddLocalForce(const Vector3& forceLs);
@@ -56,21 +56,25 @@ public:
 
 	void SetVelocityWs(const Vector3& velocityWs) { m_velocityWs = velocityWs; }
 	void SetAngularVelocityRadiansWs(const Vector3& angularVelocityRadiansWs) { m_angularVelocityRadiansWs = angularVelocityRadiansWs; }
+	void SetAngularVelocityDegreesWs(const Vector3& angularVelocityDegreesWs);
 	void SetAcceleration(const Vector3& acceleration) { m_accelerationWs = acceleration; }
 	void SetInverseMass(float iMass) { m_iMass = iMass; }
 	void SetLinearDamping(float linearDamping) { m_linearDamping = linearDamping; }
 	void SetAngularDamping(float angularDamping) { m_angularDamping = angularDamping; }
 	void SetIsAwake(bool isAwake);
 	void SetCanSleep(bool canSleep);
+	void SetAffectedByGravity(bool affectedByGravity) { m_affectedByGravity = affectedByGravity; }
+	void SetGravityScale(float scale) { m_gravityScale = scale; }
 
 	Vector3 GetLastFrameAcceleration() const { return m_lastFrameAccelerationWs; }
 	float	GetInverseMass() const { return m_iMass; }
 	void	GetWorldInverseInertiaTensor(Matrix3& out_inverseInertiaTensor) const;
 	Vector3 GetVelocityWs() const { return m_velocityWs; }
 	Vector3	GetAngularVelocityRadiansWs() const { return m_angularVelocityRadiansWs; }
+	float	GetGravityScale() const { return m_gravityScale; }
 	bool	IsAwake() const { return m_isAwake; }
 	bool	CanSleep() const { return m_canSleep; }
-
+	bool	IsAffectedByGravity() const { return m_affectedByGravity; }
 
 public:
 	//-----Public Data-----
@@ -85,6 +89,12 @@ private:
 
 
 private:
+	//-----Private Static Data-----
+
+	static constexpr float SLEEP_EPSILON = 0.1f;
+
+
+private:
 	//-----Private Data-----
 
 	Vector3		m_velocityWs = Vector3::ZERO;
@@ -94,14 +104,16 @@ private:
 	Vector3		m_forceAccumWs = Vector3::ZERO;
 	Vector3		m_torqueAccumWs = Vector3::ZERO;
 	float		m_iMass = 1.f;
-	float		m_linearDamping = 0.999f;
-	float		m_angularDamping = 0.999f;
+	float		m_linearDamping = 0.75f;
+	float		m_angularDamping = 0.4f;
 	Matrix3		m_inverseInertiaTensorLocal;
 	Matrix3		m_inverseInertiaTensorWorld;
 	bool		m_isAwake = true;
 	bool		m_canSleep = true;
-	static constexpr float SLEEP_EPSILON = 0.1f;
 	float		m_motion = 2.f * SLEEP_EPSILON;
+
+	bool		m_affectedByGravity = true;
+	float		m_gravityScale = 1.0f;
 
 };
 

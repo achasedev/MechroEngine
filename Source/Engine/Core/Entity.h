@@ -53,7 +53,7 @@ public:
 
 	RigidBody*				rigidBody = nullptr;
 	AABB3					renderShapeLs;
-	Collider*				collisionPrimitive = nullptr;
+	Collider*				collider = nullptr;
 
 
 private:

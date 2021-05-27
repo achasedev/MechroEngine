@@ -156,7 +156,7 @@ void CollisionScene<BoundingVolumeClass>::UpdateBVH()
 	// For each node, check if the entity's bounding volume changed a significant amount. If so, update it
 	for (BVHNode<BoundingVolumeClass>* node : m_leaves)
 	{
-		BoundingVolumeClass currVolumeWs = MakeBoundingVolumeForPrimitive(node->m_entity->collisionPrimitive);
+		BoundingVolumeClass currVolumeWs = MakeBoundingVolumeForPrimitive(node->m_entity->collider);
 
 		if (!AreMostlyEqual(node->m_boundingVolumeWs, currVolumeWs))
 		{
@@ -195,8 +195,8 @@ void CollisionScene<BoundingVolumeClass>::GenerateContacts()
 
 		PotentialCollision& collision = m_potentialCollisions[i];
 
-		Collider* colOne = collision.entities[0]->collisionPrimitive;
-		Collider* colTwo = collision.entities[1]->collisionPrimitive;
+		Collider* colOne = collision.entities[0]->collider;
+		Collider* colTwo = collision.entities[1]->collider;
 
 		bool oneIsSphere = colOne->IsOfType<SphereCollider>();
 		bool twoIsSphere = colTwo->IsOfType<SphereCollider>();
@@ -233,6 +233,11 @@ void CollisionScene<BoundingVolumeClass>::GenerateContacts()
 				BoxCollider* twoAsBox = colTwo->GetAsType<BoxCollider>();
 				m_numNewContacts += m_detector.GenerateContacts(*twoAsBox, *oneAsSphere, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
 			}
+			else if (twoIsCapsule)
+			{
+				CapsuleCollider* twoAsCapsule = colTwo->GetAsType<CapsuleCollider>();
+				m_numNewContacts += m_detector.GenerateContacts(*oneAsSphere, *twoAsCapsule, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
+			}
 		}
 		else if (oneIsBox)
 		{
@@ -252,6 +257,10 @@ void CollisionScene<BoundingVolumeClass>::GenerateContacts()
 			{
 				BoxCollider* twoAsBox = colTwo->GetAsType<BoxCollider>();
 				m_numNewContacts += m_detector.GenerateContacts(*oneAsBox, *twoAsBox, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
+			}
+			else if (twoIsCapsule)
+			{
+				UNIMPLEMENTED();
 			}
 		}
 		else if (oneIsHalfSpace)
@@ -280,19 +289,18 @@ void CollisionScene<BoundingVolumeClass>::GenerateContacts()
 
 			if (twoIsSphere)
 			{
-				UNIMPLEMENTED();
-				//SphereCollider* twoAsSphere = colTwo->GetAsType<SphereCollider>();
-				//m_numNewContacts += m_detector.GenerateContacts(*twoAsSphere, *oneAsHalfSpace, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
+				SphereCollider* twoAsSphere = colTwo->GetAsType<SphereCollider>();
+				m_numNewContacts += m_detector.GenerateContacts(*twoAsSphere, *oneAsCapsule, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
 			}
 			else if (twoIsBox)
 			{
-				UNIMPLEMENTED();
-				//BoxCollider* twoAsBox = colTwo->GetAsType<BoxCollider>();
-				//m_numNewContacts += m_detector.GenerateContacts(*twoAsBox, *oneAsHalfSpace, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
+				BoxCollider* twoAsBox = colTwo->GetAsType<BoxCollider>();
+				m_numNewContacts += m_detector.GenerateContacts(*twoAsBox, *oneAsCapsule, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
 			}
 			else if (twoIsCapsule)
 			{
-				UNIMPLEMENTED();
+				CapsuleCollider* twoAsCapsule = colTwo->GetAsType<CapsuleCollider>();
+				m_numNewContacts += m_detector.GenerateContacts(*oneAsCapsule, *twoAsCapsule, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
 			}
 			else if (twoIsHalfSpace)
 			{
@@ -352,7 +360,7 @@ CollisionScene<BoundingVolumeClass>::~CollisionScene()
 template <class BoundingVolumeClass>
 void CollisionScene<BoundingVolumeClass>::AddEntity(Entity* entity)
 {
-	BoundingVolumeClass boundingVolume = MakeBoundingVolumeForPrimitive(entity->collisionPrimitive);
+	BoundingVolumeClass boundingVolume = MakeBoundingVolumeForPrimitive(entity->collider);
 	BVHNode<BoundingVolumeClass>* node = new BVHNode<BoundingVolumeClass>(boundingVolume);
 	node->m_entity = entity;
 

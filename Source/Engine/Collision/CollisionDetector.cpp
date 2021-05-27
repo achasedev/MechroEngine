@@ -588,3 +588,67 @@ int CollisionDetector::GenerateContacts(const CapsuleCollider& capsule, const Ha
 
 	return numAdded;
 }
+
+#include "Engine/Render/Debug/DebugRenderSystem.h"
+
+//-------------------------------------------------------------------------------------------------
+int CollisionDetector::GenerateContacts(const SphereCollider& sphere, const CapsuleCollider& capsule, Contact* out_contacts, int limit)
+{
+	if (limit <= 0)
+		return 0;
+
+	Sphere3D sphereWs = sphere.GetDataInWorldSpace();
+	Capsule3D capsuleWs = capsule.GetDataInWorldSpace();
+
+	Vector3 closestCapsulePointWs;
+	float distance = GetClosestPointOnLineSegment(capsuleWs.start, capsuleWs.end, sphereWs.center, closestCapsulePointWs);
+	float overlap = (sphereWs.radius + capsuleWs.radius) - distance;
+
+	if (overlap > 0.f)
+	{
+		out_contacts->normal = (sphereWs.center - closestCapsulePointWs) / distance;
+		out_contacts->penetration = overlap;
+		out_contacts->position = 0.5f * (closestCapsulePointWs + sphereWs.center);
+		FillOutColliderInfo(out_contacts, sphere, capsule);
+		out_contacts->CheckValuesAreReasonable();
+
+		return 1;
+	}
+
+	return 0;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionDetector::GenerateContacts(const CapsuleCollider& a, const CapsuleCollider& b, Contact* out_contacts, int limit)
+{
+	if (limit <= 0)
+		return 0;
+
+	Capsule3D capsuleA = a.GetDataInWorldSpace();
+	Capsule3D capsuleB = b.GetDataInWorldSpace();
+
+	Vector3 ptOnA, ptOnB;
+	float distance = FindClosestPointsOnLineSegments(capsuleA.start, capsuleA.end, capsuleB.start, capsuleB.end, ptOnA, ptOnB);
+	float overlap = (capsuleA.radius + capsuleB.radius) - distance;
+
+	if (overlap > 0.f)
+	{
+		out_contacts->normal = (ptOnA - ptOnB) / distance;
+		out_contacts->penetration = overlap;
+		out_contacts->position = 0.5f * (ptOnA + ptOnB);
+		FillOutColliderInfo(out_contacts, a, b);
+		out_contacts->CheckValuesAreReasonable();
+
+		return 1;
+	}
+
+	return 0;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionDetector::GenerateContacts(const BoxCollider& box, const CapsuleCollider& capsule, Contact* out_contacts, int limit)
+{
+	UNIMPLEMENTED();
+}

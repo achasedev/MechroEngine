@@ -42,6 +42,8 @@ public:
 	Collider() {}
 	Collider(Entity* owningEntity);
 
+	virtual void DebugRender(const Rgba& color) const = 0;
+
 	bool		OwnerHasRigidBody() const;
 	RigidBody*	GetOwnerRigidBody() const;
 
@@ -96,7 +98,8 @@ public:
 	SphereCollider() {}
 	SphereCollider(Entity* owningEntity, const Sphere3D& sphereLs);
 
-	virtual Sphere3D GetDataInWorldSpace() const override;
+	virtual void		DebugRender(const Rgba& color) const override;
+	virtual Sphere3D	GetDataInWorldSpace() const override;
 
 
 private:
@@ -115,7 +118,8 @@ public:
 	HalfSpaceCollider() {}
 	HalfSpaceCollider(Entity* owningEntity, const Plane3& planeLs);
 
-	virtual Plane3 GetDataInWorldSpace() const override;
+	virtual void	DebugRender(const Rgba& color) const override;
+	virtual Plane3	GetDataInWorldSpace() const override;
 
 
 private:
@@ -133,6 +137,7 @@ public:
 	BoxCollider() {}
 	BoxCollider(Entity* owningEntity, const OBB3& boxLs);
 
+	virtual void DebugRender(const Rgba& color) const override;
 	virtual OBB3 GetDataInWorldSpace() const override;
 
 
@@ -151,7 +156,8 @@ public:
 	CapsuleCollider() {}
 	CapsuleCollider(Entity* owningEntity, const Capsule3D& capsuleLs);
 
-	virtual Capsule3D GetDataInWorldSpace() const override;
+	virtual void		DebugRender(const Rgba& color) const override;
+	virtual Capsule3D	GetDataInWorldSpace() const override;
 
 
 private:

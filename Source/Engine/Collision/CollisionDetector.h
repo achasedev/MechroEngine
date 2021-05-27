@@ -38,10 +38,13 @@ public:
 
 	int GenerateContacts(const SphereCollider& a,			const SphereCollider& b,			Contact* out_contacts, int limit);
 	int GenerateContacts(const SphereCollider& sphere,		const HalfSpaceCollider& halfSpace, Contact* out_contacts, int limit);
+	int GenerateContacts(const SphereCollider& sphere,		const CapsuleCollider& capsule,		Contact* out_contacts, int limit);
 	int GenerateContacts(const CapsuleCollider& capsule,	const HalfSpaceCollider& halfSpace, Contact* out_contacts, int limit);
+	int GenerateContacts(const CapsuleCollider& a,			const CapsuleCollider& b,			Contact* out_contacts, int limit);
 	int GenerateContacts(const BoxCollider& box,			const HalfSpaceCollider& halfSpace, Contact* out_contacts, int limit);
 	int GenerateContacts(const BoxCollider& box,			const SphereCollider& sphere,		Contact* out_contacts, int limit);
 	int GenerateContacts(const BoxCollider& a,				const BoxCollider& b,				Contact* out_contacts, int limit);
+	int GenerateContacts(const BoxCollider& box,			const CapsuleCollider& capsule,		Contact* out_contacts, int limit);
 
 
 private:
