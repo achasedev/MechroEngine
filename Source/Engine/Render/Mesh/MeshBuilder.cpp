@@ -736,19 +736,33 @@ void MeshBuilder::PushSphere(const Vector3& center, float radius, const Rgba& co
 	ASSERT_OR_DIE(m_isBuilding, "MeshBuilder not building!");
 	ASSERT_OR_DIE(m_instruction.m_useIndices, "Spheres need indices currently!");
 
+	PushTopHemiSphere(center, radius, color, numUSteps, numVSteps / 2);
+	PushBottomHemiSphere(center, radius, color, numUSteps, numVSteps / 2);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void MeshBuilder::PushTopHemiSphere(const Vector3& center, float radius, const Rgba& color /*= Rgba::WHITE*/, int numUSteps /*= 10*/, int numVSteps /*= 10*/, float startV /*= 0.5f*/, float endV /*= 1.0f*/)
+{
+	ASSERT_OR_DIE(m_isBuilding, "MeshBuilder not building!");
+	ASSERT_OR_DIE(m_instruction.m_useIndices, "Spheres need indices currently!");
+
 	SetColor(color);
+
+	// Get the number of vertices before we add more
+	int initialVertexOffset = m_vertices.size();
 
 	for (int vStep = 0; vStep <= numVSteps; ++vStep) // <= since if we want n gaps, we need n+1 dividers
 	{
 		for (int uStep = 0; uStep <= numUSteps; ++uStep) // <= since if we want n gaps, we need n+1 dividers
 		{
-			float u = RangeMapFloat((float)uStep, 0.f, (float)numUSteps, 0.f, 1.0f);
-			float v = RangeMapFloat((float)vStep, 0.f, (float)numVSteps, 0.f, 1.0f);
+			float u = RangeMapFloat((float)uStep, 0.f, (float)numUSteps, 0.f, 1.f);
+			float v = RangeMapFloat((float)vStep, 0.f, (float)numVSteps, startV, endV);
 
 			float rotationAngle = u * 360.f;
-			float azimuthAngle = RangeMapFloat(v, 0.f, 1.0f, 180.f, 0.f);
-			Vector3 pos = SphericalToCartesian(radius, rotationAngle, azimuthAngle);
-			
+			float azimuthAngle = RangeMapFloat(v, startV, endV, 90.f, 0.f);
+			Vector3 pos = SphericalToCartesian(radius, rotationAngle, azimuthAngle) + center;
+
 			Vector3 normal = (pos - center).GetNormalized();
 
 			// Tangent - set the tangents at the poles to local RIGHT
@@ -762,7 +776,7 @@ void MeshBuilder::PushSphere(const Vector3& center, float radius, const Rgba& co
 			SetUV(Vector2(u, v));
 			SetNormal(normal);
 			SetTangent(Vector4(tangent, 1.0f));
-			PushVertex(center + pos);
+			PushVertex(pos);
 		}
 	}
 
@@ -773,7 +787,7 @@ void MeshBuilder::PushSphere(const Vector3& center, float radius, const Rgba& co
 	{
 		for (int uStep = 0; uStep < (int)numUSteps; ++uStep)
 		{
-			int bottomLeft = numVertsPerV * vStep + uStep;
+			int bottomLeft = initialVertexOffset + numVertsPerV * vStep + uStep;
 			int bottomRight = bottomLeft + 1;
 			int topRight = bottomRight + numVertsPerV;
 			int topLeft = bottomLeft + numVertsPerV;
@@ -787,4 +801,142 @@ void MeshBuilder::PushSphere(const Vector3& center, float radius, const Rgba& co
 			PushIndex(bottomRight);
 		}
 	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void MeshBuilder::PushBottomHemiSphere(const Vector3& center, float radius, const Rgba& color /*= Rgba::WHITE*/, int numUSteps /*= 10*/, int numVSteps /*= 10*/, float startV /*= 0.f*/, float endV /*= 0.5f*/)
+{
+	ASSERT_OR_DIE(m_isBuilding, "MeshBuilder not building!");
+	ASSERT_OR_DIE(m_instruction.m_useIndices, "Spheres need indices currently!");
+
+	SetColor(color);
+
+	// Get the number of vertices before we add more
+	int initialVertexOffset = m_vertices.size();
+
+	for (int vStep = 0; vStep <= numVSteps; ++vStep) // <= since if we want n gaps, we need n+1 dividers
+	{
+		for (int uStep = 0; uStep <= numUSteps; ++uStep) // <= since if we want n gaps, we need n+1 dividers
+		{
+			float u = RangeMapFloat((float)uStep, 0.f, (float)numUSteps, 0.f, 1.0f);
+			float v = RangeMapFloat((float)vStep, 0.f, (float)numVSteps, startV, endV);
+
+			float rotationAngle = u * 360.f;
+			float azimuthAngle = RangeMapFloat(v, startV, endV, 180.f, 90.f);
+			Vector3 pos = SphericalToCartesian(radius, rotationAngle, azimuthAngle) + center;
+
+			Vector3 normal = (pos - center).GetNormalized();
+
+			// Tangent - set the tangents at the poles to local RIGHT
+			Vector3 tangent = Vector3(-SinDegrees(rotationAngle) * SinDegrees(azimuthAngle), 0.f, CosDegrees(rotationAngle) * SinDegrees(azimuthAngle));
+			if (AreMostlyEqual(tangent, Vector3::ZERO))
+			{
+				tangent = Vector3::X_AXIS;
+			}
+			tangent.Normalize();
+
+			SetUV(Vector2(u, v));
+			SetNormal(normal);
+			SetTangent(Vector4(tangent, 1.0f));
+			PushVertex(pos);
+		}
+	}
+
+	// Pushing the indices
+	unsigned int numVertsPerV = numUSteps + 1;	// We push a vertex at the end of a slice that coincides with the first vertex of that slice, hence + 1
+
+	for (int vStep = 0; vStep < (int)numVSteps; ++vStep)
+	{
+		for (int uStep = 0; uStep < (int)numUSteps; ++uStep)
+		{
+			int bottomLeft = initialVertexOffset + numVertsPerV * vStep + uStep;
+			int bottomRight = bottomLeft + 1;
+			int topRight = bottomRight + numVertsPerV;
+			int topLeft = bottomLeft + numVertsPerV;
+
+			PushIndex(bottomLeft);
+			PushIndex(topLeft);
+			PushIndex(topRight);
+
+			PushIndex(bottomLeft);
+			PushIndex(topRight);
+			PushIndex(bottomRight);
+		}
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void MeshBuilder::PushCapsuleSides(const Vector3& bottom, const Vector3& top, float radius, const Rgba& color /*= Rgba::WHITE*/, int numUSteps /*= 10*/, float startV /*= 0.f*/, float endV /*= 1.f*/)
+{
+	ASSERT_OR_DIE(m_isBuilding, "MeshBuilder not building!");
+	ASSERT_OR_DIE(m_instruction.m_useIndices, "Spheres need indices currently!");
+
+	SetColor(color);
+
+	int vertexOffset = (int)m_vertices.size();
+
+	// Push the vertices and indices for the cylinder
+	for (int vStep = 0; vStep <= 1; ++vStep)
+	{
+		for (int uStep = 0; uStep <= numUSteps; ++uStep)
+		{
+			float u = RangeMapFloat((float)uStep, 0.f, (float)numUSteps, 0.f, 1.0f);
+			float v = RangeMapFloat((float)vStep, 0.f, (float)1.f, startV, endV);
+
+			float rotationAngle = u * 360.f;
+			float cosAngle = CosDegrees(rotationAngle);
+			float sinAngle = SinDegrees(rotationAngle);
+
+			float x = radius * cosAngle + bottom.x;
+			float y = RangeMapFloat(v, startV, endV, bottom.y, top.y);
+			float z = radius * sinAngle + bottom.z;
+
+			Vector3 pos = Vector3(x, y, z);
+			Vector3 normal = Vector3(cosAngle, 0.f, sinAngle).GetNormalized();
+			Vector3 tangent = CrossProduct(normal, (top - bottom)).GetNormalized();
+
+			SetUV(Vector2(u, v));
+			SetNormal(normal);
+			SetTangent(Vector4(tangent, 1.0f));
+			PushVertex(pos);
+		}
+	}
+
+	// Pushing the indices
+	unsigned int numVertsPerV = numUSteps + 1;	// We push a vertex at the end of a slice that coincides with the first vertex of that slice, hence + 1
+
+	for (int uStep = 0; uStep < (int)numUSteps; ++uStep)
+	{
+		int bottomLeft = vertexOffset + uStep;
+		int bottomRight = bottomLeft + 1;
+		int topRight = bottomRight + numVertsPerV;
+		int topLeft = bottomLeft + numVertsPerV;
+
+		PushIndex(bottomLeft);
+		PushIndex(topLeft);
+		PushIndex(topRight);
+
+		PushIndex(bottomLeft);
+		PushIndex(topRight);
+		PushIndex(bottomRight);
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void MeshBuilder::PushCapsule(const Vector3& start, const Vector3& end, float radius, const Rgba& color /*= Rgba::WHITE*/)
+{
+	ASSERT_OR_DIE(m_isBuilding, "MeshBuilder not building!");
+	ASSERT_OR_DIE(m_instruction.m_useIndices, "Spheres need indices currently!");
+
+	int numUSteps = 10;
+	int numVSteps = 10;
+	float startV = (1.f / 3.f);
+	float endV = (2.f / 3.f);
+
+	PushBottomHemiSphere(start, radius, color, numUSteps, numVSteps / 2, 0.66666667f, 1.0f);
+	PushCapsuleSides(start, end, radius, color, numUSteps, startV, endV);
+	PushTopHemiSphere(end, radius, color, numUSteps, numVSteps / 2, 0.f, 0.3333333f);
 }

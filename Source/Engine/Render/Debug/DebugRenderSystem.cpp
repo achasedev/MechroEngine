@@ -95,6 +95,19 @@ DebugRenderHandle DebugDrawSphere(const Vector3& center, float radius, const Rgb
 }
 
 
+//-------------------------------------------------------------------------------------------------
+DebugRenderHandle DebugDrawCapsule(const Vector3& start, const Vector3& end, float radius, const Rgba& color /*= Rgba::WHITE*/, float lifetime /*= FLT_MAX*/, const Transform* parentTransform /*= nullptr*/)
+{
+	DebugRenderOptions options;
+	options.m_lifetime = lifetime;
+	options.m_color = color;
+	options.m_parentTransform = parentTransform;
+
+	DebugRenderCapsule* debugCapsule = new DebugRenderCapsule(start, end, radius, options);
+	return g_debugRenderSystem->AddObject(debugCapsule);
+}
+
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

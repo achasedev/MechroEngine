@@ -191,3 +191,51 @@ void DebugRenderText3D::Render() const
 	UNIMPLEMENTED();
 	//Font* font = g_resourceSystem->CreateOrGetFont("Data/Font/Prototype.ttf");
 }
+
+
+//-------------------------------------------------------------------------------------------------
+DebugRenderCapsule::DebugRenderCapsule(const Vector3& start, const Vector3& end, float radius, const DebugRenderOptions& options)
+	: DebugRenderTask(options)
+{
+	m_transform.position = 0.5f * (start + end);
+	float height = (end - start).GetLength();
+	m_transform.scale = Vector3(radius, height, radius);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void DebugRenderCapsule::Render() const
+{
+	Mesh* topMesh = g_resourceSystem->CreateOrGetMesh("capsule_top");
+	Mesh* bottomMesh = g_resourceSystem->CreateOrGetMesh("capsule_bottom");
+	Mesh* middleMesh = g_resourceSystem->CreateOrGetMesh("capsule_middle");
+
+	// TODO: Material instancing
+	Material* debugMaterial = g_resourceSystem->CreateOrGetMaterial("Data/Material/debug.material");
+	ShaderResourceView* prevAlbedo = debugMaterial->GetAlbedo();
+	if (m_options.m_fillMode == FILL_MODE_WIREFRAME)
+	{
+		debugMaterial->SetAlbedoTextureView(g_resourceSystem->CreateOrGetTexture2D("white")->CreateOrGetShaderResourceView());
+	}
+
+	// TODO: Shader instancing
+	FillMode prevFillMode = debugMaterial->GetShader()->GetFillMode();
+	debugMaterial->GetShader()->SetFillMode(m_options.m_fillMode);
+
+	Transform topTransform = m_transform;
+	topTransform.position = m_transform.position + Vector3(0.f, m_transform.scale.y * 0.5f, 0.f);
+	topTransform.scale.y = topTransform.scale.x; // The hemispheres need to be scaled up by the radius in the y direction, which is stored in scale x and z
+
+	Transform bottomTransform = topTransform;
+	bottomTransform.position = m_transform.position - Vector3(0.f, m_transform.scale.y * 0.5f, 0.f);
+
+	Renderable rend;
+	rend.AddDraw(topMesh, debugMaterial, topTransform.GetLocalToWorldMatrix());
+	rend.AddDraw(middleMesh, debugMaterial, m_transform.GetLocalToWorldMatrix());
+	rend.AddDraw(bottomMesh, debugMaterial, bottomTransform.GetLocalToWorldMatrix());
+
+	g_renderContext->DrawRenderable(rend);
+
+	debugMaterial->GetShader()->SetFillMode(prevFillMode);
+	debugMaterial->SetAlbedoTextureView(prevAlbedo);
+}

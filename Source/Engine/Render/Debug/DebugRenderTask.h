@@ -141,6 +141,7 @@ private:
 
 };
 
+
 //-------------------------------------------------------------------------------------------------
 class DebugRenderSphere : public DebugRenderTask
 {
@@ -156,6 +157,7 @@ private:
 
 };
 
+
 //-------------------------------------------------------------------------------------------------
 class DebugRenderText3D : public DebugRenderTask
 {
@@ -170,6 +172,22 @@ private:
 	//-----Private Data-----
 
 	std::string m_text;
+
+};
+
+
+//-------------------------------------------------------------------------------------------------
+class DebugRenderCapsule : public DebugRenderTask
+{
+public:
+	//-----Public Methods-----
+
+	DebugRenderCapsule(const Vector3& start, const Vector3& end, float radius, const DebugRenderOptions& options);
+	virtual void Render() const override;
+
+
+private:
+	//-----Private Data-----
 
 };
 

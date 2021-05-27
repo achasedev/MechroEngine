@@ -287,6 +287,33 @@ void ResourceSystem::CreateDefaultMeshes()
 	Mesh* sphereMesh = mb.CreateMesh<Vertex3D_PCU>();
 	sphereMesh->m_resourceID = SID("unit_sphere");
 	m_meshes[sphereMesh->m_resourceID] = sphereMesh;
+
+	mb.Clear();
+	mb.BeginBuilding(true);
+	mb.PushTopHemiSphere(Vector3::ZERO, 1.f, Rgba::WHITE, 10, 5, (2.f / 3.f), 1.f);
+	mb.FinishBuilding();
+
+	Mesh* capsuleTop = mb.CreateMesh<Vertex3D_PCU>();
+	capsuleTop->m_resourceID = SID("capsule_top");
+	m_meshes[capsuleTop->m_resourceID] = capsuleTop;
+
+	mb.Clear();
+	mb.BeginBuilding(true);
+	mb.PushBottomHemiSphere(Vector3::ZERO, 1.f, Rgba::WHITE, 10, 5, 0.f, (1.f / 3.f));
+	mb.FinishBuilding();
+
+	Mesh* capsuleBottom = mb.CreateMesh<Vertex3D_PCU>();
+	capsuleBottom->m_resourceID = SID("capsule_bottom");
+	m_meshes[capsuleBottom->m_resourceID] = capsuleBottom;
+
+	mb.Clear();
+	mb.BeginBuilding(true);
+	mb.PushCapsuleSides(Vector3(0.f, -0.5f, 0.f), Vector3(0.f, 0.5f, 0.), 1.f, Rgba::WHITE, 10, (1.f / 3.f), (2.f / 3.f));
+	mb.FinishBuilding();
+
+	Mesh* capsuleMiddle = mb.CreateMesh<Vertex3D_PCU>();
+	capsuleMiddle->m_resourceID = SID("capsule_middle");
+	m_meshes[capsuleMiddle->m_resourceID] = capsuleMiddle;
 }
 
 
