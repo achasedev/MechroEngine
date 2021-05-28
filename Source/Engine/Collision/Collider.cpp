@@ -140,8 +140,6 @@ CapsuleCollider::CapsuleCollider(Entity* owningEntity, const Capsule3D& capsuleL
 //-------------------------------------------------------------------------------------------------
 void CapsuleCollider::DebugRender(const Rgba& color) const
 {
-	//DebugDrawSphere(m_dataLs.start, m_dataLs.radius, Rgba::RED, 0.f, &entity->transform);
-	//DebugDrawSphere(m_dataLs.end, m_dataLs.radius, Rgba::RED, 0.f, &entity->transform);
 	DebugDrawCapsule(m_dataLs.start, m_dataLs.end, m_dataLs.radius, color, 0.f, &entity->transform);
 }
 

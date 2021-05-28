@@ -648,7 +648,66 @@ int CollisionDetector::GenerateContacts(const CapsuleCollider& a, const CapsuleC
 
 
 //-------------------------------------------------------------------------------------------------
+static bool GetMinPlanePen(const BoxCollider& box, const CapsuleCollider& capsule, float& out_pen, Vector3& out_normal, Vector3& out_capsuleEndpoint)
+{
+	OBB3 boxWs = box.GetDataInWorldSpace();
+	Capsule3D capsuleWs = capsule.GetDataInWorldSpace();
+
+	Plane3 facePlanes[6];
+	boxWs.GetFaceSupportPlanes(facePlanes);
+
+	out_pen = FLT_MAX;
+
+	for (int i = 0; i < 6; ++i)
+	{
+		const Plane3& plane = facePlanes[i];
+
+		float startDist = plane.GetDistanceFromPlane(capsuleWs.start);
+		float endDist = plane.GetDistanceFromPlane(capsuleWs.end);
+
+		// If both endpoints are a radius away, no face contacts
+		// This does NOT mean there is no overlap at all, just no face contact (could still be an edge)
+		if (Min(startDist, endDist) >= capsuleWs.radius)
+			return false;
+
+		// If we're on the other side of the box then don't count this as being overlap
+		float extent = boxWs.extents.data[i / 2];
+		if (Max(startDist, endDist) <= (-2.f * extent - capsuleWs.radius))
+			continue;
+
+		float pen = -1.0f * Min(startDist, endDist) + capsuleWs.radius;
+		if (pen < out_pen)
+		{
+			out_pen = pen;
+			out_normal = plane.GetNormal();
+			out_capsuleEndpoint = (startDist < endDist) ? capsuleWs.start : capsuleWs.end;
+		}
+	}
+
+	return (out_pen > 0.f);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 int CollisionDetector::GenerateContacts(const BoxCollider& box, const CapsuleCollider& capsule, Contact* out_contacts, int limit)
 {
-	UNIMPLEMENTED();
+	Capsule3D capsuleWs = capsule.GetDataInWorldSpace();
+
+	float facePen = 0.f;
+	Vector3 faceNormal;
+	Vector3 capsuleEndpoint;
+	bool hasOverlap = GetMinPlanePen(box, capsule, facePen, faceNormal, capsuleEndpoint);
+
+	if (hasOverlap)
+	{
+		out_contacts->normal = faceNormal;
+		out_contacts->penetration = facePen;
+		out_contacts->position = capsuleEndpoint - out_contacts->normal * capsuleWs.radius;
+		FillOutColliderInfo(out_contacts, capsule, box);
+		out_contacts->CheckValuesAreReasonable();
+
+		return 1;
+	}
+
+	return 0;
 }

@@ -260,7 +260,8 @@ void CollisionScene<BoundingVolumeClass>::GenerateContacts()
 			}
 			else if (twoIsCapsule)
 			{
-				UNIMPLEMENTED();
+				CapsuleCollider* twoAsCapsule = colTwo->GetAsType<CapsuleCollider>();
+				m_numNewContacts += m_detector.GenerateContacts(*oneAsBox, *twoAsCapsule, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
 			}
 		}
 		else if (oneIsHalfSpace)

@@ -82,14 +82,17 @@ void OBB3::GetPoints(Vector3 out_points[8]) const
 //-------------------------------------------------------------------------------------------------
 Vector3 OBB3::GetMinsWs() const
 {
-	return rotation.RotatePosition(center - extents);
+	Transform transform(center, rotation, extents);
+	return transform.TransformPosition(Vector3(-1.f, -1.f, -1.f)); // Left, Bottom, Back
+
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Vector3 OBB3::GetMaxsWs() const
 {
-	return rotation.RotatePosition(center + extents);
+	Transform transform(center, rotation, extents);
+	return transform.TransformPosition(Vector3(1.f, 1.f, 1.f));	// Right, Top, Front
 }
 
 
@@ -198,7 +201,7 @@ Face3 OBB3::GetFaceInDirection(const Vector3& direction) const
 
 
 //-------------------------------------------------------------------------------------------------
-void OBB3::GetFaceSupportPlanes(std::vector<Plane3>& out_planes) const
+void OBB3::GetFaceSupportPlanes(Plane3* out_planes) const
 {
 	// Find the local space extremes in world space
 	Vector3 minsWs = GetMinsWs();
@@ -209,13 +212,12 @@ void OBB3::GetFaceSupportPlanes(std::vector<Plane3>& out_planes) const
 	Vector3 up = GetUpVector().GetNormalized();
 	Vector3 forward = GetForwardVector().GetNormalized();
 
-	out_planes.clear();
-	out_planes.push_back(Plane3(-1.f * right, minsWs));
-	out_planes.push_back(Plane3(right, maxsWs));
-	out_planes.push_back(Plane3(-1.f * up, minsWs));
-	out_planes.push_back(Plane3(up, maxsWs));
-	out_planes.push_back(Plane3(-1.f * forward, minsWs));
-	out_planes.push_back(Plane3(forward, maxsWs));
+	out_planes[0] = Plane3(right, maxsWs);
+	out_planes[1] = Plane3(-1.f * right, minsWs);
+	out_planes[2] = Plane3(up, maxsWs);
+	out_planes[3] = Plane3(-1.f * up, minsWs);
+	out_planes[4] = Plane3(forward, maxsWs);
+	out_planes[5] = Plane3(-1.f * forward, minsWs);
 }
 
 
