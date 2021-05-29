@@ -668,18 +668,38 @@ static bool GetMinPlanePen(const OBB3& box, const Capsule3D& capsule, float* out
 
 		for (int j = 0; j < 3; ++j)
 		{
-			float posPen = extents.data[j] - endPoint.data[j] + radius;
-			float negPen = extents.data[j] + endPoint.data[j] + radius;
-
-			if (posPen < negPen)
+			bool inLateralBounds = true;
+			for (int k = 0; k < 3; ++k)
 			{
-				pens[i].data[j] = posPen;
-				signs[i].data[j] = 1.f;
+				if (k == j)
+					continue;
+
+				if (endPoint.data[k] > extents.data[k] || endPoint.data[k] < -extents.data[k])
+				{
+					inLateralBounds = false;
+					break;
+				}
+			}
+
+			if (inLateralBounds)
+			{
+				float posPen = extents.data[j] - endPoint.data[j] + radius;
+				float negPen = extents.data[j] + endPoint.data[j] + radius;
+
+				if (posPen < negPen)
+				{
+					pens[i].data[j] = posPen;
+					signs[i].data[j] = 1.f;
+				}
+				else
+				{
+					pens[i].data[j] = negPen;
+					signs[i].data[j] = -1.f;
+				}
 			}
 			else
 			{
-				pens[i].data[j] = negPen;
-				signs[i].data[j] = -1.f;
+				pens[i].data[j] = FLT_MAX;
 			}
 		}
 	}
@@ -724,13 +744,16 @@ static bool GetMinPlanePen(const OBB3& box, const Capsule3D& capsule, float* out
 		ERROR_AND_DIE("Ha, capsule is stuck isn't it");
 	}
 
+
 	if (out_pens[0] < FLT_MAX)
 	{
-		out_normal = normals[0];
+		Matrix3 basis(box.rotation);
+		out_normal = normals[0].x * basis.columnVectors[0] + normals[0].y * basis.columnVectors[1] + normals[0].z * basis.columnVectors[2];
 	}
 	else if (out_pens[1] < FLT_MAX)
 	{
-		out_normal = normals[1];
+		Matrix3 basis(box.rotation);
+		out_normal = normals[1].x * basis.columnVectors[0] + normals[1].y * basis.columnVectors[1] + normals[1].z * basis.columnVectors[2];
 	}
 
 	return (out_pens[0] < FLT_MAX || out_pens[1] < FLT_MAX);
@@ -738,19 +761,115 @@ static bool GetMinPlanePen(const OBB3& box, const Capsule3D& capsule, float* out
 
 
 //-------------------------------------------------------------------------------------------------
+static bool GetMinEdgePen(const OBB3& box, const Capsule3D& capsule, float& out_pen, Vector3& out_normal, Vector3& out_position)
+{
+	out_pen = FLT_MAX;
+
+	Edge3 edges[12];
+	box.GetEdges(edges);
+
+	for (int i = 0; i < 12; ++i)
+	{
+		const Edge3& edge = edges[i];
+
+		// Get the distance between the closest points on the box edge and the capsule's spine
+		Vector3 capsulePt, boxPt;
+		float distance = FindClosestPointsOnLineSegments(capsule.start, capsule.end, edge.m_start, edge.m_end, capsulePt, boxPt);
+
+		// Get these in the box's local space to check Voronoi regions
+		// Only consider edge overlap if the capsule closest point either
+		// 1. Is inside the box
+		// 2. Is in the voronoi region adjacent to the edge
+		// This prevents bad cases of overlapping edges across the box and pushing the wrong way
+		Vector3 capsulePtLs = box.TransformPositionIntoSpace(capsulePt);
+		Vector3 boxPtLs = box.TransformPositionIntoSpace(boxPt);
+		const Vector3& extents = box.extents;
+		bool boxContainsCapsulePt = (Abs(capsulePtLs.x) < extents.x) && (Abs(capsulePtLs.y) < extents.y) && (Abs(capsulePtLs.z) < extents.z);
+
+		bool isInCorrectVoronoiRegion = true;
+		if (!boxContainsCapsulePt)
+		{
+			for (int j = 0; j < 3; ++j)
+			{
+				// If the box point is at an extent...
+				if (AreMostlyEqual(Abs(boxPtLs.data[j]), extents.data[j]))
+				{
+					// Ensure we're outside of them in that direction
+					// i.e. "If the point is on the max x, make sure we're farther out on x, if the box point is on negative z, make sure we're below that"
+					if ((boxPtLs.data[j] > 0.f && boxPtLs.data[j] > capsulePtLs.data[j]) || (boxPtLs.data[j] < 0.f && boxPtLs.data[j] < capsulePtLs.data[j]))
+					{
+						isInCorrectVoronoiRegion = false;
+						break;
+					}
+				}
+				else
+				{
+					// Technically the below should never fail....due to how the distance calculation finds the end points
+					if (Abs(capsulePtLs.data[j] > extents.data[j]))
+					{
+						isInCorrectVoronoiRegion = false;
+						break;
+					}
+				}
+			}
+		}
+
+		if (boxContainsCapsulePt || isInCorrectVoronoiRegion)
+		{
+			float sign = (box.ContainsWorldSpacePoint(capsulePt) ? 1.0f : -1.0f);
+			float pen = sign * distance + capsule.radius;
+			if (pen > 0.f && pen < out_pen)
+			{
+				out_pen = pen;
+				out_normal = (-1.f * sign) * (capsulePt - boxPt) / distance;
+				out_position = capsulePt - out_normal * distance;
+			}
+		}
+	}
+
+	return (out_pen < FLT_MAX);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 int CollisionDetector::GenerateContacts(const BoxCollider& box, const CapsuleCollider& capsule, Contact* out_contacts, int limit)
 {
+	if (limit <= 0)
+		return 0;
+
 	OBB3 boxWs = box.GetDataInWorldSpace();
 	Capsule3D capsuleWs = capsule.GetDataInWorldSpace();
 
 	float facePens[2];
 	Vector3 faceNormal;
 	Vector3 faceContactPos[2];
-	bool hasOverlap = GetMinPlanePen(boxWs, capsuleWs, facePens, faceContactPos, faceNormal);
+	bool hasFaceOverlap = GetMinPlanePen(boxWs, capsuleWs, facePens, faceContactPos, faceNormal);
 
-	if (hasOverlap)
+	float edgePen = FLT_MAX;
+	Vector3 edgeNormal = Vector3::ZERO;
+	Vector3 edgePos = Vector3::ZERO;
+	bool hasEdgeOverlap = GetMinEdgePen(boxWs, capsuleWs, edgePen, edgeNormal, edgePos);
+
+	float worstFacePen = FLT_MAX;
+
+	if (facePens[0] < FLT_MAX && facePens[1] < FLT_MAX)
 	{
-		int numContactsAdded = 0;
+		worstFacePen = Max(facePens[0], facePens[1]);
+	}
+	else if (facePens[0] < FLT_MAX)
+	{
+		worstFacePen = facePens[0];
+	}
+	else if (facePens[1] < FLT_MAX)
+	{
+		worstFacePen = facePens[1];
+	}
+
+	// If we have face overlap but no edge overlap *or* the face overlap has less pen than the edge, make face contacts
+	int numContactsAdded = 0;
+
+	if (hasFaceOverlap)
+	{
 		if (facePens[0] < FLT_MAX)
 		{
 			out_contacts->normal = faceNormal;
@@ -762,18 +881,28 @@ int CollisionDetector::GenerateContacts(const BoxCollider& box, const CapsuleCol
 			numContactsAdded++;
 		}
 
-		if (facePens[1] < FLT_MAX)
+		if (facePens[1] < FLT_MAX && numContactsAdded < limit)
 		{
 			out_contacts->normal = faceNormal;
 			out_contacts->penetration = facePens[1];
 			out_contacts->position = faceContactPos[1];
 			FillOutColliderInfo(out_contacts, capsule, box);
 			out_contacts->CheckValuesAreReasonable();
+			out_contacts++;
 			numContactsAdded++;
 		}
-
-		return numContactsAdded;
 	}
 
-	return 0;
+	if (hasEdgeOverlap)
+	{
+		out_contacts->normal = edgeNormal;
+		out_contacts->penetration = edgePen;
+		out_contacts->position = edgePos;
+		FillOutColliderInfo(out_contacts, capsule, box);
+		out_contacts->CheckValuesAreReasonable();
+
+		numContactsAdded++;
+	}
+
+	return numContactsAdded;
 }
