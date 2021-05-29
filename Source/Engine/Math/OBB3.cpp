@@ -222,6 +222,32 @@ void OBB3::GetFaceSupportPlanes(Plane3* out_planes) const
 
 
 //-------------------------------------------------------------------------------------------------
+void OBB3::GetEdges(Edge3* out_edges) const
+{
+	Vector3 points[8];
+	GetPoints(points);
+
+	// Back face
+	out_edges[0] = Edge3(points[0], points[1]);
+	out_edges[1] = Edge3(points[1], points[2]);
+	out_edges[2] = Edge3(points[2], points[3]);
+	out_edges[3] = Edge3(points[3], points[0]);
+
+	// Front face
+	out_edges[4] = Edge3(points[4], points[5]);
+	out_edges[5] = Edge3(points[5], points[6]);
+	out_edges[6] = Edge3(points[6], points[7]);
+	out_edges[7] = Edge3(points[7], points[4]);
+
+	// Side edges
+	out_edges[8] = Edge3(points[0], points[7]);
+	out_edges[9] = Edge3(points[1], points[6]);
+	out_edges[10] = Edge3(points[2], points[5]);
+	out_edges[11] = Edge3(points[3], points[4]);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 Vector3 OBB3::TransformPositionIntoSpace(const Vector3& position) const
 {
 	Matrix3 basis = Matrix3(rotation);
@@ -238,7 +264,7 @@ Vector3 OBB3::TransformPositionOutOfSpace(const Vector3& position) const
 
 
 //-------------------------------------------------------------------------------------------------
-bool OBB3::ContainsWorldSpacePoint(const Vector3& pointWs)
+bool OBB3::ContainsWorldSpacePoint(const Vector3& pointWs) const
 {
 	Vector3 pointLs = TransformPositionIntoSpace(pointWs);
 

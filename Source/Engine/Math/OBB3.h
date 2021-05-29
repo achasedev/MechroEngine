@@ -55,9 +55,10 @@ public:
 	Face3		GetFaceInDirection(const Vector3& direction) const;
 
 	void		GetFaceSupportPlanes(Plane3* out_planes) const;
+	void		GetEdges(Edge3* out_edges) const;
 	Vector3		TransformPositionIntoSpace(const Vector3& position) const;
 	Vector3		TransformPositionOutOfSpace(const Vector3& position) const;
-	bool		ContainsWorldSpacePoint(const Vector3& pointWs);
+	bool		ContainsWorldSpacePoint(const Vector3& pointWs) const;
 
 
 public:

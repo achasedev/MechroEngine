@@ -648,65 +648,131 @@ int CollisionDetector::GenerateContacts(const CapsuleCollider& a, const CapsuleC
 
 
 //-------------------------------------------------------------------------------------------------
-static bool GetMinPlanePen(const BoxCollider& box, const CapsuleCollider& capsule, float& out_pen, Vector3& out_normal, Vector3& out_capsuleEndpoint)
+static bool GetMinPlanePen(const OBB3& box, const Capsule3D& capsule, float* out_pens, Vector3* out_positions, Vector3& out_normal)
 {
-	OBB3 boxWs = box.GetDataInWorldSpace();
-	Capsule3D capsuleWs = capsule.GetDataInWorldSpace();
+	out_pens[0] = FLT_MAX;
+	out_pens[1] = FLT_MAX;
 
-	Plane3 facePlanes[6];
-	boxWs.GetFaceSupportPlanes(facePlanes);
+	Vector3 startLs = box.TransformPositionIntoSpace(capsule.start);
+	Vector3 endLs = box.TransformPositionIntoSpace(capsule.end);
 
-	out_pen = FLT_MAX;
+	float radius = capsule.radius;
+	Vector3 extents = box.extents;
 
-	for (int i = 0; i < 6; ++i)
+	Vector3 pens[2];
+	Vector3 signs[2];
+
+	for (int i = 0; i < 2; ++i)
 	{
-		const Plane3& plane = facePlanes[i];
+		Vector3 endPoint = (i == 0 ? startLs : endLs);
 
-		float startDist = plane.GetDistanceFromPlane(capsuleWs.start);
-		float endDist = plane.GetDistanceFromPlane(capsuleWs.end);
-
-		// If both endpoints are a radius away, no face contacts
-		// This does NOT mean there is no overlap at all, just no face contact (could still be an edge)
-		if (Min(startDist, endDist) >= capsuleWs.radius)
-			return false;
-
-		// If we're on the other side of the box then don't count this as being overlap
-		float extent = boxWs.extents.data[i / 2];
-		if (Max(startDist, endDist) <= (-2.f * extent - capsuleWs.radius))
-			continue;
-
-		float pen = -1.0f * Min(startDist, endDist) + capsuleWs.radius;
-		if (pen < out_pen)
+		for (int j = 0; j < 3; ++j)
 		{
-			out_pen = pen;
-			out_normal = plane.GetNormal();
-			out_capsuleEndpoint = (startDist < endDist) ? capsuleWs.start : capsuleWs.end;
+			float posPen = extents.data[j] - endPoint.data[j] + radius;
+			float negPen = extents.data[j] + endPoint.data[j] + radius;
+
+			if (posPen < negPen)
+			{
+				pens[i].data[j] = posPen;
+				signs[i].data[j] = 1.f;
+			}
+			else
+			{
+				pens[i].data[j] = negPen;
+				signs[i].data[j] = -1.f;
+			}
 		}
 	}
 
-	return (out_pen > 0.f);
+	// Determine the best normal for each end point
+	Vector3 normals[2];
+	for (int i = 0; i < 2; ++i)
+	{
+		normals[i] = Vector3::ZERO;
+
+		const Vector3& axisPens = pens[i];
+		float minPen = Min(axisPens.x, axisPens.y, axisPens.z);
+
+		// If the min pen is negative, then this capsule's "sphere" is completely outside a face
+		// so it has no overlap
+		if (minPen < 0.f)
+			continue;
+
+		for (int j = 0; j < 3; ++j)
+		{
+			if (minPen == axisPens.data[j])
+			{
+				normals[i].data[j] = 1.f * signs[i].data[j];
+				out_pens[i] = minPen;
+
+				Vector3 endPoint = (i == 0 ? capsule.start : capsule.end);
+				out_positions[i] = endPoint - normals[i] * radius;
+				break;
+			}
+		}
+	}
+
+	// If the endpoints find 2 different best faces, the capsule must be intersecting an edge
+	// Instead, just generate an edgepoint
+	float normalDot = DotProduct(normals[0], normals[1]);
+	if ((out_pens[0] < FLT_MAX && out_pens[1] < FLT_MAX) && AreMostlyEqual(normalDot, 0.f))
+	{
+		return false;
+	}
+	else if (AreMostlyEqual(normalDot, -1.f))
+	{
+		ERROR_AND_DIE("Ha, capsule is stuck isn't it");
+	}
+
+	if (out_pens[0] < FLT_MAX)
+	{
+		out_normal = normals[0];
+	}
+	else if (out_pens[1] < FLT_MAX)
+	{
+		out_normal = normals[1];
+	}
+
+	return (out_pens[0] < FLT_MAX || out_pens[1] < FLT_MAX);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 int CollisionDetector::GenerateContacts(const BoxCollider& box, const CapsuleCollider& capsule, Contact* out_contacts, int limit)
 {
+	OBB3 boxWs = box.GetDataInWorldSpace();
 	Capsule3D capsuleWs = capsule.GetDataInWorldSpace();
 
-	float facePen = 0.f;
+	float facePens[2];
 	Vector3 faceNormal;
-	Vector3 capsuleEndpoint;
-	bool hasOverlap = GetMinPlanePen(box, capsule, facePen, faceNormal, capsuleEndpoint);
+	Vector3 faceContactPos[2];
+	bool hasOverlap = GetMinPlanePen(boxWs, capsuleWs, facePens, faceContactPos, faceNormal);
 
 	if (hasOverlap)
 	{
-		out_contacts->normal = faceNormal;
-		out_contacts->penetration = facePen;
-		out_contacts->position = capsuleEndpoint - out_contacts->normal * capsuleWs.radius;
-		FillOutColliderInfo(out_contacts, capsule, box);
-		out_contacts->CheckValuesAreReasonable();
+		int numContactsAdded = 0;
+		if (facePens[0] < FLT_MAX)
+		{
+			out_contacts->normal = faceNormal;
+			out_contacts->penetration = facePens[0];
+			out_contacts->position = faceContactPos[0];
+			FillOutColliderInfo(out_contacts, capsule, box);
+			out_contacts->CheckValuesAreReasonable();
+			out_contacts++;
+			numContactsAdded++;
+		}
 
-		return 1;
+		if (facePens[1] < FLT_MAX)
+		{
+			out_contacts->normal = faceNormal;
+			out_contacts->penetration = facePens[1];
+			out_contacts->position = faceContactPos[1];
+			FillOutColliderInfo(out_contacts, capsule, box);
+			out_contacts->CheckValuesAreReasonable();
+			numContactsAdded++;
+		}
+
+		return numContactsAdded;
 	}
 
 	return 0;

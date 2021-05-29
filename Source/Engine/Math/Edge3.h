@@ -46,8 +46,8 @@ public:
 	bool	IsEquivalentTo(const Edge3& edge) const;
 
 	
-private:
-	//-----Private Data-----
+public:
+	//-----Public Data-----
 
 	Vector3 m_start;
 	Vector3 m_end;
