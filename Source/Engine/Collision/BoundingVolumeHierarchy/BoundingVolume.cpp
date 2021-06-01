@@ -162,6 +162,16 @@ bool BoundingVolumeSphere::Overlaps(const BoundingVolumeSphere& sphere) const
 
 
 //-------------------------------------------------------------------------------------------------
+bool BoundingVolumeSphere::Overlaps(const HalfSpaceCollider* halfspace) const
+{
+	Plane3 plane = halfspace->GetDataInWorldSpace();
+	float distance = plane.GetDistanceFromPlane(center) - radius;
+
+	return (distance < 0.f);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 float BoundingVolumeSphere::GetGrowth(const BoundingVolumeSphere& other) const
 {
 	// Gauge growth by change in volume

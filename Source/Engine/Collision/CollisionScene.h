@@ -46,6 +46,8 @@ public:
 	void AddEntity(Entity* entity);
 	void RemoveEntity(Entity* entity);
 
+	void AddHalfSpace(HalfSpaceCollider* halfSpace);
+
 	void DoCollisionStep(float deltaSeconds);
 	void DebugRenderBoundingHierarchy() const;
 	void DebugRenderLeafBoundingVolumes() const;
@@ -78,6 +80,8 @@ private:
 	BVHNode<BoundingVolumeClass>*				m_boundingTreeRoot = nullptr;
 	std::vector<BVHNode<BoundingVolumeClass>*>	m_leaves;  // Optimization, faster search
 
+	std::vector<HalfSpaceCollider*>				m_halfspaces;
+
 	PotentialCollision							m_potentialCollisions[MAX_POTENTIAL_COLLISION_COUNT];
 	int											m_numPotentialCollisions = 0;
 
@@ -91,6 +95,14 @@ private:
 	ContactResolver								m_resolver;
 
 };
+
+
+//-------------------------------------------------------------------------------------------------
+template <class BoundingVolumeClass>
+void CollisionScene<BoundingVolumeClass>::AddHalfSpace(HalfSpaceCollider* halfSpace)
+{
+	m_halfspaces.push_back(halfSpace);
+}
 
 
 //-------------------------------------------------------------------------------------------------
@@ -170,7 +182,20 @@ void CollisionScene<BoundingVolumeClass>::UpdateBVH()
 template <class BoundingVolumeClass>
 void CollisionScene<BoundingVolumeClass>::PerformBroadphase()
 {
-	m_numPotentialCollisions = m_boundingTreeRoot->GetPotentialCollisions(m_potentialCollisions, MAX_POTENTIAL_COLLISION_COUNT);
+	m_numPotentialCollisions = 0;
+
+	for (HalfSpaceCollider* halfSpace : m_halfspaces)
+	{
+		m_numPotentialCollisions += m_boundingTreeRoot->GetPotentialCollisionsBetween(halfSpace, m_potentialCollisions + m_numPotentialCollisions, MAX_CONTACT_COUNT - m_numPotentialCollisions);
+
+		if (m_numPotentialCollisions == MAX_POTENTIAL_COLLISION_COUNT)
+			break;
+	}
+
+	if (m_numPotentialCollisions < MAX_POTENTIAL_COLLISION_COUNT)
+	{
+		m_numPotentialCollisions += m_boundingTreeRoot->GetPotentialNodeCollisions(m_potentialCollisions + m_numPotentialCollisions, MAX_POTENTIAL_COLLISION_COUNT - m_numPotentialCollisions);
+	}
 
 	if (m_numPotentialCollisions == MAX_POTENTIAL_COLLISION_COUNT)
 	{
@@ -195,8 +220,8 @@ void CollisionScene<BoundingVolumeClass>::GenerateContacts()
 
 		PotentialCollision& collision = m_potentialCollisions[i];
 
-		Collider* colOne = collision.entities[0]->collider;
-		Collider* colTwo = collision.entities[1]->collider;
+		const Collider* colOne = collision.colliders[0];
+		const Collider* colTwo = collision.colliders[1];
 
 		bool oneIsSphere = colOne->IsOfType<SphereCollider>();
 		bool twoIsSphere = colTwo->IsOfType<SphereCollider>();
@@ -216,96 +241,96 @@ void CollisionScene<BoundingVolumeClass>::GenerateContacts()
 
 		if (oneIsSphere)
 		{
-			SphereCollider* oneAsSphere = colOne->GetAsType<SphereCollider>();
+			const SphereCollider* oneAsSphere = colOne->GetAsType<SphereCollider>();
 
 			if (twoIsSphere)
 			{
-				SphereCollider* twoAsSphere = colTwo->GetAsType<SphereCollider>();
+				const SphereCollider* twoAsSphere = colTwo->GetAsType<SphereCollider>();
 				m_numNewContacts += m_detector.GenerateContacts(*oneAsSphere, *twoAsSphere, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
 			}
 			else if (twoIsHalfSpace)
 			{
-				HalfSpaceCollider* twoAsHalfSpace = colTwo->GetAsType<HalfSpaceCollider>();
+				const HalfSpaceCollider* twoAsHalfSpace = colTwo->GetAsType<HalfSpaceCollider>();
 				m_numNewContacts += m_detector.GenerateContacts(*oneAsSphere, *twoAsHalfSpace, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
 			}
 			else if (twoIsBox)
 			{
-				BoxCollider* twoAsBox = colTwo->GetAsType<BoxCollider>();
+				const BoxCollider* twoAsBox = colTwo->GetAsType<BoxCollider>();
 				m_numNewContacts += m_detector.GenerateContacts(*twoAsBox, *oneAsSphere, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
 			}
 			else if (twoIsCapsule)
 			{
-				CapsuleCollider* twoAsCapsule = colTwo->GetAsType<CapsuleCollider>();
+				const CapsuleCollider* twoAsCapsule = colTwo->GetAsType<CapsuleCollider>();
 				m_numNewContacts += m_detector.GenerateContacts(*oneAsSphere, *twoAsCapsule, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
 			}
 		}
 		else if (oneIsBox)
 		{
-			BoxCollider* oneAsBox = colOne->GetAsType<BoxCollider>();
+			const BoxCollider* oneAsBox = colOne->GetAsType<BoxCollider>();
 
 			if (twoIsSphere)
 			{
-				SphereCollider* twoAsSphere = colTwo->GetAsType<SphereCollider>();
+				const SphereCollider* twoAsSphere = colTwo->GetAsType<SphereCollider>();
 				m_numNewContacts += m_detector.GenerateContacts(*oneAsBox, *twoAsSphere, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
 			}
 			else if (twoIsHalfSpace)
 			{
-				HalfSpaceCollider* twoAsHalfSpace = colTwo->GetAsType<HalfSpaceCollider>();
+				const HalfSpaceCollider* twoAsHalfSpace = colTwo->GetAsType<HalfSpaceCollider>();
 				m_numNewContacts += m_detector.GenerateContacts(*oneAsBox, *twoAsHalfSpace, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
 			}
 			else if (twoIsBox)
 			{
-				BoxCollider* twoAsBox = colTwo->GetAsType<BoxCollider>();
+				const BoxCollider* twoAsBox = colTwo->GetAsType<BoxCollider>();
 				m_numNewContacts += m_detector.GenerateContacts(*oneAsBox, *twoAsBox, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
 			}
 			else if (twoIsCapsule)
 			{
-				CapsuleCollider* twoAsCapsule = colTwo->GetAsType<CapsuleCollider>();
+				const CapsuleCollider* twoAsCapsule = colTwo->GetAsType<CapsuleCollider>();
 				m_numNewContacts += m_detector.GenerateContacts(*oneAsBox, *twoAsCapsule, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
 			}
 		}
 		else if (oneIsHalfSpace)
 		{
-			HalfSpaceCollider* oneAsHalfSpace = colOne->GetAsType<HalfSpaceCollider>();
+			const HalfSpaceCollider* oneAsHalfSpace = colOne->GetAsType<HalfSpaceCollider>();
 
 			if (twoIsSphere)
 			{
-				SphereCollider* twoAsSphere = colTwo->GetAsType<SphereCollider>();
+				const SphereCollider* twoAsSphere = colTwo->GetAsType<SphereCollider>();
 				m_numNewContacts += m_detector.GenerateContacts(*twoAsSphere, *oneAsHalfSpace, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
 			}
 			else if (twoIsBox)
 			{
-				BoxCollider* twoAsBox = colTwo->GetAsType<BoxCollider>();
+				const BoxCollider* twoAsBox = colTwo->GetAsType<BoxCollider>();
 				m_numNewContacts += m_detector.GenerateContacts(*twoAsBox, *oneAsHalfSpace, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
 			}
 			else if (twoIsCapsule)
 			{
-				CapsuleCollider* twoAsCapsule = colTwo->GetAsType<CapsuleCollider>();
+				const CapsuleCollider* twoAsCapsule = colTwo->GetAsType<CapsuleCollider>();
 				m_numNewContacts += m_detector.GenerateContacts(*twoAsCapsule, *oneAsHalfSpace, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
 			}
 		}
 		else if (oneIsCapsule)
 		{
-			CapsuleCollider* oneAsCapsule = colOne->GetAsType<CapsuleCollider>();
+			const CapsuleCollider* oneAsCapsule = colOne->GetAsType<CapsuleCollider>();
 
 			if (twoIsSphere)
 			{
-				SphereCollider* twoAsSphere = colTwo->GetAsType<SphereCollider>();
+				const SphereCollider* twoAsSphere = colTwo->GetAsType<SphereCollider>();
 				m_numNewContacts += m_detector.GenerateContacts(*twoAsSphere, *oneAsCapsule, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
 			}
 			else if (twoIsBox)
 			{
-				BoxCollider* twoAsBox = colTwo->GetAsType<BoxCollider>();
+				const BoxCollider* twoAsBox = colTwo->GetAsType<BoxCollider>();
 				m_numNewContacts += m_detector.GenerateContacts(*twoAsBox, *oneAsCapsule, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
 			}
 			else if (twoIsCapsule)
 			{
-				CapsuleCollider* twoAsCapsule = colTwo->GetAsType<CapsuleCollider>();
+				const CapsuleCollider* twoAsCapsule = colTwo->GetAsType<CapsuleCollider>();
 				m_numNewContacts += m_detector.GenerateContacts(*oneAsCapsule, *twoAsCapsule, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
 			}
 			else if (twoIsHalfSpace)
 			{
-				HalfSpaceCollider* twoAsHalfSpace = colTwo->GetAsType<HalfSpaceCollider>();
+				const HalfSpaceCollider* twoAsHalfSpace = colTwo->GetAsType<HalfSpaceCollider>();
 				m_numNewContacts += m_detector.GenerateContacts(*oneAsCapsule, *twoAsHalfSpace, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
 			}
 		}
@@ -361,6 +386,8 @@ CollisionScene<BoundingVolumeClass>::~CollisionScene()
 template <class BoundingVolumeClass>
 void CollisionScene<BoundingVolumeClass>::AddEntity(Entity* entity)
 {
+	ASSERT_OR_DIE(!entity->collider->IsOfType<HalfSpaceCollider>(), "Cannot add half space entities!");
+
 	BoundingVolumeClass boundingVolume = MakeBoundingVolumeForPrimitive(entity->collider);
 	BVHNode<BoundingVolumeClass>* node = new BVHNode<BoundingVolumeClass>(boundingVolume);
 	node->m_entity = entity;
@@ -421,23 +448,28 @@ void CollisionScene<BoundingVolumeClass>::DoCollisionStep(float deltaSeconds)
 template <class BoundingVolumeClass>
 void CollisionScene<BoundingVolumeClass>::UpdateNode(BVHNode<BoundingVolumeClass>* node, const BoundingVolumeClass& newVolume)
 {
-	ASSERT_OR_DIE(node->m_parent != nullptr, "No Parent!");
-
-	// Remove the node from the tree, recursively updating bounding volumes
-	BVHNode<BoundingVolumeClass>* newRoot = node->RemoveSelf();
-	if (newRoot != nullptr)
+	if (node->m_parent != nullptr)
 	{
-		m_boundingTreeRoot = newRoot;
+		// Remove the node from the tree, recursively updating bounding volumes
+		BVHNode<BoundingVolumeClass>* newRoot = node->RemoveSelf();
+		if (newRoot != nullptr)
+		{
+			m_boundingTreeRoot = newRoot;
+		}
+
+		// Set the node's new bounding volume
+		node->m_boundingVolumeWs = newVolume;
+
+		// Re-insert the node into the tree, based on "best fit"
+		newRoot = m_boundingTreeRoot->Insert(node);
+		if (newRoot != nullptr)
+		{
+			m_boundingTreeRoot = newRoot;
+		}
 	}
-
-	// Set the node's new bounding volume
-	node->m_boundingVolumeWs = newVolume;
-
-	// Re-insert the node into the tree, based on "best fit"
-	newRoot = m_boundingTreeRoot->Insert(node);
-	if (newRoot != nullptr)
+	else
 	{
-		m_boundingTreeRoot = newRoot;
+		node->m_boundingVolumeWs = newVolume;
 	}
 }
 

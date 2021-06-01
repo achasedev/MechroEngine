@@ -8,6 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Collision/Collider.h"
 #include "Engine/Utility/Assert.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 class Entity;
 struct PotentialCollision
 {
-	Entity* entities[2];
+	const Collider* colliders[2];
 };
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -40,7 +41,7 @@ class BVHNode
 public:
 	//-----Public Methods-----
 
-	int		GetPotentialCollisions(PotentialCollision* out_collisions, int limit) const; // Intended to be called on the root node to get total collisions
+	int		GetPotentialNodeCollisions(PotentialCollision* out_collisions, int limit) const; // Intended to be called on the root node to get total collisions
 	bool	IsLeaf() const;
 	bool	IsRoot() const { return m_parent == nullptr; }
 
@@ -59,6 +60,7 @@ private:
 	BVHNode<BoundingVolumeClass>*	RemoveSelf();
 	void	RecalculateBoundingVolume();
 	int		GetPotentialCollisionsBetween(const BVHNode<BoundingVolumeClass>* other, PotentialCollision* out_collisions, int limit) const;
+	int		GetPotentialCollisionsBetween(const HalfSpaceCollider* halfSpace, PotentialCollision* out_collisions, int limit) const;
 
 
 private:
@@ -70,6 +72,33 @@ private:
 	Entity*					m_entity = nullptr; // Only set on leaf nodes
 
 };
+
+
+//-------------------------------------------------------------------------------------------------
+template <class BoundingVolumeClass>
+int BVHNode<BoundingVolumeClass>::GetPotentialCollisionsBetween(const HalfSpaceCollider* halfSpace, PotentialCollision* out_collisions, int limit) const
+{
+	if (limit == 0 || !m_boundingVolumeWs.Overlaps(halfSpace))
+		return 0;
+
+	if (IsLeaf())
+	{
+		out_collisions->colliders[0] = m_entity->collider;
+		out_collisions->colliders[1] = halfSpace;
+		return 1;
+	}
+
+	// Recurse on our first child
+	int numAdded = m_children[0]->GetPotentialCollisionsBetween(halfSpace, out_collisions, limit);
+
+	if (limit > numAdded)
+	{
+		// Recurse on our second child
+		numAdded += m_children[1]->GetPotentialCollisionsBetween(halfSpace, out_collisions + numAdded, limit - numAdded);
+	}
+
+	return numAdded;
+}
 
 
 //-------------------------------------------------------------------------------------------------
@@ -135,7 +164,7 @@ BVHNode<BoundingVolumeClass>::BVHNode(const BoundingVolumeClass& boundingVolume)
 
 //-------------------------------------------------------------------------------------------------
 template <class BoundingVolumeClass>
-int BVHNode<BoundingVolumeClass>::GetPotentialCollisions(PotentialCollision* out_collisions, int limit) const
+int BVHNode<BoundingVolumeClass>::GetPotentialNodeCollisions(PotentialCollision* out_collisions, int limit) const
 {
 	// If we hit the end or ran out of room, stop recursing
 	if (limit == 0 || IsLeaf())
@@ -148,13 +177,13 @@ int BVHNode<BoundingVolumeClass>::GetPotentialCollisions(PotentialCollision* out
 	// Check internally on first child
 	if (limit > numAdded && !m_children[0]->IsLeaf())
 	{
-		numAdded += m_children[0]->GetPotentialCollisions(out_collisions + numAdded, limit - numAdded);
+		numAdded += m_children[0]->GetPotentialNodeCollisions(out_collisions + numAdded, limit - numAdded);
 	}
 
 	// Check internally on second child 
 	if (limit > numAdded && !m_children[1]->IsLeaf())
 	{
-		numAdded += m_children[1]->GetPotentialCollisions(out_collisions + numAdded, limit - numAdded);
+		numAdded += m_children[1]->GetPotentialNodeCollisions(out_collisions + numAdded, limit - numAdded);
 	}
 
 	return numAdded;
@@ -171,8 +200,8 @@ int BVHNode<BoundingVolumeClass>::GetPotentialCollisionsBetween(const BVHNode<Bo
 	// These two nodes overlap - if they're leaves, then the two entities could overlap
 	if (IsLeaf() && other->IsLeaf())
 	{
-		out_collisions->entities[0] = m_entity;
-		out_collisions->entities[1] = other->m_entity;
+		out_collisions->colliders[0] = m_entity->collider;
+		out_collisions->colliders[1] = other->m_entity->collider;
 		return 1;
 	}
 	

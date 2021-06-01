@@ -49,6 +49,7 @@ public:
 	void					DebugRender() const;
 
 	bool					Overlaps(const BoundingVolumeSphere& sphere) const;
+	bool					Overlaps(const HalfSpaceCollider* halfspace) const;
 	float					GetSize() const { return radius; }
 	float					GetGrowth(const BoundingVolumeSphere& other) const;
 
