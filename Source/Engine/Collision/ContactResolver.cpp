@@ -118,7 +118,7 @@ static void ResolveContactPenetration(Contact* contact, Vector3* out_linearChang
 		projection = contact->normal * DotProduct(-1.0f * contact->bodyToContact[i], contact->normal);
 
 		// Limit the amount of movement that comes from angular rotation
-		float limit = angularLimit * projection.GetLength(); // Normally this would be sin(angularLimit) * hypotenuse, but small angle approximation sin(angle) ~= angle
+		float limit = (contact->bodies[i]->IsRotationLocked() ? 0.f : angularLimit * projection.GetLength()); // Normally this would be sin(angularLimit) * hypotenuse, but small angle approximation sin(angle) ~= angle
 		if (angularMove[i] < -limit)
 		{
 			float totalMove = angularMove[i] + linearMove[i];
@@ -335,7 +335,12 @@ static void ResolveContactVelocity(Contact* contact, Vector3* out_linearDeltaVel
 
 	// Calculate first body delta velocities
 	{
-		Vector3 torqueWs = CrossProduct(contact->bodyToContact[0], impulseWs);
+		Vector3 torqueWs = Vector3::ZERO;
+		if (!contact->bodies[0]->IsRotationLocked())
+		{
+			torqueWs = CrossProduct(contact->bodyToContact[0], impulseWs);
+		}
+
 		ASSERT_REASONABLE(torqueWs);
 
 		// Calculate changes
@@ -353,7 +358,12 @@ static void ResolveContactVelocity(Contact* contact, Vector3* out_linearDeltaVel
 	// Calculate second bodies velocities
 	if (contact->bodies[1] != nullptr)
 	{
-		Vector3 torqueWs = CrossProduct(impulseWs, contact->bodyToContact[1]); // Switched cross, since torque would be in opposite direction
+		Vector3 torqueWs = Vector3::ZERO;
+		if (!contact->bodies[1]->IsRotationLocked())
+		{
+			torqueWs = CrossProduct(impulseWs, contact->bodyToContact[1]); // Switched cross, since torque would be in opposite direction
+		}
+
 		ASSERT_REASONABLE(torqueWs);
 
 		// Calculate changes

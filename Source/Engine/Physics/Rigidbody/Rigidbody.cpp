@@ -215,25 +215,30 @@ void RigidBody::Integrate(float deltaSeconds, const Vector3& gravityAcc)
 	// will have changed the world moment of inertia - ensure that's up-to-date
 	CalculateDerivedData();
 
-	// Calculate accelerations
+	// Calculate/apply linear acceleration
 	Vector3 acceleration = m_accelerationWs + gravityAcc;
 	acceleration += (m_forceAccumWs * m_iMass);
-
-	Vector3 angularAcceleration = m_inverseInertiaTensorWorld * m_torqueAccumWs;
-
-	// Update velocities
 	m_velocityWs += acceleration * deltaSeconds;
-	m_angularVelocityRadiansWs += angularAcceleration * deltaSeconds;
 
-	// Impose damping
+	// Impose linear damping
 	m_velocityWs *= Pow(m_linearDamping, deltaSeconds);
-	m_angularVelocityRadiansWs *= Pow(m_angularDamping, deltaSeconds);
-
-	// Update position/rotation
 	transform->position += m_velocityWs * deltaSeconds;
 
-	Quaternion deltaRotation = Quaternion::CreateFromEulerAnglesRadians(m_angularVelocityRadiansWs * deltaSeconds);
-	transform->Rotate(deltaRotation, RELATIVE_TO_WORLD); // Forces/torques are world space, so velocity/angular velocity is ws....so this is a rotation about the world axes
+	// Calculate/apply angular acceleration
+	if (!m_rotationLocked)
+	{
+		Vector3 angularAcceleration = m_inverseInertiaTensorWorld * m_torqueAccumWs;
+		m_angularVelocityRadiansWs += angularAcceleration * deltaSeconds;
+		m_angularVelocityRadiansWs *= Pow(m_angularDamping, deltaSeconds);
+
+		Quaternion deltaRotation = Quaternion::CreateFromEulerAnglesRadians(m_angularVelocityRadiansWs * deltaSeconds);
+		transform->Rotate(deltaRotation, RELATIVE_TO_WORLD); // Forces/torques are world space, so velocity/angular velocity is ws....so this is a rotation about the world axes
+	}
+	else
+	{
+		// Clear this to prevent accumulation
+		m_angularVelocityRadiansWs = Vector3::ZERO;
+	}
 
 	// Remember what our acceleration was last frame
 	m_lastFrameAccelerationWs = acceleration;
@@ -267,13 +272,16 @@ void RigidBody::Integrate(float deltaSeconds, const Vector3& gravityAcc)
 //-------------------------------------------------------------------------------------------------
 void RigidBody::CalculateDerivedData()
 {
-	// Update the world inverse inertia tensor
-	Matrix3 toWorldRotation = transform->GetLocalToWorldMatrix().GetMatrix3Part();
-	Matrix3 toLocalRotation = toWorldRotation;
-	toLocalRotation.Transpose();
-	ASSERT_OR_DIE(AreMostlyEqual(toLocalRotation, toWorldRotation.GetInverse()), "Transpose and inverse are not equal"); // Transpose should be the inverse, but to be safe check
+	// Update the world inverse inertia tensor if we use it
+	if (!IsRotationLocked())
+	{
+		Matrix3 toWorldRotation = transform->GetLocalToWorldMatrix().GetMatrix3Part();
+		Matrix3 toLocalRotation = toWorldRotation;
+		toLocalRotation.Transpose();
+		ASSERT_OR_DIE(AreMostlyEqual(toLocalRotation, toWorldRotation.GetInverse()), "Transpose and inverse are not equal"); // Transpose should be the inverse, but to be safe check
 
-	m_inverseInertiaTensorWorld = toWorldRotation * m_inverseInertiaTensorLocal * toLocalRotation;
+		m_inverseInertiaTensorWorld = toWorldRotation * m_inverseInertiaTensorLocal * toLocalRotation;
+	}
 }
 
 

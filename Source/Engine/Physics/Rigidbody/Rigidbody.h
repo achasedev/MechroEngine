@@ -65,6 +65,7 @@ public:
 	void SetCanSleep(bool canSleep);
 	void SetAffectedByGravity(bool affectedByGravity) { m_affectedByGravity = affectedByGravity; }
 	void SetGravityScale(float scale) { m_gravityScale = scale; }
+	void SetRotationLocked(bool lockRotation) { m_rotationLocked = lockRotation; }
 
 	Vector3 GetLastFrameAcceleration() const { return m_lastFrameAccelerationWs; }
 	float	GetInverseMass() const { return m_iMass; }
@@ -75,6 +76,8 @@ public:
 	bool	IsAwake() const { return m_isAwake; }
 	bool	CanSleep() const { return m_canSleep; }
 	bool	IsAffectedByGravity() const { return m_affectedByGravity; }
+	bool	IsRotationLocked() const { return m_rotationLocked; }
+
 
 public:
 	//-----Public Data-----
@@ -114,6 +117,7 @@ private:
 
 	bool		m_affectedByGravity = true;
 	float		m_gravityScale = 1.0f;
+	bool		m_rotationLocked = false;
 
 };
 
