@@ -43,7 +43,6 @@ public:
 	BoundingVolumeSphere(const SphereCollider& colSphere);
 	BoundingVolumeSphere(const BoxCollider& colBox);
 	BoundingVolumeSphere(const CapsuleCollider& capsuleCol);
-	BoundingVolumeSphere(const HalfSpaceCollider& colHalfSpace);
 
 	BoundingVolumeSphere	GetTransformApplied(const Transform& transform);
 	void					DebugRender() const;

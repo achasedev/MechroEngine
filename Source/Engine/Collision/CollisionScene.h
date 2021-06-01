@@ -144,11 +144,6 @@ BoundingVolumeClass CollisionScene<BoundingVolumeClass>::MakeBoundingVolumeForPr
 		const BoxCollider* primAsBox = primitive->GetAsType<BoxCollider>();
 		return BoundingVolumeClass(*primAsBox);
 	}
-	else if (primitive->IsOfType<HalfSpaceCollider>())
-	{
-		const HalfSpaceCollider* primAsHalfSpace = primitive->GetAsType<HalfSpaceCollider>();
-		return BoundingVolumeClass(*primAsHalfSpace);
-	}
 	else if (primitive->IsOfType<CapsuleCollider>())
 	{
 		const CapsuleCollider* primAsCapsule = primitive->GetAsType<CapsuleCollider>();
