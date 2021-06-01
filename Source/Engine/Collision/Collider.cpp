@@ -23,6 +23,7 @@
 RTTI_TYPE_DEFINE(Collider);
 RTTI_TYPE_DEFINE(SphereCollider);
 RTTI_TYPE_DEFINE(HalfSpaceCollider);
+RTTI_TYPE_DEFINE(PlaneCollider);
 RTTI_TYPE_DEFINE(BoxCollider);
 RTTI_TYPE_DEFINE(CapsuleCollider);
 
@@ -151,4 +152,29 @@ Capsule3D CapsuleCollider::GetDataInWorldSpace() const
 	Vector3 endWs = entity->transform.TransformPosition(m_dataLs.end);
 
 	return Capsule3D(startWs, endWs, m_dataLs.radius);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+PlaneCollider::PlaneCollider(Entity* owningEntity, const Plane3& planeLs)
+	: TypedCollider(owningEntity, planeLs)
+{
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void PlaneCollider::DebugRender(const Rgba& color) const
+{
+	// TODO:
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Plane3 PlaneCollider::GetDataInWorldSpace() const
+{
+	Vector3 normalWs = entity->transform.TransformDirection(m_dataLs.m_normal);
+	Vector3 positionLs = m_dataLs.m_normal * m_dataLs.m_distance;
+	Vector3 positionWs = entity->transform.TransformPosition(positionLs);
+
+	return Plane3(normalWs, positionWs);
 }

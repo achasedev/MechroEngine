@@ -127,6 +127,27 @@ private:
 
 };
 
+
+//-------------------------------------------------------------------------------------------------
+class PlaneCollider : public TypedCollider<Plane3>
+{
+public:
+	//-----Public Methods-----
+	RTTI_DERIVED_CLASS(PlaneCollider);
+
+	PlaneCollider() {}
+	PlaneCollider(Entity* owningEntity, const Plane3& planeLs);
+
+	virtual void	DebugRender(const Rgba& color) const override;
+	virtual Plane3	GetDataInWorldSpace() const override;
+
+
+private:
+	//-----Private Data-----
+
+};
+
+
 //-------------------------------------------------------------------------------------------------
 class BoxCollider : public TypedCollider<OBB3>
 {

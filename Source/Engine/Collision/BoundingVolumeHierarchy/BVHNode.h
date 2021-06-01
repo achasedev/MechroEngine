@@ -61,6 +61,7 @@ private:
 	void	RecalculateBoundingVolume();
 	int		GetPotentialCollisionsBetween(const BVHNode<BoundingVolumeClass>* other, PotentialCollision* out_collisions, int limit) const;
 	int		GetPotentialCollisionsBetween(const HalfSpaceCollider* halfSpace, PotentialCollision* out_collisions, int limit) const;
+	int		GetPotentialCollisionsBetween(const PlaneCollider* planeCol, PotentialCollision* out_collisions, int limit) const;
 
 
 private:
@@ -72,6 +73,33 @@ private:
 	Entity*					m_entity = nullptr; // Only set on leaf nodes
 
 };
+
+
+//-------------------------------------------------------------------------------------------------
+template <class BoundingVolumeClass>
+int BVHNode<BoundingVolumeClass>::GetPotentialCollisionsBetween(const PlaneCollider* planeCol, PotentialCollision* out_collisions, int limit) const
+{
+	if (limit == 0 || !m_boundingVolumeWs.Overlaps(planeCol))
+		return 0;
+
+	if (IsLeaf())
+	{
+		out_collisions->colliders[0] = m_entity->collider;
+		out_collisions->colliders[1] = planeCol;
+		return 1;
+	}
+
+	// Recurse on our first child
+	int numAdded = m_children[0]->GetPotentialCollisionsBetween(planeCol, out_collisions, limit);
+
+	if (limit > numAdded)
+	{
+		// Recurse on our second child
+		numAdded += m_children[1]->GetPotentialCollisionsBetween(planeCol, out_collisions + numAdded, limit - numAdded);
+	}
+
+	return numAdded;
+}
 
 
 //-------------------------------------------------------------------------------------------------

@@ -20,6 +20,7 @@
 class BoxCollider;
 class CapsuleCollider;
 class HalfSpaceCollider;
+class PlaneCollider;
 class SphereCollider;
 class Transform;
 
@@ -49,6 +50,7 @@ public:
 
 	bool					Overlaps(const BoundingVolumeSphere& sphere) const;
 	bool					Overlaps(const HalfSpaceCollider* halfspace) const;
+	bool					Overlaps(const PlaneCollider* planeCol) const;
 	float					GetSize() const { return radius; }
 	float					GetGrowth(const BoundingVolumeSphere& other) const;
 

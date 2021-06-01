@@ -589,7 +589,6 @@ int CollisionDetector::GenerateContacts(const CapsuleCollider& capsule, const Ha
 	return numAdded;
 }
 
-#include "Engine/Render/Debug/DebugRenderSystem.h"
 
 //-------------------------------------------------------------------------------------------------
 int CollisionDetector::GenerateContacts(const SphereCollider& sphere, const CapsuleCollider& capsule, Contact* out_contacts, int limit)
@@ -902,6 +901,198 @@ int CollisionDetector::GenerateContacts(const BoxCollider& box, const CapsuleCol
 		out_contacts->CheckValuesAreReasonable();
 
 		numContactsAdded++;
+	}
+
+	return numContactsAdded;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionDetector::GenerateContacts(const SphereCollider& sphere, const PlaneCollider& plane, Contact* out_contacts, int limit)
+{
+	if (limit <= 0)
+		return 0;
+
+	Sphere3D sphereWs = sphere.GetDataInWorldSpace();
+	Plane3 planeWs = plane.GetDataInWorldSpace();
+
+	float distance = planeWs.GetDistanceFromPlane(sphereWs.center);
+
+	// Sphere too far in front of plane; its radius isn't enough to intersect the plane
+	if (Abs(distance) >= sphereWs.radius)
+		return 0;
+
+	// Find the direction to push the sphere
+	if (distance > 0.f)
+	{
+		out_contacts->normal = planeWs.GetNormal();
+		out_contacts->penetration = sphereWs.radius - distance;
+	}
+	else
+	{
+		out_contacts->normal = -1.f * planeWs.GetNormal();
+		out_contacts->penetration = sphereWs.radius - Abs(distance);
+	}
+
+	out_contacts->position = planeWs.GetProjectedPointOntoPlane(sphereWs.center);
+	FillOutColliderInfo(out_contacts, sphere, plane);
+
+	out_contacts->CheckValuesAreReasonable();
+	return 1;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionDetector::GenerateContacts(const CapsuleCollider& capsule, const PlaneCollider& plane, Contact* out_contacts, int limit)
+{
+	if (limit <= 0)
+		return 0;
+
+	Capsule3D capsuleWs = capsule.GetDataInWorldSpace();
+	Plane3 planeWs = plane.GetDataInWorldSpace();
+
+	float startDistance = planeWs.GetDistanceFromPlane(capsuleWs.start);
+	float endDistance = planeWs.GetDistanceFromPlane(capsuleWs.end);
+
+	if ((startDistance >= capsuleWs.radius && endDistance >= capsuleWs.radius) || (startDistance < -capsuleWs.radius && endDistance < -capsuleWs.radius))
+		return 0;
+
+	bool startIsPen = Abs(startDistance) < capsuleWs.radius;
+	bool endIsPen = Abs(endDistance) < capsuleWs.radius;
+	bool bisected = (startDistance > 0.f && endDistance < 0.f) || (startDistance < 0.f && endDistance > 0.f); // Plane is between start and end; Fixes edge case where plane is outside one radus from end points
+	bool chooseStart = false;
+
+	Vector3 normal = planeWs.m_normal;
+
+	if ((startIsPen && endIsPen) || bisected)
+	{
+		// Take the min direction if both are in contact but on opposite sides
+		if (startDistance < 0.f && endDistance > 0.f)
+		{
+			if (Abs(endDistance) < Abs(startDistance))
+			{
+				normal *= -1.0f;
+				chooseStart = false;
+			}
+		}
+		else if (endDistance < 0.f && startDistance > 0.f)
+		{
+			if (Abs(startDistance) < Abs(endDistance))
+			{
+				normal *= -1.0f;
+				chooseStart = true;
+			}
+		}
+	}
+	else if ((startIsPen && startDistance < 0.f) || (endIsPen && endDistance < 0.f))
+	{
+		normal *= -1.0f;
+	}
+
+	int numAdded = 0;
+	if (startIsPen || (bisected && chooseStart))
+	{
+		out_contacts->normal = normal;
+		out_contacts->penetration = capsuleWs.radius - Abs(startDistance);
+		out_contacts->position = capsuleWs.start - normal * capsuleWs.radius;
+		FillOutColliderInfo(out_contacts, capsule, plane);
+		out_contacts->CheckValuesAreReasonable();
+		numAdded++;
+		out_contacts++;
+
+		if (limit == 1)
+			return 1;
+	}
+
+	if (endIsPen || (bisected && !chooseStart))
+	{
+		out_contacts->normal = normal;
+		out_contacts->penetration = capsuleWs.radius - Abs(endDistance);
+		out_contacts->position = capsuleWs.end - normal * capsuleWs.radius;
+		FillOutColliderInfo(out_contacts, capsule, plane);
+		out_contacts->CheckValuesAreReasonable();
+		numAdded++;
+	}
+
+	return numAdded;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionDetector::GenerateContacts(const BoxCollider& box, const PlaneCollider& plane, Contact* out_contacts, int limit)
+{
+	if (limit <= 0)
+		return 0;
+
+	OBB3 boxWs = box.GetDataInWorldSpace();
+	Plane3 planeWs = plane.GetDataInWorldSpace();
+
+	Vector3 boxVertsWs[8];
+	boxWs.GetPoints(boxVertsWs);
+
+	int numContactsAdded = 0;
+	Contact* contactToFill = out_contacts;
+
+	std::vector<int> pointsBehind;
+	std::vector<int> pointsInFront;
+	float maxFrontDistance = 0.f;
+	float maxBehindDistance = 0.f;
+
+	for (int i = 0; i < 8; ++i)
+	{
+		float distance = planeWs.GetDistanceFromPlane(boxVertsWs[i]);
+
+		if (distance < 0.f)
+		{
+			pointsBehind.push_back(i);
+			maxBehindDistance = Max(Abs(distance), maxBehindDistance);
+		}
+		else if (distance > 0.f)
+		{
+			pointsInFront.push_back(i);
+			maxFrontDistance = Max(Abs(distance), maxFrontDistance);
+		}
+	}
+
+	// If all the points are on one side, there's no collision
+	if (pointsBehind.size() == 0 || pointsInFront.size() == 0)
+	{
+		return 0;
+	}
+
+	std::vector<int>* penPoints;
+	float normalSign = 1.0f;
+
+	if (maxFrontDistance < maxBehindDistance)
+	{
+		penPoints = &pointsInFront;
+		normalSign *= -1.0f;
+	}
+	else
+	{
+		penPoints = &pointsBehind;
+	}
+
+	for (int pointIndex : *penPoints)
+	{
+		Vector3 point = boxVertsWs[pointIndex];
+
+		contactToFill->position = point;
+		contactToFill->normal = normalSign * planeWs.m_normal;
+		contactToFill->penetration = Abs(planeWs.GetDistanceFromPlane(point));
+		FillOutColliderInfo(contactToFill, box, plane);
+
+		contactToFill->CheckValuesAreReasonable();
+		numContactsAdded++;
+
+		if (numContactsAdded < limit)
+		{
+			contactToFill = &out_contacts[numContactsAdded];
+		}
+		else
+		{
+			break;
+		}
 	}
 
 	return numContactsAdded;
