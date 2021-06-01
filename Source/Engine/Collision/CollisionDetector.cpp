@@ -953,47 +953,36 @@ int CollisionDetector::GenerateContacts(const CapsuleCollider& capsule, const Pl
 
 	float startDistance = planeWs.GetDistanceFromPlane(capsuleWs.start);
 	float endDistance = planeWs.GetDistanceFromPlane(capsuleWs.end);
+	bool startCloser = Abs(startDistance) < Abs(endDistance);
+	bool bisected = (startDistance > 0.f && endDistance < 0.f) || (startDistance < 0.f && endDistance > 0.f);
 
-	if ((startDistance >= capsuleWs.radius && endDistance >= capsuleWs.radius) || (startDistance < -capsuleWs.radius && endDistance < -capsuleWs.radius))
-		return 0;
-
-	bool startIsPen = Abs(startDistance) < capsuleWs.radius;
-	bool endIsPen = Abs(endDistance) < capsuleWs.radius;
-	bool bisected = (startDistance > 0.f && endDistance < 0.f) || (startDistance < 0.f && endDistance > 0.f); // Plane is between start and end; Fixes edge case where plane is outside one radus from end points
-	bool chooseStart = false;
-
-	Vector3 normal = planeWs.m_normal;
-
-	if ((startIsPen && endIsPen) || bisected)
+	Vector3 normal = Vector3::ZERO;
+	if (bisected)
 	{
-		// Take the min direction if both are in contact but on opposite sides
-		if (startDistance < 0.f && endDistance > 0.f)
+		// Push out the direction of least correction
+		if (startCloser)
 		{
-			if (Abs(endDistance) < Abs(startDistance))
-			{
-				normal *= -1.0f;
-				chooseStart = false;
-			}
+			normal = (startDistance < 0.f ? planeWs.m_normal : -1.0f * planeWs.m_normal);
 		}
-		else if (endDistance < 0.f && startDistance > 0.f)
+		else
 		{
-			if (Abs(startDistance) < Abs(endDistance))
-			{
-				normal *= -1.0f;
-				chooseStart = true;
-			}
+			normal = (endDistance < 0.f ? planeWs.m_normal : -1.0f * planeWs.m_normal);
 		}
 	}
-	else if ((startIsPen && startDistance < 0.f) || (endIsPen && endDistance < 0.f))
+	else
 	{
-		normal *= -1.0f;
+		// Both endpoints are on the same side, so they both have the same normal direction
+		normal = (startDistance > 0.f ? planeWs.m_normal : -1.0f * planeWs.m_normal);
 	}
+
+	// Just for convenience
+	planeWs.m_normal = normal;
 
 	int numAdded = 0;
-	if (startIsPen || (bisected && chooseStart))
+	if (Abs(startDistance) < capsuleWs.radius || (bisected && startCloser))
 	{
 		out_contacts->normal = normal;
-		out_contacts->penetration = capsuleWs.radius - Abs(startDistance);
+		out_contacts->penetration = (planeWs.IsPointInFront(capsuleWs.start) ? (capsuleWs.radius - Abs(startDistance)) : (capsuleWs.radius + Abs(startDistance)));
 		out_contacts->position = capsuleWs.start - normal * capsuleWs.radius;
 		FillOutColliderInfo(out_contacts, capsule, plane);
 		out_contacts->CheckValuesAreReasonable();
@@ -1004,10 +993,10 @@ int CollisionDetector::GenerateContacts(const CapsuleCollider& capsule, const Pl
 			return 1;
 	}
 
-	if (endIsPen || (bisected && !chooseStart))
+	if (Abs(endDistance) < capsuleWs.radius || (bisected && !startCloser))
 	{
 		out_contacts->normal = normal;
-		out_contacts->penetration = capsuleWs.radius - Abs(endDistance);
+		out_contacts->penetration = (planeWs.IsPointInFront(capsuleWs.end) ? (capsuleWs.radius - Abs(endDistance)) : (capsuleWs.radius + Abs(endDistance)));
 		out_contacts->position = capsuleWs.end - normal * capsuleWs.radius;
 		FillOutColliderInfo(out_contacts, capsule, plane);
 		out_contacts->CheckValuesAreReasonable();
