@@ -118,7 +118,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)../MechroEngine/Source/;$(SolutionDir)Source/;$(SolutionDir)../MechroEngine/Source/Thirdparty/freetype/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\MechroEngine\Source\;$(SolutionDir)Source\;$(SolutionDir)..\MechroEngine\Source\Thirdparty\Vulkan\Include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -133,7 +133,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)../MechroEngine/Source/;$(SolutionDir)Source/;$(SolutionDir)../MechroEngine/Source/Thirdparty/freetype/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\MechroEngine\Source\;$(SolutionDir)Source\;$(SolutionDir)..\MechroEngine\Source\Thirdparty\Vulkan\Include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -162,7 +162,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\ThirdParty\tinyxml2\tinyxml2.cpp" />
     <ClCompile Include="Core\Rgba.cpp" />
     <ClCompile Include="Event\EventSubscription.cpp" />
     <ClCompile Include="Event\EventSystem.cpp" />
@@ -214,7 +213,6 @@
   <ItemGroup>
     <ClInclude Include="..\ThirdParty\stb\stb_image.h" />
     <ClInclude Include="..\ThirdParty\stb\stb_image_write.h" />
-    <ClInclude Include="..\ThirdParty\tinyxml2\tinyxml2.h" />
     <ClInclude Include="Core\Rgba.h" />
     <ClInclude Include="Event\EventSubscription.h" />
     <ClInclude Include="Event\EventSystem.h" />
