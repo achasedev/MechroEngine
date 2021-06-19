@@ -13,7 +13,6 @@
 #include "Engine/Math/OBB3.h"
 #include "Engine/Math/Polygon3d.h"
 #include "Engine/Math/Transform.h"
-#include "Engine/Render/RenderContext.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES

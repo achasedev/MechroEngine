@@ -11,7 +11,6 @@
 #include "Engine/Core/Rgba.h"
 #include "Engine/Core/EngineCommon.h"
 #include "Engine/Math/IntVector2.h"
-#include "Engine/Resource/Resource.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -32,7 +31,7 @@
 //-------------------------------------------------------------------------------------------------
 // (0,0) is BOTTOM LEFT
 // To use an image as a texture, it must be flipped vertically (DirectX uses (0,0) top left)
-class Image : public Resource
+class Image
 {
 public:
 	//------Public Methods-----

@@ -7,7 +7,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Core/DevConsole.h"
 #include "Engine/IO/Image.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "ThirdParty/stb/stb_image.h"
@@ -83,10 +82,6 @@ bool Image::Load(const char* filepath, bool flipVertically /*= true*/)
 	if (m_data != nullptr)
 	{
 		m_size = m_dimensions.x * m_dimensions.y * m_numComponentsPerTexel;
-	}
-	else
-	{
-		ConsoleLogf("Couldn't load image %s", filepath);
 	}
 
 	return (m_data != nullptr);
