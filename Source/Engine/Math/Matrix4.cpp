@@ -470,7 +470,6 @@ void Matrix4::Invert()
 		m[8] * m[2] * m[5];
 
 	det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
-	ASSERT_OR_DIE(AreMostlyEqual(static_cast<float>(det), GetDeterminant()), "Determinant calculations don't match!");
 	ASSERT_RETURN(det != 0.f, NO_RETURN_VAL, "Cannot invert, 0.f determinant!");
 	det = 1.0 / det;
 
