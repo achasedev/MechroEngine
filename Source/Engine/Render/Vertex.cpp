@@ -110,7 +110,7 @@ void VertexLayout::GetVkAttributeDescriptions(std::vector<VkVertexInputAttribute
 
 	for (uint32 i = 0; i < m_numAttributes; ++i)
 	{
-		out_descriptions[i] = m_attributes->GetVkAttributeDescription(i);
+		out_descriptions[i] = m_attributes[i].GetVkAttributeDescription(i);
 	}
 }
 
