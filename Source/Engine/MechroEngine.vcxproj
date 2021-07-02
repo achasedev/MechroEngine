@@ -200,6 +200,7 @@
     <ClCompile Include="Math\Vector2.cpp" />
     <ClCompile Include="Math\Vector3.cpp" />
     <ClCompile Include="Math\Vector4.cpp" />
+    <ClCompile Include="Render\Vertex.cpp" />
     <ClCompile Include="Time\Clock.cpp" />
     <ClCompile Include="Time\FrameTimer.cpp" />
     <ClCompile Include="Time\Time.cpp" />
@@ -242,6 +243,8 @@
     <ClInclude Include="Math\Plane3.h" />
     <ClInclude Include="Math\Polygon2D.h" />
     <ClInclude Include="Math\Polygon3d.h" />
+    <ClInclude Include="Render\Vertex.h" />
+    <ClInclude Include="Render\VulkanCommon.h" />
     <ClInclude Include="Utility\EngineUtils.h" />
     <ClInclude Include="Utility\Swizzle.h" />
     <ClInclude Include="IO\Image.h" />
