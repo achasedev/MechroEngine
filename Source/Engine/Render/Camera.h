@@ -89,15 +89,19 @@ public:
 	bool					Event_WindowResize(NamedProperties& args);
 
 
+public:
+	//-----Public Data-----
+	Transform				transform;
+
+
 private:
 	//-----Private Data-----
 
 	// Model/View Data
-	Transform				m_transform;
-	Matrix4				m_viewMatrix;
+	Matrix4					m_viewMatrix;
 	
 	// Projection
-	Matrix4				m_projectionMatrix;
+	Matrix4					m_projectionMatrix;
 	AABB2					m_orthoBounds;
 	float					m_fovDegrees = 90.f;
 	float					m_nearClipZ = 0.f;

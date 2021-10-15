@@ -192,6 +192,13 @@ void RigidBody::SetCanSleep(bool canSleep)
 
 
 //-------------------------------------------------------------------------------------------------
+void RigidBody::SetRotationLocked(bool lockRotation)
+{
+	m_rotationLocked = lockRotation;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void RigidBody::GetWorldInverseInertiaTensor(Matrix3& out_inverseInertiaTensor) const
 {
 	out_inverseInertiaTensor = m_inverseInertiaTensorWorld;
@@ -222,6 +229,22 @@ void RigidBody::Integrate(float deltaSeconds, const Vector3& gravityAcc)
 
 	// Impose linear damping
 	m_velocityWs *= Pow(m_linearDamping, deltaSeconds);
+
+	// Clamp to speed limits
+	Vector3 lateralVelocity = Vector3(m_velocityWs.x, 0.f, m_velocityWs.z);
+	if (lateralVelocity.GetLengthSquared() > m_maxLateralSpeed * m_maxLateralSpeed)
+	{
+		lateralVelocity.Normalize();
+		lateralVelocity *= m_maxLateralSpeed;
+		m_velocityWs.x = lateralVelocity.x;
+		m_velocityWs.z = lateralVelocity.z;
+	}
+
+	if (Abs(m_velocityWs.y) > m_maxVerticalSpeed)
+	{
+		m_velocityWs.y = (m_velocityWs.y > 0.f ? m_maxVerticalSpeed : -m_maxVerticalSpeed);
+	}
+
 	transform->position += m_velocityWs * deltaSeconds;
 
 	// Calculate/apply angular acceleration

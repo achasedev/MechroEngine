@@ -504,8 +504,6 @@ static void ResolvePenetrations(Contact* contacts, int numContacts, int numItera
 		// Update all other contacts that may have moved by fixing this contact
 		UpdateContactPenetrations(contacts, numContacts, linearChanges, angularChanges, contactToResolve);
 	}
-
-	ConsolePrintf("Penetration iterations: %i of %i", numIterationsUsed, numIterations);
 }
 
 
@@ -543,8 +541,6 @@ static void ResolveVelocities(Contact* contacts, int numContacts, int numIterati
 		ResolveContactVelocity(contactToResolve, linearVelocityChanges, angularVelocityChanges);
 		UpdateContactVelocities(contacts, numContacts, linearVelocityChanges, angularVelocityChanges, contactToResolve, deltaSeconds);
 	}
-
-	ConsolePrintf("Velocity iterations: %i of %i", numIterationsUsed, numIterations);
 }
 
 

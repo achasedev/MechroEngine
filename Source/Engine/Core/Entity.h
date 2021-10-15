@@ -42,14 +42,14 @@ public:
 
 	Entity();
 
-	void Update(float deltaSeconds);
-	void Render() const;
+	virtual void Update(float deltaSeconds);
+	virtual void Render() const;
 
 
 public:
 	//-----Public Data-----
 
-	Transform transform;
+	Transform				transform;
 
 	RigidBody*				rigidBody = nullptr;
 	AABB3					renderShapeLs;

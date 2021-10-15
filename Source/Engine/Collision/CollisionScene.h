@@ -46,9 +46,6 @@ public:
 	void AddEntity(Entity* entity);
 	void RemoveEntity(Entity* entity);
 
-	void AddHalfSpace(HalfSpaceCollider* halfSpace);
-	void AddPlane(PlaneCollider* planeCol);
-
 	void DoCollisionStep(float deltaSeconds);
 	void DebugRenderBoundingHierarchy() const;
 	void DebugRenderLeafBoundingVolumes() const;
@@ -97,22 +94,6 @@ private:
 	ContactResolver								m_resolver;
 
 };
-
-
-//-------------------------------------------------------------------------------------------------
-template <class BoundingVolumeClass>
-void CollisionScene<BoundingVolumeClass>::AddPlane(PlaneCollider* planeCol)
-{
-	m_planes.push_back(planeCol);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-template <class BoundingVolumeClass>
-void CollisionScene<BoundingVolumeClass>::AddHalfSpace(HalfSpaceCollider* halfSpace)
-{
-	m_halfspaces.push_back(halfSpace);
-}
 
 
 //-------------------------------------------------------------------------------------------------
@@ -511,26 +492,38 @@ CollisionScene<BoundingVolumeClass>::~CollisionScene()
 template <class BoundingVolumeClass>
 void CollisionScene<BoundingVolumeClass>::AddEntity(Entity* entity)
 {
-	ASSERT_OR_DIE(!entity->collider->IsOfType<HalfSpaceCollider>(), "Cannot add half space entities!");
+	ASSERT_OR_DIE(entity != nullptr, "Null entity!");
+	ASSERT_OR_DIE(entity->collider != nullptr, "Null collider!");
 
-	BoundingVolumeClass boundingVolume = MakeBoundingVolumeForPrimitive(entity->collider);
-	BVHNode<BoundingVolumeClass>* node = new BVHNode<BoundingVolumeClass>(boundingVolume);
-	node->m_entity = entity;
-
-	if (m_boundingTreeRoot != nullptr)
+	if (entity->collider->IsOfType<HalfSpaceCollider>())
 	{
-		BVHNode<BoundingVolumeClass>* newRoot = m_boundingTreeRoot->Insert(node);
-		if (newRoot != nullptr)
-		{
-			m_boundingTreeRoot = newRoot;
-		}
+		m_halfspaces.push_back(entity->collider->GetAsType<HalfSpaceCollider>());
+	}
+	else if (entity->collider->IsOfType<PlaneCollider>())
+	{
+		m_planes.push_back(entity->collider->GetAsType<PlaneCollider>());
 	}
 	else
 	{
-		m_boundingTreeRoot = node;
-	}
+		BoundingVolumeClass boundingVolume = MakeBoundingVolumeForPrimitive(entity->collider);
+		BVHNode<BoundingVolumeClass>* node = new BVHNode<BoundingVolumeClass>(boundingVolume);
+		node->m_entity = entity;
 
-	m_leaves.push_back(node);
+		if (m_boundingTreeRoot != nullptr)
+		{
+			BVHNode<BoundingVolumeClass>* newRoot = m_boundingTreeRoot->Insert(node);
+			if (newRoot != nullptr)
+			{
+				m_boundingTreeRoot = newRoot;
+			}
+		}
+		else
+		{
+			m_boundingTreeRoot = node;
+		}
+
+		m_leaves.push_back(node);
+	}
 }
 
 
@@ -538,21 +531,49 @@ void CollisionScene<BoundingVolumeClass>::AddEntity(Entity* entity)
 template <class BoundingVolumeClass>
 void CollisionScene<BoundingVolumeClass>::RemoveEntity(Entity* entity)
 {
-	BVHNode<BoundingVolumeClass>* node = GetAndEraseLeafNodeForEntity(entity);
+	ASSERT_OR_DIE(entity != nullptr, "Null entity!");
+	ASSERT_OR_DIE(entity->collider != nullptr, "Null collider!");
 
-	if (node != m_boundingTreeRoot)
+	if (entity->collider->IsOfType<HalfSpaceCollider>())
 	{
-		BVHNode<BoundingVolumeClass>* newRoot = node->RemoveSelf();
-		if (newRoot != nullptr)
+		for (int i = 0; i < m_halfspaces.size(); ++i)
 		{
-			m_boundingTreeRoot = newRoot;
+			if (m_halfspaces[i] == entity->collider)
+			{
+				m_halfspaces.erase(m_halfspaces.begin() + i);
+				break;
+			}
 		}
-
-		SAFE_DELETE(node);
+	}
+	else if (entity->collider->IsOfType<PlaneCollider>())
+	{
+		for (int i = 0; i < m_planes.size(); ++i)
+		{
+			if (m_planes[i] == entity->collider)
+			{
+				m_planes.erase(m_planes.begin() + i);
+				break;
+			}
+		}
 	}
 	else
 	{
-		SAFE_DELETE(m_boundingTreeRoot);
+		BVHNode<BoundingVolumeClass>* node = GetAndEraseLeafNodeForEntity(entity);
+
+		if (node != m_boundingTreeRoot)
+		{
+			BVHNode<BoundingVolumeClass>* newRoot = node->RemoveSelf();
+			if (newRoot != nullptr)
+			{
+				m_boundingTreeRoot = newRoot;
+			}
+
+			SAFE_DELETE(node);
+		}
+		else
+		{
+			SAFE_DELETE(m_boundingTreeRoot);
+		}
 	}
 }
 

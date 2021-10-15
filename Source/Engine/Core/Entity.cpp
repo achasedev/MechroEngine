@@ -40,15 +40,22 @@ Entity::Entity()
 	: m_id(s_nextEntityID)
 {
 	++s_nextEntityID;
+}
 
-	collider = new BoxCollider(this, OBB3(Vector3::ZERO, Vector3(0.5f), Quaternion::IDENTITY));
+
+//-------------------------------------------------------------------------------------------------
+void Entity::Update(float deltaSeconds)
+{
+	UNUSED(deltaSeconds);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void Entity::Render() const
 {
-	Rgba tint = (rigidBody == nullptr || rigidBody->IsAwake() ? Rgba::CYAN : Rgba::RED);
-
-	collider->DebugRender(tint);
+	if (collider != nullptr)
+	{
+		Rgba tint = (rigidBody == nullptr || rigidBody->IsAwake() ? Rgba::CYAN : Rgba::RED);
+		collider->DebugRender(tint);
+	}
 }

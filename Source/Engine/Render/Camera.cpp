@@ -70,9 +70,9 @@ static Matrix4 InvertLookAtMatrix(const Matrix4& lookAt)
 //-------------------------------------------------------------------------------------------------
 Camera::Camera()
 {
-	m_transform.position = Vector3::ZERO;
-	m_transform.rotation = Quaternion::IDENTITY;
-	m_transform.scale = Vector3::ONES;
+	transform.position = Vector3::ZERO;
+	transform.rotation = Quaternion::IDENTITY;
+	transform.scale = Vector3::ONES;
 
 	// Default to backbuffer for render target
 	SetRenderTarget(g_renderContext->GetDefaultRenderTarget(), false);
@@ -129,31 +129,31 @@ void Camera::SetDepthTarget(Texture2D* depthTarget, bool ownsTarget)
 //-------------------------------------------------------------------------------------------------
 void Camera::SetPosition(const Vector3& position)
 {
-	m_transform.position = position;
+	transform.position = position;
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void Camera::Translate(const Vector3& translation)
 {
-	m_transform.Translate(translation, RELATIVE_TO_SELF);
-	m_viewMatrix = InvertLookAtMatrix(m_transform.GetLocalToWorldMatrix());
+	transform.Translate(translation, RELATIVE_TO_SELF);
+	m_viewMatrix = InvertLookAtMatrix(transform.GetLocalToWorldMatrix());
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void Camera::SetRotationEulerAnglesDegrees(const Vector3& eulerAnglesDegrees)
 {
-	m_transform.rotation = Quaternion::CreateFromEulerAnglesDegrees(eulerAnglesDegrees);
-	m_viewMatrix = InvertLookAtMatrix(m_transform.GetLocalToWorldMatrix());
+	transform.rotation = Quaternion::CreateFromEulerAnglesDegrees(eulerAnglesDegrees);
+	m_viewMatrix = InvertLookAtMatrix(transform.GetLocalToWorldMatrix());
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void Camera::SetRotationEulerAnglesRadians(const Vector3& eulerAnglesRadians)
 {
-	m_transform.rotation = Quaternion::CreateFromEulerAnglesRadians(eulerAnglesRadians);
-	m_viewMatrix = InvertLookAtMatrix(m_transform.GetLocalToWorldMatrix());
+	transform.rotation = Quaternion::CreateFromEulerAnglesRadians(eulerAnglesRadians);
+	m_viewMatrix = InvertLookAtMatrix(transform.GetLocalToWorldMatrix());
 }
 
 
@@ -200,7 +200,7 @@ void Camera::UpdateUBO()
 	}
 
 	CameraUBOLayout cameraData;
-	cameraData.m_cameraMatrix = m_transform.GetLocalToWorldMatrix();
+	cameraData.m_cameraMatrix = transform.GetLocalToWorldMatrix();
 	cameraData.m_viewMatrix = InvertLookAtMatrix(cameraData.m_cameraMatrix);
 	cameraData.m_projectionMatrix = m_projectionMatrix;
 	cameraData.m_viewportTopLeftX = 0.f;
@@ -215,16 +215,16 @@ void Camera::UpdateUBO()
 //-------------------------------------------------------------------------------------------------
 void Camera::RotateEulerAnglesDegrees(const Vector3& deltaEulerAnglesDegrees)
 {
-	m_transform.RotateDegrees(deltaEulerAnglesDegrees, RELATIVE_TO_SELF);
-	m_viewMatrix = InvertLookAtMatrix(m_transform.GetLocalToWorldMatrix());
+	transform.RotateDegrees(deltaEulerAnglesDegrees, RELATIVE_TO_SELF);
+	m_viewMatrix = InvertLookAtMatrix(transform.GetLocalToWorldMatrix());
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void Camera::RotateEulerAnglesRadians(const Vector3& deltaEulerAnglesRadians)
 {
-	m_transform.RotateRadians(deltaEulerAnglesRadians, RELATIVE_TO_SELF);
-	m_viewMatrix = InvertLookAtMatrix(m_transform.GetLocalToWorldMatrix());
+	transform.RotateRadians(deltaEulerAnglesRadians, RELATIVE_TO_SELF);
+	m_viewMatrix = InvertLookAtMatrix(transform.GetLocalToWorldMatrix());
 }
 
 
@@ -233,10 +233,10 @@ void Camera::LookAt(const Vector3& position, const Vector3& target, const Vector
 {
 	Matrix4 cameraMatrix = Matrix4::MakeLookAt(position, target, up);
 
-	m_transform.position = position;
-	m_transform.rotation = Quaternion::FromMatrix(cameraMatrix);
+	transform.position = position;
+	transform.rotation = Quaternion::FromMatrix(cameraMatrix);
 
-	m_transform.SetLocalMatrix(cameraMatrix);
+	transform.SetLocalMatrix(cameraMatrix);
 	m_viewMatrix = InvertLookAtMatrix(cameraMatrix);
 }
 
@@ -244,7 +244,7 @@ void Camera::LookAt(const Vector3& position, const Vector3& target, const Vector
 //-------------------------------------------------------------------------------------------------
 void Camera::SetCameraMatrix(const Matrix4& cameraMatrix)
 {
-	m_transform.SetLocalMatrix(cameraMatrix);
+	transform.SetLocalMatrix(cameraMatrix);
 	m_viewMatrix = InvertLookAtMatrix(cameraMatrix);
 }
 
@@ -253,7 +253,7 @@ void Camera::SetCameraMatrix(const Matrix4& cameraMatrix)
 void Camera::SetViewMatrix(const Matrix4& viewMatrix)
 {
 	m_viewMatrix = viewMatrix;
-	m_transform.SetLocalMatrix(InvertLookAtMatrix(viewMatrix));
+	transform.SetLocalMatrix(InvertLookAtMatrix(viewMatrix));
 }
 
 
@@ -292,7 +292,7 @@ DepthStencilTargetView* Camera::GetDepthStencilTargetView()
 //-------------------------------------------------------------------------------------------------
 Matrix4 Camera::GetCameraMatrix()
 {
-	return m_transform.GetLocalToParentMatrix();
+	return transform.GetLocalToParentMatrix();
 }
 
 
@@ -300,7 +300,7 @@ Matrix4 Camera::GetCameraMatrix()
 Matrix4 Camera::GetViewMatrix()
 {
 	// Matrix may be out of data - update to be sure
-	Matrix4 cameraMatrix = m_transform.GetLocalToParentMatrix();
+	Matrix4 cameraMatrix = transform.GetLocalToParentMatrix();
 	m_viewMatrix = InvertLookAtMatrix(cameraMatrix);
 
 	return m_viewMatrix;
@@ -325,42 +325,42 @@ AABB2 Camera::GetOrthoBounds() const
 //-------------------------------------------------------------------------------------------------
 Vector3 Camera::GetPosition() const
 {
-	return m_transform.position;
+	return transform.position;
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Vector3 Camera::GetRotationAsEulerAnglesDegrees() const
 {
-	return m_transform.rotation.GetAsEulerAnglesDegrees();
+	return transform.rotation.GetAsEulerAnglesDegrees();
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Vector3 Camera::GetRotationAsEulerAnglesRadians() const
 {
-	return m_transform.rotation.GetAsEulerAnglesRadians();
+	return transform.rotation.GetAsEulerAnglesRadians();
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Vector3 Camera::GetForwardVector()
 {
-	return m_transform.GetKVector();
+	return transform.GetKVector();
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Vector3 Camera::GetRightVector()
 {
-	return m_transform.GetIVector();
+	return transform.GetIVector();
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Vector3 Camera::GetUpVector()
 {
-	return m_transform.GetJVector();
+	return transform.GetJVector();
 }
 
 

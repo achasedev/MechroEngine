@@ -65,7 +65,9 @@ public:
 	void SetCanSleep(bool canSleep);
 	void SetAffectedByGravity(bool affectedByGravity) { m_affectedByGravity = affectedByGravity; }
 	void SetGravityScale(float scale) { m_gravityScale = scale; }
-	void SetRotationLocked(bool lockRotation) { m_rotationLocked = lockRotation; }
+	void SetRotationLocked(bool lockRotation);
+	void SetMaxLateralSpeed(float maxLateralSpeed) { m_maxLateralSpeed = maxLateralSpeed; }
+	void SetMaxVerticalSpeed(float maxVerticalSpeed) { m_maxVerticalSpeed = maxVerticalSpeed; }
 
 	Vector3 GetLastFrameAcceleration() const { return m_lastFrameAccelerationWs; }
 	float	GetInverseMass() const { return m_iMass; }
@@ -107,8 +109,8 @@ private:
 	Vector3		m_forceAccumWs = Vector3::ZERO;
 	Vector3		m_torqueAccumWs = Vector3::ZERO;
 	float		m_iMass = 1.f;
-	float		m_linearDamping = 0.75f;
-	float		m_angularDamping = 0.4f;
+	float		m_linearDamping = 0.9f;
+	float		m_angularDamping = 0.9f;
 	Matrix3		m_inverseInertiaTensorLocal;
 	Matrix3		m_inverseInertiaTensorWorld;
 	bool		m_isAwake = true;
@@ -118,7 +120,8 @@ private:
 	bool		m_affectedByGravity = true;
 	float		m_gravityScale = 1.0f;
 	bool		m_rotationLocked = false;
-
+	float		m_maxLateralSpeed = 1000.f;
+	float		m_maxVerticalSpeed = 1000.f;
 };
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

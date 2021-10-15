@@ -98,6 +98,7 @@ public:
 	};
 
 	static const Matrix3 IDENTITY;
+	static const Matrix3 ZERO;
 };
 
 #pragma warning(default : 4201)

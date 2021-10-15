@@ -52,7 +52,7 @@ public:
 	//-----Public Data-----
 
 	Entity* entity = nullptr;	// This entity doesn't need a rigidbody! It just means do the collision detection, but no correction
-	float	friction = 0.5f;
+	float	friction = 0.3f;
 	float	restitution = 0.f;
 
 };
