@@ -47,9 +47,8 @@ public:
 	virtual ShaderResourceView*		CreateOrGetShaderResourceView(const TextureViewCreateInfo* viewInfo = nullptr) override;
 
 	// These textures can't have these views
-	virtual RenderTargetView*		CreateOrGetColorTargetView(const TextureViewCreateInfo* viewInfo = nullptr) = 0;
-	virtual DepthStencilTargetView*	CreateOrGetDepthStencilTargetView(const TextureViewCreateInfo* viewInfo = nullptr) = 0;
-
+	virtual RenderTargetView*		CreateOrGetColorTargetView(const TextureViewCreateInfo* viewInfo = nullptr) override;
+	virtual DepthStencilTargetView*	CreateOrGetDepthStencilTargetView(const TextureViewCreateInfo* viewInfo = nullptr) override;
 };
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

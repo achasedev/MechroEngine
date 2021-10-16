@@ -15,6 +15,7 @@
 #include "Engine/Render/Mesh/MeshBuilder.h"
 #include "Engine/Render/Shader.h"
 #include "Engine/Render/Texture/Texture2D.h"
+#include "Engine/Render/Texture/TextureCube.h"
 #include "Engine/Resource/ResourceSystem.h"
 #include "ThirdParty/freetype/include/ft2build.h"   
 #include FT_FREETYPE_H
@@ -40,6 +41,7 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 typedef std::map<StringID, Texture2D*>::iterator Texture2DIter;
+typedef std::map<StringID, TextureCube*>::iterator TextureCubeIter;
 typedef std::map<StringID, Mesh*>::iterator MeshIter;
 typedef std::map<StringID, Image*>::iterator ImageIter;
 typedef std::map<StringID, Shader*>::iterator ShaderIter;
@@ -217,6 +219,35 @@ Texture2D* ResourceSystem::CreateOrGetTexture2D(const char* filepath, TextureUsa
 
 
 //-------------------------------------------------------------------------------------------------
+TextureCube* ResourceSystem::CreateOrGetTextureCube(const char* folderpath)
+{
+	StringID id = SID(folderpath);
+	TextureCubeIter itr = m_textureCubes.find(id);
+	if (itr != m_textureCubes.end())
+	{
+		return itr->second;
+	}
+
+	TextureCube* texCube = new TextureCube();
+	bool success = texCube->LoadSixFiles(folderpath);
+
+	if (success)
+	{
+		texCube->m_resourceID = id;
+	}
+	else
+	{
+		SAFE_DELETE(texCube);
+		ConsoleLogErrorf("Could not load Texture2D %s", folderpath);
+	}
+
+	m_textureCubes[id] = texCube;
+
+	return texCube;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 Font* ResourceSystem::CreateOrGetFont(const char* filepath)
 {
 	StringID id = SID(filepath);
@@ -263,6 +294,7 @@ void ResourceSystem::CreateBuiltInAssets()
 	CreateDefaultShaders();
 	CreateDefaultImages();
 	CreateDefaultTexture2Ds();
+	CreateDefaultTextureCubes();
 	CreateDefaultMaterials();
 }
 
@@ -324,6 +356,7 @@ void ResourceSystem::CreateDefaultShaders()
 	CreateOrGetShader("Data/Shader/default_alpha.shader");
 	CreateOrGetShader("Data/Shader/font.shader");
 	CreateOrGetShader("Data/Shader/invalid.shader");
+	CreateOrGetShader("Data/Shader/skybox.shader");
 }
 
 
@@ -356,6 +389,16 @@ void ResourceSystem::CreateDefaultTexture2Ds()
 
 
 //-------------------------------------------------------------------------------------------------
+void ResourceSystem::CreateDefaultTextureCubes()
+{
+	TextureCube* skybox = new TextureCube();
+	skybox->LoadSixFiles("Data/Image/Skybox/");
+	skybox->m_resourceID = SID("Data/Image/Skybox/");
+	m_textureCubes[skybox->m_resourceID] = skybox;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void ResourceSystem::CreateDefaultFonts()
 {
 	CreateOrGetFont("Data/Font/Prototype.ttf");
@@ -367,12 +410,14 @@ void ResourceSystem::CreateDefaultMaterials()
 {
 	CreateOrGetMaterial("Data/Material/default.material");
 	CreateOrGetMaterial("Data/Material/debug.material");
+	CreateOrGetMaterial("Data/Material/skybox.material");
 }
 
 
 //-------------------------------------------------------------------------------------------------
 ResourceSystem::~ResourceSystem()
 {
+	SafeDeleteMap<StringID, TextureCube>(m_textureCubes);
 	SafeDeleteMap<StringID, Texture2D>(m_texture2Ds);
 	SafeDeleteMap<StringID, Image>(m_images);
 	SafeDeleteMap<StringID, Material>(m_materials);

@@ -96,6 +96,21 @@ enum FillMode
 	FILL_MODE_WIREFRAME
 };
 
+enum CullMode
+{
+	CULL_MODE_BACK,
+	CULL_MODE_FRONT
+};
+
+enum DepthMode
+{
+	DEPTH_MODE_LESS_THAN,
+	DEPTH_MODE_LESS_THAN_OR_EQUAL,
+	DEPTH_MODE_GREATER_THAN,
+	DEPTH_MODE_GREATER_THAN_OR_EQUAL,
+	DEPTH_MODE_IGNORE_DEPTH
+};
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -147,50 +162,58 @@ public:
 	Shader();
 	~Shader();
 
-	bool					Load(const char* filepath);
-	void					Clear();
+	bool						Load(const char* filepath);
+	void						Clear();
 
-	bool					LoadAndCompileShaderSource(const char* filename);
-	bool					CreateInputLayoutForVertexLayout(const VertexLayout* vertexLayout);
-	void					UpdateBlendState();
-	void					UpdateRasterizerState();
+	bool						LoadAndCompileShaderSource(const char* filename);
+	bool						CreateInputLayoutForVertexLayout(const VertexLayout* vertexLayout);
+	void						UpdateBlendState();
+	void						UpdateRasterizerState();
+	void						UpdateDepthState();
 
-	void					SetBlend(BlendPreset blendPreset);
-	void					SetBlend(const BlendInfo& colorBlend, const BlendInfo& alphaBlend);
-	void					SetColorBlend(const BlendInfo& blend);
-	void					SetAlphaBlend(const BlendInfo& blend);
-	void					SetFillMode(FillMode fillMode);
-	void					EnableScissor(const AABB2& screenSpaceRect);
-	void					DisableScissor();
+	void						SetBlend(BlendPreset blendPreset);
+	void						SetBlend(const BlendInfo& colorBlend, const BlendInfo& alphaBlend);
+	void						SetColorBlend(const BlendInfo& blend);
+	void						SetAlphaBlend(const BlendInfo& blend);
+	void						SetFillMode(FillMode fillMode);
+	void						SetCullMode(CullMode cullMode);
+	void						SetDepthMode(DepthMode depthMode);
+	void						EnableScissor(const AABB2& screenSpaceRect);
+	void						DisableScissor();
 
-	bool					IsDirty() const;
-	FillMode				GetFillMode() const { return m_fillMode; }
+	bool						IsDirty() const;
+	FillMode					GetFillMode() const { return m_fillMode; }
 
-	ID3D11VertexShader*		GetVertexStage() const { return m_vertexShader.GetAsVertexShader(); }
-	ID3D11PixelShader*		GetFragmentStage() const { return m_fragmentShader.GetAsFragmentShader(); }
-	ID3D11InputLayout*		GetInputLayout() const { return m_shaderInputLayout.m_dxInputLayout; }
-	ID3D11BlendState*		GetDXBlendState() const { return m_dxBlendState; }
-	ID3D11RasterizerState*	GetDXRasterizerState() const { return m_dxRasterizerState; }
+	ID3D11VertexShader*			GetVertexStage() const { return m_vertexShader.GetAsVertexShader(); }
+	ID3D11PixelShader*			GetFragmentStage() const { return m_fragmentShader.GetAsFragmentShader(); }
+	ID3D11InputLayout*			GetInputLayout() const { return m_shaderInputLayout.m_dxInputLayout; }
+	ID3D11BlendState*			GetDxBlendState() const { return m_dxBlendState; }
+	ID3D11RasterizerState*		GetDxRasterizerState() const { return m_dxRasterizerState; }
+	ID3D11DepthStencilState*	GetDxDepthState() const { return m_dxDepthState; }
 
 
 private:
 	//-----Private Data-----
 
-	ShaderStage				m_vertexShader;
-	ShaderStage				m_fragmentShader;
-	ShaderInputLayout		m_shaderInputLayout;
+	ShaderStage					m_vertexShader;
+	ShaderStage					m_fragmentShader;
+	ShaderInputLayout			m_shaderInputLayout;
 
-	BlendInfo				m_colorBlend;
-	BlendInfo				m_alphaBlend;
-	ID3D11BlendState*		m_dxBlendState = nullptr;
-	bool					m_blendStateDirty = true;
+	BlendInfo					m_colorBlend;
+	BlendInfo					m_alphaBlend;
+	ID3D11BlendState*			m_dxBlendState = nullptr;
+	bool						m_blendStateDirty = true;
 
-	FillMode				m_fillMode = FILL_MODE_SOLID;
-	AABB2					m_scissorRect;
-	bool					m_scissorEnabled = false;
-	ID3D11RasterizerState*	m_dxRasterizerState = nullptr;
-	bool					m_rasterizerStateDirty = true;
+	FillMode					m_fillMode = FILL_MODE_SOLID;
+	CullMode					m_cullMode = CULL_MODE_BACK;
+	AABB2						m_scissorRect;
+	bool						m_scissorEnabled = false;
+	ID3D11RasterizerState*		m_dxRasterizerState = nullptr;
+	bool						m_rasterizerStateDirty = true;
 
+	DepthMode					m_depthMode = DEPTH_MODE_LESS_THAN;
+	ID3D11DepthStencilState*	m_dxDepthState = nullptr;
+	bool						m_depthStateDirty = true;
 };
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

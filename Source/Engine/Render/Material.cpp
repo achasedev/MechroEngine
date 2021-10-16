@@ -13,6 +13,7 @@
 #include "Engine/Render/Material.h"
 #include "Engine/Render/Shader.h"
 #include "Engine/Render/Texture/Texture2D.h"
+#include "Engine/Render/Texture/TextureCube.h"
 #include "Engine/Render/View/ShaderResourceView.h"
 #include "Engine/Resource/ResourceSystem.h"
 #include "Engine/Utility/XMLUtils.h"
@@ -72,10 +73,22 @@ bool Material::Load(const char* filepath)
 	const XMLElem* textureElem = rootElem->FirstChildElement("texture");
 	if (textureElem != nullptr)
 	{
-		const XMLElem* albedoElem = textureElem->FirstChildElement("albedo");
-		std::string albedoName = (albedoElem != nullptr ? XML::ParseAttribute(*albedoElem, "name", "white") : "white");
-		Texture2D* albedo = g_resourceSystem->CreateOrGetTexture2D(albedoName.c_str(), TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_STATIC);
-		SetAlbedoTextureView(albedo->CreateOrGetShaderResourceView());
+		// Check for texture cube first
+		const XMLElem* albedoCubeElem = textureElem->FirstChildElement("albedo_cube");
+
+		if (albedoCubeElem != nullptr)
+		{
+			std::string cubeTextureName = XML::ParseAttribute(*albedoCubeElem, "name", "NOT_SPECIFIED_IN_XML");
+			TextureCube* cubeTexture = g_resourceSystem->CreateOrGetTextureCube(cubeTextureName.c_str());
+			SetAlbedoTextureView(cubeTexture->CreateOrGetShaderResourceView());
+		}
+		else
+		{
+			const XMLElem* albedoElem = textureElem->FirstChildElement("albedo");
+			std::string albedoName = (albedoElem != nullptr ? XML::ParseAttribute(*albedoElem, "name", "white") : "white");
+			Texture2D* albedo = g_resourceSystem->CreateOrGetTexture2D(albedoName.c_str(), TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_STATIC);
+			SetAlbedoTextureView(albedo->CreateOrGetShaderResourceView());
+		}	
 	}
 
 	return true;

@@ -134,3 +134,19 @@ ShaderResourceView* TextureCube::CreateOrGetShaderResourceView(const TextureView
 
 	return Texture::CreateOrGetShaderResourceView(viewInfo);
 }
+
+
+//-------------------------------------------------------------------------------------------------
+RenderTargetView* TextureCube::CreateOrGetColorTargetView(const TextureViewCreateInfo* viewInfo /*= nullptr*/)
+{
+	UNUSED(viewInfo);
+	ERROR_AND_DIE("Cannot create target views for a skybox!");
+}
+
+
+//-------------------------------------------------------------------------------------------------
+DepthStencilTargetView* TextureCube::CreateOrGetDepthStencilTargetView(const TextureViewCreateInfo* viewInfo /*= nullptr*/)
+{
+	UNUSED(viewInfo);
+	ERROR_AND_DIE("Cannot create depth stencil views for a skybox!");
+}

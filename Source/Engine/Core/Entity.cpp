@@ -56,6 +56,6 @@ void Entity::Render() const
 	if (collider != nullptr)
 	{
 		Rgba tint = (rigidBody == nullptr || rigidBody->IsAwake() ? Rgba::CYAN : Rgba::RED);
-		collider->DebugRender(tint);
+		collider->DebugRender(Rgba::WHITE);
 	}
 }

@@ -258,10 +258,13 @@ void RenderContext::BindShader(Shader* shader)
 
 		shader->UpdateBlendState();
 		float black[] = { 0.f, 0.f, 0.f, 0.f };
-		m_dxContext->OMSetBlendState(shader->GetDXBlendState(), black, 0xFFFFFFFF);
+		m_dxContext->OMSetBlendState(shader->GetDxBlendState(), black, 0xFFFFFFFF);
 
 		shader->UpdateRasterizerState();
-		m_dxContext->RSSetState(shader->GetDXRasterizerState());
+		m_dxContext->RSSetState(shader->GetDxRasterizerState());
+
+		shader->UpdateDepthState();
+		m_dxContext->OMSetDepthStencilState(shader->GetDxDepthState(), 1);
 
 		m_currentShader = shader;
 	}
@@ -592,7 +595,7 @@ void RenderContext::DrawTransform(const Transform& transform, float scale, Shade
 	SetupMaterial(nullptr, shader, material);
 
 	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-	DrawVertexArray(vertices.data(), vertices.size(), nullptr, 0, &material);
+	DrawVertexArray(vertices.data(), static_cast<uint32>(vertices.size()), nullptr, 0, &material);
 	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 

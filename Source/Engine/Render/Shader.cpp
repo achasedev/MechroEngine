@@ -152,6 +152,36 @@ D3D11_FILL_MODE ToDXFillMode(FillMode fillMode)
 
 
 //-------------------------------------------------------------------------------------------------
+D3D11_CULL_MODE ToDxCullMode(CullMode cullMode)
+{
+	switch (cullMode)
+	{
+	case CULL_MODE_BACK:	return D3D11_CULL_BACK; break;
+	case CULL_MODE_FRONT:	return D3D11_CULL_FRONT; break;
+	default:
+		ERROR_RETURN(D3D11_CULL_BACK, "Invalid Cull Mode!");
+		break;
+	}
+}
+
+//-------------------------------------------------------------------------------------------------
+D3D11_COMPARISON_FUNC ToDxDepthFunc(DepthMode depthMode)
+{
+	switch (depthMode)
+	{
+	case DEPTH_MODE_LESS_THAN:				return D3D11_COMPARISON_LESS; break;
+	case DEPTH_MODE_LESS_THAN_OR_EQUAL:		return D3D11_COMPARISON_LESS_EQUAL; break;
+	case DEPTH_MODE_GREATER_THAN:			return D3D11_COMPARISON_GREATER; break;
+	case DEPTH_MODE_GREATER_THAN_OR_EQUAL:	return D3D11_COMPARISON_GREATER_EQUAL; break;
+	case DEPTH_MODE_IGNORE_DEPTH:			return D3D11_COMPARISON_ALWAYS; break;
+	default:
+		ERROR_AND_DIE("Invalid depth mode!");
+		break;
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
 BlendPreset StringToBlendPreset(const std::string& blendText)
 {
 	if		(blendText == "opaque") { return BLEND_PRESET_OPAQUE; }
@@ -174,6 +204,35 @@ FillMode StringToFillMode(const std::string& fillText)
 	{
 		ConsoleLogErrorf("Invalid FillMode %s, defaulting to solid", fillText.c_str());
 		return FILL_MODE_SOLID;
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+CullMode StringToCullMode(const std::string& cullText)
+{
+	if		(cullText == "back" || cullText == "back_face") { return CULL_MODE_BACK; }
+	else if (cullText == "front" || cullText == "back_front") { return CULL_MODE_FRONT; }
+	else
+	{
+		ConsoleLogErrorf("Invalid CullMode %s, defaulting to back", cullText.c_str());
+		return CULL_MODE_BACK;
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+DepthMode StringToDepthMode(const std::string& depthText)
+{
+	if		(depthText == "less_than" || depthText == "less") { return DEPTH_MODE_LESS_THAN; }
+	else if (depthText == "less_than_or_equal" || depthText == "less_than_equal") { return DEPTH_MODE_LESS_THAN_OR_EQUAL; }
+	else if (depthText == "greater_than" || depthText == "greater") { return DEPTH_MODE_GREATER_THAN; }
+	else if (depthText == "greater_than_or_equal" || depthText == "greater_than_equal") { return DEPTH_MODE_GREATER_THAN_OR_EQUAL; }
+	else if (depthText == "no_depth" || depthText == "ignore" || depthText == "ignore_depth") { return DEPTH_MODE_IGNORE_DEPTH; }
+	else
+	{
+		ConsoleLogErrorf("Invalid CullMode %s, defaulting to less than!", depthText.c_str());
+		return DEPTH_MODE_LESS_THAN;
 	}
 }
 
@@ -294,6 +353,14 @@ bool Shader::Load(const char* filepath)
 	std::string fillText = XML::ParseAttribute(*rootElem, "fill", "solid");
 	SetFillMode(StringToFillMode(fillText));
 
+	// Cull
+	std::string cullText = XML::ParseAttribute(*rootElem, "cull", "back");
+	SetCullMode(StringToCullMode(cullText));
+
+	// Depth
+	std::string depthText = XML::ParseAttribute(*rootElem, "depth", "less");
+	SetDepthMode(StringToDepthMode(depthText));
+
 	return true;
 }
 
@@ -312,6 +379,8 @@ void Shader::Clear()
 	m_blendStateDirty = true;
 	m_scissorEnabled = false;
 	m_rasterizerStateDirty = true;
+	m_blendStateDirty = true;
+	m_depthStateDirty = true;
 }
 
 
@@ -439,7 +508,7 @@ void Shader::UpdateRasterizerState()
 		memset(&rasterDesc, 0, sizeof(rasterDesc));
 
 		rasterDesc.FillMode = ToDXFillMode(m_fillMode);
-		rasterDesc.CullMode = D3D11_CULL_BACK;
+		rasterDesc.CullMode = ToDxCullMode(m_cullMode);
 		rasterDesc.FrontCounterClockwise = FALSE;
 		rasterDesc.DepthBias = 0;
 		rasterDesc.SlopeScaledDepthBias = 0.0f;
@@ -468,6 +537,54 @@ void Shader::UpdateRasterizerState()
 		}
 
 		m_rasterizerStateDirty = false;
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Shader::UpdateDepthState()
+{
+	if (m_dxDepthState == nullptr || m_depthStateDirty)
+	{
+		DX_SAFE_RELEASE(m_dxDepthState);
+
+		D3D11_DEPTH_STENCIL_DESC dsDesc = {};
+
+		if (m_depthMode == DEPTH_MODE_IGNORE_DEPTH)
+		{
+			dsDesc.DepthEnable = false;
+		}
+		else
+		{
+			// Depth test parameters
+			dsDesc.DepthEnable = true;
+			dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+			dsDesc.DepthFunc = ToDxDepthFunc(m_depthMode);;
+
+			// Stencil test parameters
+			dsDesc.StencilEnable = true;
+			dsDesc.StencilReadMask = 0xFF;
+			dsDesc.StencilWriteMask = 0xFF;
+
+			// Stencil operations if pixel is front-facing
+			dsDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+			dsDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
+			dsDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+			dsDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+			// Stencil operations if pixel is back-facing
+			dsDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+			dsDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
+			dsDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+			dsDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+			// Create depth stencil state
+			HRESULT result = g_renderContext->GetDxDevice()->CreateDepthStencilState(&dsDesc, &m_dxDepthState);
+
+			ASSERT_OR_DIE(SUCCEEDED(result), "Couldn't create a depth stencil state!");
+			m_depthStateDirty = false;
+		}
+		
 	}
 }
 
@@ -545,6 +662,22 @@ void Shader::SetFillMode(FillMode fillMode)
 
 
 //-------------------------------------------------------------------------------------------------
+void Shader::SetCullMode(CullMode cullMode)
+{
+	m_cullMode = cullMode;
+	m_rasterizerStateDirty = true;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Shader::SetDepthMode(DepthMode depthMode)
+{
+	m_depthMode = depthMode;
+	m_depthStateDirty = true;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 // Expects screenSpaceRect's mins to be top left on the screen, since DX is top left (0,0)
 void Shader::EnableScissor(const AABB2& screenSpaceRect)
 {
@@ -565,6 +698,6 @@ void Shader::DisableScissor()
 //-------------------------------------------------------------------------------------------------
 bool Shader::IsDirty() const
 {
-	return m_rasterizerStateDirty || m_blendStateDirty;
+	return m_rasterizerStateDirty || m_blendStateDirty || m_depthStateDirty;
 }
 
