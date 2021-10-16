@@ -193,6 +193,7 @@
     <ClCompile Include="Physics\RigidBody\RigidBodyForceRegistry.cpp" />
     <ClCompile Include="Physics\RigidBody\PhysicsScene.cpp" />
     <ClCompile Include="Physics\RigidBody\RigidBodySpring.cpp" />
+    <ClCompile Include="Render\Texture\TextureCube.cpp" />
     <ClCompile Include="Resource\Resource.cpp" />
     <ClCompile Include="Math\Edge3.cpp" />
     <ClCompile Include="Math\Line3.cpp" />
@@ -314,6 +315,7 @@
     <ClInclude Include="Physics\RigidBody\RigidBodyForceRegistry.h" />
     <ClInclude Include="Physics\RigidBody\PhysicsScene.h" />
     <ClInclude Include="Physics\RigidBody\RigidBodySpring.h" />
+    <ClInclude Include="Render\Texture\TextureCube.h" />
     <ClInclude Include="Resource\Resource.h" />
     <ClInclude Include="Math\Capsule3D.h" />
     <ClInclude Include="Math\Edge3.h" />

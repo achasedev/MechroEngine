@@ -69,6 +69,7 @@ protected:
 	GPUMemoryUsage						m_memoryUsage = GPU_MEMORY_USAGE_DYNAMIC;
 	TextureUsageBits					m_textureUsage = 0;
 	IntVector3							m_dimensions = IntVector3::ZERO;
+	int									m_numComponentsPerTexel = 0;
 	uint32								m_byteSize = 0;
 	std::vector<TextureView*>			m_views;
 
@@ -77,3 +78,8 @@ protected:
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+uint32				GetDxBindFromTextureUsageFlags(TextureUsageBits usage);
+TextureUsageBits	GetTextureUsageFlagsFromDxBinds(uint32 dxBind);
+uint32				GetDxTextureFormatFromComponentCount(int numComponents);
+int					GetComponentCountFromDxTextureFormat(uint32 dxFormat);

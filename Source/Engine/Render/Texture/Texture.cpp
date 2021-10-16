@@ -31,6 +31,109 @@
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
+//-------------------------------------------------------------------------------------------------
+static D3D11_SRV_DIMENSION GetDxDimensionFromViewDimension(ViewDimension dimension)
+{
+	switch (dimension)
+	{
+	case VIEW_DIMENSION_2D: return D3D11_SRV_DIMENSION_TEXTURE2D; break;
+	case VIEW_DIMENSION_TEXTURECUBE: return D3D11_SRV_DIMENSION_TEXTURECUBE; break;
+	default:
+		ERROR_AND_DIE("Invalid dimension!");
+		break;
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+uint32 GetDxBindFromTextureUsageFlags(TextureUsageBits usage)
+{
+	if (usage & TEXTURE_USAGE_NO_BIND)
+	{
+		return 0U;
+	}
+
+	uint32 binds = 0U;
+
+	// Can I sample from it?
+	if (usage & TEXTURE_USAGE_SHADER_RESOURCE_BIT)
+	{
+		binds |= D3D11_BIND_SHADER_RESOURCE;
+	}
+
+	// Can I render to it?
+	if (usage & TEXTURE_USAGE_RENDER_TARGET_BIT)
+	{
+		binds |= D3D11_BIND_RENDER_TARGET;
+	}
+
+	// Can I store depth info in it?
+	if (usage & TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT)
+	{
+		binds |= D3D11_BIND_DEPTH_STENCIL;
+	}
+
+	return binds;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+TextureUsageBits GetTextureUsageFlagsFromDxBinds(uint32 dxBind)
+{
+	TextureUsageBits usageFlags = 0;
+
+	// Can I sample from it?
+	if (dxBind & D3D11_BIND_SHADER_RESOURCE)
+	{
+		usageFlags |= D3D11_BIND_SHADER_RESOURCE;
+	}
+
+	// Can I render to it?
+	if (dxBind & D3D11_BIND_RENDER_TARGET)
+	{
+		usageFlags |= TEXTURE_USAGE_RENDER_TARGET_BIT;
+	}
+
+	// Can I store depth info in it?
+	if (dxBind & D3D11_BIND_DEPTH_STENCIL)
+	{
+		usageFlags |= TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT;
+	}
+
+	return usageFlags;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+uint32 GetDxTextureFormatFromComponentCount(int numComponents)
+{
+	switch (numComponents)
+	{
+	case 1: return (uint32)DXGI_FORMAT_R8_UNORM; break;
+	case 2: return (uint32)DXGI_FORMAT_R8G8_UNORM; break;
+	case 4: return (uint32)DXGI_FORMAT_R8G8B8A8_UNORM; break;
+	default:
+		ERROR_AND_DIE("Invalid number of components for texture: %i", numComponents);
+		break;
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int GetComponentCountFromDxTextureFormat(uint32 dxFormat)
+{
+	DXGI_FORMAT dxFormatAsEnum = (DXGI_FORMAT)dxFormat;
+	switch (dxFormatAsEnum)
+	{
+	case DXGI_FORMAT_R8_UNORM: return 1; break;
+	case DXGI_FORMAT_R8G8_UNORM: return 2; break;
+	case DXGI_FORMAT_R8G8B8A8_UNORM: return 4; break;
+	default:
+		ERROR_AND_DIE("Missing DXGI_FORMAT: %i", (int)dxFormat);
+		break;
+	}
+}
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -68,6 +171,12 @@ ShaderResourceView* Texture::CreateOrGetShaderResourceView(const TextureViewCrea
 	else
 	{
 		// Create a ShaderResourceView for this texture
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+		srvDesc.Format = static_cast<DXGI_FORMAT>(GetDxTextureFormatFromComponentCount(m_numComponentsPerTexel));
+		srvDesc.ViewDimension = GetDxDimensionFromViewDimension(viewInfo->m_viewDimension);
+		srvDesc.Texture2D.MostDetailedMip = 0;
+		srvDesc.Texture2D.MipLevels = viewInfo->m_numMipLevels;
+
 		ID3D11Device* dxDevice = g_renderContext->GetDxDevice();
 		ID3D11ShaderResourceView* dxSRV = nullptr;
 		HRESULT hr = dxDevice->CreateShaderResourceView(m_dxHandle, nullptr, &dxSRV);
@@ -231,6 +340,7 @@ void Texture::Clear()
 	m_memoryUsage = GPU_MEMORY_USAGE_DYNAMIC;
 	m_textureUsage = 0U;
 	m_dimensions = IntVector3::ZERO;
+	m_numComponentsPerTexel = 0;
 	m_byteSize = 0;
 }
 

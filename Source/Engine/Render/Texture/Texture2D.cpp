@@ -10,7 +10,6 @@
 #include "Engine/Render/DX11Common.h"
 #include "Engine/Render/RenderContext.h"
 #include "Engine/Render/View/ShaderResourceView.h"
-#include "Engine/Render/View/ShaderResourceView.h"
 #include "Engine/Render/Texture/Texture2D.h"
 #include "Engine/Resource/ResourceSystem.h"
 #include "Engine/IO/Image.h"
@@ -30,95 +29,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------------------------------
-static uint32 GetDxBindFromTextureUsageFlags(TextureUsageBits usage)
-{
-	if (usage & TEXTURE_USAGE_NO_BIND)
-	{
-		return 0U;
-	}
-
-	uint32 binds = 0U;
-
-	// Can I sample from it?
-	if (usage & TEXTURE_USAGE_SHADER_RESOURCE_BIT) 
-	{
-		binds |= D3D11_BIND_SHADER_RESOURCE;
-	}
-
-	// Can I render to it?
-	if (usage & TEXTURE_USAGE_RENDER_TARGET_BIT) 
-	{
-		binds |= D3D11_BIND_RENDER_TARGET;
-	}
-
-	// Can I store depth info in it?
-	if (usage & TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT) 
-	{
-		binds |= D3D11_BIND_DEPTH_STENCIL;
-	}
-
-	return binds;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-static TextureUsageBits GetTextureUsageFlagsFromDxBinds(uint32 dxBind)
-{
-	TextureUsageBits usageFlags = 0;
-
-	// Can I sample from it?
-	if (dxBind & D3D11_BIND_SHADER_RESOURCE)
-	{
-		usageFlags |= D3D11_BIND_SHADER_RESOURCE;
-	}
-
-	// Can I render to it?
-	if (dxBind & D3D11_BIND_RENDER_TARGET)
-	{
-		usageFlags |= TEXTURE_USAGE_RENDER_TARGET_BIT;
-	}
-
-	// Can I store depth info in it?
-	if (dxBind & D3D11_BIND_DEPTH_STENCIL)
-	{
-		usageFlags |= TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT;
-	}
-
-	return usageFlags;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-static DXGI_FORMAT GetDxTextureFormatFromComponentCount(int numComponents)
-{
-	switch (numComponents)
-	{
-	case 1: return DXGI_FORMAT_R8_UNORM;break;
-	case 2: return DXGI_FORMAT_R8G8_UNORM;break;
-	case 4: return DXGI_FORMAT_R8G8B8A8_UNORM;break;
-	default:
-		ERROR_AND_DIE("Invalid number of components for texture: %i", numComponents);
-		break;
-	}
-}
-
-
-//-------------------------------------------------------------------------------------------------
-static int GetComponentCountFromDxTextureFormat(DXGI_FORMAT dxFormat)
-{
-	switch (dxFormat)
-	{
-	case DXGI_FORMAT_R8_UNORM: return 1; break;
-	case DXGI_FORMAT_R8G8_UNORM: return 2; break;
-	case DXGI_FORMAT_R8G8B8A8_UNORM: return 4; break;
-	default:
-		ERROR_AND_DIE("Missing DXGI_FORMAT: %i", (int)dxFormat);
-		break;
-	}
-}
-
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
@@ -202,7 +112,7 @@ bool Texture2D::CreateFromBuffer(const uint8* buffer, uint32 bufferSize, int wid
 	texDesc.MipLevels = 1; // Set to 0 for full chain
 	texDesc.ArraySize = 1;
 	texDesc.Usage = (D3D11_USAGE)ToDXMemoryUsage(m_memoryUsage);
-	texDesc.Format = (isDepthStencil ? DXGI_FORMAT_R24G8_TYPELESS : GetDxTextureFormatFromComponentCount(numComponents));
+	texDesc.Format = static_cast<DXGI_FORMAT>(isDepthStencil ? DXGI_FORMAT_R24G8_TYPELESS : GetDxTextureFormatFromComponentCount(numComponents));
 	texDesc.BindFlags = GetDxBindFromTextureUsageFlags(m_textureUsage);
 	texDesc.MiscFlags = 0U;
 	texDesc.SampleDesc.Count = 1;
@@ -245,6 +155,7 @@ bool Texture2D::CreateFromBuffer(const uint8* buffer, uint32 bufferSize, int wid
 	{
 		m_dxHandle = tex2D;
 		m_dimensions = IntVector3(width, height, 0);
+		m_numComponentsPerTexel = numComponents;
 		m_byteSize = bufferSize;
 		DX_SET_DEBUG_NAME(m_dxHandle, Stringf("Source File: %s | Size: (%i, %i)", m_srcFilepath.c_str(), width, height));
 	}
@@ -268,6 +179,7 @@ bool Texture2D::CreateFromDxTexture2D(ID3D11Texture2D* dxTexture2D)
 	m_byteSize = m_dimensions.x * m_dimensions.y * GetComponentCountFromDxTextureFormat(desc.Format);
 	m_memoryUsage = FromDXMemoryUsage(desc.Usage);
 	m_textureUsage = GetTextureUsageFlagsFromDxBinds(desc.BindFlags);
+	m_numComponentsPerTexel = GetComponentCountFromDxTextureFormat(desc.Format);
 
 	return true;
 }
