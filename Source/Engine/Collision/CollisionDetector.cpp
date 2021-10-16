@@ -35,6 +35,11 @@
 //-------------------------------------------------------------------------------------------------
 static float CalculateFrictionBetween(const Collider& a, const Collider&b)
 {
+	if (a.ignoreFriction || b.ignoreFriction)
+	{
+		return 0.f;
+	}
+
 	return Sqrt(a.friction + b.friction);
 }
 

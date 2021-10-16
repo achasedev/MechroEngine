@@ -52,6 +52,7 @@ public:
 	//-----Public Data-----
 
 	Entity* entity = nullptr;	// This entity doesn't need a rigidbody! It just means do the collision detection, but no correction
+	bool	ignoreFriction = false; // If true, friction won't be calculated regardless of what the value of friction is on either collider.
 	float	friction = 0.3f;
 	float	restitution = 0.f;
 
