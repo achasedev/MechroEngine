@@ -119,6 +119,32 @@ const IntVector3 IntVector3::operator*(int uniformScale) const
 
 
 //-------------------------------------------------------------------------------------------------
+bool IntVector3::operator<(const IntVector3& other) const
+{
+	if (x < other.x)
+	{
+		return true;
+	}
+	else if (x == other.x)
+	{
+		if (z < other.z)
+		{
+			return true;
+		}
+		else if (z == other.z)
+		{
+			if (y < other.y)
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 const IntVector3 IntVector3::operator/(int divisor) const
 {
 	return IntVector3((x / divisor), (y / divisor), (z / divisor));

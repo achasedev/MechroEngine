@@ -50,17 +50,16 @@ public:
 	//-----Public Data-----
 
 	Transform				transform;
-
 	RigidBody*				rigidBody = nullptr;
-	AABB3					renderShapeLs;
 	Collider*				collider = nullptr;
 
 
 private:
 	//-----Private Data-----
 
-	const EntityID			m_id;
-	static EntityID			s_nextEntityID;
+	const EntityID m_id;
+
+	static EntityID	s_nextEntityID;
 
 };
 

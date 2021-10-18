@@ -346,6 +346,15 @@ void ResourceSystem::CreateDefaultMeshes()
 	Mesh* capsuleMiddle = mb.CreateMesh<Vertex3D_PCU>();
 	capsuleMiddle->m_resourceID = SID("capsule_middle");
 	m_meshes[capsuleMiddle->m_resourceID] = capsuleMiddle;
+
+	mb.Clear();
+	mb.BeginBuilding(true);
+	mb.PushQuad3D(Vector3(-0.5f, 0.f, -0.5f), Vector3(-0.5f, 0.f, 0.5f), Vector3(0.5f, 0.f, 0.5f), Vector3(0.5f, 0.f, -0.5f));
+	mb.FinishBuilding();
+
+	Mesh* horizontalQuad = mb.CreateMesh<Vertex3D_PCU>();
+	horizontalQuad->m_resourceID = SID("horizontal_quad");
+	m_meshes[horizontalQuad->m_resourceID] = horizontalQuad;
 }
 
 

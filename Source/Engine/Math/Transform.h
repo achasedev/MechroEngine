@@ -76,6 +76,7 @@ public:
 	Matrix4 GetLocalToParentMatrix() const;
 	Matrix4 GetParentToWorldMatrix() const;
 	Matrix4 GetWorldToParentMatrix() const;
+	Matrix4 GetModelMatrix() const { return GetLocalToWorldMatrix(); }
 	Matrix4 GetLocalToWorldMatrix() const;
 	Matrix4 GetWorldToLocalMatrix() const;
 

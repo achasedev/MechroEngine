@@ -58,6 +58,7 @@ public:
 	bool					operator==(const IntVector3& compare) const;
 	bool					operator!=(const IntVector3& compare) const;
 	friend const IntVector3 operator*(int uniformScale, const IntVector3& vecToScale);
+	bool					operator<(const IntVector3& other) const;
 
 public:
 	//-----Public Static Data-----
