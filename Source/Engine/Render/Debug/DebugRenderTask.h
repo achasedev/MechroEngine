@@ -18,7 +18,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#define INVALID_DEBUG_RENDER_OBJECT_HANDLE -1;
+#define INVALID_DEBUG_RENDER_OBJECT_HANDLE -1
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
@@ -45,11 +45,10 @@ struct DebugRenderOptions
 //-------------------------------------------------------------------------------------------------
 class DebugRenderTask
 {
+public:
 	friend class DebugRenderSystem;
 	RTTI_BASE_CLASS(DebugRenderTask);
 
-
-public:
 	//-----Public Methods-----
 
 	DebugRenderTask(const DebugRenderOptions& options);
@@ -81,6 +80,7 @@ class DebugRenderTransform : public DebugRenderTask
 {
 public:
 	//-----Public Methods-----
+	RTTI_DERIVED_CLASS(DebugRenderTransform);
 
 	DebugRenderTransform(const Transform& transform, const DebugRenderOptions& options);
 	virtual void Render() const override;

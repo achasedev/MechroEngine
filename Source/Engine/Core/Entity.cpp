@@ -44,7 +44,14 @@ Entity::Entity()
 
 
 //-------------------------------------------------------------------------------------------------
-void Entity::Update(float deltaSeconds)
+void Entity::PreUpdate(float deltaSeconds)
+{
+	UNUSED(deltaSeconds);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Entity::PostUpdate(float deltaSeconds)
 {
 	UNUSED(deltaSeconds);
 }

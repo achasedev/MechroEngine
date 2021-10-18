@@ -670,9 +670,10 @@ DevConsole::~DevConsole()
 //-------------------------------------------------------------------------------------------------
 void DevConsole::RegisterEngineCommands()
 {
-	ConsoleCommand::Register(SID("clear"),	"Clears the log",	"clear <NO_PARAMS>",									Command_ClearLog,	true);
-	ConsoleCommand::Register(SID("add"),	"Adds two numbers", "add (first:float) (second:float)",						Command_Add,		true);
-	ConsoleCommand::Register(SID("help"),	"Prints out available console commands", "help (type:string:OPTIONAL)",		Command_Help,		true);
+	ConsoleCommand::Register(SID("clear"),			"Clears the log",							"clear <NO_PARAMS>",					Command_ClearLog,			true);
+	ConsoleCommand::Register(SID("add"),			"Adds two numbers",							"add (first:float) (second:float)",		Command_Add,				true);
+	ConsoleCommand::Register(SID("help"),			"Prints out available console commands",	"help (type:string:OPTIONAL)",			Command_Help,				true);
+	ConsoleCommand::Register(SID("debugdrawaxes"),	"Prints out available console commands",	"debugdrawworldaxes <NO_PARAMS>",		Command_DebugDrawWorldAxes,	true);
 }	
 
 

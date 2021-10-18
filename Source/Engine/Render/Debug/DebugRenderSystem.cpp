@@ -8,8 +8,9 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/EngineCommon.h"
-#include "Engine/Render/RenderContext.h"
+#include "Engine/Render/Camera.h"
 #include "Engine/Render/Debug/DebugRenderSystem.h"
+#include "Engine/Render/RenderContext.h"
 #include "Engine/Resource/ResourceSystem.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -140,6 +141,12 @@ void DebugRenderSystem::Render()
 {
 	g_renderContext->BeginCamera(m_camera);
 
+	if (m_worldAxesTask != INVALID_DEBUG_RENDER_OBJECT_HANDLE)
+	{
+		DebugRenderTransform* axes = GetObjectAs<DebugRenderTransform>(m_worldAxesTask);
+		axes->m_transform.position = m_camera->GetPosition() + m_camera->GetForwardVector();
+	}
+
 	// Draw all objects
 	int numObjects = (int)m_objects.size();
 	for (int objIndex = 0; objIndex < numObjects; ++objIndex)
@@ -179,6 +186,33 @@ DebugRenderTask* DebugRenderSystem::GetObject(const DebugRenderHandle& handle)
 
 
 //-------------------------------------------------------------------------------------------------
+bool DebugRenderSystem::ToggleWorldAxesDraw()
+{
+	ASSERT_RETURN(m_camera != nullptr, false, "No camera set!");
+
+	if (m_worldAxesTask != INVALID_DEBUG_RENDER_OBJECT_HANDLE)
+	{
+		DestroyObject(m_worldAxesTask);
+		m_worldAxesTask = INVALID_DEBUG_RENDER_OBJECT_HANDLE;
+
+		return false;
+	}
+
+	Transform toDraw;
+	toDraw.position += m_camera->GetPosition() + m_camera->GetForwardVector();
+	toDraw.scale = Vector3(0.25f);
+
+	DebugRenderOptions options;
+	options.m_color = Rgba::WHITE;
+
+	DebugRenderTransform* debugTransform = new DebugRenderTransform(toDraw, options);
+	m_worldAxesTask = AddObject(debugTransform);
+
+	return true;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 Shader* DebugRenderSystem::GetShader() const
 {
 	return g_resourceSystem->CreateOrGetShader("Data/Shader/debug.shader");
@@ -214,4 +248,19 @@ DebugRenderHandle DebugRenderSystem::AddObject(DebugRenderTask* object)
 	m_objects.push_back(object);
 
 	return handle;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void DebugRenderSystem::DestroyObject(DebugRenderHandle handle)
+{
+	int numObjects = (int)m_objects.size();
+	for (int objIndex = 0; objIndex < numObjects; ++objIndex)
+	{
+		if (m_objects[objIndex]->GetHandle() == handle)
+		{
+			delete m_objects[objIndex];
+			m_objects.erase(m_objects.begin() + objIndex);
+		}
+	}
 }

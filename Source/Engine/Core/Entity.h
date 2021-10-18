@@ -42,7 +42,8 @@ public:
 
 	Entity();
 
-	virtual void Update(float deltaSeconds);
+	virtual void PreUpdate(float deltaSeconds);
+	virtual void PostUpdate(float deltaSeconds);
 	virtual void Render() const;
 
 

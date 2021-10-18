@@ -47,9 +47,12 @@ public:
 	void				Render();
 
 	DebugRenderHandle	AddObject(DebugRenderTask* object);
+	void				DestroyObject(DebugRenderHandle handle);
 	DebugRenderTask*	GetObject(const DebugRenderHandle& handle);
+	bool				ToggleWorldAxesDraw();
 
 	Shader*				GetShader() const;
+	Camera*				GetCamera() const { return m_camera; }
 	void				UpdateUniformBuffer(const DebugBufferData& data);
 
 	template<typename T>
@@ -72,6 +75,7 @@ private:
 	std::vector<DebugRenderTask*>	m_objects;
 	DebugRenderHandle				m_nextHandle = 0;
 
+	DebugRenderHandle				m_worldAxesTask = INVALID_DEBUG_RENDER_OBJECT_HANDLE;
 };
 
 
@@ -84,7 +88,7 @@ template<typename T>
 T* DebugRenderSystem::GetObjectAs(const DebugRenderHandle& handle)
 {
 	DebugRenderTask* object = GetObject(handle);
-	return object->GetAsType<T*>();
+	return object->GetAsType<T>();
 }
 
 

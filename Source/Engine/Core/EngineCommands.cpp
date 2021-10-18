@@ -9,6 +9,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/EngineCommands.h"
 #include "Engine/Core/EngineCommon.h"
+#include "Engine/Render/Camera.h"
+#include "Engine/Render/Debug/DebugRenderSystem.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -118,5 +120,22 @@ void Command_Help(CommandArgs& args)
 		}
 
 		ConsoleLogf(Rgba::CYAN, "-----End Game Commands, %i total-----", numGameCommands);
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Command_DebugDrawWorldAxes(CommandArgs& args)
+{
+	UNUSED(args);
+	bool axesDrawn = g_debugRenderSystem->ToggleWorldAxesDraw();
+
+	if (axesDrawn)
+	{
+		ConsoleLogf("World axes draw enabled");
+	}
+	else
+	{
+		ConsoleLogf("World axes draw disabled");
 	}
 }
