@@ -83,3 +83,22 @@ RenderableDraw Renderable::GetDraw(uint32 drawIndex) const
 
 	return RenderableDraw();
 }
+
+
+//-------------------------------------------------------------------------------------------------
+// Checks if the renderable's data is valid enough to be drawn
+bool Renderable::IsReadyForDrawing() const
+{
+	if (m_draws.size() == 0)
+		return false;
+
+	for (RenderableDraw draw : m_draws)
+	{
+		if (draw.m_mesh == nullptr)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}

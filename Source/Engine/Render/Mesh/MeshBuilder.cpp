@@ -750,7 +750,7 @@ void MeshBuilder::PushTopHemiSphere(const Vector3& center, float radius, const R
 	SetColor(color);
 
 	// Get the number of vertices before we add more
-	int initialVertexOffset = m_vertices.size();
+	int initialVertexOffset = (int)m_vertices.size();
 
 	for (int vStep = 0; vStep <= numVSteps; ++vStep) // <= since if we want n gaps, we need n+1 dividers
 	{
@@ -813,7 +813,7 @@ void MeshBuilder::PushBottomHemiSphere(const Vector3& center, float radius, cons
 	SetColor(color);
 
 	// Get the number of vertices before we add more
-	int initialVertexOffset = m_vertices.size();
+	int initialVertexOffset = (int)m_vertices.size();
 
 	for (int vStep = 0; vStep <= numVSteps; ++vStep) // <= since if we want n gaps, we need n+1 dividers
 	{

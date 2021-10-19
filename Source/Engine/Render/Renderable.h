@@ -23,9 +23,9 @@ class Mesh;
 class Material;
 struct RenderableDraw
 {
-	Matrix4			m_drawMatrix;
-	Mesh*				m_mesh = nullptr;
-	Material*			m_material = nullptr;
+	Matrix4		m_drawMatrix;
+	Mesh*		m_mesh = nullptr;
+	Material*	m_material = nullptr;
 };
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -51,13 +51,15 @@ public:
 
 	uint32			GetNumDrawCalls() const { return (uint32)m_draws.size(); }
 	RenderableDraw	GetDraw(uint32 drawIndex) const;
-	Matrix4		GetModelMatrix() const { return m_matrix; }
+	Matrix4			GetModelMatrix() const { return m_matrix; }
+
+	bool			IsReadyForDrawing() const;
 
 
 private:
 	//-----Private Data-----
 
-	Matrix4						m_matrix = Matrix4::IDENTITY;
+	Matrix4							m_matrix = Matrix4::IDENTITY;
 	std::vector<RenderableDraw>		m_draws;
 
 };

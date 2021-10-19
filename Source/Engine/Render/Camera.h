@@ -65,6 +65,7 @@ public:
 	void					LookAt(const Vector3& position, const Vector3& target, const Vector3& up = Vector3::Y_AXIS);
 	void					SetCameraMatrix(const Matrix4& cameraMatrix);
 	void					SetViewMatrix(const Matrix4& viewMatrix);
+	void					SetDrawOrder(int drawOrder) { m_drawOrder = drawOrder; }
 
 	Texture2D*				GetRenderTarget() const;
 	Texture2D*				GetDepthTarget() const;
@@ -77,7 +78,8 @@ public:
 	Matrix4					GetViewMatrix();
 	Matrix4					GetProjectionMatrix() const;
 	AABB2					GetOrthoBounds() const;
-	
+	int						GetDrawOrder() const { return m_drawOrder; }
+
 	Vector3					GetPosition() const;
 	Vector3					GetRotationAsEulerAnglesDegrees() const;
 	Vector3					GetRotationAsEulerAnglesRadians() const;
@@ -116,6 +118,7 @@ private:
 
 	// Misc
 	UniformBuffer*			m_cameraUBO = nullptr;
+	int						m_drawOrder = 0;
 
 };
 

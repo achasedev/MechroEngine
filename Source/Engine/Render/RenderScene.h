@@ -1,15 +1,14 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: March 15th, 2020
-/// Description: 
+/// Date Created: October 18th, 2021
+/// Description: Class to organize a collection of objects involved in rendering (Lights, renderables, cameras, etc)
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/Matrix4.h"
-#include "Engine/Core/EngineCommon.h"
+#include "Engine/Core/Rgba.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -18,9 +17,10 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Mesh;
-class Material;
 class Renderable;
+class Light;
+class Camera;
+class TextureCube;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -31,25 +31,60 @@ class Renderable;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class DrawCall
+class RenderScene
 {
+
 public:
 	//-----Public Methods-----
 
-	void		SetFromRenderable(const Renderable& renderable, uint32 drawCallIndex);
-	Mesh*		GetMesh() const { return m_mesh; }
-	Material*	GetMaterial() const { return m_material; }
-	Matrix4		GetModelMatrix() const { return m_modelMatrix; }
+	RenderScene(const std::string& name);
+	~RenderScene() {}
+
+	// List mutators
+	void			AddRenderable(Renderable* renderable);
+	void			AddLight(Light* light);
+	void			AddCamera(Camera* camera);
+
+	void			RemoveRenderable(Renderable* toRemove);
+	void			RemoveLight(Light* toRemove);
+	void			RemoveCamera(Camera* toRemove);
+	void			Clear();
+
+	void			SortCameras();
+
+	void			SetSkybox(TextureCube* skybox) { m_skybox = skybox; }
+	void			SetAmbience(const Rgba& ambience) { m_ambience = ambience; }
+
+	Rgba			GetAmbience() const { return m_ambience; }
+	int				GetLightCount() const { return (int)m_lights.size(); }
+	int				GetRenderableCount() const { (int)m_renderables.size(); }
+	int				GetCameraCount() const { return (int)m_renderables.size(); }
+	TextureCube*	GetSkybox() const { return m_skybox; }
+
+
+private:
+	//-----Private Methods-----
+
+	RenderScene(const RenderScene& copy) = delete;
+
+	bool			DoesRenderableExist(Renderable* renderable) const;
+	bool			DoesLightExist(Light* light) const;
+	bool			DoesCameraExist(Camera* camera) const;
 
 
 private:
 	//-----Private Data-----
 
-	Mesh*		m_mesh = nullptr;
-	Material*	m_material = nullptr;
-	Matrix4		m_modelMatrix;
+	std::string					m_name;
+	std::vector<Renderable*>	m_renderables;
+	std::vector<Light*>			m_lights;
+	std::vector<Camera*>		m_cameras;
+
+	Rgba						m_ambience = Rgba::WHITE;
+	TextureCube*				m_skybox = nullptr;
 
 };
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
