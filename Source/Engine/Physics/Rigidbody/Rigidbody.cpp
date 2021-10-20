@@ -122,11 +122,14 @@ void RigidBody::SetInertiaTensor_Box(const Vector3& extents)
 	}
 
 	float mass = (1.f / m_iMass);
+	float w = 2.f * extents.x;
+	float h = 2.f * extents.y;
+	float l = 2.f * extents.z;
 
 	Matrix3 inertiaTensor = Matrix3::IDENTITY;
-	inertiaTensor.Ix = (1.f / 12.f) * mass * (extents.y * extents.y + extents.z * extents.z);
-	inertiaTensor.Jy = (1.f / 12.f) * mass * (extents.x * extents.x + extents.z * extents.z);
-	inertiaTensor.Kz = (1.f / 12.f) * mass * (extents.x * extents.x + extents.y * extents.y);
+	inertiaTensor.Ix = (1.f / 12.f) * mass * (h * h + l * l);
+	inertiaTensor.Jy = (1.f / 12.f) * mass * (w * w + l * l);
+	inertiaTensor.Kz = (1.f / 12.f) * mass * (w * w + h * h);
 
 	SetInverseInertiaTensor(inertiaTensor.GetInverse());
 }
