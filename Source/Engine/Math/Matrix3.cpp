@@ -202,8 +202,10 @@ void Matrix3::Invert()
 
 
 //-------------------------------------------------------------------------------------------------
-void Matrix3::SetFromQuaternion(const Quaternion& q)
+void Matrix3::SetFromQuaternion(const Quaternion& quat)
 {
+	Quaternion q = quat.GetNormalized();
+
 	Ix = 1.f - 2.f * (q.y * q.y + q.z * q.z);
 	Iy = 2.f * (q.x * q.y + q.z * q.w);
 	Iz = 2.f * (q.x * q.z - q.y * q.w);
