@@ -1,47 +1,22 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: October 18th, 2021
-/// Description: Class to represent a single light in a scene
+/// Date Created: October 20th, 2021
+/// Description: Class to represent a skybox
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Core/Rgba.h"
-#include "Engine/Math/Vector3.h"
-#include "Engine/Math/Matrix4.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#define MAX_NUMBER_OF_LIGHTS 8 // Max number of lights that can be used when rendering a single renderable; a scene can have more lights than this
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Texture2D;
-
-//-------------------------------------------------------------------------------------------------
-// Data to be sent to GPU for a single light
-struct LightData
-{
-	Vector3 m_position;
-	float	m_dotOuterAngle;
-
-	Vector3 m_lightDirection;
-	float	m_dotInnerAngle;
-
-	Vector3 m_attenuation;
-	float	m_directionFactor;
-
-	Vector4 m_color;
-
-	Matrix4 m_shadowVP;
-
-	Vector3 m_padding0;
-	float	m_castsShadows = 0.f;
-};
+class Material;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -52,35 +27,21 @@ struct LightData
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Light
+class Skybox
 {
 public:
 	//-----Public Methods-----
 
-	~Light();
+	Skybox() {}
+	Skybox(Material* material);
 
-	// Mutators
-	void		SetPosition(const Vector3& position);
-	void		SetLightData(const LightData& data);
-	void		SetIsShadowCasting(bool castsShadows);
-
-	LightData	GetLightData() const { return m_lightData; }
-	bool		IsShadowCasting() const { return m_isShadowCasting; }
-	Texture2D*	GetShadowTexture() const { return m_shadowTexture; }
-	float		CalculateIntensityForPosition(const Vector3& position) const;
-
-	// Statics
-	static Light* CreatePointLight(const Vector3& position, const Rgba& color = Rgba::WHITE, const Vector3& attenuation = Vector3(1.f, 0.f, 0.f));
-	static Light* CreateDirectionalLight(const Vector3& position, const Vector3& direction = Vector3::MINUS_Y_AXIS, const Rgba& color = Rgba::WHITE, const Vector3& attenuation = Vector3(1.f, 0.f, 0.f));
-	static Light* CreateConeLight(const Vector3& position, const Vector3& direction, float outerAngle, float innerAngle, const Rgba& color = Rgba::WHITE, const Vector3& attenuation = Vector3(1.f, 0.f, 0.f));
+	void Render() const;
 
 
 private:
 	//-----Private Data-----
 
-	LightData	m_lightData;
-	bool		m_isShadowCasting = false;
-	Texture2D*	m_shadowTexture = nullptr;
+	Material* m_material = nullptr;
 
 };
 

@@ -127,3 +127,17 @@ void Material::SetAlbedoTextureView(ShaderResourceView* albedoView)
 {
 	m_shaderResourceViews[SRV_SLOT_ALBEDO] = albedoView;
 }
+
+
+//-------------------------------------------------------------------------------------------------
+// Returns true if the shader uses lights as part of its execution
+bool Material::IsUsingLights() const
+{
+	if (m_shader == nullptr)
+	{
+		return false;
+	}
+
+	return m_shader->IsUsingLights();
+}
+

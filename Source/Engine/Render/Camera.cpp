@@ -7,6 +7,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Core/DevConsole.h"
 #include "Engine/Event/EventSystem.h"
 #include "Engine/Render/Buffer/UniformBuffer.h"
 #include "Engine/Render/Camera.h"
@@ -166,12 +167,12 @@ void Camera::SetProjection(CameraProjection projectionType, const Matrix4& proje
 
 
 //-------------------------------------------------------------------------------------------------
-void Camera::SetProjectionOrthographic(float orthoHeight, float aspect)
+void Camera::SetProjectionOrthographic(float orthoHeight, float aspect, float nearZ /*= -1.0f*/, float farZ /*= 1.0f*/)
 {
 	m_orthoBounds.mins = Vector2::ZERO;
 	m_orthoBounds.maxs = Vector2(orthoHeight * aspect, orthoHeight);
-	m_nearClipZ = -1.0f;
-	m_farClipZ = 1.0f;
+	m_nearClipZ = nearZ;
+	m_farClipZ = farZ;
 	m_projectionMatrix = Matrix4::MakeOrtho(m_orthoBounds.mins, m_orthoBounds.maxs, m_nearClipZ, m_farClipZ);
 	m_currentProjection = CAMERA_PROJECTION_ORTHOGRAPHIC;
 }
@@ -209,6 +210,39 @@ void Camera::UpdateUBO()
 	cameraData.m_viewportHeight = (float)m_renderTarget->GetHeight();
 
 	m_cameraUBO->CopyToGPU(&cameraData, sizeof(cameraData));
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Clears the camera's color target to the given color
+void Camera::ClearColorTarget(const Rgba& clearColor)
+{
+	if (m_renderTarget != nullptr)
+	{
+		ID3D11RenderTargetView* dxRTV = GetRenderTargetView()->GetDxHandle();
+		ID3D11DeviceContext* dxContext = g_renderContext->GetDxContext();
+
+		Vector4 color = clearColor.GetAsFloats();
+		dxContext->ClearRenderTargetView(dxRTV, color.data);
+	}
+	else
+	{
+		ConsoleLogWarningf("Tried to clear camera's color target but it didn't have one set!");
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Clears the camera's depth target
+void Camera::ClearDepthTarget(float depth /*= 1.0f*/)
+{
+	if (m_depthTarget != nullptr)
+	{
+		ID3D11DepthStencilView* dxView = GetDepthStencilTargetView()->GetDxHandle();
+		ID3D11DeviceContext* dxContext = g_renderContext->GetDxContext();
+
+		dxContext->ClearDepthStencilView(dxView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, depth, 0U);
+	}
 }
 
 
@@ -367,7 +401,7 @@ Vector3 Camera::GetUpVector()
 //-------------------------------------------------------------------------------------------------
 bool Camera::Event_WindowResize(NamedProperties& args)
 {
-	if (m_currentProjection == CAMERA_PROJECTION_ORTHOGRAPHIC)
+	if (m_currentProjection == CAMERA_PROJECTION_ORTHOGRAPHIC && m_renderTarget == g_renderContext->GetDefaultRenderTarget())
 	{
 		// Preserve height
 		float height = m_orthoBounds.GetHeight();

@@ -37,6 +37,7 @@ class Sampler;
 class Shader;
 class ShaderResourceView;
 class Texture2D;
+class TextureCube;
 class Transform;
 class UniformBuffer;
 class VertexBuffer;
@@ -77,9 +78,6 @@ public:
 	void								BeginCamera(Camera* camera);
 	void								EndCamera();
 
-	void								ClearScreen(const Rgba& color);
-	void								ClearDepth(float depthValue = 1.0f);
-
 	void								BindUniformBuffer(uint32 slot, UniformBuffer* ubo);
 	void								BindMaterial(Material* material);
 	void								BindShader(Shader* shader);
@@ -92,7 +90,7 @@ public:
 	void								DrawMeshWithMaterial(Mesh& mesh, Material* material);
 	void								DrawRenderable(Renderable& renderable);
 	void								Draw(const DrawCall& drawCall);
-	
+
 	void								DrawPoint2D(const Vector2& position, float radius, Material* material, const Rgba& color = Rgba::WHITE);
 	void								DrawPoint3D(const Vector3& position, float radius, const Rgba& color = Rgba::WHITE, Shader* shader = nullptr);
 	void								DrawLine2D(const Vector2& start, const Vector2& end, Material* material, const Rgba& color = Rgba::WHITE);

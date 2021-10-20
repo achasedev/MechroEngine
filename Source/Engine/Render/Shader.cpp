@@ -237,6 +237,32 @@ DepthMode StringToDepthMode(const std::string& depthText)
 }
 
 
+//-------------------------------------------------------------------------------------------------
+RenderQueue StringToSortingQueue(const std::string& queueText)
+{
+	if (queueText == "opaque") { return RENDER_QUEUE_OPAQUE; }
+	else if (queueText == "alpha") { return RENDER_QUEUE_ALPHA; }
+	else
+	{
+		ConsoleLogErrorf("Invalid sorting queue %s, defaulting to opaque", queueText.c_str());
+		return RENDER_QUEUE_OPAQUE;
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool StringToLightsBool(const std::string& lightText)
+{
+	if (lightText == "no" || lightText == "false") { return false; }
+	else if (lightText == "yes" || lightText == "true") { return true; }
+	else
+	{
+		ConsoleLogErrorf("Invalid light parameter %s, defaulting to no lights used", lightText.c_str());
+		return false;
+	}
+}
+
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -360,6 +386,16 @@ bool Shader::Load(const char* filepath)
 	// Depth
 	std::string depthText = XML::ParseAttribute(*rootElem, "depth", "less");
 	SetDepthMode(StringToDepthMode(depthText));
+
+	// Sorting queue and layer
+	std::string queueText = XML::ParseAttribute(*rootElem, "queue", "opaque");
+	m_renderQueue = StringToSortingQueue(queueText);
+	m_renderLayer = XML::ParseAttribute(*rootElem, "layer", 0);
+
+	// Uses lights
+	// TODO: Shader reflection?
+	std::string lightText = XML::ParseAttribute(*rootElem, "uses_lights", "false");
+	m_isUsingLights = StringToLightsBool(lightText);
 
 	return true;
 }

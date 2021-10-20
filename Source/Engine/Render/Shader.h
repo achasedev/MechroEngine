@@ -111,6 +111,13 @@ enum DepthMode
 	DEPTH_MODE_IGNORE_DEPTH
 };
 
+enum RenderQueue
+{
+	RENDER_QUEUE_OPAQUE,
+	RENDER_QUEUE_ALPHA,
+	NUM_RENDER_QUEUES
+};
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -183,6 +190,7 @@ public:
 
 	bool						IsDirty() const;
 	FillMode					GetFillMode() const { return m_fillMode; }
+	bool						IsUsingLights() const { return m_isUsingLights; }
 
 	ID3D11VertexShader*			GetVertexStage() const { return m_vertexShader.GetAsVertexShader(); }
 	ID3D11PixelShader*			GetFragmentStage() const { return m_fragmentShader.GetAsFragmentShader(); }
@@ -214,6 +222,12 @@ private:
 	DepthMode					m_depthMode = DEPTH_MODE_LESS_THAN;
 	ID3D11DepthStencilState*	m_dxDepthState = nullptr;
 	bool						m_depthStateDirty = true;
+
+	bool						m_isUsingLights = false; // TODO: Shader reflection?
+
+	// For sorting in the ForwardRenderer
+	int							m_renderLayer = 0;
+	RenderQueue					m_renderQueue = RENDER_QUEUE_OPAQUE;
 };
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

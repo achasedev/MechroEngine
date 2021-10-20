@@ -1,47 +1,27 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: October 18th, 2021
-/// Description: Class to represent a single light in a scene
+/// Date Created: October 19th, 2021
+/// Description: Class to control a forward rendering path
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Core/Rgba.h"
-#include "Engine/Math/Vector3.h"
-#include "Engine/Math/Matrix4.h"
+#include "Engine/Render/DrawCall.h"
+#include <vector>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#define MAX_NUMBER_OF_LIGHTS 8 // Max number of lights that can be used when rendering a single renderable; a scene can have more lights than this
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Texture2D;
-
-//-------------------------------------------------------------------------------------------------
-// Data to be sent to GPU for a single light
-struct LightData
-{
-	Vector3 m_position;
-	float	m_dotOuterAngle;
-
-	Vector3 m_lightDirection;
-	float	m_dotInnerAngle;
-
-	Vector3 m_attenuation;
-	float	m_directionFactor;
-
-	Vector4 m_color;
-
-	Matrix4 m_shadowVP;
-
-	Vector3 m_padding0;
-	float	m_castsShadows = 0.f;
-};
+class Camera;
+class Renderable;
+class RenderScene;
+class Vector3;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -52,37 +32,32 @@ struct LightData
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Light
+class ForwardRenderer
 {
 public:
 	//-----Public Methods-----
 
-	~Light();
+	void Render(RenderScene* scene);
 
-	// Mutators
-	void		SetPosition(const Vector3& position);
-	void		SetLightData(const LightData& data);
-	void		SetIsShadowCasting(bool castsShadows);
 
-	LightData	GetLightData() const { return m_lightData; }
-	bool		IsShadowCasting() const { return m_isShadowCasting; }
-	Texture2D*	GetShadowTexture() const { return m_shadowTexture; }
-	float		CalculateIntensityForPosition(const Vector3& position) const;
+private:
+	//-----Private Methods-----
 
-	// Statics
-	static Light* CreatePointLight(const Vector3& position, const Rgba& color = Rgba::WHITE, const Vector3& attenuation = Vector3(1.f, 0.f, 0.f));
-	static Light* CreateDirectionalLight(const Vector3& position, const Vector3& direction = Vector3::MINUS_Y_AXIS, const Rgba& color = Rgba::WHITE, const Vector3& attenuation = Vector3(1.f, 0.f, 0.f));
-	static Light* CreateConeLight(const Vector3& position, const Vector3& direction, float outerAngle, float innerAngle, const Rgba& color = Rgba::WHITE, const Vector3& attenuation = Vector3(1.f, 0.f, 0.f));
+	void CreateShadowTexturesForCamera(RenderScene* scene, Camera* camera);
+	void RenderSceneForCamera(RenderScene* scene, Camera* camera, bool drawSkybox);
+	void ConstructDrawCalls(RenderScene* scene);
+	void ConstructDrawCallsForRenderable(const Renderable& renderable, RenderScene* scene);
+	void SortDrawCalls();
+	void ComputeLightsForDrawCall(DrawCall& drawCall, RenderScene* scene, const Vector3& position);
 
 
 private:
 	//-----Private Data-----
 
-	LightData	m_lightData;
-	bool		m_isShadowCasting = false;
-	Texture2D*	m_shadowTexture = nullptr;
+	std::vector<DrawCall> m_drawCalls;
 
 };
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS

@@ -121,6 +121,17 @@ void RenderContext::BeginFrame()
 {
 	// No need to get the new backbuffer, since DX11 maintains the handle we have to
 	// whatever is the current backbuffer
+	
+	// Clear color target
+	Vector4 blackColor = Vector4(0.f, 0.f, 0.f, 1.0f);
+	ID3D11RenderTargetView* dxRTV = nullptr;
+	dxRTV = m_defaultColorTarget->CreateOrGetColorTargetView()->GetDxHandle();
+	m_dxContext->ClearRenderTargetView(dxRTV, blackColor.data);
+
+	// Clear depth stencil
+	ID3D11DepthStencilView* dxView = nullptr;
+	dxView = m_defaultDepthStencilTarget->CreateOrGetDepthStencilTargetView()->GetDxHandle();
+	m_dxContext->ClearDepthStencilView(dxView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0U);
 }
 
 
@@ -178,40 +189,6 @@ void RenderContext::EndCamera()
 {
 	m_dxContext->OMSetRenderTargets(0, nullptr, nullptr);
 	m_currentCamera = nullptr;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void RenderContext::ClearScreen(const Rgba& color)
-{
-	ASSERT_OR_DIE(m_currentCamera != nullptr, "No Camera bound!");
-
-	float colors[4];
-	colors[0] = color.GetRedFloat();
-	colors[1] = color.GetGreenFloat();
-	colors[2] = color.GetBlueFloat();
-	colors[3] = color.GetAlphaFloat();
-
-	if (m_currentCamera->GetRenderTargetView() != nullptr)
-	{
-		ID3D11RenderTargetView* dxRTV = nullptr;
-		dxRTV = m_currentCamera->GetRenderTargetView()->GetDxHandle();
-		m_dxContext->ClearRenderTargetView(dxRTV, colors);
-	}
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void RenderContext::ClearDepth(float depth /*= 1.0f*/)
-{
-	ASSERT_OR_DIE(m_currentCamera != nullptr, "No Camera bound!");
-
-	if (m_currentCamera->GetDepthStencilTargetView() != nullptr)
-	{
-		ID3D11DepthStencilView* dxView = nullptr;
-		dxView = m_currentCamera->GetDepthStencilTargetView()->GetDxHandle();
-		m_dxContext->ClearDepthStencilView(dxView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, depth, 0U);
-	}
 }
 
 

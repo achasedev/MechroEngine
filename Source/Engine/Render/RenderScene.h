@@ -9,6 +9,8 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/Rgba.h"
+#include "Engine/Core/Entity.h"
+#include <map>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -17,10 +19,10 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Renderable;
-class Light;
 class Camera;
-class TextureCube;
+class Light;
+class Renderable;
+class Skybox;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -33,6 +35,7 @@ class TextureCube;
 //-------------------------------------------------------------------------------------------------
 class RenderScene
 {
+	friend class ForwardRenderer;
 
 public:
 	//-----Public Methods-----
@@ -41,25 +44,26 @@ public:
 	~RenderScene() {}
 
 	// List mutators
-	void			AddRenderable(Renderable* renderable);
+	void			AddRenderable(EntityID id, const Renderable& renderable);
 	void			AddLight(Light* light);
 	void			AddCamera(Camera* camera);
 
-	void			RemoveRenderable(Renderable* toRemove);
+	void			RemoveRenderable(EntityID entityId);
 	void			RemoveLight(Light* toRemove);
 	void			RemoveCamera(Camera* toRemove);
 	void			Clear();
 
 	void			SortCameras();
 
-	void			SetSkybox(TextureCube* skybox) { m_skybox = skybox; }
+	void			SetSkybox(Skybox* skybox) { m_skybox = skybox; }
 	void			SetAmbience(const Rgba& ambience) { m_ambience = ambience; }
 
 	Rgba			GetAmbience() const { return m_ambience; }
 	int				GetLightCount() const { return (int)m_lights.size(); }
 	int				GetRenderableCount() const { (int)m_renderables.size(); }
-	int				GetCameraCount() const { return (int)m_renderables.size(); }
-	TextureCube*	GetSkybox() const { return m_skybox; }
+	int				GetCameraCount() const { return (int)m_cameras.size(); }
+	Skybox*			GetSkybox() const { return m_skybox; }
+	Renderable*		GetRenderable(EntityID entityId);
 
 
 private:
@@ -67,7 +71,7 @@ private:
 
 	RenderScene(const RenderScene& copy) = delete;
 
-	bool			DoesRenderableExist(Renderable* renderable) const;
+	bool			DoesRenderableExist(EntityID entityId) const;
 	bool			DoesLightExist(Light* light) const;
 	bool			DoesCameraExist(Camera* camera) const;
 
@@ -75,13 +79,13 @@ private:
 private:
 	//-----Private Data-----
 
-	std::string					m_name;
-	std::vector<Renderable*>	m_renderables;
-	std::vector<Light*>			m_lights;
-	std::vector<Camera*>		m_cameras;
+	std::string						m_name;
+	std::map<EntityID, Renderable>	m_renderables;
+	std::vector<Light*>				m_lights;
+	std::vector<Camera*>			m_cameras;
 
-	Rgba						m_ambience = Rgba::WHITE;
-	TextureCube*				m_skybox = nullptr;
+	Rgba							m_ambience = Rgba::WHITE;
+	Skybox*							m_skybox = nullptr;
 
 };
 

@@ -41,3 +41,21 @@ void DrawCall::SetFromRenderable(const Renderable& renderable, uint32 drawCallIn
 	Matrix4 renderableModelMatrix = renderable.GetModelMatrix();
 	m_modelMatrix = renderableModelMatrix * rendDraw.m_drawMatrix;
 }
+
+
+//-------------------------------------------------------------------------------------------------
+// Sets the light data for the given index to be of the light given
+void DrawCall::SetLight(int lightIndex, Light* light)
+{
+	ASSERT_RETURN(lightIndex > 0 && lightIndex < MAX_NUMBER_OF_LIGHTS, NO_RETURN_VAL, "Bad index!");
+	m_lights[lightIndex] = light;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Returns the sorting order for the draw call, based on queue and layer (ForwardRenderer)
+int DrawCall::GetSortOrder() const
+{
+	return m_renderLayer * NUM_RENDER_QUEUES + m_renderQueue;
+}
+

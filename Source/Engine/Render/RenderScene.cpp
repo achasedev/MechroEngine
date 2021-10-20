@@ -44,13 +44,12 @@ RenderScene::RenderScene(const std::string& name)
 
 //-------------------------------------------------------------------------------------------------
 // Adds the renderable to the scene
-void RenderScene::AddRenderable(Renderable* renderable)
+void RenderScene::AddRenderable(EntityID id, const Renderable& renderable)
 {
-	ASSERT_RETURN(renderable != nullptr, NO_RETURN_VAL, "Renderable was nullptr!");
-	ASSERT_RETURN(!DoesRenderableExist(renderable), NO_RETURN_VAL, "Renderable already exists in the scene!");
-	ASSERT_RETURN(renderable->IsReadyForDrawing(), NO_RETURN_VAL, "Renderable isn't complete!");
+	ASSERT_RETURN(!DoesRenderableExist(id), NO_RETURN_VAL, "Renderable already exists in the scene!");
+	ASSERT_RETURN(renderable.IsReadyForDrawing(), NO_RETURN_VAL, "Renderable isn't complete!");
 
-	m_renderables.push_back(renderable);
+	m_renderables[id] = renderable;
 }
 
 
@@ -73,18 +72,18 @@ void RenderScene::AddCamera(Camera* camera)
 
 
 //-------------------------------------------------------------------------------------------------
-// Removes the renderable from the scene, does not delete it
-void RenderScene::RemoveRenderable(Renderable* toRemove)
+// Removes the renderable from the scene
+void RenderScene::RemoveRenderable(EntityID entityId)
 {
-	int numRenderables = (int)m_renderables.size();
-	for (int i = 0; i < numRenderables; ++i)
+	bool entityExists = m_renderables.find(entityId) != m_renderables.end();
+
+	if (!entityExists)
 	{
-		if (m_renderables[i] == toRemove)
-		{
-			m_renderables.erase(m_renderables.begin() + i);
-			return;
-		}
+		ConsoleLogErrorf("Tried to remove entity %i but it doesn't exist!", entityId);
+		return;
 	}
+
+	m_renderables.erase(entityId);
 
 	ConsoleLogWarningf("Tried to remove a renderable but it doesn't exist!");
 }
@@ -131,7 +130,7 @@ void RenderScene::Clear()
 {
 	m_renderables.clear();
 	m_lights.clear();
-	m_renderables.clear();
+	m_cameras.clear();
 }
 
 
@@ -167,19 +166,24 @@ void RenderScene::SortCameras()
 
 
 //-------------------------------------------------------------------------------------------------
-// Returns true if the renderable is currently in the scene
-bool RenderScene::DoesRenderableExist(Renderable* renderable) const
+// Returns the renderable for the given entity; returns a sketchy pointer so don't cache it off
+Renderable* RenderScene::GetRenderable(EntityID entityId)
 {
-	int numRenderables = (int)m_renderables.size();
-	for (int i = 0; i < numRenderables; ++i)
+	if (!DoesRenderableExist(entityId))
 	{
-		if (m_renderables[i] == renderable)
-		{
-			return true;
-		}
+		ConsoleLogWarningf("Tried to get renderable for entity %i but it doesn't exist in the scene!", entityId);
+		return nullptr;
 	}
 
-	return false;
+	return &m_renderables.at(entityId);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Returns true if the renderable is currently in the scene; assumes one renderable per entity
+bool RenderScene::DoesRenderableExist(EntityID id) const
+{
+	return (m_renderables.find(id) != m_renderables.end());
 }
 
 

@@ -60,9 +60,9 @@ void Entity::PostUpdate(float deltaSeconds)
 //-------------------------------------------------------------------------------------------------
 void Entity::Render() const
 {
-	if (collider != nullptr)
-	{
-		Rgba tint = (rigidBody == nullptr || rigidBody->IsAwake() ? Rgba::CYAN : Rgba::RED);
-		collider->DebugRender(Rgba::WHITE);
-	}
+	//if (collider != nullptr)
+	//{
+	//	Rgba tint = (rigidBody == nullptr || rigidBody->IsAwake() ? Rgba::CYAN : Rgba::RED);
+	//	collider->DebugRender(Rgba::WHITE);
+	//}
 }

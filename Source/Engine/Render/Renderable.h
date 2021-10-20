@@ -9,6 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/EngineCommon.h"
+#include "Engine/Core/Entity.h"
 #include "Engine/Math/Matrix4.h"
 #include <vector>
 
@@ -42,6 +43,9 @@ class Renderable
 public:
 	//-----Public Methods-----
 
+	Renderable() {}
+	Renderable(EntityID owningEntity);
+
 	void			SetDrawMatrix(uint32 drawIndex, const Matrix4& drawMatrix);
 	void			SetDrawMaterial(uint32 drawIndex, Material* material);
 	void			SetDrawMesh(uint32 drawIndex, Mesh* mesh);
@@ -61,6 +65,7 @@ private:
 
 	Matrix4							m_matrix = Matrix4::IDENTITY;
 	std::vector<RenderableDraw>		m_draws;
+	EntityID						m_owningEntity = INVALID_ENTITY_ID;
 
 };
 

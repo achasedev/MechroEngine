@@ -46,6 +46,8 @@ public:
 	virtual void PostUpdate(float deltaSeconds);
 	virtual void Render() const;
 
+	EntityID GetId() const { return m_id; }
+
 
 public:
 	//-----Public Data-----

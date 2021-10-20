@@ -193,8 +193,10 @@
     <ClCompile Include="Physics\RigidBody\RigidBodyForceRegistry.cpp" />
     <ClCompile Include="Physics\RigidBody\PhysicsScene.cpp" />
     <ClCompile Include="Physics\RigidBody\RigidBodySpring.cpp" />
+    <ClCompile Include="Render\ForwardRenderer.cpp" />
     <ClCompile Include="Render\Light.cpp" />
     <ClCompile Include="Render\RenderScene.cpp" />
+    <ClCompile Include="Render\Skybox.cpp" />
     <ClCompile Include="Render\Texture\TextureCube.cpp" />
     <ClCompile Include="Resource\Resource.cpp" />
     <ClCompile Include="Math\Edge3.cpp" />
@@ -317,8 +319,10 @@
     <ClInclude Include="Physics\RigidBody\RigidBodyForceRegistry.h" />
     <ClInclude Include="Physics\RigidBody\PhysicsScene.h" />
     <ClInclude Include="Physics\RigidBody\RigidBodySpring.h" />
+    <ClInclude Include="Render\ForwardRenderer.h" />
     <ClInclude Include="Render\Light.h" />
     <ClInclude Include="Render\RenderScene.h" />
+    <ClInclude Include="Render\Skybox.h" />
     <ClInclude Include="Render\Texture\TextureCube.h" />
     <ClInclude Include="Resource\Resource.h" />
     <ClInclude Include="Math\Capsule3D.h" />

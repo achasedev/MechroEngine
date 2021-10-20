@@ -1,17 +1,17 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: March 15th, 2020
+/// Date Created: October 20th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Utility/StringID.h"
-#include "Engine/Resource/Resource.h"
-#include "Engine/Render/View/ShaderResourceView.h"
-#include <string>
+#include "Engine/Core/EngineCommon.h"
+#include "Engine/Resource/ResourceSystem.h"
+#include "Engine/Render/Material.h"
+#include "Engine/Render/RenderContext.h"
+#include "Engine/Render/Skybox.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -20,46 +20,31 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Shader;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// CLASS DECLARATIONS
+/// C FUNCTIONS
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Material : public Resource
+// Constructor from material
+Skybox::Skybox(Material* material)
+	: m_material(material)
 {
-public:
-	//-----Public Methods-----
-
-	Material();
-
-	bool					Load(const char* filepath);
-	void					Clear();
-
-	void					SetShader(Shader* shader);
-	void					SetShaderResourceView(uint32 slot, ShaderResourceView* textureView);
-	void					SetAlbedoTextureView(ShaderResourceView* albedoView);
-
-	Shader*					GetShader() const							{ return m_shader; }
-	ShaderResourceView*		GetShaderResourceView(uint32 slot) const	{ return m_shaderResourceViews[slot]; }
-	ShaderResourceView*		GetAlbedo() const							{ return m_shaderResourceViews[SRV_SLOT_ALBEDO]; }
-	bool					IsUsingLights() const;
+}
 
 
-private:
-	//-----Private Data-----
-
-	Shader*					m_shader = nullptr;
-	ShaderResourceView*		m_shaderResourceViews[MAX_SRV_SLOTS];
-
-};
-
-
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// C FUNCTIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+// Draws the skybox as a unit cube around the camera
+void Skybox::Render() const
+{
+	Mesh* skyboxMesh = g_resourceSystem->CreateOrGetMesh("unit_cube");
+	g_renderContext->DrawMeshWithMaterial(*skyboxMesh, m_material);
+}
