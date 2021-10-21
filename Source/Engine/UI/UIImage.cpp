@@ -91,7 +91,7 @@ void UIImage::Render()
 		OBB2 finalBounds = GetCanvasBounds();
 
 		Renderable rend;
-		rend.SetRenderableMatrix(CreateModelMatrix(finalBounds));
+		rend.SetModelMatrix(CreateModelMatrix(finalBounds));
 		rend.SetDrawMaterial(0, m_material);
 		rend.SetDrawMesh(0, m_mesh); // TODO: Default quad mesh?
 

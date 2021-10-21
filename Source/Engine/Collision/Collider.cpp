@@ -92,6 +92,7 @@ HalfSpaceCollider::HalfSpaceCollider(Entity* owningEntity, const Plane3& planeLs
 //-------------------------------------------------------------------------------------------------
 void HalfSpaceCollider::DebugRender(const Rgba& color) const
 {
+	UNUSED(color);
 	// TODO:
 }
 
@@ -165,6 +166,7 @@ PlaneCollider::PlaneCollider(Entity* owningEntity, const Plane3& planeLs)
 //-------------------------------------------------------------------------------------------------
 void PlaneCollider::DebugRender(const Rgba& color) const
 {
+	UNUSED(color);
 	// TODO:
 }
 
