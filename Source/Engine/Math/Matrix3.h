@@ -65,6 +65,7 @@ public:
 	static Matrix3 MakeRotationFromEulerAnglesRadians(const Vector3& anglesRadians);
 	static Vector3 ExtractRotationAsEulerAnglesDegrees(const Matrix3& matrix);
 	static Vector3 ExtractRotationAsEulerAnglesRadians(const Matrix3& matrix);
+	static Matrix3 MakeRotation(const Quaternion& quat);
 
 
 public:

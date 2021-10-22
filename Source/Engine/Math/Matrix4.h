@@ -82,7 +82,8 @@ public:
 	static Matrix4 MakeRotation(const Quaternion& rotation);
 	static Matrix4 MakeScale(const Vector3& scale);
 	static Matrix4 MakeScaleUniform(float uniformScale);
-	static Matrix4 MakeModelMatrix(const Vector3& translation, const Vector3& rotation, const Vector3& scale);
+	static Matrix4 MakeModelMatrix(const Vector3& translation, const Vector3& eulerAngleDegrees, const Vector3& scale);
+	static Matrix4 MakeModelMatrix(const Vector3& translation, const Quaternion& rotation, const Vector3& scale);
 
 	static Matrix4 MakeOrtho(float leftX, float rightX, float bottomY, float topY, float nearZ, float farZ);
 	static Matrix4 MakeOrtho(const Vector2& bottomLeft, const Vector2& topRight, float nearZ = 0.f, float farZ = 1.0f);

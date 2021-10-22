@@ -88,7 +88,13 @@ bool Material::Load(const char* filepath)
 			std::string albedoName = (albedoElem != nullptr ? XML::ParseAttribute(*albedoElem, "name", "white") : "white");
 			Texture2D* albedo = g_resourceSystem->CreateOrGetTexture2D(albedoName.c_str(), TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_STATIC);
 			SetAlbedoTextureView(albedo->CreateOrGetShaderResourceView());
-		}	
+		}
+
+		// Normal map
+		const XMLElem* normalElem = textureElem->FirstChildElement("normal");
+		std::string normalName = (normalElem != nullptr ? XML::ParseAttribute(*normalElem, "name", "flat") : "flat");
+		Texture2D* normal = g_resourceSystem->CreateOrGetTexture2D(normalName.c_str(), TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_STATIC);
+		SetNormalTextureView(normal->CreateOrGetShaderResourceView());
 	}
 
 	return true;
@@ -126,6 +132,14 @@ void Material::SetShaderResourceView(uint32 slot, ShaderResourceView* textureVie
 void Material::SetAlbedoTextureView(ShaderResourceView* albedoView)
 {
 	m_shaderResourceViews[SRV_SLOT_ALBEDO] = albedoView;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Sets the normal texture to the 2nd SRV slot
+void Material::SetNormalTextureView(ShaderResourceView* normalView)
+{
+	m_shaderResourceViews[SRV_SLOT_NORMAL] = normalView;
 }
 
 

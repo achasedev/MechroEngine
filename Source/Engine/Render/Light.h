@@ -26,20 +26,20 @@ class Texture2D;
 // Data to be sent to GPU for a single light
 struct LightData
 {
-	Vector3 m_position;
-	float	m_dotOuterAngle;
+	Vector3 m_position = Vector3::ZERO;
+	float	m_dotOuterAngle = 0.f;
 
-	Vector3 m_lightDirection;
-	float	m_dotInnerAngle;
+	Vector3 m_lightDirection = Vector3::ZERO;
+	float	m_dotInnerAngle = 0.f;
 
-	Vector3 m_attenuation;
-	float	m_directionFactor;
+	Vector3 m_attenuation = Vector3::ZERO;
+	float	m_directionFactor = 0.f;
 
-	Vector4 m_color;
+	Vector4 m_color = Vector4::ZERO;
 
 	Matrix4 m_shadowVP;
 
-	Vector3 m_padding0;
+	Vector3 m_padding0 = Vector3::ZERO;
 	float	m_castsShadows = 0.f;
 };
 

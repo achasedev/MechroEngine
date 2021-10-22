@@ -53,6 +53,9 @@ typedef std::map<StringID, Font*>::iterator FontIter;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 static FT_Library s_library;
 ResourceSystem* g_resourceSystem = nullptr;
+static const char* INVALID_SHADER = "Data/Shader/invalid.shader";
+static const char* INVALID_MATERIAL = "Data/Material/invalid.material";
+static const char* INVALID_TEXTURE = "Data/Image/invalid.png";
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
@@ -150,7 +153,8 @@ Shader* ResourceSystem::CreateOrGetShader(const char* filepath)
 	}
 	else
 	{
-		SAFE_DELETE(shader);
+		shader->Clear();
+		shader->Load(INVALID_SHADER);
 		ConsoleLogErrorf("Could not load Shader %s", filepath);
 	}
 
@@ -179,8 +183,9 @@ Material* ResourceSystem::CreateOrGetMaterial(const char* filepath)
 	}
 	else
 	{
-		SAFE_DELETE(material);
-		ConsoleLogErrorf("Could not load Texture2D %s", filepath);
+		material->Clear();
+		material->Load(INVALID_MATERIAL);
+		ConsoleLogErrorf("Could not load Material %s", filepath);
 	}
 
 	m_materials[id] = material;
@@ -208,7 +213,8 @@ Texture2D* ResourceSystem::CreateOrGetTexture2D(const char* filepath, TextureUsa
 	}
 	else
 	{
-		SAFE_DELETE(texture);
+		texture->Clear();
+		texture->Load(INVALID_TEXTURE, TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_STATIC);
 		ConsoleLogErrorf("Could not load Texture2D %s", filepath);
 	}
 	
@@ -307,7 +313,7 @@ void ResourceSystem::CreateDefaultMeshes()
 	mb.PushCube(Vector3::ZERO, Vector3::ONES);
 	mb.FinishBuilding();
 
-	Mesh* cubeMesh = mb.CreateMesh<Vertex3D_PCU>();
+	Mesh* cubeMesh = mb.CreateMesh<VertexLit>();
 	cubeMesh->m_resourceID = SID("unit_cube");
 	m_meshes[cubeMesh->m_resourceID] = cubeMesh;
 
@@ -361,10 +367,12 @@ void ResourceSystem::CreateDefaultMeshes()
 //-------------------------------------------------------------------------------------------------
 void ResourceSystem::CreateDefaultShaders()
 {
+	Shader* invalidShader = CreateOrGetShader(INVALID_SHADER);
+	ASSERT_OR_DIE(invalidShader != nullptr, "Couldn't load the invalid shader!");
+
 	CreateOrGetShader("Data/Shader/default_opaque.shader");
 	CreateOrGetShader("Data/Shader/default_alpha.shader");
 	CreateOrGetShader("Data/Shader/font.shader");
-	CreateOrGetShader("Data/Shader/invalid.shader");
 	CreateOrGetShader("Data/Shader/skybox.shader");
 }
 
@@ -376,6 +384,10 @@ void ResourceSystem::CreateDefaultImages()
 	whiteImage->m_resourceID = SID("white");
 	m_images[whiteImage->m_resourceID] = whiteImage;
 
+	Image* flatImage = new Image(IntVector2(2, 2), Rgba(127, 127, 255, 255));
+	flatImage->m_resourceID = SID("flat");
+	m_images[flatImage->m_resourceID] = flatImage;
+
 	CreateOrGetImage("Data/Image/debug.png");
 }
 
@@ -383,11 +395,24 @@ void ResourceSystem::CreateDefaultImages()
 //-------------------------------------------------------------------------------------------------
 void ResourceSystem::CreateDefaultTexture2Ds()
 {
+	Image* invalidImage = CreateOrGetImage(INVALID_TEXTURE);
+	Texture2D* invalidTexture = new Texture2D();
+	invalidTexture->CreateFromImage(*invalidImage, TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_STATIC);
+	invalidTexture->m_resourceID = invalidImage->m_resourceID;
+	m_texture2Ds[invalidImage->m_resourceID] = invalidTexture;
+	ASSERT_OR_DIE(invalidTexture != nullptr, "Couldn't load the invalid texture!");
+
 	Image* whiteImage = CreateOrGetImage("white");
 	Texture2D* whiteTexture = new Texture2D();
 	whiteTexture->CreateFromImage(*whiteImage, TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_STATIC);
 	whiteTexture->m_resourceID = whiteImage->m_resourceID;
 	m_texture2Ds[whiteTexture->m_resourceID] = whiteTexture;
+
+	Image* flatImage = CreateOrGetImage("flat");
+	Texture2D* flatTexture = new Texture2D();
+	flatTexture->CreateFromImage(*flatImage, TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_STATIC);
+	flatTexture->m_resourceID = flatImage->m_resourceID;
+	m_texture2Ds[flatTexture->m_resourceID] = flatTexture;
 
 	Image* debugImage = CreateOrGetImage("Data/Image/debug.png");
 	Texture2D* debugTexture = new Texture2D();
@@ -417,9 +442,14 @@ void ResourceSystem::CreateDefaultFonts()
 //-------------------------------------------------------------------------------------------------
 void ResourceSystem::CreateDefaultMaterials()
 {
+	Material* invalidMaterial = CreateOrGetMaterial(INVALID_MATERIAL);
+	ASSERT_OR_DIE(invalidMaterial != nullptr, "Couldn't load the invalid material!");
+
 	CreateOrGetMaterial("Data/Material/default.material");
 	CreateOrGetMaterial("Data/Material/debug.material");
 	CreateOrGetMaterial("Data/Material/skybox.material");
+	CreateOrGetMaterial("Data/Material/normal_local.material");
+	CreateOrGetMaterial("Data/Material/normal_world.material");
 }
 
 

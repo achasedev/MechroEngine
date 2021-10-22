@@ -44,6 +44,7 @@ public:
 	void					SetShader(Shader* shader);
 	void					SetShaderResourceView(uint32 slot, ShaderResourceView* textureView);
 	void					SetAlbedoTextureView(ShaderResourceView* albedoView);
+	void					SetNormalTextureView(ShaderResourceView* albedoView);
 
 	Shader*					GetShader() const							{ return m_shader; }
 	ShaderResourceView*		GetShaderResourceView(uint32 slot) const	{ return m_shaderResourceViews[slot]; }

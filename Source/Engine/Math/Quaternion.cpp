@@ -238,16 +238,54 @@ Quaternion Quaternion::GetInverse() const
 //-------------------------------------------------------------------------------------------------
 Vector3 Quaternion::GetAsEulerAnglesDegrees() const
 {
-	Matrix3 matrix(*this);
-	return Matrix3::ExtractRotationAsEulerAnglesDegrees(matrix);
+	return RadiansToDegrees(GetAsEulerAnglesRadians());
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Vector3 Quaternion::GetAsEulerAnglesRadians() const
 {
-	Matrix3 matrix(*this);
-	return Matrix3::ExtractRotationAsEulerAnglesRadians(matrix);
+	// roll (x-axis rotation)
+	//their y == my x
+	// their x == my z
+	// their z == my y
+
+	float sinr_cosp = 2.f * (w * z + x * y);
+	float cosr_cosp = 1.f - 2.f * (z * z + x * x);
+
+	// pitch (y-axis rotation)
+	
+	float sinp = 2.f * (w * x - y * z);
+	float pitch;
+	if (abs(sinp) >= 1)
+		pitch = std::copysignf(PI / 2, sinp); // use 90 degrees if out of range
+	else
+		pitch = std::asinf(sinp);
+
+	// yaw (z-axis rotation)
+	float test = (w * x - y * z);
+	float yaw, roll;
+
+	if (AreMostlyEqual(test, 0.5f))
+	{
+		roll = 0.f;
+		yaw = -2.f * atan2f(z, w);
+	}
+	else if (AreMostlyEqual(test, -0.5f))
+	{
+		roll = 0.f;
+		yaw = 2.f * atan2f(z, w);
+	}
+	else
+	{
+		float siny_cosp = 2.f * (w * y + z * x);
+		float cosy_cosp = 1.f - 2.f * (x * x + y * y);
+		yaw = std::atan2f(siny_cosp, cosy_cosp);
+		roll = std::atan2f(sinr_cosp, cosr_cosp);
+	}
+
+
+	return Vector3(pitch, yaw, roll);
 }
 
 

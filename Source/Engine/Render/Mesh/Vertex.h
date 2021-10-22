@@ -112,7 +112,6 @@ struct VertexLit
 	static const VertexAttribute	ATTRIBUTES[];
 	static const VertexLayout		LAYOUT;
 	static const uint32				NUM_ATTRIBUTES;
-
 };
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

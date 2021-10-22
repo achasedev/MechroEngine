@@ -610,6 +610,20 @@ Matrix4 Matrix4::MakeModelMatrix(const Vector3& translation, const Vector3& rota
 }
 
 
+//-------------------------------------------------------------------------------------------------
+// Constructs a model matrix from a translation, rotation, and scale
+Matrix4 Matrix4::MakeModelMatrix(const Vector3& translation, const Quaternion& rotation, const Vector3& scale)
+{
+	Matrix4 translationMatrix = MakeTranslation(translation);
+	Matrix4 rotationMatrix = MakeRotation(rotation);
+	Matrix4 scaleMatrix = MakeScale(scale);
+
+	Matrix4 result = translationMatrix * rotationMatrix * scaleMatrix;
+
+	return result;
+}
+
+
 //-----------------------------------------------------------------------------------------------
 // Constructs a matrix that transforms points from orthographic space (within the bounds specified)
 // into clips space (bounds(-1, -1) to (1, 1) with center at (0, 0))
@@ -762,7 +776,7 @@ Matrix4 Matrix4::MakeRotationFromEulerAnglesRadians(const Vector3& anglesRadians
 //-------------------------------------------------------------------------------------------------
 Matrix4 Matrix4::MakeRotation(const Quaternion& rotation)
 {
-	return Matrix4(Matrix3(rotation));
+	return Matrix4(Matrix3::MakeRotation(rotation));
 }
 
 

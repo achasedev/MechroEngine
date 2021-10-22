@@ -51,7 +51,8 @@ enum UniformSlot
 {
 	UNIFORM_SLOT_FRAME_TIME = 1,
 	UNIFORM_SLOT_CAMERA = 2,
-	UNIFORM_SLOT_MODEL_MATRIX = 3
+	UNIFORM_SLOT_MODEL_MATRIX = 3,
+	UNIFORM_SLOT_LIGHT = 4
 };
 
 struct FrameTimeBufferData
@@ -61,6 +62,13 @@ struct FrameTimeBufferData
 	float m_padding0;
 	float m_padding1;
 };
+
+struct LightBufferData
+{
+	Vector4		m_ambience;	// xyz color, w intensity
+	LightData	m_lights[MAX_NUMBER_OF_LIGHTS];
+};
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -214,6 +222,12 @@ void RenderContext::BindMaterial(Material* material)
 	// Bind Texture + Sampler
 	BindShaderResourceView(SRV_SLOT_ALBEDO, material->GetShaderResourceView(SRV_SLOT_ALBEDO));
 
+	ShaderResourceView* normalView = material->GetShaderResourceView(SRV_SLOT_NORMAL);
+	if (normalView != nullptr)
+	{
+		BindShaderResourceView(SRV_SLOT_NORMAL, normalView);
+	}
+
 	// Bind Shader
 	BindShader(material->GetShader());
 }
@@ -268,11 +282,6 @@ void RenderContext::BindSampler(uint32 slot, Sampler* sampler)
 	{
 		sampler = m_samplers[m_samplerMode];
 	}
-	else
-	{
-		int x = 4;
-		x = 5;
-	}
 
 	sampler->CreateOrUpdate();
 
@@ -285,6 +294,22 @@ void RenderContext::BindSampler(uint32 slot, Sampler* sampler)
 void RenderContext::UpdateModelMatrixUBO(const Matrix4& modelMatrix)
 {
 	m_modelMatrixUBO.CopyToGPU(&modelMatrix, sizeof(Matrix4));
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Updates the light constant buffer to have the given light information
+void RenderContext::UpdateLightUBO(const Rgba& ambience, Light* lights, int numLights)
+{
+	LightBufferData data;
+	data.m_ambience = ambience.GetAsFloats();
+
+	for (int i = 0; i < numLights; ++i)
+	{
+		data.m_lights[i] = lights[i].GetLightData();
+	}
+
+	m_lightUBO.CopyToGPU(&data, sizeof(LightBufferData));
 }
 
 
@@ -340,6 +365,12 @@ void RenderContext::Draw(const DrawCall& drawCall)
 	BindIndexStream(mesh->GetIndexBuffer());
 	UpdateInputLayout(mesh->GetVertexLayout());
 	UpdateModelMatrixUBO(drawCall.GetModelMatrix());
+
+	// Update light constant buffer
+	if (drawCall.GetMaterial()->IsUsingLights())
+	{
+		UpdateLightUBO(drawCall.GetAmbience(), drawCall.GetLights(), drawCall.GetNumLights());
+	}
 
 	DrawInstruction draw = mesh->GetDrawInstruction();
 	if (draw.m_useIndices)
@@ -711,6 +742,11 @@ void RenderContext::PostDxInit()
 	// Model matrix UBO
 	UpdateModelMatrixUBO(Matrix4::IDENTITY);
 	BindUniformBuffer(UNIFORM_SLOT_MODEL_MATRIX, &m_modelMatrixUBO);
+
+	// Light UBO
+	LightBufferData lightData;
+	m_lightUBO.CopyToGPU(&lightData, sizeof(LightBufferData));
+	BindUniformBuffer(UNIFORM_SLOT_LIGHT, &m_lightUBO);
 }
 
 

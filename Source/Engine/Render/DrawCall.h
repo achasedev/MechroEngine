@@ -47,7 +47,9 @@ public:
 	Material*	GetMaterial() const { return m_material; }
 	Matrix4		GetModelMatrix() const { return m_modelMatrix; }
 	int			GetSortOrder() const;
-
+	Light*		GetLights() const { return m_lights[0]; }
+	int			GetNumLights() const { return m_numLightsInUse; }
+	Rgba		GetAmbience() const { return m_ambience; }
 
 private:
 	//-----Private Data-----

@@ -373,7 +373,7 @@ Vector3 Matrix3::ExtractRotationAsEulerAnglesRadians(const Matrix3& matrix)
 	xRadians = asinf(sineX);
 
 	float cosX = cosf(xRadians);
-	if (cosX != 0.f)
+	if (!AreMostlyEqual(cosX, 0.f))
 	{
 		yRadians = atan2f(kScalar * matrix.Kx, kScalar * matrix.Kz);
 		zRadians = atan2f(iScalar * matrix.Iy, jScalar * matrix.Jy);
@@ -386,4 +386,15 @@ Vector3 Matrix3::ExtractRotationAsEulerAnglesRadians(const Matrix3& matrix)
 	}
 
 	return Vector3(xRadians, yRadians, zRadians);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Makes a rotation matrix from the given quaternion
+Matrix3 Matrix3::MakeRotation(const Quaternion& quat)
+{
+	Matrix3 matrix;
+	matrix.SetFromQuaternion(quat);
+
+	return matrix;
 }

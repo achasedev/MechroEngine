@@ -80,7 +80,6 @@ private:
 	std::map<StringID, Shader*>			m_shaders;
 	std::map<StringID, Mesh*>			m_meshes;
 	std::map<StringID, Font*>			m_fonts;
-
 };
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

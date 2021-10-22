@@ -41,7 +41,7 @@ const VertexAttribute VertexLit::ATTRIBUTES[] =
 	VertexAttribute("COLOR",		RDT_UNSIGNED_BYTE_NORM_TO_FLOAT,	4,	offsetof(VertexLit, m_color)),
 	VertexAttribute("UV",			RDT_FLOAT,							2,	offsetof(VertexLit, m_texUVs)),
 	VertexAttribute("NORMAL",		RDT_FLOAT,							3,	offsetof(VertexLit, m_normal)),
-	VertexAttribute("TANGENT",		RDT_FLOAT,							3,	offsetof(VertexLit, m_tangent))
+	VertexAttribute("TANGENT",		RDT_FLOAT,							4,	offsetof(VertexLit, m_tangent))
 };
 
 const uint32 VertexLit::NUM_ATTRIBUTES = (sizeof(ATTRIBUTES) / sizeof(VertexAttribute));
