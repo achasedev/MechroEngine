@@ -47,7 +47,7 @@ void DrawCall::SetFromRenderable(const Renderable& renderable, uint32 drawCallIn
 // Sets the light data for the given index to be of the light given
 void DrawCall::SetLight(int lightIndex, Light* light)
 {
-	ASSERT_RETURN(lightIndex > 0 && lightIndex < MAX_NUMBER_OF_LIGHTS, NO_RETURN_VAL, "Bad index!");
+	ASSERT_RETURN(lightIndex >= 0 && lightIndex < MAX_NUMBER_OF_LIGHTS, NO_RETURN_VAL, "Bad index!");
 	m_lights[lightIndex] = light;
 }
 

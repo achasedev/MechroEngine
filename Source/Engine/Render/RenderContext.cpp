@@ -65,7 +65,7 @@ struct FrameTimeBufferData
 
 struct LightBufferData
 {
-	Vector4		m_ambience;	// xyz color, w intensity
+	Vector4		m_ambience = Vector4::ONES;	// xyz color, w intensity
 	LightData	m_lights[MAX_NUMBER_OF_LIGHTS];
 };
 
@@ -304,9 +304,18 @@ void RenderContext::UpdateLightUBO(const Rgba& ambience, Light* lights, int numL
 	LightBufferData data;
 	data.m_ambience = ambience.GetAsFloats();
 
-	for (int i = 0; i < numLights; ++i)
+	for (int i = 0; i < MAX_NUMBER_OF_LIGHTS; ++i)
 	{
-		data.m_lights[i] = lights[i].GetLightData();
+		if (i < numLights)
+		{
+			data.m_lights[i] = lights[i].GetLightData();
+		}
+		else
+		{
+			// Disable all unused lights by turning their intensity to 0
+			data.m_lights[i].m_color.w = 0.f;
+			data.m_lights[i].m_attenuation = Vector3(1.f, 0.f, 0.f);
+		}
 	}
 
 	m_lightUBO.CopyToGPU(&data, sizeof(LightBufferData));

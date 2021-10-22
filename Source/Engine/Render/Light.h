@@ -32,10 +32,10 @@ struct LightData
 	Vector3 m_lightDirection = Vector3::ZERO;
 	float	m_dotInnerAngle = 0.f;
 
-	Vector3 m_attenuation = Vector3::ZERO;
+	Vector3 m_attenuation = Vector3(1.f, 0.f, 0.f);
 	float	m_directionFactor = 0.f;
 
-	Vector4 m_color = Vector4::ZERO;
+	Vector4 m_color = Vector4(0.f, 0.f, 0.f, 0.f);
 
 	Matrix4 m_shadowVP;
 
