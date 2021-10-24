@@ -12,7 +12,7 @@
 #include "Engine/Core/Rgba.h"
 #include "Engine/Math/Transform.h"
 #include "Engine/Math/Vector3.h"
-#include "Engine/Render/Shader.h"
+#include "Engine/Render/Shader/Shader.h"
 #include "Engine/Time/FrameTimer.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

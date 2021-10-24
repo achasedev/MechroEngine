@@ -1,17 +1,15 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: March 15th, 2020
+/// Date Created: Oct 24th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/Matrix4.h"
 #include "Engine/Core/EngineCommon.h"
-#include "Engine/Render/Light.h"
-#include "Engine/Render/Shader/Shader.h"
+#include "Engine/Render/Shader/ConstantBufferDescription.h"
+#include "Engine/Render/Shader/ConstantVariableDescription.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -20,55 +18,56 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Mesh;
-class Material;
-class Renderable;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// CLASS DECLARATIONS
+/// C FUNCTIONS
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class DrawCall
+// Constructor
+ConstantBufferDescription::ConstantBufferDescription(const StringID& name, int bindSlot, int byteSize)
+	: m_name(name)
+	, m_bindSlot(bindSlot)
+	, m_byteSize(byteSize)
 {
-public:
-	//-----Public Methods-----
+}
 
-	void		SetFromRenderable(const Renderable& renderable, uint32 drawCallIndex);
-	void		SetAmbience(const Rgba& ambience) { m_ambience = ambience; }
-	void		SetNumLightsInUse(int numLights) { m_numLightsInUse = numLights; }
-	void		SetLight(int lightIndex, Light* light);
 
-	Mesh*		GetMesh() const { return m_mesh; }
-	Material*	GetMaterial() const { return m_material; }
-	Matrix4		GetModelMatrix() const { return m_modelMatrix; }
-	int			GetSortOrder() const;
-	Light*		GetLights() const { return m_lights[0]; }
-	int			GetNumLights() const { return m_numLightsInUse; }
-	Rgba		GetAmbience() const { return m_ambience; }
+//-------------------------------------------------------------------------------------------------
+// Adds a description for a variable within this buffer
+void ConstantBufferDescription::AddVariableDescription(ConstantVariableDescription* varDescription)
+{
+	m_variableDescriptions.push_back(varDescription);
+}
 
-private:
-	//-----Private Data-----
 
-	Mesh*			m_mesh = nullptr;
-	Material*		m_material = nullptr;
-	Matrix4			m_modelMatrix;
+//-------------------------------------------------------------------------------------------------
+// Returns the variable description at the given index
+const ConstantVariableDescription* ConstantBufferDescription::GetVariableDescription(int index) const
+{
+	return m_variableDescriptions[index];
+}
 
-	// For sorting in the ForwardRenderer
-	int				m_renderLayer = 0;
-	RenderQueue		m_renderQueue = RENDER_QUEUE_OPAQUE;
 
-	// Lights
-	Rgba			m_ambience = Rgba::WHITE;
-	int				m_numLightsInUse = 0;
-	Light*			m_lights[MAX_NUMBER_OF_LIGHTS];
+//-------------------------------------------------------------------------------------------------
+// Returns the variable description with the given name
+const ConstantVariableDescription* ConstantBufferDescription::GetVariableDescription(const StringID& variableName) const
+{
+	for (ConstantVariableDescription* desc : m_variableDescriptions)
+	{
+		if (desc->GetName() == variableName)
+		{
+			return desc;
+		}
+	}
 
-};
-
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// C FUNCTIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
+	return nullptr;
+}

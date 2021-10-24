@@ -13,7 +13,7 @@
 #include "Engine/Render/Font/Font.h"
 #include "Engine/Render/Material.h"
 #include "Engine/Render/Mesh/MeshBuilder.h"
-#include "Engine/Render/Shader.h"
+#include "Engine/Render/Shader/Shader.h"
 #include "Engine/Render/Texture/Texture2D.h"
 #include "Engine/Render/Texture/TextureCube.h"
 #include "Engine/Resource/ResourceSystem.h"

@@ -49,6 +49,14 @@ struct ID3D11DeviceContext;
 struct IDXGISwapChain;
 struct ID3D11Texture2D;
 
+enum ConstantBufferSlot
+{
+	CONSTANT_BUFFER_SLOT_FRAME_TIME = 1,
+	CONSTANT_BUFFER_SLOT_CAMERA = 2,
+	CONSTANT_BUFFER_SLOT_MODEL_MATRIX = 3,
+	CONSTANT_BUFFER_SLOT_LIGHT = 4
+};
+
 enum SamplerMode
 {
 	SAMPLER_MODE_POINT,

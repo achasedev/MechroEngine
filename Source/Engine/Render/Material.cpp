@@ -11,7 +11,7 @@
 #include "Engine/Core/EngineCommon.h"
 #include "Engine/IO/File.h"
 #include "Engine/Render/Material.h"
-#include "Engine/Render/Shader.h"
+#include "Engine/Render/Shader/Shader.h"
 #include "Engine/Render/Texture/Texture2D.h"
 #include "Engine/Render/Texture/TextureCube.h"
 #include "Engine/Render/View/ShaderResourceView.h"

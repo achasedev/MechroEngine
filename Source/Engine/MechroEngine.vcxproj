@@ -196,6 +196,8 @@
     <ClCompile Include="Render\ForwardRenderer.cpp" />
     <ClCompile Include="Render\Light.cpp" />
     <ClCompile Include="Render\RenderScene.cpp" />
+    <ClCompile Include="Render\Shader\ConstantBufferDescription.cpp" />
+    <ClCompile Include="Render\Shader\ConstantVariableDescription.cpp" />
     <ClCompile Include="Render\Skybox.cpp" />
     <ClCompile Include="Render\Texture\TextureCube.cpp" />
     <ClCompile Include="Resource\Resource.cpp" />
@@ -235,7 +237,7 @@
     <ClCompile Include="Render\Buffer\RenderBuffer.cpp" />
     <ClCompile Include="Render\RenderContext.cpp" />
     <ClCompile Include="Render\Sampler.cpp" />
-    <ClCompile Include="Render\Shader.cpp" />
+    <ClCompile Include="Render\Shader\Shader.cpp" />
     <ClCompile Include="Render\Texture\Texture.cpp" />
     <ClCompile Include="Render\Texture\Texture2D.cpp" />
     <ClCompile Include="Render\Buffer\UniformBuffer.cpp" />
@@ -322,6 +324,8 @@
     <ClInclude Include="Render\ForwardRenderer.h" />
     <ClInclude Include="Render\Light.h" />
     <ClInclude Include="Render\RenderScene.h" />
+    <ClInclude Include="Render\Shader\ConstantBufferDescription.h" />
+    <ClInclude Include="Render\Shader\ConstantVariableDescription.h" />
     <ClInclude Include="Render\Skybox.h" />
     <ClInclude Include="Render\Texture\TextureCube.h" />
     <ClInclude Include="Resource\Resource.h" />
@@ -372,7 +376,7 @@
     <ClInclude Include="Render\Renderable.h" />
     <ClInclude Include="Render\Buffer\RenderBuffer.h" />
     <ClInclude Include="Render\Sampler.h" />
-    <ClInclude Include="Render\Shader.h" />
+    <ClInclude Include="Render\Shader\Shader.h" />
     <ClInclude Include="Render\View\DepthStencilTargetView.h" />
     <ClInclude Include="Render\Texture\Texture.h" />
     <ClInclude Include="Render\Texture\Texture2D.h" />

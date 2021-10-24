@@ -1,17 +1,14 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: March 15th, 2020
-/// Description: 
+/// Date Created: Oct 24th, 2021
+/// Description: Class to describe a single variable in a constant buffer
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/Matrix4.h"
-#include "Engine/Core/EngineCommon.h"
-#include "Engine/Render/Light.h"
-#include "Engine/Render/Shader/Shader.h"
+#include "Engine/Utility/StringID.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -20,9 +17,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Mesh;
-class Material;
-class Renderable;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -33,39 +27,24 @@ class Renderable;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class DrawCall
+class ConstantVariableDescription
 {
 public:
 	//-----Public Methods-----
 
-	void		SetFromRenderable(const Renderable& renderable, uint32 drawCallIndex);
-	void		SetAmbience(const Rgba& ambience) { m_ambience = ambience; }
-	void		SetNumLightsInUse(int numLights) { m_numLightsInUse = numLights; }
-	void		SetLight(int lightIndex, Light* light);
+	ConstantVariableDescription(const StringID& name, int byteOffset, int byteSize);
 
-	Mesh*		GetMesh() const { return m_mesh; }
-	Material*	GetMaterial() const { return m_material; }
-	Matrix4		GetModelMatrix() const { return m_modelMatrix; }
-	int			GetSortOrder() const;
-	Light*		GetLights() const { return m_lights[0]; }
-	int			GetNumLights() const { return m_numLightsInUse; }
-	Rgba		GetAmbience() const { return m_ambience; }
+	StringID	GetName() const { return m_name; }
+	int			GetByteOffset() const { return m_byteOffset; }
+	int			GetByteSize() const { return m_byteSize; }
 
+	
 private:
 	//-----Private Data-----
 
-	Mesh*			m_mesh = nullptr;
-	Material*		m_material = nullptr;
-	Matrix4			m_modelMatrix;
-
-	// For sorting in the ForwardRenderer
-	int				m_renderLayer = 0;
-	RenderQueue		m_renderQueue = RENDER_QUEUE_OPAQUE;
-
-	// Lights
-	Rgba			m_ambience = Rgba::WHITE;
-	int				m_numLightsInUse = 0;
-	Light*			m_lights[MAX_NUMBER_OF_LIGHTS];
+	StringID	m_name;
+	int			m_byteOffset = -1;
+	int			m_byteSize = -1;
 
 };
 

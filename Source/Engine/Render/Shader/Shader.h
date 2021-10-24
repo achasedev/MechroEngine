@@ -11,6 +11,7 @@
 #include "Engine/Math/AABB2.h"
 #include "Engine/Render/DX11Common.h"
 #include "Engine/Resource/Resource.h"
+#include <vector>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -24,6 +25,7 @@ struct ID3D11PixelShader;
 struct ID3D11Resource;
 struct ID3D11RasterizerState;
 struct ID3D11VertexShader;
+class ConstantBufferDescription;
 class VertexLayout;
 
 // Vertex information
@@ -136,28 +138,38 @@ public:
 	ShaderStage() {}
 	~ShaderStage();
 
-	void				Clear();
-	bool				LoadFromShaderSource(const char* filename, const void* source, const size_t sourceByteSize, ShaderStageType stageType);
-	bool				IsValid() const { return m_handle != nullptr; }
+	void								Clear();
+	bool								LoadFromShaderSource(const char* filename, const void* source, const size_t sourceByteSize, ShaderStageType stageType);
+	bool								IsValid() const { return m_dxHandle != nullptr; }
 
-	ID3D11VertexShader* GetAsVertexShader() const { return m_vertexShader; }
-	ID3D11PixelShader*	GetAsFragmentShader() const { return m_fragmentShader; }
-	ID3DBlob*			GetCompiledSource() const { return m_compiledSource; }
+	ID3D11VertexShader*					GetAsVertexShader() const { return m_dxVertexShader; }
+	ID3D11PixelShader*					GetAsFragmentShader() const { return m_dxFragmentShader; }
+	ID3DBlob*							GetCompiledSource() const { return m_dxCompiledSource; }
+
+	const ConstantBufferDescription*	GetBufferDescription(int bindPoint) const;
+	const ConstantBufferDescription*	GetBufferDescription(const StringID& bufferName) const;
+
+
+private:
+	//-----Private Methods-----
+
+	void								SetUpReflection();
 
 
 private:
 	//-----Private Data-----
 
 	ShaderStageType m_stageType = SHADER_STAGE_INVALID;
-	ID3DBlob* m_compiledSource = nullptr;
+	ID3DBlob* m_dxCompiledSource = nullptr;
+	ID3D11ShaderReflection* m_dxReflector = nullptr;
+	std::vector<ConstantBufferDescription*> m_constantBufferDescriptions;
 
 	union
 	{
-		ID3D11Resource*		m_handle = nullptr;
-		ID3D11VertexShader* m_vertexShader;
-		ID3D11PixelShader*	m_fragmentShader;
+		ID3D11Resource*		m_dxHandle = nullptr;
+		ID3D11VertexShader* m_dxVertexShader;
+		ID3D11PixelShader*	m_dxFragmentShader;
 	};
-
 };
 
 //-------------------------------------------------------------------------------------------------
@@ -190,7 +202,7 @@ public:
 
 	bool						IsDirty() const;
 	FillMode					GetFillMode() const { return m_fillMode; }
-	bool						IsUsingLights() const { return m_isUsingLights; }
+	bool						IsUsingLights() const;
 
 	ID3D11VertexShader*			GetVertexStage() const { return m_vertexShader.GetAsVertexShader(); }
 	ID3D11PixelShader*			GetFragmentStage() const { return m_fragmentShader.GetAsFragmentShader(); }
@@ -222,8 +234,6 @@ private:
 	DepthMode					m_depthMode = DEPTH_MODE_LESS_THAN;
 	ID3D11DepthStencilState*	m_dxDepthState = nullptr;
 	bool						m_depthStateDirty = true;
-
-	bool						m_isUsingLights = false; // TODO: Shader reflection?
 
 	// For sorting in the ForwardRenderer
 	int							m_renderLayer = 0;

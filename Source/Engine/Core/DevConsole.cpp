@@ -18,7 +18,7 @@
 #include "Engine/Render/Camera.h"
 #include "Engine/Render/RenderContext.h"
 #include "Engine/Render/Material.h"
-#include "Engine/Render/Shader.h"
+#include "Engine/Render/Shader/Shader.h"
 #include "Engine/Render/Texture/Texture2D.h"
 #include "Engine/UI/Canvas.h"
 #include "Engine/UI/UIImage.h"

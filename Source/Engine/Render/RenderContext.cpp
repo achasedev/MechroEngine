@@ -31,7 +31,7 @@
 #include "Engine/Render/Mesh/MeshBuilder.h"
 #include "Engine/Render/Mesh/Vertex.h"
 #include "Engine/Render/Sampler.h"
-#include "Engine/Render/Shader.h"
+#include "Engine/Render/Shader/Shader.h"
 #include "Engine/Render/View/RenderTargetView.h"
 #include "Engine/Render/View/ShaderResourceView.h"
 #include "Engine/Render/View/DepthStencilTargetView.h"
@@ -47,13 +47,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-enum UniformSlot
-{
-	UNIFORM_SLOT_FRAME_TIME = 1,
-	UNIFORM_SLOT_CAMERA = 2,
-	UNIFORM_SLOT_MODEL_MATRIX = 3,
-	UNIFORM_SLOT_LIGHT = 4
-};
 
 struct FrameTimeBufferData
 {
@@ -188,7 +181,7 @@ void RenderContext::BeginCamera(Camera* camera)
 
 	// Uniform Buffer
 	camera->UpdateUBO();
-	BindUniformBuffer(UNIFORM_SLOT_CAMERA, camera->GetUniformBuffer());
+	BindUniformBuffer(CONSTANT_BUFFER_SLOT_CAMERA, camera->GetUniformBuffer());
 }
 
 
@@ -268,7 +261,7 @@ void RenderContext::BindShaderResourceView(uint32 slot, ShaderResourceView* view
 	// TODO: Default the view to a sensible texture if null
 	ASSERT_OR_DIE(view != nullptr, "Null TextureView!");
 
-	BindSampler(0U, view->GetSampler());
+	BindSampler(slot, view->GetSampler());
 
 	ID3D11ShaderResourceView* dxViewHandle = view->GetDxHandle();
 	m_dxContext->PSSetShaderResources(slot, 1U, &dxViewHandle);
@@ -750,12 +743,12 @@ void RenderContext::PostDxInit()
 
 	// Model matrix UBO
 	UpdateModelMatrixUBO(Matrix4::IDENTITY);
-	BindUniformBuffer(UNIFORM_SLOT_MODEL_MATRIX, &m_modelMatrixUBO);
+	BindUniformBuffer(CONSTANT_BUFFER_SLOT_MODEL_MATRIX, &m_modelMatrixUBO);
 
 	// Light UBO
 	LightBufferData lightData;
 	m_lightUBO.CopyToGPU(&lightData, sizeof(LightBufferData));
-	BindUniformBuffer(UNIFORM_SLOT_LIGHT, &m_lightUBO);
+	BindUniformBuffer(CONSTANT_BUFFER_SLOT_LIGHT, &m_lightUBO);
 }
 
 
