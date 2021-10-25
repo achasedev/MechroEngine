@@ -12,9 +12,10 @@
 #include "Engine/IO/File.h"
 #include "Engine/Render/DX11Common.h"
 #include "Engine/Render/RenderContext.h"
-#include "Engine/Render/Shader/ConstantBufferDescription.h"
-#include "Engine/Render/Shader/ConstantVariableDescription.h"
+#include "Engine/Render/Buffer/PropertyBlockDescription.h"
+#include "Engine/Render/Buffer/PropertyDescription.h"
 #include "Engine/Render/Shader/Shader.h"
+#include "Engine/Render/Shader/ShaderDescription.h"
 #include "Engine/Render/Mesh/Vertex.h"
 #include "Engine/Utility/XMLUtils.h"
 
@@ -279,9 +280,6 @@ ShaderStage::~ShaderStage()
 //-------------------------------------------------------------------------------------------------
 void ShaderStage::Clear()
 {
-	SafeDeleteVector(m_constantBufferDescriptions);
-
-	DX_SAFE_RELEASE(m_dxReflector);
 	DX_SAFE_RELEASE(m_dxCompiledSource);
 	DX_SAFE_RELEASE(m_dxHandle);
 	m_stageType = SHADER_STAGE_INVALID;
@@ -312,100 +310,18 @@ bool ShaderStage::LoadFromShaderSource(const char* filename, const void* source,
 		dxDevice->CreateVertexShader(byteCode->GetBufferPointer(), byteCode->GetBufferSize(), nullptr, &m_dxVertexShader);
 		m_dxCompiledSource = byteCode; // Save off byte code for input layouts and reflection
 		m_stageType = SHADER_STAGE_VERTEX;
-		SetUpReflection();
 		break;
 	case SHADER_STAGE_FRAGMENT:
 		dxDevice->CreatePixelShader(byteCode->GetBufferPointer(), byteCode->GetBufferSize(), nullptr, &m_dxFragmentShader);
 		m_dxCompiledSource = byteCode; // Save off byte code for reflection
 		m_stageType = SHADER_STAGE_FRAGMENT;
-		SetUpReflection();
 		break;
 	default:
+		ERROR_AND_DIE("Bad stage type!");
 		break;
 	}
 
 	return IsValid();
-}
-
-
-//-------------------------------------------------------------------------------------------------
-// Returns the description for the buffer at the given bind point, if it exists
-const ConstantBufferDescription* ShaderStage::GetBufferDescription(int bindSlot) const
-{
-	for (ConstantBufferDescription* desc : m_constantBufferDescriptions)
-	{
-		if (desc->GetBindSlot() == bindSlot)
-		{
-			return desc;
-		}
-	}
-
-	return nullptr;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-// Returns the description for the buffer with the given name, if it exists
-const ConstantBufferDescription* ShaderStage::GetBufferDescription(const StringID& bufferName) const
-{
-	for (ConstantBufferDescription* desc : m_constantBufferDescriptions)
-	{
-		if (desc->GetName() == bufferName)
-		{
-			return desc;
-		}
-	}
-
-	return nullptr;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-// Creates a shader reflection object to read uniforms on the stage
-void ShaderStage::SetUpReflection()
-{
-	HRESULT result = D3DReflect(m_dxCompiledSource->GetBufferPointer(), m_dxCompiledSource->GetBufferSize(), IID_ID3D11ShaderReflection, (void**)&m_dxReflector);
-	ASSERT_OR_DIE(SUCCEEDED(result), "Failed to set up reflection!");
-
-	D3D11_SHADER_DESC dxShaderDesc;
-	result = m_dxReflector->GetDesc(&dxShaderDesc);
-	ASSERT_OR_DIE(SUCCEEDED(result), "Couldn't get shader description!");
-
-	int buffCount = 0;
-	while (buffCount < (int)dxShaderDesc.ConstantBuffers)
-	{
-		ID3D11ShaderReflectionConstantBuffer* dxBuffer = m_dxReflector->GetConstantBufferByIndex(buffCount);
-		
-		if (dxBuffer != nullptr)
-		{
-			D3D11_SHADER_BUFFER_DESC dxBufferDesc;
-			result = dxBuffer->GetDesc(&dxBufferDesc);
-			ASSERT_OR_DIE(SUCCEEDED(result), "Couldn't get buffer description!");
-
-			D3D11_SHADER_INPUT_BIND_DESC bindDesc;
-			m_dxReflector->GetResourceBindingDescByName(dxBufferDesc.Name, &bindDesc);
-			ASSERT_OR_DIE(SUCCEEDED(result), "Couldn't get buffer binding description!");
-
-			ConstantBufferDescription* bufferDesc = new ConstantBufferDescription(SID(dxBufferDesc.Name), bindDesc.BindPoint, (int)dxBufferDesc.Size);
-
-			for (int varIndex = 0; varIndex < (int)dxBufferDesc.Variables; ++varIndex)
-			{
-				ID3D11ShaderReflectionVariable* dxVar = dxBuffer->GetVariableByIndex(varIndex);
-
-				D3D11_SHADER_VARIABLE_DESC dxVarDesc;
-				result = dxVar->GetDesc(&dxVarDesc);
-				
-				ASSERT_OR_DIE(SUCCEEDED(result), "Couldn't get variable description!");
-
-				ConstantVariableDescription* varDesc = new ConstantVariableDescription(SID(dxVarDesc.Name), (int)dxVarDesc.StartOffset, (int)dxVarDesc.Size);
-				bufferDesc->AddVariableDescription(varDesc);
-			}
-
-			m_constantBufferDescriptions.push_back(bufferDesc);
-		}
-
-		buffCount++;
-	}
 }
 
 
@@ -487,6 +403,7 @@ bool Shader::Load(const char* filepath)
 //-------------------------------------------------------------------------------------------------
 void Shader::Clear()
 {
+	SAFE_DELETE(m_description);
 	DX_SAFE_RELEASE(m_dxBlendState);
 	DX_SAFE_RELEASE(m_dxRasterizerState);
 	DX_SAFE_RELEASE(m_shaderInputLayout.m_dxInputLayout);
@@ -515,7 +432,15 @@ bool Shader::LoadAndCompileShaderSource(const char* filename)
 
 	free(shaderSource);
 
-	return m_vertexShader.IsValid() && m_fragmentShader.IsValid();
+	if (m_vertexShader.IsValid() && m_fragmentShader.IsValid())
+	{
+		m_description = new ShaderDescription();
+		m_description->Initialize(m_vertexShader.GetCompiledSource(), m_fragmentShader.GetCompiledSource());
+
+		return true;
+	}
+
+	return false;
 }
 
 
@@ -823,7 +748,7 @@ bool Shader::IsDirty() const
 
 //-------------------------------------------------------------------------------------------------
 // Returns true if the fragment shader is using light data as part of the calculation
-bool Shader::IsUsingLights() const
+bool Shader::UsesLights() const
 {
-	return (m_fragmentShader.GetBufferDescription(CONSTANT_BUFFER_SLOT_LIGHT) != nullptr);
+	return (m_description->GetBlockDescription(CONSTANT_BUFFER_SLOT_LIGHT) != nullptr);
 }

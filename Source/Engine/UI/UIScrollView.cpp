@@ -11,7 +11,7 @@
 #include "Engine/IO/Image.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Render/RenderContext.h"
-#include "Engine/Render/Material.h"
+#include "Engine/Render/Material/Material.h"
 #include "Engine/Render/Shader/Shader.h"
 #include "Engine/Resource/ResourceSystem.h"
 #include "Engine/UI/Canvas.h"

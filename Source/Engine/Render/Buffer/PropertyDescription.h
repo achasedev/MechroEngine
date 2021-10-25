@@ -1,7 +1,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
 /// Date Created: Oct 24th, 2021
-/// Description: Description for a single constant buffer in a shader
+/// Description: Class to describe a single variable in a constant buffer
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
 
@@ -9,7 +9,6 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Utility/StringID.h"
-#include <vector>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -18,7 +17,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class ConstantVariableDescription;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -29,30 +27,24 @@ class ConstantVariableDescription;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class ConstantBufferDescription
+class PropertyDescription
 {
 public:
 	//-----Public Methods-----
 
-	ConstantBufferDescription(const StringID& name, int bindSlot, int byteSize);
+	PropertyDescription(const StringID& name, int byteOffset, int byteSize);
 
-	void								AddVariableDescription(ConstantVariableDescription* varDescription);
+	StringID	GetName() const { return m_name; }
+	int			GetByteOffset() const { return m_byteOffset; }
+	int			GetByteSize() const { return m_byteSize; }
 
-	StringID							GetName() const { return m_name; }
-	int									GetVariableCount() const { return (int)m_variableDescriptions.size(); }
-	int									GetBindSlot() const { return m_bindSlot; }
-	int									GetSize() const { return m_byteSize; }
-	const ConstantVariableDescription*	GetVariableDescription(int index) const;
-	const ConstantVariableDescription*	GetVariableDescription(const StringID& variableName) const;
-
-
+	
 private:
 	//-----Private Data-----
 
-	StringID									m_name;
-	int											m_bindSlot = -1;
-	int											m_byteSize = -1;
-	std::vector<ConstantVariableDescription*>	m_variableDescriptions;
+	StringID	m_name;
+	int			m_byteOffset = -1;
+	int			m_byteSize = -1;
 
 };
 

@@ -195,9 +195,11 @@
     <ClCompile Include="Physics\RigidBody\RigidBodySpring.cpp" />
     <ClCompile Include="Render\ForwardRenderer.cpp" />
     <ClCompile Include="Render\Light.cpp" />
+    <ClCompile Include="Render\Material\MaterialPropertyBlock.cpp" />
     <ClCompile Include="Render\RenderScene.cpp" />
-    <ClCompile Include="Render\Shader\ConstantBufferDescription.cpp" />
-    <ClCompile Include="Render\Shader\ConstantVariableDescription.cpp" />
+    <ClCompile Include="Render\Buffer\PropertyBlockDescription.cpp" />
+    <ClCompile Include="Render\Buffer\PropertyDescription.cpp" />
+    <ClCompile Include="Render\Shader\ShaderDescription.cpp" />
     <ClCompile Include="Render\Skybox.cpp" />
     <ClCompile Include="Render\Texture\TextureCube.cpp" />
     <ClCompile Include="Resource\Resource.cpp" />
@@ -230,7 +232,7 @@
     <ClCompile Include="Render\Debug\DebugRenderSystem.cpp" />
     <ClCompile Include="Render\Font\Font.cpp" />
     <ClCompile Include="Render\Font\FontAtlas.cpp" />
-    <ClCompile Include="Render\Material.cpp" />
+    <ClCompile Include="Render\Material\Material.cpp" />
     <ClCompile Include="Render\Mesh\Mesh.cpp" />
     <ClCompile Include="Render\Mesh\MeshBuilder.cpp" />
     <ClCompile Include="Render\Renderable.cpp" />
@@ -240,7 +242,7 @@
     <ClCompile Include="Render\Shader\Shader.cpp" />
     <ClCompile Include="Render\Texture\Texture.cpp" />
     <ClCompile Include="Render\Texture\Texture2D.cpp" />
-    <ClCompile Include="Render\Buffer\UniformBuffer.cpp" />
+    <ClCompile Include="Render\Buffer\ConstantBuffer.cpp" />
     <ClCompile Include="Render\Mesh\Vertex.cpp" />
     <ClCompile Include="Render\Buffer\VertexBuffer.cpp" />
     <ClCompile Include="Core\Rgba.cpp" />
@@ -323,9 +325,11 @@
     <ClInclude Include="Physics\RigidBody\RigidBodySpring.h" />
     <ClInclude Include="Render\ForwardRenderer.h" />
     <ClInclude Include="Render\Light.h" />
+    <ClInclude Include="Render\Material\MaterialPropertyBlock.h" />
     <ClInclude Include="Render\RenderScene.h" />
-    <ClInclude Include="Render\Shader\ConstantBufferDescription.h" />
-    <ClInclude Include="Render\Shader\ConstantVariableDescription.h" />
+    <ClInclude Include="Render\Buffer\PropertyBlockDescription.h" />
+    <ClInclude Include="Render\Buffer\PropertyDescription.h" />
+    <ClInclude Include="Render\Shader\ShaderDescription.h" />
     <ClInclude Include="Render\Skybox.h" />
     <ClInclude Include="Render\Texture\TextureCube.h" />
     <ClInclude Include="Resource\Resource.h" />
@@ -370,7 +374,7 @@
     <ClInclude Include="Render\DrawCall.h" />
     <ClInclude Include="Render\DX11Common.h" />
     <ClInclude Include="Render\Buffer\IndexBuffer.h" />
-    <ClInclude Include="Render\Material.h" />
+    <ClInclude Include="Render\Material\Material.h" />
     <ClInclude Include="Render\Mesh\Mesh.h" />
     <ClInclude Include="Render\Mesh\MeshBuilder.h" />
     <ClInclude Include="Render\Renderable.h" />
@@ -382,7 +386,7 @@
     <ClInclude Include="Render\Texture\Texture2D.h" />
     <ClInclude Include="Render\View\ShaderResourceView.h" />
     <ClInclude Include="Render\View\TextureView.h" />
-    <ClInclude Include="Render\Buffer\UniformBuffer.h" />
+    <ClInclude Include="Render\Buffer\ConstantBuffer.h" />
     <ClInclude Include="Render\Mesh\Vertex.h" />
     <ClInclude Include="Render\Buffer\VertexBuffer.h" />
     <ClInclude Include="Core\Rgba.h" />

@@ -1,15 +1,14 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: Oct 24th, 2021
+/// Date Created: December 16th, 2019
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Render/Buffer/ConstantBuffer.h"
 #include "Engine/Core/EngineCommon.h"
-#include "Engine/Render/Shader/ConstantBufferDescription.h"
-#include "Engine/Render/Shader/ConstantVariableDescription.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -32,42 +31,17 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-// Constructor
-ConstantBufferDescription::ConstantBufferDescription(const StringID& name, int bindSlot, int byteSize)
-	: m_name(name)
-	, m_bindSlot(bindSlot)
-	, m_byteSize(byteSize)
+bool ConstantBuffer::CopyToGPU(const void* data, size_t byteSize)
 {
-}
-
-
-//-------------------------------------------------------------------------------------------------
-// Adds a description for a variable within this buffer
-void ConstantBufferDescription::AddVariableDescription(ConstantVariableDescription* varDescription)
-{
-	m_variableDescriptions.push_back(varDescription);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-// Returns the variable description at the given index
-const ConstantVariableDescription* ConstantBufferDescription::GetVariableDescription(int index) const
-{
-	return m_variableDescriptions[index];
-}
-
-
-//-------------------------------------------------------------------------------------------------
-// Returns the variable description with the given name
-const ConstantVariableDescription* ConstantBufferDescription::GetVariableDescription(const StringID& variableName) const
-{
-	for (ConstantVariableDescription* desc : m_variableDescriptions)
+	// Create the buffer if not created yet
+	if (byteSize > GetBufferSize() || IsStatic())
 	{
-		if (desc->GetName() == variableName)
-		{
-			return desc;
-		}
+		bool result = CreateOnGPU(data, byteSize, byteSize, RENDER_BUFFER_USAGE_UNIFORMS_BIT, GPU_MEMORY_USAGE_DYNAMIC);
+		return result;
 	}
 
-	return nullptr;
+	// Sanity check
+	ASSERT_OR_DIE(IsDynamic(), "UniformBuffer not dynamic!");
+
+	return RenderBuffer::CopyToGPU(data, byteSize);
 }

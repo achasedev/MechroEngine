@@ -22,7 +22,7 @@
 class DepthStencilTargetView;
 class RenderTargetView;
 class Texture2D;
-class UniformBuffer;
+class ConstantBuffer;
 
 enum CameraProjection
 {
@@ -71,7 +71,7 @@ public:
 
 	Texture2D*				GetRenderTarget() const;
 	Texture2D*				GetDepthTarget() const;
-	UniformBuffer*			GetUniformBuffer() const { return m_cameraUBO; }
+	ConstantBuffer*			GetUniformBuffer() const { return m_cameraUBO; }
 
 	RenderTargetView*		GetRenderTargetView();
 	DepthStencilTargetView*	GetDepthStencilTargetView();
@@ -119,7 +119,7 @@ private:
 	bool					m_ownsDepthTarget = false;
 
 	// Misc
-	UniformBuffer*			m_cameraUBO = nullptr;
+	ConstantBuffer*			m_cameraUBO = nullptr;
 	int						m_drawOrder = 0;
 
 };

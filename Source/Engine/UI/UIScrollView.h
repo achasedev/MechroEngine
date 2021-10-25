@@ -5,7 +5,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
 #include "Engine/DataStructures/ColoredText.h"
-#include "Engine/Render/Buffer/UniformBuffer.h"
+#include "Engine/Render/Buffer/ConstantBuffer.h"
 #include "Engine/UI/UIElement.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

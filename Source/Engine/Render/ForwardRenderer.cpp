@@ -13,7 +13,7 @@
 #include "Engine/Render/DrawCall.h"
 #include "Engine/Render/ForwardRenderer.h"
 #include "Engine/Render/Light.h"
-#include "Engine/Render/Material.h"
+#include "Engine/Render/Material/Material.h"
 #include "Engine/Render/Renderable.h"
 #include "Engine/Render/RenderContext.h"
 #include "Engine/Render/RenderScene.h"
@@ -147,7 +147,7 @@ void ForwardRenderer::ConstructDrawCallsForRenderable(const Renderable& renderab
 
 		// Compute which lights contribute the most to this renderable
 		Material* material = renderable.GetDraw(dcIndex).m_material;
-		if (material->IsUsingLights())
+		if (material->UsesLights())
 		{
 			Vector3 renderablePosition = renderable.GetModelMatrix().GetTVector().xyz();
 			ComputeLightsForDrawCall(dc, scene, renderablePosition);

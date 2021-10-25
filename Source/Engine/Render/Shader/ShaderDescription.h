@@ -1,14 +1,14 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: December 16th, 2019
-/// Description: 
+/// Date Created: Oct 24th, 2021
+/// Description: Class to represent info for *both* vertex and fragment shaders
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Render/Buffer/UniformBuffer.h"
-#include "Engine/Core/EngineCommon.h"
+#include <vector>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -17,31 +17,44 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+struct ID3D11ShaderReflection;
+class PropertyDescription;
+class PropertyBlockDescription;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// C FUNCTIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// CLASS IMPLEMENTATIONS
+/// CLASS DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-bool UniformBuffer::CopyToGPU(const void* data, size_t byteSize)
+class ShaderDescription
 {
-	// Create the buffer if not created yet
-	if (byteSize > GetBufferSize() || IsStatic())
-	{
-		bool result = CreateOnGPU(data, byteSize, byteSize, RENDER_BUFFER_USAGE_UNIFORMS_BIT, GPU_MEMORY_USAGE_DYNAMIC);
-		return result;
-	}
+public:
+	//-----Public Methods-----
 
-	// Sanity check
-	ASSERT_OR_DIE(IsDynamic(), "UniformBuffer not dynamic!");
+	ShaderDescription() {}
+	~ShaderDescription();
 
-	return RenderBuffer::CopyToGPU(data, byteSize);
-}
+	void							Initialize(ID3DBlob* vertexSource, ID3DBlob* fragmentSource);
+
+	const PropertyBlockDescription*	GetBlockDescription(int bindSlot) const;
+	const PropertyBlockDescription*	GetBlockDescription(const StringID& blockName) const;
+	const PropertyDescription*		GetPropertyDescription(const StringID& propertyName) const;
+	int								GetBlockCount() const { return (int)m_propertyBlocks.size(); }
+	bool							IsValid() const { return m_dxReflector != nullptr; }
+
+
+private:
+	//-----Private Data-----
+
+	ID3D11ShaderReflection*					m_dxReflector = nullptr;
+	std::vector<PropertyBlockDescription*>	m_propertyBlocks;
+
+};
+
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// C FUNCTIONS
+///--------------------------------------------------------------------------------------------------------------------------------------------------

@@ -19,14 +19,14 @@
 #include "Engine/Math/OBB2.h"
 #include "Engine/Math/Polygon2D.h"
 #include "Engine/Math/Polygon3d.h"
-#include "Engine/Render/Buffer/UniformBuffer.h"
+#include "Engine/Render/Buffer/ConstantBuffer.h"
 #include "Engine/Render/Buffer/VertexBuffer.h"
 #include "Engine/Render/Camera.h"
 #include "Engine/Render/DrawCall.h"
 #include "Engine/Render/DX11Common.h"
 #include "Engine/Render/Renderable.h"
 #include "Engine/Render/RenderContext.h"
-#include "Engine/Render/Material.h"
+#include "Engine/Render/Material/Material.h"
 #include "Engine/Render/Mesh/Mesh.h"
 #include "Engine/Render/Mesh/MeshBuilder.h"
 #include "Engine/Render/Mesh/Vertex.h"
@@ -194,7 +194,7 @@ void RenderContext::EndCamera()
 
 
 //-------------------------------------------------------------------------------------------------
-void RenderContext::BindUniformBuffer(uint32 slot, UniformBuffer* ubo)
+void RenderContext::BindUniformBuffer(uint32 slot, ConstantBuffer* ubo)
 {
 	ID3D11Buffer *buffer = (ubo != nullptr) ? ubo->GetDxHandle() : nullptr;
 	m_dxContext->VSSetConstantBuffers(slot, 1U, &buffer);
@@ -237,8 +237,8 @@ void RenderContext::BindShader(Shader* shader)
 
 	if (m_currentShader != shader || m_currentShader->IsDirty())
 	{
-		m_dxContext->VSSetShader(shader->GetVertexStage(), 0, 0);
-		m_dxContext->PSSetShader(shader->GetFragmentStage(), 0, 0);
+		m_dxContext->VSSetShader(shader->GetDxVertexStage(), 0, 0);
+		m_dxContext->PSSetShader(shader->GetDxFragmentStage(), 0, 0);
 
 		shader->UpdateBlendState();
 		float black[] = { 0.f, 0.f, 0.f, 0.f };
@@ -369,7 +369,7 @@ void RenderContext::Draw(const DrawCall& drawCall)
 	UpdateModelMatrixUBO(drawCall.GetModelMatrix());
 
 	// Update light constant buffer
-	if (drawCall.GetMaterial()->IsUsingLights())
+	if (drawCall.GetMaterial()->UsesLights())
 	{
 		UpdateLightUBO(drawCall.GetAmbience(), drawCall.GetLights(), drawCall.GetNumLights());
 	}

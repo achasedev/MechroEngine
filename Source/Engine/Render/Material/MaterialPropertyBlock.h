@@ -1,13 +1,14 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
 /// Date Created: Oct 24th, 2021
-/// Description: Class to describe a single variable in a constant buffer
+/// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Render/Buffer/ConstantBuffer.h"
 #include "Engine/Utility/StringID.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -17,6 +18,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class PropertyBlockDescription;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -27,24 +29,32 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class ConstantVariableDescription
+class MaterialPropertyBlock
 {
 public:
 	//-----Public Methods-----
 
-	ConstantVariableDescription(const StringID& name, int byteOffset, int byteSize);
+	MaterialPropertyBlock(const PropertyBlockDescription* description);
 
-	StringID	GetName() const { return m_name; }
-	int			GetByteOffset() const { return m_byteOffset; }
-	int			GetByteSize() const { return m_byteSize; }
+	void							SetCPUData(const void* data, int dataSize, int offset);
+	void							UpdateGPUData();
 
-	
+	StringID						GetName() const;
+	const PropertyBlockDescription*	GetDescription() const { return m_description; }
+
+	template <typename T>
+	void SetCPUData(const T& data, size_t offset) { SetCPUData(&data, sizeof(T), offset); }
+
+
 private:
 	//-----Private Data-----
 
-	StringID	m_name;
-	int			m_byteOffset = -1;
-	int			m_byteSize = -1;
+	void*							m_cpuData = nullptr;
+	size_t							m_cpuDataSize = 0;
+	bool							m_gpuNeedsUpdate = false;
+
+	ConstantBuffer					m_buffer;
+	const PropertyBlockDescription*	m_description = nullptr;
 
 };
 

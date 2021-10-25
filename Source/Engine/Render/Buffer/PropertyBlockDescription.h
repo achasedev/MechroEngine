@@ -1,14 +1,15 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
 /// Date Created: Oct 24th, 2021
-/// Description: 
+/// Description: Description for a single constant buffer in a shader
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Core/EngineCommon.h"
-#include "Engine/Render/Shader/ConstantVariableDescription.h"
+#include "Engine/Utility/StringID.h"
+#include <vector>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -17,24 +18,45 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class PropertyDescription;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// C FUNCTIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// CLASS IMPLEMENTATIONS
+/// CLASS DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-// Constructor
-ConstantVariableDescription::ConstantVariableDescription(const StringID& name, int byteOffset, int byteSize)
-	: m_name(name)
-	, m_byteOffset(byteOffset)
-	, m_byteSize(byteSize)
+class PropertyBlockDescription
 {
-}
+public:
+	//-----Public Methods-----
+
+	PropertyBlockDescription(const StringID& name, int bindSlot, int byteSize);
+	~PropertyBlockDescription();
+
+	void						AddPropertyDescription(PropertyDescription* description);
+
+	StringID					GetName() const { return m_name; }
+	int							GetPropertyCount() const { return (int)m_propertyDescriptions.size(); }
+	int							GetBindSlot() const { return m_bindSlot; }
+	int							GetSize() const { return m_byteSize; }
+	const PropertyDescription*	GetPropertyDescription(int index) const;
+	const PropertyDescription*	GetPropertyDescription(const StringID& variableName) const;
+
+
+private:
+	//-----Private Data-----
+
+	StringID							m_name;
+	int									m_bindSlot = -1;
+	int									m_byteSize = -1;
+	std::vector<PropertyDescription*>	m_propertyDescriptions;
+
+};
+
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// C FUNCTIONS
+///--------------------------------------------------------------------------------------------------------------------------------------------------

@@ -14,7 +14,7 @@
 #include "Engine/Render/Debug/DebugRenderSystem.h"
 #include "Engine/Render/Debug/DebugRenderTask.h"
 #include "Engine/Resource/ResourceSystem.h"
-#include "Engine/Render/Material.h"
+#include "Engine/Render/Material/Material.h"
 #include "Engine/Render/Texture/Texture2D.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

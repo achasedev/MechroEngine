@@ -17,7 +17,7 @@
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Render/Camera.h"
 #include "Engine/Render/RenderContext.h"
-#include "Engine/Render/Material.h"
+#include "Engine/Render/Material/Material.h"
 #include "Engine/Render/Shader/Shader.h"
 #include "Engine/Render/Texture/Texture2D.h"
 #include "Engine/UI/Canvas.h"

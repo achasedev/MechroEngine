@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: October 20th, 2021
+/// Date Created: Oct 24th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -8,10 +8,8 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/EngineCommon.h"
-#include "Engine/Resource/ResourceSystem.h"
-#include "Engine/Render/Material/Material.h"
-#include "Engine/Render/RenderContext.h"
-#include "Engine/Render/Skybox.h"
+#include "Engine/Render/Buffer/PropertyBlockDescription.h"
+#include "Engine/Render/Buffer/PropertyDescription.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -34,17 +32,50 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-// Constructor from material
-Skybox::Skybox(Material* material)
-	: m_material(material)
+// Constructor
+PropertyBlockDescription::PropertyBlockDescription(const StringID& name, int bindSlot, int byteSize)
+	: m_name(name)
+	, m_bindSlot(bindSlot)
+	, m_byteSize(byteSize)
 {
 }
 
 
 //-------------------------------------------------------------------------------------------------
-// Draws the skybox as a unit cube around the camera
-void Skybox::Render() const
+// Destructor
+PropertyBlockDescription::~PropertyBlockDescription()
 {
-	Mesh* skyboxMesh = g_resourceSystem->CreateOrGetMesh("unit_cube");
-	g_renderContext->DrawMeshWithMaterial(*skyboxMesh, m_material);
+	SafeDeleteVector(m_propertyDescriptions);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Adds a description for a variable within this buffer
+void PropertyBlockDescription::AddPropertyDescription(PropertyDescription* description)
+{
+	m_propertyDescriptions.push_back(description);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Returns the variable description at the given index (in order they are organized in the block)
+const PropertyDescription* PropertyBlockDescription::GetPropertyDescription(int index) const
+{
+	return m_propertyDescriptions[index];
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Returns the variable description with the given name
+const PropertyDescription* PropertyBlockDescription::GetPropertyDescription(const StringID& propertyName) const
+{
+	for (PropertyDescription* desc : m_propertyDescriptions)
+	{
+		if (desc->GetName() == propertyName)
+		{
+			return desc;
+		}
+	}
+
+	return nullptr;
 }

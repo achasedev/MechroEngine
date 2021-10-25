@@ -8,7 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Render/Buffer/UniformBuffer.h"
+#include "Engine/Render/Buffer/ConstantBuffer.h"
 #include "Engine/Render/Mesh/Mesh.h"
 #include "Engine/Core/EngineCommon.h"
 #include <string>
@@ -16,6 +16,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#define ENGINE_RESERVED_CONSTANT_BUFFER_COUNT 8
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
@@ -40,7 +41,7 @@ class ShaderResourceView;
 class Texture2D;
 class TextureCube;
 class Transform;
-class UniformBuffer;
+class ConstantBuffer;
 class VertexBuffer;
 class VertexLayout;
 struct ID3D11Debug;
@@ -49,12 +50,12 @@ struct ID3D11DeviceContext;
 struct IDXGISwapChain;
 struct ID3D11Texture2D;
 
-enum ConstantBufferSlot
+enum ConstantBufferSlot : uint32
 {
-	CONSTANT_BUFFER_SLOT_FRAME_TIME = 1,
-	CONSTANT_BUFFER_SLOT_CAMERA = 2,
-	CONSTANT_BUFFER_SLOT_MODEL_MATRIX = 3,
-	CONSTANT_BUFFER_SLOT_LIGHT = 4
+	CONSTANT_BUFFER_SLOT_FRAME_TIME = 0,
+	CONSTANT_BUFFER_SLOT_CAMERA = 1,
+	CONSTANT_BUFFER_SLOT_MODEL_MATRIX = 2,
+	CONSTANT_BUFFER_SLOT_LIGHT = 3,
 };
 
 enum SamplerMode
@@ -87,7 +88,7 @@ public:
 	void								BeginCamera(Camera* camera);
 	void								EndCamera();
 
-	void								BindUniformBuffer(uint32 slot, UniformBuffer* ubo);
+	void								BindUniformBuffer(uint32 slot, ConstantBuffer* ubo);
 	void								BindMaterial(Material* material);
 	void								BindShader(Shader* shader);
 	void								BindShaderResourceView(uint32 slot, ShaderResourceView* view);
@@ -157,8 +158,8 @@ private:
 	Texture2D*				m_defaultColorTarget = nullptr;
 	Texture2D*				m_defaultDepthStencilTarget = nullptr;
 	Mesh					m_immediateMesh;
-	UniformBuffer			m_modelMatrixUBO;
-	UniformBuffer			m_lightUBO;
+	ConstantBuffer			m_modelMatrixUBO;
+	ConstantBuffer			m_lightUBO;
 
 	// Sampler
 	SamplerMode				m_samplerMode = SAMPLER_MODE_LINEAR;

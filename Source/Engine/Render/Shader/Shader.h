@@ -25,8 +25,8 @@ struct ID3D11PixelShader;
 struct ID3D11Resource;
 struct ID3D11RasterizerState;
 struct ID3D11VertexShader;
-class ConstantBufferDescription;
 class VertexLayout;
+class ShaderDescription;
 
 // Vertex information
 struct ShaderInputLayout
@@ -146,23 +146,12 @@ public:
 	ID3D11PixelShader*					GetAsFragmentShader() const { return m_dxFragmentShader; }
 	ID3DBlob*							GetCompiledSource() const { return m_dxCompiledSource; }
 
-	const ConstantBufferDescription*	GetBufferDescription(int bindPoint) const;
-	const ConstantBufferDescription*	GetBufferDescription(const StringID& bufferName) const;
-
-
-private:
-	//-----Private Methods-----
-
-	void								SetUpReflection();
-
 
 private:
 	//-----Private Data-----
 
-	ShaderStageType m_stageType = SHADER_STAGE_INVALID;
-	ID3DBlob* m_dxCompiledSource = nullptr;
-	ID3D11ShaderReflection* m_dxReflector = nullptr;
-	std::vector<ConstantBufferDescription*> m_constantBufferDescriptions;
+	ShaderStageType			m_stageType = SHADER_STAGE_INVALID;
+	ID3DBlob*				m_dxCompiledSource = nullptr;
 
 	union
 	{
@@ -202,14 +191,17 @@ public:
 
 	bool						IsDirty() const;
 	FillMode					GetFillMode() const { return m_fillMode; }
-	bool						IsUsingLights() const;
+	bool						UsesLights() const;
 
-	ID3D11VertexShader*			GetVertexStage() const { return m_vertexShader.GetAsVertexShader(); }
-	ID3D11PixelShader*			GetFragmentStage() const { return m_fragmentShader.GetAsFragmentShader(); }
+	ShaderStage					GetVertexStage() const { return m_vertexShader; }
+	ShaderStage					GetFragmentStage() const { return m_fragmentShader; }
+	ID3D11VertexShader*			GetDxVertexStage() const { return m_vertexShader.GetAsVertexShader(); }
+	ID3D11PixelShader*			GetDxFragmentStage() const { return m_fragmentShader.GetAsFragmentShader(); }
 	ID3D11InputLayout*			GetInputLayout() const { return m_shaderInputLayout.m_dxInputLayout; }
 	ID3D11BlendState*			GetDxBlendState() const { return m_dxBlendState; }
 	ID3D11RasterizerState*		GetDxRasterizerState() const { return m_dxRasterizerState; }
 	ID3D11DepthStencilState*	GetDxDepthState() const { return m_dxDepthState; }
+	ShaderDescription*			GetDescription() const { return m_description; }
 
 
 private:
@@ -218,6 +210,7 @@ private:
 	ShaderStage					m_vertexShader;
 	ShaderStage					m_fragmentShader;
 	ShaderInputLayout			m_shaderInputLayout;
+	ShaderDescription*			m_description = nullptr;
 
 	BlendInfo					m_colorBlend;
 	BlendInfo					m_alphaBlend;

@@ -12,7 +12,7 @@
 #include "Engine/Render/RenderContext.h"
 #include "Engine/Render/Font/Font.h"
 #include "Engine/Render/Font/FontAtlas.h"
-#include "Engine/Render/Material.h"
+#include "Engine/Render/Material/Material.h"
 #include "Engine/Render/Mesh/MeshBuilder.h"
 #include "Engine/Render/Texture/Texture2D.h"
 #include "Engine/Resource/ResourceSystem.h"

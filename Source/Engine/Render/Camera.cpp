@@ -9,7 +9,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/DevConsole.h"
 #include "Engine/Event/EventSystem.h"
-#include "Engine/Render/Buffer/UniformBuffer.h"
+#include "Engine/Render/Buffer/ConstantBuffer.h"
 #include "Engine/Render/Camera.h"
 #include "Engine/Render/RenderContext.h"
 #include "Engine/Core/EngineCommon.h"
@@ -197,7 +197,7 @@ void Camera::UpdateUBO()
 	// Lazy instantiation
 	if (m_cameraUBO == nullptr)
 	{
-		m_cameraUBO = new UniformBuffer();
+		m_cameraUBO = new ConstantBuffer();
 	}
 
 	CameraUBOLayout cameraData;

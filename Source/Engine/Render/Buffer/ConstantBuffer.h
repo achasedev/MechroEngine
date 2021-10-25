@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: March 15th, 2020
+/// Date Created: December 15th, 2019
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,10 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Utility/StringID.h"
-#include "Engine/Resource/Resource.h"
-#include "Engine/Render/View/ShaderResourceView.h"
-#include <string>
+#include "Engine/Render/Buffer/RenderBuffer.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -20,7 +17,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Shader;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -31,35 +27,17 @@ class Shader;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Material : public Resource
+class ConstantBuffer : public RenderBuffer
 {
 public:
 	//-----Public Methods-----
 
-	Material();
+	ConstantBuffer() {}
+	~ConstantBuffer() {}
 
-	bool					Load(const char* filepath);
-	void					Clear();
-
-	void					SetShader(Shader* shader);
-	void					SetShaderResourceView(uint32 slot, ShaderResourceView* textureView);
-	void					SetAlbedoTextureView(ShaderResourceView* albedoView);
-	void					SetNormalTextureView(ShaderResourceView* albedoView);
-
-	Shader*					GetShader() const							{ return m_shader; }
-	ShaderResourceView*		GetShaderResourceView(uint32 slot) const	{ return m_shaderResourceViews[slot]; }
-	ShaderResourceView*		GetAlbedo() const							{ return m_shaderResourceViews[SRV_SLOT_ALBEDO]; }
-	bool					IsUsingLights() const;
-
-
-private:
-	//-----Private Data-----
-
-	Shader*					m_shader = nullptr;
-	ShaderResourceView*		m_shaderResourceViews[MAX_SRV_SLOTS];
+	bool CopyToGPU(const void* data, size_t byteSize);
 
 };
-
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
