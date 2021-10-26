@@ -20,6 +20,7 @@
 #include "Engine/Math/Polygon2D.h"
 #include "Engine/Math/Polygon3d.h"
 #include "Engine/Render/Buffer/ConstantBuffer.h"
+#include "Engine/Render/Buffer/PropertyBlockDescription.h"
 #include "Engine/Render/Buffer/VertexBuffer.h"
 #include "Engine/Render/Camera.h"
 #include "Engine/Render/DrawCall.h"
@@ -27,6 +28,7 @@
 #include "Engine/Render/Renderable.h"
 #include "Engine/Render/RenderContext.h"
 #include "Engine/Render/Material/Material.h"
+#include "Engine/Render/Material/MaterialPropertyBlock.h"
 #include "Engine/Render/Mesh/Mesh.h"
 #include "Engine/Render/Mesh/MeshBuilder.h"
 #include "Engine/Render/Mesh/Vertex.h"
@@ -223,6 +225,28 @@ void RenderContext::BindMaterial(Material* material)
 
 	// Bind Shader
 	BindShader(material->GetShader());
+
+	// Bind property blocks (constant buffers)
+	int numBlocks = material->GetPropertyBlockCount();
+	
+	for (int i = 0; i < numBlocks; ++i)
+	{
+		MaterialPropertyBlock* block = material->GetPropertyBlockAtIndex(i);
+
+		// Make sure GPU is up-to-date
+		block->UpdateGPUData();
+
+		// Make sure block has valid bind slots
+		int bindSlot = block->GetDescription()->GetBindSlot();
+		if (bindSlot < ENGINE_RESERVED_CONSTANT_BUFFER_COUNT)
+		{
+			ConsoleLogErrorf("Material %s has a property block with a reserved bind slot!", material->GetResourceID().ToString());
+		}
+		else
+		{
+			BindUniformBuffer(block->GetDescription()->GetBindSlot(), block->GetConstantBuffer());
+		}
+	}
 }
 
 

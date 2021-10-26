@@ -102,6 +102,9 @@ bool Material::Load(const char* filepath)
 		SetNormalTextureView(normal->CreateOrGetShaderResourceView());
 	}
 
+	// Property blocks
+
+
 	return true;
 }
 
@@ -165,7 +168,7 @@ bool Material::UsesLights() const
 
 //-------------------------------------------------------------------------------------------------
 // Returns the block with the given name, nullptr if it's not created yet
-MaterialPropertyBlock* Material::GetPropertyBlock(const StringID& blockName) const
+MaterialPropertyBlock* Material::GetPropertyBlockByName(const StringID& blockName) const
 {
 	for (MaterialPropertyBlock* block : m_propertyBlocks)
 	{
@@ -180,8 +183,16 @@ MaterialPropertyBlock* Material::GetPropertyBlock(const StringID& blockName) con
 
 
 //-------------------------------------------------------------------------------------------------
+// Returns the property block at the given index
+MaterialPropertyBlock* Material::GetPropertyBlockAtIndex(int index) const
+{
+	return m_propertyBlocks[index];
+}
+
+
+//-------------------------------------------------------------------------------------------------
 // Returns the property block that binds to the given bind slot, nullptr if it's not created yet
-MaterialPropertyBlock* Material::GetPropertyBlock(int bindSlot) const
+MaterialPropertyBlock* Material::GetPropertyBlockAtBindSlot(int bindSlot) const
 {
 	for (MaterialPropertyBlock* block : m_propertyBlocks)
 	{
@@ -205,7 +216,7 @@ bool Material::SetProperty(const StringID& propertyName, const void* data, int b
 
 	for (int blockIndex = 0; blockIndex < numBlocksOnShader; ++blockIndex)
 	{
-		const PropertyBlockDescription* blockDescription = shaderDesc->GetBlockDescription(blockIndex);
+		const PropertyBlockDescription* blockDescription = shaderDesc->GetBlockDescriptionAtIndex(blockIndex);
 
 		// If the constant buffer slot is an engine reserved one, continue without checking properties
 		if (blockDescription->GetBindSlot() < ENGINE_RESERVED_CONSTANT_BUFFER_COUNT)
@@ -218,7 +229,7 @@ bool Material::SetProperty(const StringID& propertyName, const void* data, int b
 			// Found the block that contains our property!
 			// Now return (or create and return) a material property block that will hold it
 			StringID blockName = blockDescription->GetName();
-			MaterialPropertyBlock* matBlock = GetPropertyBlock(blockName);
+			MaterialPropertyBlock* matBlock = GetPropertyBlockByName(blockName);
 
 			if (matBlock == nullptr)
 			{
@@ -249,7 +260,7 @@ MaterialPropertyBlock* Material::CreatePropertyBlock(const PropertyBlockDescript
 {
 	// If the uniform block is an engine reserved one, panic
 	int bindSlot = blockDescription->GetBindSlot();
-	ASSERT_RETURN(bindSlot > ENGINE_RESERVED_CONSTANT_BUFFER_COUNT, nullptr, "Material trying to use a reserved constant buffer slot!");
+	ASSERT_RETURN(bindSlot >= ENGINE_RESERVED_CONSTANT_BUFFER_COUNT, nullptr, "Material trying to use a reserved constant buffer slot!");
 
 	// Ensure we don't duplicate bindings or names!
 	// Delete any blocks that will have the same binding or name as this block

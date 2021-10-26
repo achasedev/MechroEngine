@@ -78,7 +78,7 @@ void ShaderDescription::Initialize(ID3DBlob* dxVertexSource, ID3DBlob* dxFragmen
 				// Check to see if we've already made a description for this buffer
 				// If the vertex shader uses this constant buffer, we already made a block description for it, so don't duplicate in the fragment
 				// Since I put vertex and fragment functions in the same file, presumably if they both use the same constant buffer they're identical
-				bool alreadyExists = GetBlockDescription(dxBindDesc.BindPoint) != nullptr;
+				bool alreadyExists = GetBlockDescriptionAtBindSlot(dxBindDesc.BindPoint) != nullptr;
 				if (!alreadyExists)
 				{
 					// Doesn't exist, so make one
@@ -108,8 +108,16 @@ void ShaderDescription::Initialize(ID3DBlob* dxVertexSource, ID3DBlob* dxFragmen
 
 
 //-------------------------------------------------------------------------------------------------
+// Returns the block at the given index
+const PropertyBlockDescription* ShaderDescription::GetBlockDescriptionAtIndex(int index) const
+{
+	return m_propertyBlocks[index];
+}
+
+
+//-------------------------------------------------------------------------------------------------
 // Returns the buffer description that binds to the given slot
-const PropertyBlockDescription* ShaderDescription::GetBlockDescription(int bindSlot) const
+const PropertyBlockDescription* ShaderDescription::GetBlockDescriptionAtBindSlot(int bindSlot) const
 {
 	for (PropertyBlockDescription* desc : m_propertyBlocks)
 	{
@@ -125,7 +133,7 @@ const PropertyBlockDescription* ShaderDescription::GetBlockDescription(int bindS
 
 //-------------------------------------------------------------------------------------------------
 // Returns the buffer description with the given name, if it exists
-const PropertyBlockDescription* ShaderDescription::GetBlockDescription(const StringID& bufferName) const
+const PropertyBlockDescription* ShaderDescription::GetBlockDescriptionByName(const StringID& bufferName) const
 {
 	for (PropertyBlockDescription* desc : m_propertyBlocks)
 	{

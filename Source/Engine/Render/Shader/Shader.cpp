@@ -750,5 +750,5 @@ bool Shader::IsDirty() const
 // Returns true if the fragment shader is using light data as part of the calculation
 bool Shader::UsesLights() const
 {
-	return (m_description->GetBlockDescription(CONSTANT_BUFFER_SLOT_LIGHT) != nullptr);
+	return (m_description->GetBlockDescriptionAtBindSlot(CONSTANT_BUFFER_SLOT_LIGHT) != nullptr);
 }

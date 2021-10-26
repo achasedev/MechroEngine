@@ -36,7 +36,7 @@ bool ConstantBuffer::CopyToGPU(const void* data, size_t byteSize)
 	// Create the buffer if not created yet
 	if (byteSize > GetBufferSize() || IsStatic())
 	{
-		bool result = CreateOnGPU(data, byteSize, byteSize, RENDER_BUFFER_USAGE_UNIFORMS_BIT, GPU_MEMORY_USAGE_DYNAMIC);
+		bool result = CreateOnGPU(data, byteSize, byteSize, RENDER_BUFFER_USAGE_CONSTANT_BUFFER_BIT, GPU_MEMORY_USAGE_DYNAMIC);
 		return result;
 	}
 

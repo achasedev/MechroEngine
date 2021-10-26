@@ -40,8 +40,9 @@ public:
 
 	void							Initialize(ID3DBlob* vertexSource, ID3DBlob* fragmentSource);
 
-	const PropertyBlockDescription*	GetBlockDescription(int bindSlot) const;
-	const PropertyBlockDescription*	GetBlockDescription(const StringID& blockName) const;
+	const PropertyBlockDescription*	GetBlockDescriptionAtIndex(int index) const;
+	const PropertyBlockDescription*	GetBlockDescriptionAtBindSlot(int bindSlot) const;
+	const PropertyBlockDescription*	GetBlockDescriptionByName(const StringID& blockName) const;
 	const PropertyDescription*		GetPropertyDescription(const StringID& propertyName) const;
 	int								GetBlockCount() const { return (int)m_propertyBlocks.size(); }
 	bool							IsValid() const { return m_dxReflector != nullptr; }

@@ -15,6 +15,7 @@
 #include "Engine/Render/View/ShaderResourceView.h"
 #include "Engine/Resource/Resource.h"
 #include <string>
+#include <vector>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -42,22 +43,23 @@ public:
 
 	Material();
 
-	bool					Load(const char* filepath);
-	void					Clear();
+	bool									Load(const char* filepath);
+	void									Clear();
 
-	void					SetShader(Shader* shader);
-	void					SetShaderResourceView(uint32 slot, ShaderResourceView* textureView);
-	void					SetAlbedoTextureView(ShaderResourceView* albedoView);
-	void					SetNormalTextureView(ShaderResourceView* albedoView);
+	void									SetShader(Shader* shader);
+	void									SetShaderResourceView(uint32 slot, ShaderResourceView* textureView);
+	void									SetAlbedoTextureView(ShaderResourceView* albedoView);
+	void									SetNormalTextureView(ShaderResourceView* albedoView);
 
-	Shader*					GetShader() const							{ return m_shader; }
-	ShaderResourceView*		GetShaderResourceView(uint32 slot) const	{ return m_shaderResourceViews[slot]; }
-	ShaderResourceView*		GetAlbedo() const							{ return m_shaderResourceViews[SRV_SLOT_ALBEDO]; }
-	bool					UsesLights() const;
+	Shader*									GetShader() const							{ return m_shader; }
+	ShaderResourceView*						GetShaderResourceView(uint32 slot) const	{ return m_shaderResourceViews[slot]; }
+	ShaderResourceView*						GetAlbedo() const							{ return m_shaderResourceViews[SRV_SLOT_ALBEDO]; }
+	bool									UsesLights() const;
 
-	int						GetPropertyBlockCount() const { return (int)m_propertyBlocks.size(); }
-	MaterialPropertyBlock*	GetPropertyBlock(int bindSlot) const;
-	MaterialPropertyBlock*	GetPropertyBlock(const StringID& blockName) const;
+	int										GetPropertyBlockCount() const { return (int)m_propertyBlocks.size(); }
+	MaterialPropertyBlock*					GetPropertyBlockAtIndex(int index) const;
+	MaterialPropertyBlock*					GetPropertyBlockAtBindSlot(int bindSlot) const;
+	MaterialPropertyBlock*					GetPropertyBlockByName(const StringID& blockName) const;
 
 	bool SetProperty(const StringID& propertyName, const void* data, int byteSize);
 
@@ -99,7 +101,7 @@ bool Material::SetProperty(const StringID& propertyName, const T& value)
 template <typename T>
 bool Material::SetPropertyBlock(const StringID& blockName, const T& blockData)
 {
-	MaterialPropertyBlock* block = GetPropertyBlock(blockName);
+	MaterialPropertyBlock* block = GetPropertyBlockByName(blockName);
 
 	if (block != nullptr)
 	{
@@ -109,7 +111,7 @@ bool Material::SetPropertyBlock(const StringID& blockName, const T& blockData)
 
 	// No block exists, so see if we can create it
 	const ShaderDescription*		shaderDescription = m_shader->GetDescription();
-	const PropertyBlockDescription* blockDescription = shaderDescription->GetBlockDescription(blockName);
+	const PropertyBlockDescription* blockDescription = shaderDescription->GetBlockDescriptionByName(blockName);
 	ASSERT_RETURN(blockDescription != nullptr || blockDescription->GetBindSlot() > ENGINE_RESERVED_CONSTANT_BUFFER_COUNT, false, "Couldn't set property block!");
 
 	// Create a block and set it

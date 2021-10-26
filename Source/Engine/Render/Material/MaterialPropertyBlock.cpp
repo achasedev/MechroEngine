@@ -43,25 +43,15 @@ MaterialPropertyBlock::MaterialPropertyBlock(const PropertyBlockDescription* des
 // Sets the buffer to have the given data at the given offset. Will expand the buffer if necessary 
 void MaterialPropertyBlock::SetCPUData(const void* data, int dataSize, int offset)
 {
-	size_t requestedLimit = dataSize + offset;
+	ASSERT_RETURN(offset + dataSize < m_description->GetSize(), NO_RETURN_VAL, "Property block attempted to write off the end of the block!");
+
 	if (m_cpuData == nullptr)
 	{
 		// Make the cpu buffer
-		m_cpuData = malloc(requestedLimit);
-		m_cpuDataSize = requestedLimit;
-	}
-	else if (requestedLimit > m_cpuDataSize)
-	{
-		// Data will run off the end of this buffer, so let's expand
-		void* temp = malloc(requestedLimit);
-		std::memcpy(temp, m_cpuData, m_cpuDataSize);
-
-		free(m_cpuData);		
-		m_cpuData = temp;
-		m_cpuDataSize = requestedLimit; 
+		m_cpuData = malloc(m_description->GetSize());
 	}
 
-	// Current cpu buffer is now big enough, so copy into it with offset
+	// Copy into it with offset
 	unsigned char* dst = (unsigned char*)m_cpuData;
 
 	std::memcpy(&dst[offset], data, dataSize);
@@ -75,7 +65,7 @@ void MaterialPropertyBlock::UpdateGPUData()
 {
 	if (m_gpuNeedsUpdate)
 	{
-		m_buffer.CopyToGPU(m_cpuData, m_cpuDataSize);
+		m_buffer.CopyToGPU(m_cpuData, m_description->GetSize());
 		m_gpuNeedsUpdate = false;
 	}
 }

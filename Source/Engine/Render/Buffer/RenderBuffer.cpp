@@ -74,7 +74,7 @@ static uint32 GetDxBindFromRenderBufferFlags(RenderBufferUsageBitFlags flags)
 		dxFlags |= D3D11_BIND_INDEX_BUFFER;
 	}
 
-	if (flags & RENDER_BUFFER_USAGE_UNIFORMS_BIT)
+	if (flags & RENDER_BUFFER_USAGE_CONSTANT_BUFFER_BIT)
 	{
 		dxFlags |= D3D11_BIND_CONSTANT_BUFFER;
 	}
@@ -114,6 +114,11 @@ bool RenderBuffer::CreateOnGPU(const void* data, size_t bufferSizeBytes, size_t 
 	if (bufferSizeBytes == 0 || elementSize == 0)
 	{
 		return false;
+	}
+
+	if ((bufferUsageFlags & RENDER_BUFFER_USAGE_CONSTANT_BUFFER_BIT) == RENDER_BUFFER_USAGE_CONSTANT_BUFFER_BIT)
+	{
+		ASSERT_RETURN(bufferSizeBytes % 16 == 0, false, "Constant Buffers require data size to be a multiple of 16!");
 	}
 
 	// Static buffer needs data at creation

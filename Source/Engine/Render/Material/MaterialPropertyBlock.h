@@ -41,6 +41,7 @@ public:
 
 	StringID						GetName() const;
 	const PropertyBlockDescription*	GetDescription() const { return m_description; }
+	ConstantBuffer*					GetConstantBuffer() { return &m_buffer; }
 
 	template <typename T>
 	void SetCPUData(const T& data, size_t offset) { SetCPUData(&data, sizeof(T), offset); }
@@ -50,7 +51,6 @@ private:
 	//-----Private Data-----
 
 	void*							m_cpuData = nullptr;
-	size_t							m_cpuDataSize = 0;
 	bool							m_gpuNeedsUpdate = false;
 
 	ConstantBuffer					m_buffer;
