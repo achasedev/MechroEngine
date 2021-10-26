@@ -372,12 +372,12 @@ Mesh* QEFLoader::CreateMesh()
 	// Next line is the XYZ dimensions of the model (size of its bounding box)
 	std::string dimensionsText;
 	m_file->GetNextLine(dimensionsText);
-	IntVector3 dimensions = StringToIntVector3(dimensionsText);
+	IntVector3 dimensions = ParseAsIntVector3(dimensionsText.c_str(), IntVector3::ZERO);
 
 	// Next line is the number of unique colors used in the model
 	std::string colorCountText;
 	m_file->GetNextLine(colorCountText);
-	int numColors = StringToInt(colorCountText);
+	int numColors = ParseAsInt(colorCountText.c_str(), 0);
 
 	// Next numColor lines are the colors
 	Rgba* colors = (Rgba*)malloc(sizeof(Rgba) * numColors);
@@ -386,7 +386,7 @@ Mesh* QEFLoader::CreateMesh()
 	for (int i = 0; i < numColors; ++i)
 	{
 		m_file->GetNextLine(colorText);
-		StringToRgba(colorText, colors[i]);
+		colors[i] = ParseAsRgba(colorText.c_str(), Rgba::WHITE);
 	}
 
 	uint32 maxVoxels = dimensions.x * dimensions.y * dimensions.z;
@@ -412,15 +412,15 @@ Mesh* QEFLoader::CreateMesh()
 
 		IntVector3 position;
 
-		position.x = StringToInt(voxelTokens[0]);
-		position.y = StringToInt(voxelTokens[1]);
-		position.z = StringToInt(voxelTokens[2]);
+		position.x = ParseAsInt(voxelTokens[0].c_str(), 0);
+		position.y = ParseAsInt(voxelTokens[1].c_str(), 0);
+		position.z = ParseAsInt(voxelTokens[2].c_str(), 0);
 		
-		uint8 colorIndex = (uint8)StringToInt(voxelTokens[3]);
+		uint8 colorIndex = (uint8)ParseAsInt(voxelTokens[3].c_str(), 0);
 		colorIndices[dimensions.x * dimensions.z * position.y + dimensions.x * position.z + position.x] = colorIndex;
 
 		// Check the visibility mask to determine which faces to push
-		uint8 visibility = (uint8) StringToInt(voxelTokens[4]);
+		uint8 visibility = (uint8)ParseAsInt(voxelTokens[4].c_str(), 0);
 		visibilityMasks[dimensions.x * dimensions.z * position.y + dimensions.x * position.z + position.x] = visibility;
 
 		// Right

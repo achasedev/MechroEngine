@@ -8,6 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Utility/Maybe.h"
 #include <string>
 #include <vector>
 
@@ -43,6 +44,7 @@ const int VARIABLE_ARG_STACK_LOCAL_TEMP_LENGTH = 2048;
 const std::string	Stringf(const char* format, ...);
 const std::string	Stringf(const int maxLength, const char* format, ...);
 int					GetStringLength(const char* str);
+int					GetCharCountInText(const char character, const char* text);
 void				Tokenize(const std::string& stringToTokenize, const char delimiter, std::vector<std::string>& out_tokens);
 void				TrimWhitespace(std::string& stringToTrim);
 void				BreakStringIntoLines(const std::string& stringToBreak, std::vector<std::string>& out_lines);
@@ -63,11 +65,22 @@ std::string			ToString(const AABB3& inValue);
 std::string			ToString(const NamedProperties& inValue);
 std::string			ToString(void* inValue); // For allowing pointers to be stored in NamedProperties
 
-int					StringToInt(const std::string& inValue);
-float				StringToFloat(const std::string& inValue);
-bool				StringToRgba(const std::string& inValue, Rgba& out_color);
-Vector2				StringToVector2(const std::string& inValue);
-Vector3				StringToVector3(const std::string& inValue);
-Vector4				StringToVector4(const std::string& inValue);
-IntVector2			StringToIntVector2(const std::string& inValue);
-IntVector3			StringToIntVector3(const std::string& inValue);
+Maybe<bool>			TryParseAsBool(const char* text);
+Maybe<float>		TryParseAsFloat(const char* text);
+Maybe<int>			TryParseAsInt(const char* text);
+Maybe<Vector2>		TryParseAsVector2(const char* text);
+Maybe<Vector3>		TryParseAsVector3(const char* text);
+Maybe<Vector4>		TryParseAsVector4(const char* text);
+Maybe<IntVector2>	TryParseAsIntVector2(const char* text);
+Maybe<IntVector3>	TryParseAsIntVector3(const char* text);
+Maybe<Rgba>			TryParseAsRgba(const char* text);
+
+bool				ParseAsBool(const char* text, bool defaultValue);
+float				ParseAsFloat(const char* text, float defaultValue);
+int					ParseAsInt(const char* text, int defaultValue);
+Vector2				ParseAsVector2(const char* text, const Vector2& defaultValue);
+Vector3				ParseAsVector3(const char* text, const Vector3& defaultValue);
+Vector4				ParseAsVector4(const char* text, const Vector4& defaultValue);
+IntVector2			ParseAsIntVector2(const char* text, const IntVector2& defaultValue);
+IntVector3			ParseAsIntVector3(const char* text, const IntVector3& defaultValue);
+Rgba				ParseAsRgba(const char* text, const Rgba& defaultValue);

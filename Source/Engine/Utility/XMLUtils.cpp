@@ -38,7 +38,15 @@
 //-------------------------------------------------------------------------------------------------
 int XML::ParseAttribute(const XMLElem& element, const char* attributeName, int defaultValue)
 {
-	return element.IntAttribute(attributeName, defaultValue);
+	int result = defaultValue;
+	const char* attributeText = element.Attribute(attributeName);
+
+	if (attributeText != nullptr)
+	{
+		result = ParseAsInt(attributeText, defaultValue);
+	}
+
+	return result;
 }
 
 
@@ -66,14 +74,30 @@ char XML::ParseAttribute(const XMLElem& element, const char* attributeName, char
 //-------------------------------------------------------------------------------------------------
 bool XML::ParseAttribute(const XMLElem& element, const char* attributeName, bool defaultValue)
 {
-	return element.BoolAttribute(attributeName, defaultValue);
+	bool result = defaultValue;
+	const char* attributeText = element.Attribute(attributeName);
+
+	if (attributeText != nullptr)
+	{
+		result = ParseAsBool(attributeText, defaultValue);
+	}
+
+	return result;
 }
 
 
 //-------------------------------------------------------------------------------------------------
 float XML::ParseAttribute(const XMLElem& element, const char* attributeName, float defaultValue)
 {
-	return element.FloatAttribute(attributeName, defaultValue);
+	float result = defaultValue;
+	const char* attributeText = element.Attribute(attributeName);
+
+	if (attributeText != nullptr)
+	{
+		result = ParseAsFloat(attributeText, defaultValue);
+	}
+
+	return result;
 }
 
 
@@ -85,7 +109,7 @@ Rgba XML::ParseAttribute(const XMLElem& element, const char* attributeName, cons
 
 	if (attributeText != nullptr)
 	{
-		StringToRgba(attributeText, result);
+		result = ParseAsRgba(attributeText, defaultValue);
 	}
 
 	return result;
@@ -100,7 +124,7 @@ Vector2 XML::ParseAttribute(const XMLElem& element, const char* attributeName, c
 
 	if (attributeText != nullptr)
 	{
-		result = StringToVector2(attributeText);
+		result = ParseAsVector2(attributeText, defaultValue);
 	}
 
 	return result;
@@ -115,7 +139,7 @@ Vector3 XML::ParseAttribute(const XMLElem& element, const char* attributeName, c
 
 	if (attributeText != nullptr)
 	{
-		result = StringToVector3(attributeText);
+		result = ParseAsVector3(attributeText, defaultValue);
 	}
 
 	return result;
@@ -130,7 +154,7 @@ Vector4 XML::ParseAttribute(const XMLElem& element, const char* attributeName, c
 
 	if (attributeText != nullptr)
 	{
-		result = StringToVector4(attributeText);
+		result = ParseAsVector4(attributeText, defaultValue);
 	}
 
 	return result;
@@ -145,7 +169,7 @@ IntVector2 XML::ParseAttribute(const XMLElem& element, const char* attributeName
 
 	if (attributeText != nullptr)
 	{
-		result = StringToIntVector2(attributeText);
+		result = ParseAsIntVector2(attributeText, defaultValue);
 	}
 
 	return result;
@@ -160,7 +184,7 @@ IntVector3 XML::ParseAttribute(const XMLElem& element, const char* attributeName
 
 	if (attributeText != nullptr)
 	{
-		result = StringToIntVector3(attributeText);
+		result = ParseAsIntVector3(attributeText, defaultValue);
 	}
 
 	return result;

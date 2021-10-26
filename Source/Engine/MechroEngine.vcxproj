@@ -365,6 +365,7 @@
     <ClInclude Include="UI\UIScrollView.h" />
     <ClInclude Include="UI\UIText.h" />
     <ClInclude Include="Utility\EngineUtils.h" />
+    <ClInclude Include="Utility\Maybe.h" />
     <ClInclude Include="Utility\Swizzle.h" />
     <ClInclude Include="Render\Camera.h" />
     <ClInclude Include="Render\Font\Font.h" />

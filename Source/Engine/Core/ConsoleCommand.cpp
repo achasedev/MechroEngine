@@ -112,8 +112,14 @@ bool CommandArgs::GetNextFloat(float& out_float)
 		return false;
 	}
 
-	out_float = StringToFloat(nextToken);
-	return true;
+	Maybe<float> result = TryParseAsFloat(nextToken.c_str());
+	if (result.IsValid())
+	{
+		out_float = result.Get();
+		return true;
+	}
+
+	return false;
 }
 
 
@@ -128,7 +134,7 @@ bool CommandArgs::GetNextFloat(float& out_float, float defaultValue)
 		return false;
 	}
 
-	out_float = StringToFloat(nextToken);
+	out_float = ParseAsFloat(nextToken.c_str(), defaultValue);
 	return true;
 }
 

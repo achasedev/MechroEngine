@@ -57,11 +57,18 @@ Rgba::Rgba(float red, float green, float blue, float alpha)
 
 //-------------------------------------------------------------------------------------------------
 Rgba::Rgba(int red, int green, int blue, int alpha)
-	: r(static_cast<uint8>(red))
-	, g(static_cast<uint8>(green))
-	, b(static_cast<uint8>(blue))
-	, a(static_cast<uint8>(alpha))
 {
+	// Make sure everything is in a valid range
+	red = Clamp(red, 0, 255);
+	green = Clamp(green, 0, 255);
+	blue = Clamp(blue, 0, 255);
+	alpha = Clamp(alpha, 0, 255);
+
+	// Convert to 8 bit numbers
+	r = (static_cast<uint8>(red));
+	g = (static_cast<uint8>(green));
+	b = (static_cast<uint8>(blue));
+	a = (static_cast<uint8>(alpha));
 }
 
 
