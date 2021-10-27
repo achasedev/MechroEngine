@@ -29,6 +29,59 @@
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
+//-------------------------------------------------------------------------------------------------
+// Converts the given dx enums to my internal data type enum
+static PropertyDataType ConvertDxTypeToPropertyDataType(const D3D11_SHADER_TYPE_DESC& dxTypeDesc)
+{
+	
+	switch (dxTypeDesc.Class)
+	{
+	case D3D_SVC_SCALAR:
+	{
+		if (dxTypeDesc.Type == D3D_SVT_INT)
+		{
+			return PROPERTY_TYPE_INT;
+		}
+		else if (dxTypeDesc.Type == D3D_SVT_FLOAT)
+		{
+			return PROPERTY_TYPE_FLOAT;
+		}
+	}
+		break;
+	case D3D_SVC_VECTOR:
+		if (dxTypeDesc.Type == D3D_SVT_INT)
+		{
+			if		(dxTypeDesc.Columns == 2) { return PROPERTY_TYPE_INTVECTOR2; }
+			else if (dxTypeDesc.Columns == 3) { return PROPERTY_TYPE_INTVECTOR3; }
+		}
+		else if (dxTypeDesc.Type == D3D_SVT_FLOAT)
+		{
+			if		(dxTypeDesc.Columns == 2) { return PROPERTY_TYPE_VECTOR2; }
+			else if (dxTypeDesc.Columns == 3) { return PROPERTY_TYPE_VECTOR3; }
+			else if (dxTypeDesc.Columns == 4) { return PROPERTY_TYPE_VECTOR4; }
+		}
+		break;
+	case D3D_SVC_MATRIX_COLUMNS:
+	{
+		if (dxTypeDesc.Rows == 4 && dxTypeDesc.Columns == 4)
+		{
+			return PROPERTY_TYPE_MATRIX4;
+		}
+	}
+		break;
+	case D3D_SVC_STRUCT:
+	{
+		return PROPERTY_TYPE_STRUCT;
+	}
+		break;
+	default:
+		break;
+	}
+
+	ERROR_AND_DIE("Unsupported PropertyDataType!");
+}
+
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -94,8 +147,15 @@ void ShaderDescription::Initialize(ID3DBlob* dxVertexSource, ID3DBlob* dxFragmen
 						result = dxVar->GetDesc(&dxVarDesc);
 						ASSERT_OR_DIE(SUCCEEDED(result), "Couldn't get variable description!");
 
+						ID3D11ShaderReflectionType* dxType = dxVar->GetType();
+						D3D11_SHADER_TYPE_DESC dxTypeDesc;
+						result = dxType->GetDesc(&dxTypeDesc);
+						ASSERT_OR_DIE(SUCCEEDED(result), "Couldn't get variable type description!");
+
+						PropertyDataType dataType = ConvertDxTypeToPropertyDataType(dxTypeDesc);
+
 						// Create and add a description for it
-						PropertyDescription* propDesc = new PropertyDescription(SID(dxVarDesc.Name), (int)dxVarDesc.StartOffset, (int)dxVarDesc.Size);
+						PropertyDescription* propDesc = new PropertyDescription(SID(dxVarDesc.Name), blockDesc, (int)dxVarDesc.StartOffset, (int)dxVarDesc.Size, dataType);
 						blockDesc->AddPropertyDescription(propDesc);
 					}
 
@@ -162,11 +222,11 @@ const PropertyDescription* ShaderDescription::GetPropertyDescription(const Strin
 		// Iterate across all properties in the current block
 		for (int propertyIndex = 0; propertyIndex < numProperties; ++propertyIndex)
 		{
-			const PropertyDescription* currVariable = currBuffer->GetPropertyDescription(propertyIndex);
+			const PropertyDescription* currProp = currBuffer->GetPropertyDescription(propertyIndex);
 
-			if (currVariable->GetName() == variableName)
+			if (currProp->GetName() == variableName)
 			{
-				return currVariable;
+				return currProp;
 			}
 		}
 	}

@@ -103,7 +103,24 @@ bool Material::Load(const char* filepath)
 	}
 
 	// Property blocks
+	const XMLElem* blocksElem = rootElem->FirstChildElement("property_blocks");
+	if (blocksElem != nullptr)
+	{
+		const XMLElem* blockElem = blocksElem->FirstChildElement("property_block");
+		while (blockElem != nullptr)
+		{
+			const XMLElem* propElem = blockElem->FirstChildElement("property");
+			while (propElem != nullptr)
+			{
+				std::string propName = XML::ParseAttribute(*propElem, "name", "");
+				std::string propValueText = XML::ParseAttribute(*propElem, "value", "");
+				SetPropertyFromText(SID(propName), propValueText);
+				propElem = propElem->NextSiblingElement("property");
+			}
 
+			blockElem = blockElem->NextSiblingElement("property_block");
+		}
+	}
 
 	return true;
 }
@@ -212,45 +229,159 @@ MaterialPropertyBlock* Material::GetPropertyBlockAtBindSlot(int bindSlot) const
 bool Material::SetProperty(const StringID& propertyName, const void* data, int byteSize)
 {
 	const ShaderDescription* shaderDesc = m_shader->GetDescription();
-	int numBlocksOnShader = (int)shaderDesc->GetBlockCount();
+	const PropertyDescription* propDesc = shaderDesc->GetPropertyDescription(propertyName);
 
-	for (int blockIndex = 0; blockIndex < numBlocksOnShader; ++blockIndex)
+	if (propDesc != nullptr)
 	{
-		const PropertyBlockDescription* blockDescription = shaderDesc->GetBlockDescriptionAtIndex(blockIndex);
+		const PropertyBlockDescription* blockDesc = propDesc->GetOwningBlockDescription();
 
-		// If the constant buffer slot is an engine reserved one, continue without checking properties
-		if (blockDescription->GetBindSlot() < ENGINE_RESERVED_CONSTANT_BUFFER_COUNT)
-			continue;
-
-		const PropertyDescription* propertyDescription = blockDescription->GetPropertyDescription(propertyName);
-
-		if (propertyDescription != nullptr)
+		// Ensure we don't try to set an engine reserved property
+		if (blockDesc->GetBindSlot() < ENGINE_RESERVED_CONSTANT_BUFFER_COUNT)
 		{
-			// Found the block that contains our property!
-			// Now return (or create and return) a material property block that will hold it
-			StringID blockName = blockDescription->GetName();
+			ConsoleLogErrorf("Attempted to set property %s on material %s, but it's part of an engine reserved block.", propDesc->GetName().ToString(), GetResourceID().ToString());
+		}
+		else
+		{
+			// Return (or create and return) a material property block that will hold it
+			StringID blockName = blockDesc->GetName();
 			MaterialPropertyBlock* matBlock = GetPropertyBlockByName(blockName);
 
 			if (matBlock == nullptr)
 			{
 				// A material block doesn't exist for this description yet, so make one
-				matBlock = CreatePropertyBlock(blockDescription);
+				matBlock = CreatePropertyBlock(blockDesc);
 			}
 
 			// Size check for sanity
-			int actualSize = propertyDescription->GetByteSize();
+			int actualSize = propDesc->GetByteSize();
 			ASSERT_OR_DIE(actualSize == byteSize, Stringf("Error: Material::SetProperty() had size mismatch - for property \"%s\", the passed size was %i, where description size has size %i", propertyName, byteSize, actualSize).c_str());
 
 			// Offset into the block
-			int offset = propertyDescription->GetByteOffset();
+			int offset = propDesc->GetByteOffset();
 
 			// Set the data and return
 			matBlock->SetCPUData(data, byteSize, offset);
 			return true;
 		}
 	}
+	else
+	{
+		ConsoleLogErrorf("Attempted to set property %s on material %s, but it's shader description doesn't have that property", propDesc->GetName().ToString(), GetResourceID().ToString());
+	}
 
 	return false;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Sets the property to the value from a text representation; uses the description's data type to determine type
+bool Material::SetPropertyFromText(const StringID& propertyName, const std::string& propValueText)
+{
+	const ShaderDescription* shaderDesc = m_shader->GetDescription();
+	const PropertyDescription* propDesc = shaderDesc->GetPropertyDescription(propertyName);
+
+	if (propDesc != nullptr)
+	{
+		PropertyDataType type = propDesc->GetDataType();
+
+		switch (type)
+		{
+		case PROPERTY_TYPE_FLOAT:
+		{
+			Maybe<float> value = TryParseAsFloat(propValueText);
+			if (value.IsValid())
+			{
+				return SetProperty(propertyName, value.Get());
+			}
+		}	
+			break;
+		case PROPERTY_TYPE_INT:
+		{
+			Maybe<int> value = TryParseAsInt(propValueText);
+			if (value.IsValid())
+			{
+				return SetProperty(propertyName, value.Get());
+			}
+		}
+			break;
+		case PROPERTY_TYPE_VECTOR2:
+		{
+			Maybe<Vector2> value = TryParseAsVector2(propValueText);
+			if (value.IsValid())
+			{
+				return SetProperty(propertyName, value.Get());
+			}
+		}
+			break;
+		case PROPERTY_TYPE_VECTOR3:
+		{
+			Maybe<Vector3> value = TryParseAsVector3(propValueText);
+			if (value.IsValid())
+			{
+				return SetProperty(propertyName, value.Get());
+			}
+		}
+			break;
+		case PROPERTY_TYPE_VECTOR4:
+		{
+			Maybe<Vector4> value = TryParseAsVector4(propValueText);
+			if (value.IsValid())
+			{
+				return SetProperty(propertyName, value.Get());
+			}
+		}
+			break;
+		case PROPERTY_TYPE_INTVECTOR2:
+		{
+			Maybe<IntVector2> value = TryParseAsIntVector2(propValueText);
+			if (value.IsValid())
+			{
+				return SetProperty(propertyName, value.Get());
+			}
+		}
+			break;
+		case PROPERTY_TYPE_INTVECTOR3:
+		{
+			Maybe<IntVector3> value = TryParseAsIntVector3(propValueText);
+			if (value.IsValid())
+			{
+				return SetProperty(propertyName, value.Get());
+			}
+		}
+			break;
+		case PROPERTY_TYPE_MATRIX4:
+			ERROR_RECOVERABLE("Write ParseAsMatrix4()");
+		case PROPERTY_TYPE_STRUCT:
+			ERROR_RECOVERABLE("Trying to set a struct material property from XML, what's the format?");
+			break;
+		case NUM_PROPERTY_TYPES:
+			ERROR_AND_DIE("You should never get here.")
+			break;
+		default:
+			ERROR_AND_DIE("Unsupported Data Type!");
+			break;
+		}
+	}
+	else
+	{
+		ConsoleLogErrorf("Attempted to set property %s on material %s, but it's shader description doesn't have that property", propDesc->GetName().ToString(), GetResourceID().ToString());
+	}
+
+	return false;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Looks for a property block with the given description, and if not found attempts to create one
+MaterialPropertyBlock* Material::CreateOrGetPropertyBlock(const PropertyBlockDescription* blockDescription)
+{
+	MaterialPropertyBlock* block = GetPropertyBlockByName(blockDescription->GetName());
+	if (block == nullptr)
+	{
+		block = CreatePropertyBlock(blockDescription);
+	}
+
+	return block;
 }
 
 

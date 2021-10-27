@@ -62,6 +62,7 @@ public:
 	MaterialPropertyBlock*					GetPropertyBlockByName(const StringID& blockName) const;
 
 	bool SetProperty(const StringID& propertyName, const void* data, int byteSize);
+	bool SetPropertyFromText(const StringID& propertyName, const std::string& propValueText);
 
 	template <typename T>
 	bool SetProperty(const StringID& propertyName, const T& value);
@@ -73,8 +74,8 @@ public:
 protected:
 	//-----Protected Methods-----
 
+	MaterialPropertyBlock* CreateOrGetPropertyBlock(const PropertyBlockDescription* blockDescription);
 	MaterialPropertyBlock* CreatePropertyBlock(const PropertyBlockDescription* blockDescription);
-
 
 private:
 	//-----Private Data-----

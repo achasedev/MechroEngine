@@ -82,10 +82,8 @@ int GetStringLength(const char* str)
 
 //-------------------------------------------------------------------------------------------------
 // Returns the number of times the character appears in the string
-int GetCharCountInText(const char character, const char* text)
+int GetCharCountInText(const char character, const std::string& str)
 {
-	std::string str = text;
-
 	int num = 0;
 	size_t index = str.find(character);
 	while (index != std::string::npos)
@@ -290,16 +288,18 @@ std::string ToString(void* inValue)
 
 //-------------------------------------------------------------------------------------------------
 // Attempts to parse the given text as a single bool; returns invalid if it cannot
-Maybe<bool> TryParseAsBool(const char* text)
+Maybe<bool> TryParseAsBool(const std::string& str)
 {
-	std::string str = text;
+	std::string strLocal = str;
+	TrimWhitespace(strLocal);
+
 	Maybe<bool> result = Maybe<bool>::INVALID;
 
-	if (AreEqualCaseInsensitive(str, "true"))
+	if (AreEqualCaseInsensitive(strLocal, "true"))
 	{
 		result.Set(true);
 	}
-	else if (AreEqualCaseInsensitive(str, "false"))
+	else if (AreEqualCaseInsensitive(strLocal, "false"))
 	{
 		result.Set(false);
 	}
@@ -310,9 +310,9 @@ Maybe<bool> TryParseAsBool(const char* text)
 
 //-------------------------------------------------------------------------------------------------
 // Attempts to parse text as a boolean, returning defaultValue if it fails
-bool ParseAsBool(const char* text, bool defaultValue)
+bool ParseAsBool(const std::string& str, bool defaultValue)
 {
-	Maybe<bool> result = TryParseAsBool(text);
+	Maybe<bool> result = TryParseAsBool(str);
 
 	if (result.IsValid())
 		return result.Get();
@@ -323,44 +323,44 @@ bool ParseAsBool(const char* text, bool defaultValue)
 
 //-------------------------------------------------------------------------------------------------
 // Attempts to parse the given text as a single float; returns invalid if it cannot
-Maybe<float> TryParseAsFloat(const char* text)
+Maybe<float> TryParseAsFloat(const std::string& str)
 {
-	std::string str = text;
-	TrimWhitespace(str);
+	std::string strLocal = str;
+	TrimWhitespace(strLocal);
 
 	// Must contain something
-	if (str.size() == 0)
+	if (strLocal.size() == 0)
 		return Maybe<float>::INVALID;;
 
 	// Make sure it's a single token, I don't want to deal with spaces in the middle
 	std::vector<std::string> tokens;
-	Tokenize(str, ' ', tokens);
+	Tokenize(strLocal, ' ', tokens);
 	if (tokens.size() > 1)
 		return Maybe<float>::INVALID;
 
 	// Can't contain letters outside 'f' and 'F'
-	if (str.find_first_of("abcdeghijklmnopqrstuvwxyzABCDEGHIJKLMNOPQRSTUVWXYZ") != std::string::npos)
+	if (strLocal.find_first_of("abcdeghijklmnopqrstuvwxyzABCDEGHIJKLMNOPQRSTUVWXYZ") != std::string::npos)
 		return Maybe<float>::INVALID;;
 
 	// Can't contain symbols other than - and +
-	if (str.find_first_of("!@#$%^&*(),//'\"=_[]{}`~:;?") != std::string::npos)
+	if (strLocal.find_first_of("!@#$%^&*(),//'\"=_[]{}`~:;?") != std::string::npos)
 		return Maybe<float>::INVALID;;
 
 	// Can only have 1 '-' or '+', and it needs to be at the start
-	size_t minusIndex = str.find_first_of('-');
+	size_t minusIndex = strLocal.find_first_of('-');
 	if (minusIndex != std::string::npos)
 	{
-		if (GetCharCountInText('-', text) > 1)
+		if (GetCharCountInText('-', strLocal) > 1)
 			return Maybe<float>::INVALID;;
 
 		if (minusIndex != 0)
 			return Maybe<float>::INVALID;;
 	}
 
-	size_t plusIndex = str.find_first_of('+');
+	size_t plusIndex = strLocal.find_first_of('+');
 	if (plusIndex != std::string::npos)
 	{
-		if (GetCharCountInText('+', text) > 1)
+		if (GetCharCountInText('+', strLocal) > 1)
 			return Maybe<float>::INVALID;;
 
 		if (plusIndex != 0)
@@ -368,31 +368,31 @@ Maybe<float> TryParseAsFloat(const char* text)
 	}
 
 	// If it contains an 'f' or 'F', there better be only one, and at the end
-	size_t fLocation = str.find_first_of('f');
+	size_t fLocation = strLocal.find_first_of('f');
 	if (fLocation != std::string::npos)
 	{
-		if (str.size() == 1)
+		if (strLocal.size() == 1)
 			return Maybe<float>::INVALID;;
 
-		if (fLocation != str.size() - 1)
+		if (fLocation != strLocal.size() - 1)
 			return Maybe<float>::INVALID;;
 	}
 
-	size_t capitalFLocation = str.find_first_of('F');
+	size_t capitalFLocation = strLocal.find_first_of('F');
 	if (capitalFLocation != std::string::npos)
 	{
-		if (str.size() == 1)
+		if (strLocal.size() == 1)
 			return Maybe<float>::INVALID;;
 
-		if (capitalFLocation != str.size() - 1)
+		if (capitalFLocation != strLocal.size() - 1)
 			return Maybe<float>::INVALID;;
 	}
 
 	// Make sure there's only one decimal point, but it can exist anywhere
-	if (GetCharCountInText('.', text) > 1)
+	if (GetCharCountInText('.', strLocal) > 1)
 		return Maybe<float>::INVALID;;
 
-	float value = static_cast<float>(atof(str.c_str()));
+	float value = static_cast<float>(atof(strLocal.c_str()));
 	Maybe<float> result = Maybe<float>(value);
 
 	return result;
@@ -401,9 +401,9 @@ Maybe<float> TryParseAsFloat(const char* text)
 
 //-------------------------------------------------------------------------------------------------
 // Attempts to parse text as an int, returning defaultValue if it fails
-int ParseAsInt(const char* text, int defaultValue)
+int ParseAsInt(const std::string& str, int defaultValue)
 {
-	Maybe<int> result = TryParseAsInt(text);
+	Maybe<int> result = TryParseAsInt(str);
 
 	if (result.IsValid())
 		return result.Get();
@@ -414,9 +414,9 @@ int ParseAsInt(const char* text, int defaultValue)
 
 //-------------------------------------------------------------------------------------------------
 // Attempts to parse text as a Vector2, returning defaultValue if it fails
-Vector2 ParseAsVector2(const char* text, const Vector2& defaultValue)
+Vector2 ParseAsVector2(const std::string& str, const Vector2& defaultValue)
 {
-	Maybe<Vector2> result = TryParseAsVector2(text);
+	Maybe<Vector2> result = TryParseAsVector2(str);
 
 	if (result.IsValid())
 		return result.Get();
@@ -427,9 +427,9 @@ Vector2 ParseAsVector2(const char* text, const Vector2& defaultValue)
 
 //-------------------------------------------------------------------------------------------------
 // Attempts to parse text as a Vector3, returning defaultValue if it fails
-Vector3 ParseAsVector3(const char* text, const Vector3& defaultValue)
+Vector3 ParseAsVector3(const std::string& str, const Vector3& defaultValue)
 {
-	Maybe<Vector3> result = TryParseAsVector3(text);
+	Maybe<Vector3> result = TryParseAsVector3(str);
 
 	if (result.IsValid())
 		return result.Get();
@@ -440,9 +440,9 @@ Vector3 ParseAsVector3(const char* text, const Vector3& defaultValue)
 
 //-------------------------------------------------------------------------------------------------
 // Attempts to parse text as a Vector2, returning defaultValue if it fails
-Vector4 ParseAsVector4(const char* text, const Vector4& defaultValue)
+Vector4 ParseAsVector4(const std::string& str, const Vector4& defaultValue)
 {
-	Maybe<Vector4> result = TryParseAsVector4(text);
+	Maybe<Vector4> result = TryParseAsVector4(str);
 
 	if (result.IsValid())
 		return result.Get();
@@ -453,9 +453,9 @@ Vector4 ParseAsVector4(const char* text, const Vector4& defaultValue)
 
 //-------------------------------------------------------------------------------------------------
 // Attempts to parse text as an IntVector2, returning defaultValue if it fails
-IntVector2 ParseAsIntVector2(const char* text, const IntVector2& defaultValue)
+IntVector2 ParseAsIntVector2(const std::string& str, const IntVector2& defaultValue)
 {
-	Maybe<IntVector2> result = TryParseAsIntVector2(text);
+	Maybe<IntVector2> result = TryParseAsIntVector2(str);
 
 	if (result.IsValid())
 		return result.Get();
@@ -466,9 +466,9 @@ IntVector2 ParseAsIntVector2(const char* text, const IntVector2& defaultValue)
 
 //-------------------------------------------------------------------------------------------------
 // Attempts to parse text as an IntVector3, returning defaultValue if it fails
-IntVector3 ParseAsIntVector3(const char* text, const IntVector3& defaultValue)
+IntVector3 ParseAsIntVector3(const std::string& str, const IntVector3& defaultValue)
 {
-	Maybe<IntVector3> result = TryParseAsIntVector3(text);
+	Maybe<IntVector3> result = TryParseAsIntVector3(str);
 
 	if (result.IsValid())
 		return result.Get();
@@ -479,51 +479,51 @@ IntVector3 ParseAsIntVector3(const char* text, const IntVector3& defaultValue)
 
 //-------------------------------------------------------------------------------------------------
 // Attempts to parse the given text as a single integer; returns invalid if it cannot
-Maybe<int> TryParseAsInt(const char* text)
+Maybe<int> TryParseAsInt(const std::string& str)
 {
-	std::string str = text;
-	TrimWhitespace(str);
+	std::string strLocal = str;
+	TrimWhitespace(strLocal);
 
 	// Must contain something
-	if (str.size() == 0)
+	if (strLocal.size() == 0)
 		return Maybe<int>::INVALID;;
 
 	// Make sure it's a single token, I don't want to deal with spaces in the middle
 	std::vector<std::string> tokens;
-	Tokenize(str, ' ', tokens);
+	Tokenize(strLocal, ' ', tokens);
 	if (tokens.size() > 1)
 		return Maybe<int>::INVALID;
 
 	// Can't contain letters
-	if (str.find_first_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ") != std::string::npos)
+	if (strLocal.find_first_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ") != std::string::npos)
 		return Maybe<int>::INVALID;;
 
 	// Can't contain symbols other than - and +
-	if (str.find_first_of("!@#$%^.&*(),//'\"=_[]{}`~:;?") != std::string::npos)
+	if (strLocal.find_first_of("!@#$%^.&*(),//'\"=_[]{}`~:;?") != std::string::npos)
 		return Maybe<int>::INVALID;
 
 	// Can only have 1 '-' or '+', and it needs to be at the start
-	size_t minusIndex = str.find_first_of('-');
+	size_t minusIndex = strLocal.find_first_of('-');
 	if (minusIndex != std::string::npos)
 	{
-		if (GetCharCountInText('-', text) > 1)
+		if (GetCharCountInText('-', strLocal) > 1)
 			return Maybe<int>::INVALID;;
 
 		if (minusIndex != 0)
 			return Maybe<int>::INVALID;;
 	}
 
-	size_t plusIndex = str.find_first_of('+');
+	size_t plusIndex = strLocal.find_first_of('+');
 	if (plusIndex != std::string::npos)
 	{
-		if (GetCharCountInText('+', text) > 1)
+		if (GetCharCountInText('+', strLocal) > 1)
 			return Maybe<int>::INVALID;;
 
 		if (plusIndex != 0)
 			return Maybe<int>::INVALID;;
 	}
 
-	int value = atoi(str.c_str());
+	int value = atoi(strLocal.c_str());
 	Maybe<int> result = Maybe<int>(value);
 
 	return result;
@@ -532,9 +532,9 @@ Maybe<int> TryParseAsInt(const char* text)
 
 //-------------------------------------------------------------------------------------------------
 // Attempts to parse text as a float, returning defaultValue if it fails
-float ParseAsFloat(const char* text, float defaultValue)
+float ParseAsFloat(const std::string& str, float defaultValue)
 {
-	Maybe<float> result = TryParseAsFloat(text);
+	Maybe<float> result = TryParseAsFloat(str);
 
 	if (result.IsValid())
 		return result.Get();
@@ -545,38 +545,38 @@ float ParseAsFloat(const char* text, float defaultValue)
 
 //-------------------------------------------------------------------------------------------------
 // Attempts to pull out the component values of the given vector
-static bool TryTokenizeVector(const char* text, int numComponents, std::vector<std::string>& out_tokens)
+static bool TryTokenizeVector(const std::string& str, int numComponents, std::vector<std::string>& out_tokens)
 {
-	std::string str = text;
-	TrimWhitespace(str);
+	std::string strLocal = str;
+	TrimWhitespace(strLocal);
 	
 	// Parentheses are optional, but must be at the start and end of the string and matching
-	if (str.find_first_of('(') != std::string::npos || str.find_first_of(')') != std::string::npos)
+	if (strLocal.find_first_of('(') != std::string::npos || strLocal.find_first_of(')') != std::string::npos)
 	{
-		if (str.front() != '(')
+		if (strLocal.front() != '(')
 			return false;
 
-		if (str.back() != ')')
+		if (strLocal.back() != ')')
 			return false;
 
-		if (GetCharCountInText('(', text) > 1)
+		if (GetCharCountInText('(', strLocal) > 1)
 			return false;
 
-		if (GetCharCountInText(')', text) > 1)
+		if (GetCharCountInText(')', strLocal) > 1)
 			return false;
 
 		// Parentheses are valid, so trim them off
-		str = str.substr(1, str.size() - 2);
+		strLocal = strLocal.substr(1, strLocal.size() - 2);
 	}
 
 	// Vector values can be separated by spaces or ','s, so check for both
-	if (str.find_first_of(',') != std::string::npos)
+	if (strLocal.find_first_of(',') != std::string::npos)
 	{
 		// There needs to be the right amount of commas to delimit the components
-		if (GetCharCountInText(',', text) != numComponents - 1)
+		if (GetCharCountInText(',', strLocal) != numComponents - 1)
 			return false;
 
-		Tokenize(str, ',', out_tokens);
+		Tokenize(strLocal, ',', out_tokens);
 
 		// If any of the commas were adjacent or at the start/end, call that invalid
 		if (out_tokens.size() != numComponents)
@@ -584,10 +584,10 @@ static bool TryTokenizeVector(const char* text, int numComponents, std::vector<s
 
 		return true;
 	}
-	else if (str.find_first_of(' ') != std::string::npos) // Separate case for spaces as I allow multiple spaces between tokens, but not multiple ','
+	else if (strLocal.find_first_of(' ') != std::string::npos) // Separate case for spaces as I allow multiple spaces between tokens, but not multiple ','
 	{
 		// Get tokens
-		Tokenize(str, ' ', out_tokens);
+		Tokenize(strLocal, ' ', out_tokens);
 
 		// Ensure we have a token for each component exactly
 		if (out_tokens.size() != numComponents)
@@ -639,10 +639,10 @@ static bool GetTokensAsInts(const std::vector<std::string>& tokens, std::vector<
 
 //-------------------------------------------------------------------------------------------------
 // Attempts to parse the text as a Vector2; returns invalid if it fails
-Maybe<Vector2> TryParseAsVector2(const char* text)
+Maybe<Vector2> TryParseAsVector2(const std::string& str)
 {
 	std::vector<std::string> tokens;
-	bool success = TryTokenizeVector(text, 2, tokens);
+	bool success = TryTokenizeVector(str, 2, tokens);
 
 	if (!success)
 		return Maybe<Vector2>::INVALID;
@@ -660,10 +660,10 @@ Maybe<Vector2> TryParseAsVector2(const char* text)
 
 //-------------------------------------------------------------------------------------------------
 // Attempts to parse the text as a Vector3; returns invalid if it fails
-Maybe<Vector3> TryParseAsVector3(const char* text)
+Maybe<Vector3> TryParseAsVector3(const std::string& str)
 {
 	std::vector<std::string> tokens;
-	bool success = TryTokenizeVector(text, 3, tokens);
+	bool success = TryTokenizeVector(str, 3, tokens);
 
 	if (!success)
 		return Maybe<Vector3>::INVALID;
@@ -681,10 +681,10 @@ Maybe<Vector3> TryParseAsVector3(const char* text)
 
 //-------------------------------------------------------------------------------------------------
 // Attempts to parse the text as a Vector4; returns invalid if it fails
-Maybe<Vector4> TryParseAsVector4(const char* text)
+Maybe<Vector4> TryParseAsVector4(const std::string& str)
 {
 	std::vector<std::string> tokens;
-	bool success = TryTokenizeVector(text, 4, tokens);
+	bool success = TryTokenizeVector(str, 4, tokens);
 
 	if (!success)
 		return Maybe<Vector4>::INVALID;
@@ -702,10 +702,10 @@ Maybe<Vector4> TryParseAsVector4(const char* text)
 
 //-------------------------------------------------------------------------------------------------
 // Attempts to parse the text as an IntVector2; returns invalid if it fails
-Maybe<IntVector2> TryParseAsIntVector2(const char* text)
+Maybe<IntVector2> TryParseAsIntVector2(const std::string& str)
 {
 	std::vector<std::string> tokens;
-	bool success = TryTokenizeVector(text, 2, tokens);
+	bool success = TryTokenizeVector(str, 2, tokens);
 
 	if (!success)
 		return Maybe<IntVector2>::INVALID;
@@ -723,10 +723,10 @@ Maybe<IntVector2> TryParseAsIntVector2(const char* text)
 
 //-------------------------------------------------------------------------------------------------
 // Attempts to parse the text as an IntVector3; returns invalid if it fails
-Maybe<IntVector3> TryParseAsIntVector3(const char* text)
+Maybe<IntVector3> TryParseAsIntVector3(const std::string& str)
 {
 	std::vector<std::string> tokens;
-	bool success = TryTokenizeVector(text, 3, tokens);
+	bool success = TryTokenizeVector(str, 3, tokens);
 
 	if (!success)
 		return Maybe<IntVector3>::INVALID;
@@ -744,9 +744,9 @@ Maybe<IntVector3> TryParseAsIntVector3(const char* text)
 
 //-------------------------------------------------------------------------------------------------
 // Attempts to parse text as an Rgba color (bytes or floats), returning defaultValue if it fails
-Rgba ParseAsRgba(const char* text, const Rgba& defaultValue)
+Rgba ParseAsRgba(const std::string& str, const Rgba& defaultValue)
 {
-	Maybe<Rgba> result = TryParseAsRgba(text);
+	Maybe<Rgba> result = TryParseAsRgba(str);
 
 	if (result.IsValid())
 		return result.Get();
@@ -757,10 +757,10 @@ Rgba ParseAsRgba(const char* text, const Rgba& defaultValue)
 
 //-------------------------------------------------------------------------------------------------
 // Attempts to parse the text as a Vector4; returns invalid if it fails
-Maybe<Rgba> TryParseAsRgba(const char* text)
+Maybe<Rgba> TryParseAsRgba(const std::string& str)
 {
 	std::vector<std::string> tokens;
-	bool tokenizeSuccess = TryTokenizeVector(text, 4, tokens);
+	bool tokenizeSuccess = TryTokenizeVector(str, 4, tokens);
 	Maybe<Rgba> result = Maybe<Rgba>::INVALID;
 
 	if (tokenizeSuccess)
@@ -791,7 +791,6 @@ Maybe<Rgba> TryParseAsRgba(const char* text)
 	else
 	{
 		// Treat the text as a name of a color
-		std::string str = text;
 		if		(AreEqualCaseInsensitive(str, "white"))		{ result.Set(Rgba::WHITE); }
 		else if (AreEqualCaseInsensitive(str, "black"))		{ result.Set(Rgba::BLACK); }
 		else if (AreEqualCaseInsensitive(str, "red"))		{ result.Set(Rgba::RED); }

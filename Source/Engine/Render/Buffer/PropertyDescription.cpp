@@ -32,9 +32,11 @@
 
 //-------------------------------------------------------------------------------------------------
 // Constructor
-PropertyDescription::PropertyDescription(const StringID& name, int byteOffset, int byteSize)
+PropertyDescription::PropertyDescription(const StringID& name, const PropertyBlockDescription* owningBlockDescription, int byteOffset, int byteSize, PropertyDataType type)
 	: m_name(name)
+	, m_owningBlockDesc(owningBlockDescription)
 	, m_byteOffset(byteOffset)
 	, m_byteSize(byteSize)
+	, m_type(type)
 {
 }
