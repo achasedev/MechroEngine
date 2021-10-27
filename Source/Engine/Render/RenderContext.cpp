@@ -161,13 +161,16 @@ void RenderContext::BeginCamera(Camera* camera)
 
 	// Render to the camera's target
 	RenderTargetView* colorView = camera->GetRenderTargetView();
-	ASSERT_OR_DIE(colorView != nullptr, "Beginning camera will null target view!");
-
-	ID3D11RenderTargetView* rtv = colorView->GetDxHandle();
+	ID3D11RenderTargetView* rtv = (colorView != nullptr ? colorView->GetDxHandle() : nullptr);
 	
 	DepthStencilTargetView* depthView = camera->GetDepthStencilTargetView();
 	ID3D11DepthStencilView* dsv = (depthView != nullptr ? depthView->GetDxHandle() : nullptr);
 	
+	if (rtv == nullptr && dsv == nullptr)
+	{
+		ConsoleLogErrorf("Bound a camera with a nullptr color and depth.");
+	}
+
 	m_dxContext->OMSetRenderTargets(1, &rtv, dsv);
 	
 	// Viewport
@@ -316,8 +319,11 @@ void RenderContext::UpdateModelMatrixUBO(const Matrix4& modelMatrix)
 
 //-------------------------------------------------------------------------------------------------
 // Updates the light constant buffer to have the given light information
-void RenderContext::UpdateLightUBO(const Rgba& ambience, Light* lights, int numLights)
+void RenderContext::UpdateLightUBO(const DrawCall& drawCall)
 {
+	Rgba ambience = drawCall.GetAmbience();
+	int numLights = drawCall.GetNumLights();
+
 	LightBufferData data;
 	data.m_ambience = ambience.GetAsFloats();
 
@@ -325,7 +331,7 @@ void RenderContext::UpdateLightUBO(const Rgba& ambience, Light* lights, int numL
 	{
 		if (i < numLights)
 		{
-			data.m_lights[i] = lights[i].GetLightData();
+			data.m_lights[i] = drawCall.GetLight(i)->GetLightData();
 		}
 		else
 		{
@@ -395,7 +401,7 @@ void RenderContext::Draw(const DrawCall& drawCall)
 	// Update light constant buffer
 	if (drawCall.GetMaterial()->UsesLights())
 	{
-		UpdateLightUBO(drawCall.GetAmbience(), drawCall.GetLights(), drawCall.GetNumLights());
+		UpdateLightUBO(drawCall);
 	}
 
 	DrawInstruction draw = mesh->GetDrawInstruction();

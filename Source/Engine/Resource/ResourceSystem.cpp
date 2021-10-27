@@ -322,7 +322,7 @@ void ResourceSystem::CreateDefaultMeshes()
 	mb.PushSphere(Vector3::ZERO, 1.f);
 	mb.FinishBuilding();
 
-	Mesh* sphereMesh = mb.CreateMesh<Vertex3D_PCU>();
+	Mesh* sphereMesh = mb.CreateMesh<VertexLit>();
 	sphereMesh->m_resourceID = SID("unit_sphere");
 	m_meshes[sphereMesh->m_resourceID] = sphereMesh;
 
@@ -331,7 +331,7 @@ void ResourceSystem::CreateDefaultMeshes()
 	mb.PushTopHemiSphere(Vector3::ZERO, 1.f, Rgba::WHITE, 10, 5, (2.f / 3.f), 1.f);
 	mb.FinishBuilding();
 
-	Mesh* capsuleTop = mb.CreateMesh<Vertex3D_PCU>();
+	Mesh* capsuleTop = mb.CreateMesh<VertexLit>();
 	capsuleTop->m_resourceID = SID("capsule_top");
 	m_meshes[capsuleTop->m_resourceID] = capsuleTop;
 
@@ -340,7 +340,7 @@ void ResourceSystem::CreateDefaultMeshes()
 	mb.PushBottomHemiSphere(Vector3::ZERO, 1.f, Rgba::WHITE, 10, 5, 0.f, (1.f / 3.f));
 	mb.FinishBuilding();
 
-	Mesh* capsuleBottom = mb.CreateMesh<Vertex3D_PCU>();
+	Mesh* capsuleBottom = mb.CreateMesh<VertexLit>();
 	capsuleBottom->m_resourceID = SID("capsule_bottom");
 	m_meshes[capsuleBottom->m_resourceID] = capsuleBottom;
 
@@ -349,7 +349,7 @@ void ResourceSystem::CreateDefaultMeshes()
 	mb.PushCapsuleSides(Vector3(0.f, -0.5f, 0.f), Vector3(0.f, 0.5f, 0.), 1.f, Rgba::WHITE, 10, (1.f / 3.f), (2.f / 3.f));
 	mb.FinishBuilding();
 
-	Mesh* capsuleMiddle = mb.CreateMesh<Vertex3D_PCU>();
+	Mesh* capsuleMiddle = mb.CreateMesh<VertexLit>();
 	capsuleMiddle->m_resourceID = SID("capsule_middle");
 	m_meshes[capsuleMiddle->m_resourceID] = capsuleMiddle;
 
@@ -358,7 +358,7 @@ void ResourceSystem::CreateDefaultMeshes()
 	mb.PushQuad3D(Vector3(-0.5f, 0.f, -0.5f), Vector3(-0.5f, 0.f, 0.5f), Vector3(0.5f, 0.f, 0.5f), Vector3(0.5f, 0.f, -0.5f));
 	mb.FinishBuilding();
 
-	Mesh* horizontalQuad = mb.CreateMesh<Vertex3D_PCU>();
+	Mesh* horizontalQuad = mb.CreateMesh<VertexLit>();
 	horizontalQuad->m_resourceID = SID("horizontal_quad");
 	m_meshes[horizontalQuad->m_resourceID] = horizontalQuad;
 }

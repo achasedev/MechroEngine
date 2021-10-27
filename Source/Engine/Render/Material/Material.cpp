@@ -365,7 +365,7 @@ bool Material::SetPropertyFromText(const StringID& propertyName, const std::stri
 	}
 	else
 	{
-		ConsoleLogErrorf("Attempted to set property %s on material %s, but something went wrong. Check if the property exists or if the data type was correct.", propDesc->GetName().ToString(), GetResourceID().ToString());
+		ConsoleLogErrorf("Attempted to set property %s on material %s, the property doesn't exist!", propertyName.ToString(), GetResourceID().ToString());
 	}
 	
 	return false;

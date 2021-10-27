@@ -38,18 +38,18 @@ class DrawCall
 public:
 	//-----Public Methods-----
 
-	void		SetFromRenderable(const Renderable& renderable, uint32 drawCallIndex);
-	void		SetAmbience(const Rgba& ambience) { m_ambience = ambience; }
-	void		SetNumLightsInUse(int numLights) { m_numLightsInUse = numLights; }
-	void		SetLight(int lightIndex, Light* light);
+	void			SetFromRenderable(const Renderable& renderable, uint32 drawCallIndex);
+	void			SetAmbience(const Rgba& ambience) { m_ambience = ambience; }
+	void			SetNumLightsInUse(int numLights) { m_numLightsInUse = numLights; }
+	void			SetLight(int lightIndex, Light* light);
 
-	Mesh*		GetMesh() const { return m_mesh; }
-	Material*	GetMaterial() const { return m_material; }
-	Matrix4		GetModelMatrix() const { return m_modelMatrix; }
-	int			GetSortOrder() const;
-	Light*		GetLights() const { return m_lights[0]; }
-	int			GetNumLights() const { return m_numLightsInUse; }
-	Rgba		GetAmbience() const { return m_ambience; }
+	Mesh*			GetMesh() const { return m_mesh; }
+	Material*		GetMaterial() const { return m_material; }
+	Matrix4			GetModelMatrix() const { return m_modelMatrix; }
+	int				GetSortOrder() const;
+	const Light*	GetLight(int index) const { return m_lights[index]; }
+	int				GetNumLights() const { return m_numLightsInUse; }
+	Rgba			GetAmbience() const { return m_ambience; }
 
 private:
 	//-----Private Data-----

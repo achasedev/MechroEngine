@@ -94,7 +94,7 @@ public:
 	void								BindShaderResourceView(uint32 slot, ShaderResourceView* view);
 	void								BindSampler(uint32 slot, Sampler* sampler);
 	void								UpdateModelMatrixUBO(const Matrix4& modelMatrix);
-	void								UpdateLightUBO(const Rgba& ambience, Light* lights, int numLights);
+	void								UpdateLightUBO(const DrawCall& drawCall);
 
 	template <typename VERT_TYPE> void	DrawVertexArray(const VERT_TYPE* vertices, uint32 numVertices, const uint32* indices = nullptr, uint32 numIndices = 0, Material* material = nullptr);
 	void								DrawMesh(Mesh& mesh);
