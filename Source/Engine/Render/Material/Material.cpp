@@ -68,6 +68,7 @@ bool Material::Load(const char* filepath)
 	}
 
 	const XMLElem* rootElem = doc.RootElement();
+	m_resourceID = SID(filepath);
 
 	// Shader
 	const XMLElem* shaderElem = rootElem->FirstChildElement("shader");
@@ -236,32 +237,30 @@ bool Material::SetProperty(const StringID& propertyName, const void* data, int b
 		const PropertyBlockDescription* blockDesc = propDesc->GetOwningBlockDescription();
 
 		// Ensure we don't try to set an engine reserved property
-		if (blockDesc->GetBindSlot() < ENGINE_RESERVED_CONSTANT_BUFFER_COUNT)
-		{
-			ConsoleLogErrorf("Attempted to set property %s on material %s, but it's part of an engine reserved block.", propDesc->GetName().ToString(), GetResourceID().ToString());
-		}
-		else
+		if (blockDesc->GetBindSlot() >= ENGINE_RESERVED_CONSTANT_BUFFER_COUNT)
 		{
 			// Return (or create and return) a material property block that will hold it
-			StringID blockName = blockDesc->GetName();
-			MaterialPropertyBlock* matBlock = GetPropertyBlockByName(blockName);
-
-			if (matBlock == nullptr)
-			{
-				// A material block doesn't exist for this description yet, so make one
-				matBlock = CreatePropertyBlock(blockDesc);
-			}
+			MaterialPropertyBlock* matBlock = CreateOrGetPropertyBlock(blockDesc);
 
 			// Size check for sanity
 			int actualSize = propDesc->GetByteSize();
-			ASSERT_OR_DIE(actualSize == byteSize, Stringf("Error: Material::SetProperty() had size mismatch - for property \"%s\", the passed size was %i, where description size has size %i", propertyName, byteSize, actualSize).c_str());
+			if (actualSize == byteSize)
+			{
+				// Offset into the block
+				int offset = propDesc->GetByteOffset();
 
-			// Offset into the block
-			int offset = propDesc->GetByteOffset();
-
-			// Set the data and return
-			matBlock->SetCPUData(data, byteSize, offset);
-			return true;
+				// Set the data and return
+				matBlock->SetCPUData(data, byteSize, offset);
+				return true;
+			}
+			else
+			{
+				ConsoleLogErrorf("Attempted to set property %s on material %s, but the size didn't match (actual size %i bytes, set size %i bytes)", propDesc->GetName().ToString(), GetResourceID().ToString(), actualSize, byteSize);
+			}
+		}
+		else
+		{
+			ConsoleLogErrorf("Attempted to set property %s on material %s, but it's part of an engine reserved block.", propDesc->GetName().ToString(), GetResourceID().ToString());	
 		}
 	}
 	else
@@ -361,12 +360,14 @@ bool Material::SetPropertyFromText(const StringID& propertyName, const std::stri
 			ERROR_AND_DIE("Unsupported Data Type!");
 			break;
 		}
+
+		ConsoleLogErrorf("Attempted to set property %s on material %s, but the data couldn't be matched to the type.", propDesc->GetName().ToString(), GetResourceID().ToString());
 	}
 	else
 	{
-		ConsoleLogErrorf("Attempted to set property %s on material %s, but it's shader description doesn't have that property", propDesc->GetName().ToString(), GetResourceID().ToString());
+		ConsoleLogErrorf("Attempted to set property %s on material %s, but something went wrong. Check if the property exists or if the data type was correct.", propDesc->GetName().ToString(), GetResourceID().ToString());
 	}
-
+	
 	return false;
 }
 

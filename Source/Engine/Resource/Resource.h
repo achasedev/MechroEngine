@@ -37,8 +37,8 @@ public:
 	StringID		GetResourceID() const { return m_resourceID; }
 
 
-private:
-	//-----Private Data-----
+protected:
+	//-----Protected Data-----
 
 	StringID m_resourceID = INVALID_STRING_ID;
 
