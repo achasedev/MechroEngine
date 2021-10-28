@@ -65,7 +65,7 @@ public:
 	void		SetIsShadowCasting(bool castsShadows);
 
 	LightData	GetLightData() const { return m_lightData; }
-	bool		IsShadowCasting() const { return m_isShadowCasting; }
+	bool		IsShadowCasting() const { return m_lightData.m_castsShadows > 0.f; }
 	Texture2D*	GetShadowTexture() const { return m_shadowTexture; }
 	float		CalculateIntensityForPosition(const Vector3& position) const;
 
@@ -79,7 +79,6 @@ private:
 	//-----Private Data-----
 
 	LightData	m_lightData;
-	bool		m_isShadowCasting = false;
 	Texture2D*	m_shadowTexture = nullptr;
 
 };

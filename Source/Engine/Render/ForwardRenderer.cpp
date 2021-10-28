@@ -18,6 +18,7 @@
 #include "Engine/Render/RenderContext.h"
 #include "Engine/Render/RenderScene.h"
 #include "Engine/Render/Skybox.h"
+#include "Engine/Resource/ResourceSystem.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -46,6 +47,9 @@ void ForwardRenderer::Render(RenderScene* scene)
 	scene->SortCameras();
 	ConstructDrawCalls(scene);
 
+	// Ensure depth stencils are not bound before they're used as a render target
+	g_renderContext->BindShaderResourceView(4, nullptr);
+
 	int numCameras = (int)scene->m_cameras.size();
 	for (int index = 0; index < numCameras; ++index)
 	{
@@ -53,7 +57,7 @@ void ForwardRenderer::Render(RenderScene* scene)
 		CreateShadowTexturesForCamera(scene, scene->m_cameras[index]);
 
 		// Draw draw draw
-		RenderSceneForCamera(scene, scene->m_cameras[index], true);
+		RenderSceneForCamera(scene, scene->m_cameras[index], false);
 	}
 }
 
@@ -72,8 +76,18 @@ void ForwardRenderer::CreateShadowTexturesForCamera(RenderScene* scene, Camera* 
 			Camera shadowCamera = Camera();
 			Vector3 cameraPos = camera->GetPosition();
 
-			shadowCamera.SetCameraMatrix(Matrix4::MakeLookAt(cameraPos - 100.f * light->GetLightData().m_lightDirection, cameraPos));
-			shadowCamera.SetProjectionOrthographic(200.f, 1.0f, -100.f, 1000.f);
+			if (light->GetLightData().m_directionFactor > 0.f)
+			{
+				LightData data = light->GetLightData();
+				shadowCamera.SetCameraMatrix(Matrix4::MakeLookAt(light->GetLightData().m_position - 10.f * (cameraPos - light->GetLightData().m_position).GetNormalized(), cameraPos));
+				shadowCamera.SetProjectionPerspective(90.f, 0.1f, 100.0f);
+			}
+			else
+			{
+				// Directional
+				shadowCamera.SetCameraMatrix(Matrix4::MakeLookAt(light->GetLightData().m_position, cameraPos, Vector3::X_AXIS));
+				shadowCamera.SetProjectionOrthographic(Vector2(-100.f), Vector2(100.f), 0.1f, 100.f);
+			}
 
 			// Set the view projection to be used for the shadow test
 			LightData data = light->GetLightData();
@@ -83,7 +97,7 @@ void ForwardRenderer::CreateShadowTexturesForCamera(RenderScene* scene, Camera* 
 			shadowCamera.SetRenderTarget(nullptr, false);
 			shadowCamera.SetDepthTarget(light->GetShadowTexture(), false);
 
-			RenderSceneForCamera(scene, &shadowCamera, false);
+			RenderSceneForCamera(scene, &shadowCamera, true);
 		}
 	}
 }
@@ -91,7 +105,7 @@ void ForwardRenderer::CreateShadowTexturesForCamera(RenderScene* scene, Camera* 
 
 //-------------------------------------------------------------------------------------------------
 // Renders the scene using the given camera; also used for shadow camera draws
-void ForwardRenderer::RenderSceneForCamera(RenderScene* scene, Camera* camera, bool drawSkybox)
+void ForwardRenderer::RenderSceneForCamera(RenderScene* scene, Camera* camera, bool depthOnlyPass)
 {
 	g_renderContext->BeginCamera(camera);
 	camera->ClearDepthTarget(1.0f);
@@ -100,10 +114,31 @@ void ForwardRenderer::RenderSceneForCamera(RenderScene* scene, Camera* camera, b
 	for (int drawIndex = 0; drawIndex < (int)m_drawCalls.size(); ++drawIndex)
 	{
 		DrawCall& dc = m_drawCalls[drawIndex];
-		g_renderContext->Draw(dc);
+
+		if (depthOnlyPass)
+		{
+			// Use the shadowmap shader
+			Shader* shadowShader = g_resourceSystem->CreateOrGetShader("Data/Shader/shadowmap.shader");
+
+			Material shadowMat;
+			shadowMat.SetShader(shadowShader);
+
+			// Cache off the existing material, swap to the shadow material
+			Material* prevMaterial = dc.GetMaterial();
+			dc.SetMaterial(&shadowMat);
+
+			g_renderContext->Draw(dc);
+
+			// Revert it back
+			dc.SetMaterial(prevMaterial);
+		}
+		else
+		{
+			g_renderContext->Draw(dc);
+		}
 	}
 
-	if (drawSkybox)
+	if (!depthOnlyPass)
 	{
 		Skybox* skybox = scene->GetSkybox();
 

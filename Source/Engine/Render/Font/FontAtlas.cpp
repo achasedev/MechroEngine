@@ -67,7 +67,7 @@ void FontAtlas::Initialize(const Font* font, uint32 pixelHeight, uint32 maxHoriz
 			size *= 2U;
 		}
 
-		texture->CreateFromBuffer(nullptr, 0U, size, size, 4U, TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_GPU);
+		texture->CreateFromBuffer(nullptr, 0U, size, size, TEXTURE_FORMAT_R8G8B8A8_UNORM, TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_GPU);
 	}
 
 	m_glyphPacker = new SpritePacker();

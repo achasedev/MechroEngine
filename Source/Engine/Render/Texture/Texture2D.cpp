@@ -42,7 +42,7 @@ bool Texture2D::Load(const char* filepath, TextureUsageBits textureUsage, GPUMem
 	if (image != nullptr)
 	{
 		m_srcFilepath = filepath;
-		return CreateFromImage(*image, textureUsage, memoryUsage);
+		return CreateFromImage(*image, TEXTURE_FORMAT_R8G8B8A8_UNORM, textureUsage, memoryUsage);
 	}
 
 	return false;
@@ -50,21 +50,21 @@ bool Texture2D::Load(const char* filepath, TextureUsageBits textureUsage, GPUMem
 
 
 //-------------------------------------------------------------------------------------------------
-bool Texture2D::CreateFromImage(const Image& image, TextureUsageBits textureUsage, GPUMemoryUsage memoryUsage)
+bool Texture2D::CreateFromImage(const Image& image, TextureFormat format, TextureUsageBits textureUsage, GPUMemoryUsage memoryUsage)
 {
-	return CreateFromBuffer(image.GetData(), image.GetSize(), image.GetTexelWidth(), image.GetTexelHeight(), image.GetNumComponentsPerTexel(), textureUsage, memoryUsage);
+	return CreateFromBuffer(image.GetData(), image.GetSize(), image.GetTexelWidth(), image.GetTexelHeight(), format, textureUsage, memoryUsage);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-bool Texture2D::CreateWithNoData(int width, int height, uint32 numComponents, TextureUsageBits textureUsage, GPUMemoryUsage memoryUsage)
+bool Texture2D::CreateWithNoData(int width, int height, TextureFormat format, TextureUsageBits textureUsage, GPUMemoryUsage memoryUsage)
 {
-	return CreateFromBuffer(nullptr, 0U, width, height, numComponents, textureUsage, memoryUsage);
+	return CreateFromBuffer(nullptr, 0U, width, height, format, textureUsage, memoryUsage);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-bool Texture2D::CreateFromBuffer(const uint8* buffer, uint32 bufferSize, int width, int height, uint32 numComponents, TextureUsageBits textureUsage, GPUMemoryUsage memoryUsage)
+bool Texture2D::CreateFromBuffer(const uint8* buffer, uint32 bufferSize, int width, int height, TextureFormat format, TextureUsageBits textureUsage, GPUMemoryUsage memoryUsage)
 {
 	// Safety checks
 	bool isDepthStencil = (textureUsage & TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT);
@@ -81,7 +81,6 @@ bool Texture2D::CreateFromBuffer(const uint8* buffer, uint32 bufferSize, int wid
 	}
 	else
 	{
-		ASSERT_OR_DIE(numComponents > 1 && numComponents < 5, "Unsupported number of components!");
 	}
 
 	if (memoryUsage == GPU_MEMORY_USAGE_STAGING)
@@ -112,7 +111,7 @@ bool Texture2D::CreateFromBuffer(const uint8* buffer, uint32 bufferSize, int wid
 	texDesc.MipLevels = 1; // Set to 0 for full chain
 	texDesc.ArraySize = 1;
 	texDesc.Usage = (D3D11_USAGE)ToDXMemoryUsage(m_memoryUsage);
-	texDesc.Format = static_cast<DXGI_FORMAT>(isDepthStencil ? DXGI_FORMAT_R24G8_TYPELESS : GetDxTextureFormatFromComponentCount(numComponents));
+	texDesc.Format = static_cast<DXGI_FORMAT>(GetDxFormatFromTextureFormat(format));
 	texDesc.BindFlags = GetDxBindFromTextureUsageFlags(m_textureUsage);
 	texDesc.MiscFlags = 0U;
 	texDesc.SampleDesc.Count = 1;
@@ -138,7 +137,7 @@ bool Texture2D::CreateFromBuffer(const uint8* buffer, uint32 bufferSize, int wid
 	{
 		memset(&data, 0, sizeof(D3D11_SUBRESOURCE_DATA));
 
-		uint32 pitch = width * numComponents; // Assumes component size == 1 byte
+		uint32 pitch = width * 4; // Assumes component size == 1 byte
 		data.SysMemPitch = pitch;
 		data.pSysMem = buffer;
 
@@ -155,8 +154,8 @@ bool Texture2D::CreateFromBuffer(const uint8* buffer, uint32 bufferSize, int wid
 	{
 		m_dxHandle = tex2D;
 		m_dimensions = IntVector3(width, height, 0);
-		m_numComponentsPerTexel = numComponents;
 		m_byteSize = bufferSize;
+		m_format = format;
 		DX_SET_DEBUG_NAME(m_dxHandle, Stringf("Source File: %s | Size: (%i, %i)", m_srcFilepath.c_str(), width, height));
 	}
 
@@ -176,10 +175,10 @@ bool Texture2D::CreateFromDxTexture2D(ID3D11Texture2D* dxTexture2D)
 	m_dxHandle->AddRef();
 
 	m_dimensions = IntVector3(desc.Width, desc.Height, 0U);
-	m_byteSize = m_dimensions.x * m_dimensions.y * GetComponentCountFromDxTextureFormat(desc.Format);
+	m_byteSize = m_dimensions.x * m_dimensions.y * GetComponentCountFromTextureFormat(TEXTURE_FORMAT_R8G8B8A8_UNORM);
 	m_memoryUsage = FromDXMemoryUsage(desc.Usage);
 	m_textureUsage = GetTextureUsageFlagsFromDxBinds(desc.BindFlags);
-	m_numComponentsPerTexel = GetComponentCountFromDxTextureFormat(desc.Format);
+	m_format = TEXTURE_FORMAT_INVALID;
 
 	return true;
 }

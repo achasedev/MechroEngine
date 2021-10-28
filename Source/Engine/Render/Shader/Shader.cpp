@@ -82,12 +82,12 @@ ID3DBlob* CompileHLSL(const char* filename, const void* sourceCode, const size_t
 	if (errors != nullptr)
 	{
 		const char* errorString = (const char*)errors->GetBufferPointer();
-		ERROR_RECOVERABLE("Failed to compile shader %s, Compiler gave the following output: %s", filename, errorString);
+		ConsoleLogErrorf("Error with shader %s: %s", filename, errorString);
 		DX_SAFE_RELEASE(errors);
 	}
 	else if (FAILED(hr))
 	{
-		ERROR_RECOVERABLE("Failed with HRESULT: %u", hr);
+		ConsoleLogErrorf("Failed with HRESULT: %u", hr);
 	}
 
 	return code;
@@ -432,7 +432,7 @@ bool Shader::LoadAndCompileShaderSource(const char* filename)
 
 	free(shaderSource);
 
-	if (m_vertexShader.IsValid() && m_fragmentShader.IsValid())
+	if (m_vertexShader.IsValid())
 	{
 		m_description = new ShaderDescription();
 		m_description->Initialize(m_vertexShader.GetCompiledSource(), m_fragmentShader.GetCompiledSource());

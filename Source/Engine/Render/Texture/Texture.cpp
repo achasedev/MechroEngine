@@ -105,21 +105,6 @@ TextureUsageBits GetTextureUsageFlagsFromDxBinds(uint32 dxBind)
 
 
 //-------------------------------------------------------------------------------------------------
-uint32 GetDxTextureFormatFromComponentCount(int numComponents)
-{
-	switch (numComponents)
-	{
-	case 1: return (uint32)DXGI_FORMAT_R8_UNORM; break;
-	case 2: return (uint32)DXGI_FORMAT_R8G8_UNORM; break;
-	case 4: return (uint32)DXGI_FORMAT_R8G8B8A8_UNORM; break;
-	default:
-		ERROR_AND_DIE("Invalid number of components for texture: %i", numComponents);
-		break;
-	}
-}
-
-
-//-------------------------------------------------------------------------------------------------
 int GetComponentCountFromDxTextureFormat(uint32 dxFormat)
 {
 	DXGI_FORMAT dxFormatAsEnum = (DXGI_FORMAT)dxFormat;
@@ -130,6 +115,49 @@ int GetComponentCountFromDxTextureFormat(uint32 dxFormat)
 	case DXGI_FORMAT_R8G8B8A8_UNORM: return 4; break;
 	default:
 		ERROR_AND_DIE("Missing DXGI_FORMAT: %i", (int)dxFormat);
+		break;
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Returns the number of separate components for the various internal formats
+int GetComponentCountFromTextureFormat(TextureFormat format)
+{
+	switch (format)
+	{
+	case TEXTURE_FORMAT_R8G8B8A8_UNORM: { return 4; } break;
+	case TEXTURE_FORMAT_R24G8_TYPELESS:	{ return 2; } break;
+	default:
+		ERROR_AND_DIE("Unsupported texture format!");
+		break;
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Converts the DX enumeration to my internal enumeration
+TextureFormat GetTextureFormatFromDxFormat(uint32 dxFormat)
+{
+	if		(dxFormat == DXGI_FORMAT_R8G8B8A8_UNORM) { return TEXTURE_FORMAT_R8G8B8A8_UNORM; }
+	else if (dxFormat == DXGI_FORMAT_R24G8_TYPELESS) { return TEXTURE_FORMAT_R24G8_TYPELESS; }
+	else
+	{
+		ERROR_AND_DIE("Unsupported texture format!");
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Returns the DX format represented by the given texture format
+uint32 GetDxFormatFromTextureFormat(TextureFormat format)
+{
+	switch (format)
+	{
+	case TEXTURE_FORMAT_R8G8B8A8_UNORM: { return DXGI_FORMAT_R8G8B8A8_UNORM; } break;
+	case TEXTURE_FORMAT_R24G8_TYPELESS:	{ return DXGI_FORMAT_R24G8_TYPELESS; } break;
+	default:
+		ERROR_AND_DIE("Unsupported texture format!");
 		break;
 	}
 }
@@ -153,7 +181,7 @@ ShaderResourceView* Texture::CreateOrGetShaderResourceView(const TextureViewCrea
 
 	// Default the info
 	TextureViewCreateInfo defaultInfo;
-	defaultInfo.m_viewType = m_textureUsage;
+	defaultInfo.m_viewType = TEXTURE_USAGE_SHADER_RESOURCE_BIT;
 
 	if (viewInfo == nullptr)
 	{
@@ -172,14 +200,25 @@ ShaderResourceView* Texture::CreateOrGetShaderResourceView(const TextureViewCrea
 	{
 		// Create a ShaderResourceView for this texture
 		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-		srvDesc.Format = static_cast<DXGI_FORMAT>(GetDxTextureFormatFromComponentCount(m_numComponentsPerTexel));
+
+		DXGI_FORMAT dxFormat;
+		if (m_format == TEXTURE_FORMAT_R24G8_TYPELESS)
+		{
+			dxFormat = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+		}
+		else
+		{
+			dxFormat = static_cast<DXGI_FORMAT>(GetDxFormatFromTextureFormat(m_format));
+		}
+
+		srvDesc.Format = dxFormat;
 		srvDesc.ViewDimension = GetDxDimensionFromViewDimension(viewInfo->m_viewDimension);
 		srvDesc.Texture2D.MostDetailedMip = 0;
 		srvDesc.Texture2D.MipLevels = viewInfo->m_numMipLevels;
 
 		ID3D11Device* dxDevice = g_renderContext->GetDxDevice();
 		ID3D11ShaderResourceView* dxSRV = nullptr;
-		HRESULT hr = dxDevice->CreateShaderResourceView(m_dxHandle, nullptr, &dxSRV);
+		HRESULT hr = dxDevice->CreateShaderResourceView(m_dxHandle, &srvDesc, &dxSRV);
 		ASSERT_OR_DIE(SUCCEEDED(hr), "Couldn't create ShaderResourceView!");
 
 		if (dxSRV != nullptr)
@@ -214,7 +253,7 @@ RenderTargetView* Texture::CreateOrGetColorTargetView(const TextureViewCreateInf
 
 	// Default the info
 	TextureViewCreateInfo defaultInfo;
-	defaultInfo.m_viewType = m_textureUsage;
+	defaultInfo.m_viewType = TEXTURE_USAGE_RENDER_TARGET_BIT;
 
 	if (viewInfo == nullptr)
 	{
@@ -270,7 +309,7 @@ DepthStencilTargetView* Texture::CreateOrGetDepthStencilTargetView(const Texture
 
 	// Default the info
 	TextureViewCreateInfo defaultInfo;
-	defaultInfo.m_viewType = m_textureUsage;
+	defaultInfo.m_viewType = TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT;
 
 	if (viewInfo == nullptr)
 	{
@@ -340,7 +379,7 @@ void Texture::Clear()
 	m_memoryUsage = GPU_MEMORY_USAGE_DYNAMIC;
 	m_textureUsage = 0U;
 	m_dimensions = IntVector3::ZERO;
-	m_numComponentsPerTexel = 0;
+	m_format = TEXTURE_FORMAT_INVALID;
 	m_byteSize = 0;
 }
 

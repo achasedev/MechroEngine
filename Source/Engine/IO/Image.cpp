@@ -77,16 +77,21 @@ bool Image::Load(const char* filepath, bool flipVertically /*= true*/)
 		stbi_set_flip_vertically_on_load(1);
 	}
 
-	m_data = (uint8*)stbi_load(filepath, &m_dimensions.x, &m_dimensions.y, &m_numComponentsPerTexel, 0);
+	m_data = (uint8*)stbi_load(filepath, &m_dimensions.x, &m_dimensions.y, &m_numComponentsPerTexel, 4);
 	stbi_set_flip_vertically_on_load(0);
 	
+	if (m_numComponentsPerTexel != 4)
+	{
+		ConsoleLogErrorf("Image %s isn't a 4 component image!", filepath);
+	}
+
 	if (m_data != nullptr)
 	{
 		m_size = m_dimensions.x * m_dimensions.y * m_numComponentsPerTexel;
 	}
 	else
 	{
-		ConsoleLogf("Couldn't load image %s", filepath);
+		ConsoleLogErrorf("Couldn't load image %s", filepath);
 	}
 
 	return (m_data != nullptr);
@@ -99,7 +104,7 @@ void Image::Clear()
 	m_size = 0;
 	m_dimensions = IntVector2(0, 0);
 	m_numComponentsPerTexel = 0;
-	m_data = nullptr;
+	SAFE_FREE(m_data);
 }
 
 

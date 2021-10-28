@@ -42,6 +42,7 @@ public:
 	void			SetAmbience(const Rgba& ambience) { m_ambience = ambience; }
 	void			SetNumLightsInUse(int numLights) { m_numLightsInUse = numLights; }
 	void			SetLight(int lightIndex, Light* light);
+	void			SetMaterial(Material* material) { m_material = material; }
 
 	Mesh*			GetMesh() const { return m_mesh; }
 	Material*		GetMaterial() const { return m_material; }

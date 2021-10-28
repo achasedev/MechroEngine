@@ -195,9 +195,10 @@ public:
 
 	ShaderStage					GetVertexStage() const { return m_vertexShader; }
 	ShaderStage					GetFragmentStage() const { return m_fragmentShader; }
+	ShaderInputLayout			GetInputLayout() const { return m_shaderInputLayout; }
 	ID3D11VertexShader*			GetDxVertexStage() const { return m_vertexShader.GetAsVertexShader(); }
 	ID3D11PixelShader*			GetDxFragmentStage() const { return m_fragmentShader.GetAsFragmentShader(); }
-	ID3D11InputLayout*			GetInputLayout() const { return m_shaderInputLayout.m_dxInputLayout; }
+	ID3D11InputLayout*			GetDxInputLayout() const { return m_shaderInputLayout.m_dxInputLayout; }
 	ID3D11BlendState*			GetDxBlendState() const { return m_dxBlendState; }
 	ID3D11RasterizerState*		GetDxRasterizerState() const { return m_dxRasterizerState; }
 	ID3D11DepthStencilState*	GetDxDepthState() const { return m_dxDepthState; }

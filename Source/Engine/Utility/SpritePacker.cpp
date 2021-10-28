@@ -53,7 +53,7 @@ void SpritePacker::Initialize(uint32 texelWidth, uint32 texelHeigth)
 	m_image->Initialize(IntVector2(texelWidth, texelHeigth), Rgba(0, 0, 0, 0));
 
 	m_texture = new Texture2D();
-	m_texture->CreateFromImage(*m_image, TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_GPU);
+	m_texture->CreateFromImage(*m_image, TEXTURE_FORMAT_R8G8B8A8_UNORM, TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_GPU);
 }
 
 

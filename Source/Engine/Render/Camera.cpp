@@ -179,6 +179,19 @@ void Camera::SetProjectionOrthographic(float orthoHeight, float aspect, float ne
 
 
 //-------------------------------------------------------------------------------------------------
+// Makes an orthographic projection with the given parameters
+void Camera::SetProjectionOrthographic(const Vector2& bottomLeft, const Vector2& topRight, float nearZ /*= -1.0f*/, float farZ /*= 1.0f*/)
+{
+	m_orthoBounds.mins = bottomLeft;
+	m_orthoBounds.maxs = topRight;
+	m_nearClipZ = nearZ;
+	m_farClipZ = farZ;
+	m_projectionMatrix = Matrix4::MakeOrtho(m_orthoBounds.mins, m_orthoBounds.maxs, m_nearClipZ, m_farClipZ);
+	m_currentProjection = CAMERA_PROJECTION_ORTHOGRAPHIC;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void Camera::SetProjectionPerspective(float fovDegrees, float nearZ, float farZ)
 {
 	m_fovDegrees = fovDegrees;
@@ -200,14 +213,16 @@ void Camera::UpdateUBO()
 		m_cameraUBO = new ConstantBuffer();
 	}
 
+	Texture2D* dimensionTarget = (m_renderTarget != nullptr ? m_renderTarget : m_depthTarget);
+
 	CameraUBOLayout cameraData;
 	cameraData.m_cameraMatrix = transform.GetLocalToWorldMatrix();
 	cameraData.m_viewMatrix = InvertLookAtMatrix(cameraData.m_cameraMatrix);
 	cameraData.m_projectionMatrix = m_projectionMatrix;
 	cameraData.m_viewportTopLeftX = 0.f;
 	cameraData.m_viewportTopLeftY = 0.f;
-	cameraData.m_viewportWidth = (float)m_renderTarget->GetWidth();
-	cameraData.m_viewportHeight = (float)m_renderTarget->GetHeight();
+	cameraData.m_viewportWidth = ((dimensionTarget != nullptr) ? (float)dimensionTarget->GetWidth() : 0.f);
+	cameraData.m_viewportHeight = ((dimensionTarget != nullptr) ? (float)dimensionTarget->GetHeight() : 0.f);
 
 	m_cameraUBO->CopyToGPU(&cameraData, sizeof(cameraData));
 }
@@ -307,7 +322,7 @@ Texture2D* Camera::GetDepthTarget() const
 //-------------------------------------------------------------------------------------------------
 RenderTargetView* Camera::GetRenderTargetView()
 {
-	return m_renderTarget->CreateOrGetColorTargetView();
+	return (m_renderTarget != nullptr ? m_renderTarget->CreateOrGetColorTargetView() : nullptr);
 }
 
 

@@ -10,6 +10,7 @@
 #include "Engine/Core/EngineCommon.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Render/Light.h"
+#include "Engine/Render/RenderContext.h"
 #include "Engine/Render/Texture/Texture2D.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -60,16 +61,14 @@ void Light::SetLightData(const LightData& data)
 // Sets whether this light should generate shadows
 void Light::SetIsShadowCasting(bool castsShadows)
 {
-	m_isShadowCasting = castsShadows;
-
-	if (m_isShadowCasting)
+	if (castsShadows)
 	{
 		if (m_shadowTexture == nullptr)
 		{
 			// Create a new depth buffer
 			m_shadowTexture = new Texture2D();
-			m_shadowTexture->CreateWithNoData(1048, 1048, 0, TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT, GPU_MEMORY_USAGE_GPU);
-
+			m_shadowTexture->CreateWithNoData(SHADOW_TEXTURE_SIZE, SHADOW_TEXTURE_SIZE, TEXTURE_FORMAT_R24G8_TYPELESS, TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT | TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_GPU);
+			
 			// Indicate we will cast shadows to the shader
 			m_lightData.m_castsShadows = 1.0f;
 		}

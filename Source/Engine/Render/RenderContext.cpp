@@ -165,21 +165,33 @@ void RenderContext::BeginCamera(Camera* camera)
 	
 	DepthStencilTargetView* depthView = camera->GetDepthStencilTargetView();
 	ID3D11DepthStencilView* dsv = (depthView != nullptr ? depthView->GetDxHandle() : nullptr);
-	
+
 	if (rtv == nullptr && dsv == nullptr)
 	{
 		ConsoleLogErrorf("Bound a camera with a nullptr color and depth.");
 	}
 
 	m_dxContext->OMSetRenderTargets(1, &rtv, dsv);
-	
+
+	// Use color view for dimensions, if none use depth, if none use default
+	TextureView* viewForDimensions = m_defaultColorTarget->CreateOrGetColorTargetView();
+
+	if (colorView != nullptr)
+	{
+		viewForDimensions = colorView;
+	}
+	else if (depthView != nullptr)
+	{
+		viewForDimensions = depthView;
+	}
+
 	// Viewport
 	D3D11_VIEWPORT viewport;
 	memset(&viewport, 0, sizeof(viewport));
 	viewport.TopLeftX = 0U;
 	viewport.TopLeftY = 0U;
-	viewport.Width = (FLOAT)colorView->GetWidth();
-	viewport.Height = (FLOAT)colorView->GetHeight();
+	viewport.Width = (FLOAT)viewForDimensions->GetWidth();
+	viewport.Height = (FLOAT)viewForDimensions->GetHeight();
 	viewport.MinDepth = 0.0f;
 	viewport.MaxDepth = 1.0f;
 	m_dxContext->RSSetViewports(1, &viewport);
@@ -215,16 +227,13 @@ void RenderContext::BindMaterial(Material* material)
 		material = g_resourceSystem->CreateOrGetMaterial("Data/Material/default.material");
 	}
 
-	ASSERT_OR_DIE(material->GetShaderResourceView(SRV_SLOT_ALBEDO) != nullptr, "No albedo texture on material!");
+	ShaderResourceView* albedoView = material->GetShaderResourceView(SRV_SLOT_ALBEDO);
+	BindShaderResourceView(SRV_SLOT_ALBEDO, albedoView);
+	
 
-	// Bind Texture + Sampler
-	BindShaderResourceView(SRV_SLOT_ALBEDO, material->GetShaderResourceView(SRV_SLOT_ALBEDO));
-
-	ShaderResourceView* normalView = material->GetShaderResourceView(SRV_SLOT_NORMAL);
-	if (normalView != nullptr)
-	{
-		BindShaderResourceView(SRV_SLOT_NORMAL, normalView);
-	}
+	ShaderResourceView* normalView = material->GetShaderResourceView(SRV_SLOT_NORMAL);	
+	BindShaderResourceView(SRV_SLOT_NORMAL, normalView);
+	
 
 	// Bind Shader
 	BindShader(material->GetShader());
@@ -264,8 +273,11 @@ void RenderContext::BindShader(Shader* shader)
 
 	if (m_currentShader != shader || m_currentShader->IsDirty())
 	{
-		m_dxContext->VSSetShader(shader->GetDxVertexStage(), 0, 0);
-		m_dxContext->PSSetShader(shader->GetDxFragmentStage(), 0, 0);
+		ID3D11VertexShader* dxVShader = shader->GetDxVertexStage();
+		ID3D11PixelShader* dxPShader = shader->GetDxFragmentStage();
+
+		m_dxContext->VSSetShader(dxVShader, 0, 0);
+		m_dxContext->PSSetShader(dxPShader, 0, 0);
 
 		shader->UpdateBlendState();
 		float black[] = { 0.f, 0.f, 0.f, 0.f };
@@ -285,13 +297,61 @@ void RenderContext::BindShader(Shader* shader)
 //-------------------------------------------------------------------------------------------------
 void RenderContext::BindShaderResourceView(uint32 slot, ShaderResourceView* view)
 {
-	// TODO: Default the view to a sensible texture if null
-	ASSERT_OR_DIE(view != nullptr, "Null TextureView!");
+	if (view != nullptr)
+	{
+		BindSampler(slot, view->GetSampler());
+	}
 
-	BindSampler(slot, view->GetSampler());
-
-	ID3D11ShaderResourceView* dxViewHandle = view->GetDxHandle();
+	ID3D11ShaderResourceView* dxViewHandle = (view != nullptr ? view->GetDxHandle() : nullptr);
 	m_dxContext->PSSetShaderResources(slot, 1U, &dxViewHandle);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Binds multiple shader resource views to the given slot
+void RenderContext::BindShaderResourceViews(uint32 slot, const std::vector<ShaderResourceView*>& views)
+{
+	uint32 numViews = (uint32)views.size();
+
+	if (views.size() > 0)
+	{
+		ID3D11ShaderResourceView* dxViewHandles[MAX_RESOURCES_PER_SLOT];
+		ID3D11SamplerState* dxSampler = nullptr;
+
+		for (uint32 i = 0; i < numViews; ++i)
+		{
+			if (i < numViews && views[i] != nullptr)
+			{
+				dxViewHandles[i] = views[i]->GetDxHandle();
+
+				// Also get the sampler, defaulting to the render context default if none set
+				Sampler* sampler = views[i]->GetSampler();
+
+				if (sampler != nullptr && dxSampler == nullptr)
+				{
+					dxSampler = sampler->GetDxSamplerState();
+				}
+			}
+			else
+			{
+				// Make sure to put nulltpr in - if there needs to be gaps (like for lights that don't cast shadows) preserve them
+				dxViewHandles[i] = nullptr;
+			}
+		}
+
+		// Didn't find a single sampler, so default
+		if (dxSampler == nullptr)
+		{
+			dxSampler = m_samplers[m_samplerMode]->GetDxSamplerState();
+		}
+
+		m_dxContext->PSSetSamplers(slot, 1U, &dxSampler);
+		m_dxContext->PSSetShaderResources(slot, MAX_RESOURCES_PER_SLOT, &dxViewHandles[0]);
+	}
+	else
+	{
+		ConsoleLogErrorf("Attempted to bind multiple shader resource views, but 0 were passed in");
+	}
 }
 
 
@@ -319,7 +379,7 @@ void RenderContext::UpdateModelMatrixUBO(const Matrix4& modelMatrix)
 
 //-------------------------------------------------------------------------------------------------
 // Updates the light constant buffer to have the given light information
-void RenderContext::UpdateLightUBO(const DrawCall& drawCall)
+void RenderContext::SetLightsForDrawCall(const DrawCall& drawCall)
 {
 	Rgba ambience = drawCall.GetAmbience();
 	int numLights = drawCall.GetNumLights();
@@ -327,21 +387,37 @@ void RenderContext::UpdateLightUBO(const DrawCall& drawCall)
 	LightBufferData data;
 	data.m_ambience = ambience.GetAsFloats();
 
+	std::vector<ShaderResourceView*> shadowTextures;
+
 	for (int i = 0; i < MAX_NUMBER_OF_LIGHTS; ++i)
 	{
 		if (i < numLights)
 		{
 			data.m_lights[i] = drawCall.GetLight(i)->GetLightData();
+
+			// Also get the shadow texture, push back nullptr to maintain order
+			if (drawCall.GetLight(i)->IsShadowCasting())
+			{
+				shadowTextures.push_back(drawCall.GetLight(i)->GetShadowTexture()->CreateOrGetShaderResourceView());
+			}
+			else
+			{
+				shadowTextures.push_back(nullptr);
+			}
 		}
 		else
 		{
 			// Disable all unused lights by turning their intensity to 0
 			data.m_lights[i].m_color.w = 0.f;
 			data.m_lights[i].m_attenuation = Vector3(1.f, 0.f, 0.f);
+			shadowTextures.push_back(nullptr);
 		}
 	}
 
 	m_lightUBO.CopyToGPU(&data, sizeof(LightBufferData));
+
+	// Bind shadow textures
+	BindShaderResourceView(SRV_SLOT_SHADOWMAP, shadowTextures[0]);
 }
 
 
@@ -401,7 +477,7 @@ void RenderContext::Draw(const DrawCall& drawCall)
 	// Update light constant buffer
 	if (drawCall.GetMaterial()->UsesLights())
 	{
-		UpdateLightUBO(drawCall);
+		SetLightsForDrawCall(drawCall);
 	}
 
 	DrawInstruction draw = mesh->GetDrawInstruction();
@@ -662,7 +738,7 @@ void RenderContext::SaveTextureToImage(Texture2D* texture, const char* filepath)
 		if (hr == E_INVALIDARG)
 		{
 			mappedTexture = new Texture2D();
-			mappedTexture->CreateWithNoData(texture->GetWidth(), texture->GetHeight(), 4U, TEXTURE_USAGE_NO_BIND, GPU_MEMORY_USAGE_STAGING);
+			mappedTexture->CreateWithNoData(texture->GetWidth(), texture->GetHeight(), TEXTURE_FORMAT_R8G8B8A8_UNORM, TEXTURE_USAGE_NO_BIND, GPU_MEMORY_USAGE_STAGING);
 
 			ID3D11Texture2D* dxStagingTexture = (ID3D11Texture2D*)mappedTexture->GetDxHandle();
 			m_dxContext->CopyResource(dxStagingTexture, dxSrcTexture);
@@ -807,7 +883,7 @@ void RenderContext::InitDefaultColorAndDepthViews()
 		m_defaultDepthStencilTarget = new Texture2D();
 	}
 
-	m_defaultDepthStencilTarget->CreateWithNoData(desc.Width, desc.Height, 0, TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT, GPU_MEMORY_USAGE_GPU); // 0 here is ignored for depth stencils, it's always R24G8_TYPELESS
+	m_defaultDepthStencilTarget->CreateWithNoData(desc.Width, desc.Height, TEXTURE_FORMAT_R24G8_TYPELESS, TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT, GPU_MEMORY_USAGE_GPU);
 
 	// Create default views for both
 	m_defaultColorTarget->CreateOrGetColorTargetView();
@@ -848,11 +924,11 @@ void RenderContext::BindIndexStream(const IndexBuffer* ibo)
 void RenderContext::UpdateInputLayout(const VertexLayout* vertexLayout)
 {
 	// Don't rebind if it's the same layout as previous draw
-	if (m_currVertexLayout != vertexLayout)
+	//if (m_currentShader->GetDxInputLayout() != m_lastInputLayout.m_dxInputLayout)
 	{
 		m_currentShader->CreateInputLayoutForVertexLayout(vertexLayout);
-		m_dxContext->IASetInputLayout(m_currentShader->GetInputLayout());
-		m_currVertexLayout = vertexLayout;
+		m_dxContext->IASetInputLayout(m_currentShader->GetDxInputLayout());
+		m_lastInputLayout = m_currentShader->GetInputLayout();
 	}
 }
 

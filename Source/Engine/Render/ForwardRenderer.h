@@ -44,7 +44,7 @@ private:
 	//-----Private Methods-----
 
 	void CreateShadowTexturesForCamera(RenderScene* scene, Camera* camera);
-	void RenderSceneForCamera(RenderScene* scene, Camera* camera, bool drawSkybox);
+	void RenderSceneForCamera(RenderScene* scene, Camera* camera, bool depthOnlyPass);
 	void ConstructDrawCalls(RenderScene* scene);
 	void ConstructDrawCallsForRenderable(const Renderable& renderable, RenderScene* scene);
 	void SortDrawCalls();

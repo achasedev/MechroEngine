@@ -51,6 +51,14 @@ Material::Material()
 
 
 //-------------------------------------------------------------------------------------------------
+// Destructor
+Material::~Material()
+{
+	SafeDeleteVector(m_propertyBlocks);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 bool Material::Load(const char* filepath)
 {
 	if (!DoesFilePathHaveExtension(filepath, "material"))

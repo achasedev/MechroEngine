@@ -99,9 +99,15 @@ ShaderDescription::~ShaderDescription()
 // Initializes the description from both compiled vertex and fragment sources
 void ShaderDescription::Initialize(ID3DBlob* dxVertexSource, ID3DBlob* dxFragmentSource)
 {
+	ASSERT_RECOVERABLE(dxVertexSource != nullptr, "Vertex shader source is null!");
+
 	for (int i = 0; i < 2; ++i)
 	{
 		ID3DBlob* dxSource = (i == 0 ? dxVertexSource : dxFragmentSource);
+
+		// The fragment shader is optional
+		if (dxSource == nullptr)
+			continue;
 
 		// Create the reflector to get the information
 		HRESULT result = D3DReflect(dxSource->GetBufferPointer(), dxSource->GetBufferSize(), IID_ID3D11ShaderReflection, (void**)&m_dxReflector);

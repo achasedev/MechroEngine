@@ -28,6 +28,14 @@ class RenderTargetView;
 class ShaderResourceView;
 struct ID3D11Resource;
 
+enum TextureFormat
+{
+	TEXTURE_FORMAT_INVALID = -1,
+	TEXTURE_FORMAT_R8G8B8A8_UNORM,
+	TEXTURE_FORMAT_R24G8_TYPELESS,
+	NUM_TEXTURE_FORMATS
+};
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -69,7 +77,7 @@ protected:
 	GPUMemoryUsage						m_memoryUsage = GPU_MEMORY_USAGE_DYNAMIC;
 	TextureUsageBits					m_textureUsage = 0;
 	IntVector3							m_dimensions = IntVector3::ZERO;
-	int									m_numComponentsPerTexel = 0;
+	TextureFormat						m_format;
 	uint32								m_byteSize = 0;
 	std::vector<TextureView*>			m_views;
 
@@ -81,5 +89,6 @@ protected:
 
 uint32				GetDxBindFromTextureUsageFlags(TextureUsageBits usage);
 TextureUsageBits	GetTextureUsageFlagsFromDxBinds(uint32 dxBind);
-uint32				GetDxTextureFormatFromComponentCount(int numComponents);
-int					GetComponentCountFromDxTextureFormat(uint32 dxFormat);
+int					GetComponentCountFromTextureFormat(TextureFormat format);
+TextureFormat		GetTextureFormatFromDxFormat(uint32 dxFormat);
+uint32				GetDxFormatFromTextureFormat(TextureFormat format);

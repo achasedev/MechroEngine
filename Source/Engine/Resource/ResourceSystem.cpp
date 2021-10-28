@@ -397,26 +397,26 @@ void ResourceSystem::CreateDefaultTexture2Ds()
 {
 	Image* invalidImage = CreateOrGetImage(INVALID_TEXTURE);
 	Texture2D* invalidTexture = new Texture2D();
-	invalidTexture->CreateFromImage(*invalidImage, TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_STATIC);
+	invalidTexture->CreateFromImage(*invalidImage, TEXTURE_FORMAT_R8G8B8A8_UNORM, TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_STATIC);
 	invalidTexture->m_resourceID = invalidImage->m_resourceID;
 	m_texture2Ds[invalidImage->m_resourceID] = invalidTexture;
 	ASSERT_OR_DIE(invalidTexture != nullptr, "Couldn't load the invalid texture!");
 
 	Image* whiteImage = CreateOrGetImage("white");
 	Texture2D* whiteTexture = new Texture2D();
-	whiteTexture->CreateFromImage(*whiteImage, TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_STATIC);
+	whiteTexture->CreateFromImage(*whiteImage, TEXTURE_FORMAT_R8G8B8A8_UNORM, TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_STATIC);
 	whiteTexture->m_resourceID = whiteImage->m_resourceID;
 	m_texture2Ds[whiteTexture->m_resourceID] = whiteTexture;
 
 	Image* flatImage = CreateOrGetImage("flat");
 	Texture2D* flatTexture = new Texture2D();
-	flatTexture->CreateFromImage(*flatImage, TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_STATIC);
+	flatTexture->CreateFromImage(*flatImage, TEXTURE_FORMAT_R8G8B8A8_UNORM, TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_STATIC);
 	flatTexture->m_resourceID = flatImage->m_resourceID;
 	m_texture2Ds[flatTexture->m_resourceID] = flatTexture;
 
 	Image* debugImage = CreateOrGetImage("Data/Image/debug.png");
 	Texture2D* debugTexture = new Texture2D();
-	debugTexture->CreateFromImage(*debugImage, TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_STATIC);
+	debugTexture->CreateFromImage(*debugImage, TEXTURE_FORMAT_R8G8B8A8_UNORM, TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_STATIC);
 	debugTexture->m_resourceID = debugImage->m_resourceID;
 	m_texture2Ds[debugTexture->m_resourceID] = debugTexture;
 }

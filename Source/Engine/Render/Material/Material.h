@@ -42,6 +42,7 @@ public:
 	//-----Public Methods-----
 
 	Material();
+	~Material();
 
 	bool									Load(const char* filepath);
 	void									Clear();

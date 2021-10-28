@@ -51,6 +51,7 @@ public:
 	void					SetDepthTarget(Texture2D* depthTarget, bool ownsTarget);
 	void					SetProjection(CameraProjection projectionType, const Matrix4& projection);
 	void					SetProjectionOrthographic(float orthoHeight, float aspect, float nearZ = -1.0f, float farZ = 1.0f);
+	void					SetProjectionOrthographic(const Vector2& bottomLeft, const Vector2& topRight, float nearZ = -1.0f, float farZ = 1.0f);
 	void					SetProjectionPerspective(float fovDegrees, float nearZ, float farZ);
 	void					UpdateUBO();
 	void					ClearColorTarget(const Rgba& clearColor);

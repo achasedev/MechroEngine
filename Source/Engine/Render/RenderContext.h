@@ -11,12 +11,15 @@
 #include "Engine/Render/Buffer/ConstantBuffer.h"
 #include "Engine/Render/Mesh/Mesh.h"
 #include "Engine/Core/EngineCommon.h"
+#include "Engine/Render/Shader/Shader.h"
 #include <string>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #define ENGINE_RESERVED_CONSTANT_BUFFER_COUNT 8
+#define SHADOW_TEXTURE_SIZE (1024)
+#define MAX_RESOURCES_PER_SLOT (8)
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
@@ -92,9 +95,10 @@ public:
 	void								BindMaterial(Material* material);
 	void								BindShader(Shader* shader);
 	void								BindShaderResourceView(uint32 slot, ShaderResourceView* view);
+	void								BindShaderResourceViews(uint32 slot, const std::vector<ShaderResourceView*>& views);
 	void								BindSampler(uint32 slot, Sampler* sampler);
 	void								UpdateModelMatrixUBO(const Matrix4& modelMatrix);
-	void								UpdateLightUBO(const DrawCall& drawCall);
+	void								SetLightsForDrawCall(const DrawCall& drawCall);
 
 	template <typename VERT_TYPE> void	DrawVertexArray(const VERT_TYPE* vertices, uint32 numVertices, const uint32* indices = nullptr, uint32 numIndices = 0, Material* material = nullptr);
 	void								DrawMesh(Mesh& mesh);
@@ -146,24 +150,24 @@ private:
 private:
 	//-----Private Data-----
 
-	ID3D11Device*			m_dxDevice = nullptr;
-	ID3D11DeviceContext*	m_dxContext = nullptr;
-	ID3D11Debug*			m_dxDebug = nullptr;
-	IDXGISwapChain*			m_dxSwapChain = nullptr;
+	ID3D11Device*				m_dxDevice = nullptr;
+	ID3D11DeviceContext*		m_dxContext = nullptr;
+	ID3D11Debug*				m_dxDebug = nullptr;
+	IDXGISwapChain*				m_dxSwapChain = nullptr;
 
 	// Frame State
-	Camera*					m_currentCamera = nullptr;
-	Shader*					m_currentShader = nullptr;
-	const VertexLayout*		m_currVertexLayout = nullptr;
-	Texture2D*				m_defaultColorTarget = nullptr;
-	Texture2D*				m_defaultDepthStencilTarget = nullptr;
-	Mesh					m_immediateMesh;
-	ConstantBuffer			m_modelMatrixUBO;
-	ConstantBuffer			m_lightUBO;
+	Camera*						m_currentCamera = nullptr;
+	Shader*						m_currentShader = nullptr;
+	ShaderInputLayout			m_lastInputLayout;
+	Texture2D*					m_defaultColorTarget = nullptr;
+	Texture2D*					m_defaultDepthStencilTarget = nullptr;
+	Mesh						m_immediateMesh;
+	ConstantBuffer				m_modelMatrixUBO;
+	ConstantBuffer				m_lightUBO;
 
 	// Sampler
-	SamplerMode				m_samplerMode = SAMPLER_MODE_LINEAR;
-	Sampler*				m_samplers[NUM_SAMPLER_MODES];
+	SamplerMode					m_samplerMode = SAMPLER_MODE_LINEAR;
+	Sampler*					m_samplers[NUM_SAMPLER_MODES];
 
 };
 

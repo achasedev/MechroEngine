@@ -68,6 +68,7 @@ bool TextureCube::CreateFromSixImages(const std::vector<Image*>& sixImages)
 
 	ID3D11Device* dxDevice = g_renderContext->GetDxDevice();
 
+	m_format = TEXTURE_FORMAT_R8G8B8A8_UNORM;
 	m_textureUsage = TEXTURE_USAGE_SHADER_RESOURCE_BIT;
 	m_memoryUsage = GPU_MEMORY_USAGE_GPU;
 
@@ -79,7 +80,7 @@ bool TextureCube::CreateFromSixImages(const std::vector<Image*>& sixImages)
 	texDesc.MipLevels = 1; // Set to 0 for full chain
 	texDesc.ArraySize = 6; // 6 images
 	texDesc.Usage = (D3D11_USAGE)ToDXMemoryUsage(m_memoryUsage);
-	texDesc.Format = static_cast<DXGI_FORMAT>(GetDxTextureFormatFromComponentCount(numComponents));
+	texDesc.Format = static_cast<DXGI_FORMAT>(GetDxFormatFromTextureFormat(m_format));
 	texDesc.BindFlags = GetDxBindFromTextureUsageFlags(m_textureUsage);
 	texDesc.MiscFlags = 0U;
 	texDesc.SampleDesc.Count = 1;
@@ -105,7 +106,6 @@ bool TextureCube::CreateFromSixImages(const std::vector<Image*>& sixImages)
 	{
 		m_dxHandle = tex2D;
 		m_dimensions = IntVector3(width, height, 0);
-		m_numComponentsPerTexel = numComponents;
 		m_byteSize = 0;
 
 		for (int i = 0; i < 6; ++i)
@@ -114,6 +114,10 @@ bool TextureCube::CreateFromSixImages(const std::vector<Image*>& sixImages)
 		}
 
 		DX_SET_DEBUG_NAME(m_dxHandle, Stringf("Source File: %s | Size: (%i, %i)", m_srcFilepath.c_str(), width, height));
+	}
+	else
+	{
+		Clear();
 	}
 
 	return succeeded;
