@@ -192,13 +192,12 @@ void Camera::SetProjectionOrthographic(const Vector2& bottomLeft, const Vector2&
 
 
 //-------------------------------------------------------------------------------------------------
-void Camera::SetProjectionPerspective(float fovDegrees, float nearZ, float farZ)
+void Camera::SetProjectionPerspective(float fovDegrees, float aspect, float nearZ, float farZ)
 {
 	m_fovDegrees = fovDegrees;
 	m_nearClipZ = nearZ;
 	m_farClipZ = farZ;
 
-	float aspect = g_window->GetClientAspect();
 	m_projectionMatrix = Matrix4::MakePerspective(fovDegrees, aspect, nearZ, farZ);
 	m_currentProjection = CAMERA_PROJECTION_PERSPECTIVE;
 }
@@ -349,7 +348,7 @@ Matrix4 Camera::GetCameraMatrix()
 Matrix4 Camera::GetViewMatrix()
 {
 	// Matrix may be out of data - update to be sure
-	Matrix4 cameraMatrix = transform.GetLocalToParentMatrix();
+	Matrix4 cameraMatrix = transform.GetLocalToWorldMatrix();
 	m_viewMatrix = InvertLookAtMatrix(cameraMatrix);
 
 	return m_viewMatrix;

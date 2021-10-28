@@ -18,6 +18,7 @@
 #include "Engine/Render/RenderContext.h"
 #include "Engine/Render/RenderScene.h"
 #include "Engine/Render/Skybox.h"
+#include "Engine/Render/Texture/Texture2D.h"
 #include "Engine/Resource/ResourceSystem.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -63,6 +64,49 @@ void ForwardRenderer::Render(RenderScene* scene)
 
 
 //-------------------------------------------------------------------------------------------------
+// Initializes the shadow camera based on the light type
+void InitializeCameraForLight(Camera* shadowCamera, Light* light, Camera* gameCamera)
+{
+	LightData lightData = light->GetLightData();
+
+	if (light->IsConeLight())
+	{
+		Vector3 reference = AreMostlyEqual(lightData.m_lightDirection, Vector3::Y_AXIS) ? Vector3::X_AXIS : Vector3::Y_AXIS;
+		Matrix4 cameraMatrix = Matrix4::MakeLookAt(lightData.m_position, lightData.m_position + lightData.m_lightDirection, reference);
+		shadowCamera->SetCameraMatrix(cameraMatrix);
+		shadowCamera->SetProjectionPerspective(2.f * ACosDegrees(lightData.m_dotOuterAngle), light->GetShadowTexture()->GetAspect(), gameCamera->GetNearClip(), gameCamera->GetFarClip());
+		//shadowCamera->SetProjection(CAMERA_PROJECTION_PERSPECTIVE, gameCamera->GetProjectionMatrix());
+	}
+	else if (light->IsPointLight())
+	{
+		// TODO
+		/*LightData data = light->GetLightData();
+		shadowCamera.SetCameraMatrix(Matrix4::MakeLookAt(light->GetLightData().m_position - 10.f * (cameraPos - light->GetLightData().m_position).GetNormalized(), cameraPos));
+		shadowCamera.SetProjectionPerspective(90.f, 0.1f, 100.0f);*/
+	}
+	else if (light->IsDirectionalLight())
+	{
+		// TODO
+		// Directional
+		/*shadowCamera.SetCameraMatrix(Matrix4::MakeLookAt(light->GetLightData().m_position, cameraPos, Vector3::X_AXIS));
+		shadowCamera.SetProjectionOrthographic(Vector2(-100.f), Vector2(100.f), 0.1f, 100.f);*/
+	}
+	else
+	{
+		ERROR_AND_DIE("Light isn't any of the 3?");
+	}
+
+	// Also update the shadow view-projection on the light data
+	lightData.m_shadowVP = shadowCamera->GetProjectionMatrix() * shadowCamera->GetViewMatrix();
+	light->SetLightData(lightData);
+
+	// Set targets
+	shadowCamera->SetRenderTarget(nullptr, false);
+	shadowCamera->SetDepthTarget(light->GetShadowTexture(), false);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 // Renders the depth textures for all lights for the given camera
 void ForwardRenderer::CreateShadowTexturesForCamera(RenderScene* scene, Camera* camera)
 {
@@ -73,30 +117,9 @@ void ForwardRenderer::CreateShadowTexturesForCamera(RenderScene* scene, Camera* 
 		Light* light = scene->m_lights[lightIndex];
 		if (light->IsShadowCasting())
 		{
-			Camera shadowCamera = Camera();
-			Vector3 cameraPos = camera->GetPosition();
+			Camera shadowCamera;
 
-			if (light->GetLightData().m_directionFactor > 0.f)
-			{
-				LightData data = light->GetLightData();
-				shadowCamera.SetCameraMatrix(Matrix4::MakeLookAt(light->GetLightData().m_position - 10.f * (cameraPos - light->GetLightData().m_position).GetNormalized(), cameraPos));
-				shadowCamera.SetProjectionPerspective(90.f, 0.1f, 100.0f);
-			}
-			else
-			{
-				// Directional
-				shadowCamera.SetCameraMatrix(Matrix4::MakeLookAt(light->GetLightData().m_position, cameraPos, Vector3::X_AXIS));
-				shadowCamera.SetProjectionOrthographic(Vector2(-100.f), Vector2(100.f), 0.1f, 100.f);
-			}
-
-			// Set the view projection to be used for the shadow test
-			LightData data = light->GetLightData();
-			data.m_shadowVP = shadowCamera.GetProjectionMatrix() * shadowCamera.GetViewMatrix();
-			light->SetLightData(data);
-
-			shadowCamera.SetRenderTarget(nullptr, false);
-			shadowCamera.SetDepthTarget(light->GetShadowTexture(), false);
-
+			InitializeCameraForLight(&shadowCamera, light, camera);
 			RenderSceneForCamera(scene, &shadowCamera, true);
 		}
 	}

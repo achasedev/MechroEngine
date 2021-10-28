@@ -847,6 +847,17 @@ void RenderContext::PostDxInit()
 	// Default color/depth target
 	InitDefaultColorAndDepthViews();
 
+//// Viewport
+//	D3D11_VIEWPORT viewport;
+//	memset(&viewport, 0, sizeof(viewport));
+//	viewport.TopLeftX = 0U;
+//	viewport.TopLeftY = 0U;
+//	viewport.Width = (FLOAT)m_defaultColorTarget->GetWidth();
+//	viewport.Height = (FLOAT)m_defaultColorTarget->GetHeight();
+//	viewport.MinDepth = 0.0f;
+//	viewport.MaxDepth = 1.0f;
+//	m_dxContext->RSSetViewports(1, &viewport);
+
 	// Model matrix UBO
 	UpdateModelMatrixUBO(Matrix4::IDENTITY);
 	BindUniformBuffer(CONSTANT_BUFFER_SLOT_MODEL_MATRIX, &m_modelMatrixUBO);

@@ -69,6 +69,10 @@ public:
 	Texture2D*	GetShadowTexture() const { return m_shadowTexture; }
 	float		CalculateIntensityForPosition(const Vector3& position) const;
 
+	bool		IsDirectionalLight() const { return m_lightData.m_directionFactor < 1.f; }
+	bool		IsPointLight() const { return m_lightData.m_directionFactor > 0.f && m_lightData.m_dotOuterAngle == -1.f && m_lightData.m_dotInnerAngle == -1.f; }
+	bool		IsConeLight() const { return m_lightData.m_directionFactor > 0.f && m_lightData.m_dotOuterAngle > -1.f && m_lightData.m_dotInnerAngle > -1.f; }
+
 	// Statics
 	static Light* CreatePointLight(const Vector3& position, const Rgba& color = Rgba::WHITE, const Vector3& attenuation = Vector3(1.f, 0.f, 0.f));
 	static Light* CreateDirectionalLight(const Vector3& position, const Vector3& direction = Vector3::MINUS_Y_AXIS, const Rgba& color = Rgba::WHITE, const Vector3& attenuation = Vector3(1.f, 0.f, 0.f));

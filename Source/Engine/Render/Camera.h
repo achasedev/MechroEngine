@@ -52,7 +52,7 @@ public:
 	void					SetProjection(CameraProjection projectionType, const Matrix4& projection);
 	void					SetProjectionOrthographic(float orthoHeight, float aspect, float nearZ = -1.0f, float farZ = 1.0f);
 	void					SetProjectionOrthographic(const Vector2& bottomLeft, const Vector2& topRight, float nearZ = -1.0f, float farZ = 1.0f);
-	void					SetProjectionPerspective(float fovDegrees, float nearZ, float farZ);
+	void					SetProjectionPerspective(float fovDegrees, float aspect, float nearZ, float farZ);
 	void					UpdateUBO();
 	void					ClearColorTarget(const Rgba& clearColor);
 	void					ClearDepthTarget(float depth = 1.0f);
@@ -82,6 +82,9 @@ public:
 	Matrix4					GetProjectionMatrix() const;
 	AABB2					GetOrthoBounds() const;
 	int						GetDrawOrder() const { return m_drawOrder; }
+	float					GetNearClip() const { return m_nearClipZ; }
+	float					GetFarClip() const { return m_farClipZ; }
+	float					GetFOV() const { return m_fovDegrees; }
 
 	Vector3					GetPosition() const;
 	Vector3					GetRotationAsEulerAnglesDegrees() const;
