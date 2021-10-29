@@ -15,7 +15,7 @@
 #include "Engine/Core/EngineCommon.h"
 #include "Engine/Core/Window.h"
 #include "Engine/Render/Texture/Texture2D.h"
-#include "Engine/Render/View/DepthStencilTargetView.h"
+#include "Engine/Render/View/DepthStencilView.h"
 #include "Engine/Render/View/RenderTargetView.h"
 #include "Engine/Utility/NamedProperties.h"
 
@@ -326,7 +326,7 @@ RenderTargetView* Camera::GetRenderTargetView()
 
 
 //-------------------------------------------------------------------------------------------------
-DepthStencilTargetView* Camera::GetDepthStencilTargetView()
+DepthStencilView* Camera::GetDepthStencilTargetView()
 {
 	if (m_depthTarget != nullptr)
 	{

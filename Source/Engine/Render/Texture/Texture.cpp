@@ -13,7 +13,7 @@
 #include "Engine/Render/Texture/Texture.h"
 #include "Engine/Render/View/RenderTargetView.h"
 #include "Engine/Render/View/ShaderResourceView.h"
-#include "Engine/Render/View/DepthStencilTargetView.h"
+#include "Engine/Render/View/DepthStencilView.h"
 #include "Engine/Utility/Hash.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -184,8 +184,11 @@ ShaderResourceView* Texture::CreateOrGetShaderResourceView(const TextureViewCrea
 		return nullptr;
 	}
 
-	ASSERT_OR_DIE(m_dxHandle != nullptr, "Attempted to create a view for an uninitialized Texture!");
-	ASSERT_OR_DIE((m_textureUsage & TEXTURE_USAGE_SHADER_RESOURCE_BIT) != 0, "Attempted to create a ShaderResourceView for a texture that doesn't support it!");
+	if (m_dxHandle == nullptr)
+	{
+		ConsoleLogErrorf("Couldn't create SRV for texture %s, texture wasn't created.", m_resourceID.ToString());
+		return nullptr;
+	}
 
 	TextureView* view = GetView(viewInfo);
 	if (view != nullptr)
@@ -272,8 +275,17 @@ ShaderResourceView* Texture::CreateOrGetShaderResourceView(const TextureViewCrea
 //-------------------------------------------------------------------------------------------------
 RenderTargetView* Texture::CreateOrGetColorTargetView(const TextureViewCreateInfo* viewInfo /*= nullptr*/)
 {
-	ASSERT_OR_DIE(m_dxHandle != nullptr, "Attempted to create a view for an uninitialized Texture!");
-	ASSERT_OR_DIE((m_textureUsage & TEXTURE_USAGE_RENDER_TARGET_BIT) != 0, "Attempted to create a ColorTargetView for a texture that doesn't support it!");
+	if (viewInfo == nullptr)
+	{
+		ConsoleLogErrorf("Couldn't create color target view for texture %s, viewInfo was nullptr so it wasn't defaulted.", m_resourceID.ToString());
+		return nullptr;
+	}
+
+	if (m_dxHandle == nullptr)
+	{
+		ConsoleLogErrorf("Couldn't create color target view for texture %s, texture wasn't created.", m_resourceID.ToString());
+		return nullptr;
+	}
 
 	// Default the info
 	TextureViewCreateInfo defaultInfo;
@@ -326,10 +338,19 @@ RenderTargetView* Texture::CreateOrGetColorTargetView(const TextureViewCreateInf
 
 
 //-------------------------------------------------------------------------------------------------
-DepthStencilTargetView* Texture::CreateOrGetDepthStencilTargetView(const TextureViewCreateInfo* viewInfo /*= nullptr*/)
+DepthStencilView* Texture::CreateOrGetDepthStencilTargetView(const TextureViewCreateInfo* viewInfo /*= nullptr*/)
 {
-	ASSERT_OR_DIE(m_dxHandle != nullptr, "Attempted to create a view for an uninitialized Texture!");
-	ASSERT_OR_DIE((m_textureUsage & TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT) != 0, "Attempted to create a DepthStencilView for a texture that doesn't support it!");
+	if (viewInfo == nullptr)
+	{
+		ConsoleLogErrorf("Couldn't create depth stencil view for texture %s, viewInfo was nullptr so it wasn't defaulted.", m_resourceID.ToString());
+		return nullptr;
+	}
+
+	if (m_dxHandle == nullptr)
+	{
+		ConsoleLogErrorf("Couldn't create depth stencil view for texture %s, texture wasn't created.", m_resourceID.ToString());
+		return nullptr;
+	}
 
 	// Default the info
 	TextureViewCreateInfo defaultInfo;
@@ -343,7 +364,7 @@ DepthStencilTargetView* Texture::CreateOrGetDepthStencilTargetView(const Texture
 	TextureView* view = GetView(viewInfo);
 	if (view != nullptr)
 	{
-		DepthStencilTargetView* viewAsDSV = dynamic_cast<DepthStencilTargetView*>(view);
+		DepthStencilView* viewAsDSV = dynamic_cast<DepthStencilView*>(view);
 		ASSERT_OR_DIE(viewAsDSV != nullptr, "Couldn't cast view into DepthStencilView!");
 
 		return viewAsDSV;
@@ -363,7 +384,7 @@ DepthStencilTargetView* Texture::CreateOrGetDepthStencilTargetView(const Texture
 
 		if (dxDSV != nullptr)
 		{
-			DepthStencilTargetView* depthStencilView = new DepthStencilTargetView();
+			DepthStencilView* depthStencilView = new DepthStencilView();
 
 			depthStencilView->m_dxDSV = dxDSV;
 			depthStencilView->m_sourceTexture = this;

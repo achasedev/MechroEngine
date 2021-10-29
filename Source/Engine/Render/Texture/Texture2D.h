@@ -22,7 +22,7 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class	RenderTargetView;
-class	DepthStencilTargetView;
+class	DepthStencilView;
 struct	ID3D11Texture2D;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -49,7 +49,9 @@ public:
 	bool	CreateFromDxTexture2D(ID3D11Texture2D* dxTexture2D);
 	bool	UpdateFromImage(const Image& image);
 
-	virtual ShaderResourceView* CreateOrGetShaderResourceView(const TextureViewCreateInfo* viewInfo = nullptr) override;
+	virtual ShaderResourceView*	CreateOrGetShaderResourceView(const TextureViewCreateInfo* viewInfo = nullptr) override;
+	virtual RenderTargetView*	CreateOrGetColorTargetView(const TextureViewCreateInfo* viewInfo = nullptr) override;
+	virtual DepthStencilView*	CreateOrGetDepthStencilTargetView(const TextureViewCreateInfo* viewInfo = nullptr) override;
 
 	float	GetAspect() const;
 

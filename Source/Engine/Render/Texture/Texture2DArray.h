@@ -36,6 +36,8 @@ public:
 
 	bool						Create(uint32 numTextures, int width, int height, TextureFormat format);
 	virtual ShaderResourceView*	CreateOrGetShaderResourceView(const TextureViewCreateInfo* viewInfo = nullptr) override;
+	virtual RenderTargetView*	CreateOrGetColorTargetView(const TextureViewCreateInfo* viewInfo = nullptr) override;
+	virtual DepthStencilView*	CreateOrGetDepthStencilTargetView(const TextureViewCreateInfo* viewInfo = nullptr) override;
 
 
 private:

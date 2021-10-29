@@ -22,7 +22,7 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class	RenderTargetView;
-class	DepthStencilTargetView;
+class	DepthStencilView;
 struct	ID3D11Texture2D;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -45,10 +45,9 @@ public:
 	bool							LoadSixFiles(const char* folderPath);
 	bool							CreateFromSixImages(const std::vector<Image*>& sixImages);
 	virtual ShaderResourceView*		CreateOrGetShaderResourceView(const TextureViewCreateInfo* viewInfo = nullptr) override;
-
-	// These textures can't have these views (for now)
 	virtual RenderTargetView*		CreateOrGetColorTargetView(const TextureViewCreateInfo* viewInfo = nullptr) override;
-	virtual DepthStencilTargetView*	CreateOrGetDepthStencilTargetView(const TextureViewCreateInfo* viewInfo = nullptr) override;
+	virtual DepthStencilView*		CreateOrGetDepthStencilTargetView(const TextureViewCreateInfo* viewInfo = nullptr) override;
+
 };
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

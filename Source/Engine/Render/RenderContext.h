@@ -26,7 +26,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Camera;
 class RenderTargetView;
-class DepthStencilTargetView;
+class DepthStencilView;
 class DrawCall;
 class IndexBuffer;
 class Light;
@@ -125,7 +125,7 @@ public:
 	Texture2D*							GetDefaultDepthStencilTarget() const { return m_defaultDepthStencilTarget; }
 
 	RenderTargetView*					GetDefaultRenderTargetView() const;
-	DepthStencilTargetView*				GetDefaultDepthStencilTargetView() const;
+	DepthStencilView*				GetDefaultDepthStencilTargetView() const;
 
 	bool								Event_WindowResize(NamedProperties& args);
 

@@ -37,7 +37,7 @@
 #include "Engine/Render/Texture/Texture2DArray.h"
 #include "Engine/Render/View/RenderTargetView.h"
 #include "Engine/Render/View/ShaderResourceView.h"
-#include "Engine/Render/View/DepthStencilTargetView.h"
+#include "Engine/Render/View/DepthStencilView.h"
 #include "Engine/Render/Texture/Texture2D.h"
 #include "Engine/Resource/ResourceSystem.h"
 #include "Engine/Time/Time.h"
@@ -171,7 +171,7 @@ void RenderContext::BeginCamera(Camera* camera)
 	RenderTargetView* colorView = camera->GetRenderTargetView();
 	ID3D11RenderTargetView* rtv = (colorView != nullptr ? colorView->GetDxHandle() : nullptr);
 	
-	DepthStencilTargetView* depthView = camera->GetDepthStencilTargetView();
+	DepthStencilView* depthView = camera->GetDepthStencilTargetView();
 	ID3D11DepthStencilView* dsv = (depthView != nullptr ? depthView->GetDxHandle() : nullptr);
 
 	if (rtv == nullptr && dsv == nullptr)
@@ -953,7 +953,7 @@ RenderTargetView* RenderContext::GetDefaultRenderTargetView() const
 
 
 //-------------------------------------------------------------------------------------------------
-DepthStencilTargetView* RenderContext::GetDefaultDepthStencilTargetView() const
+DepthStencilView* RenderContext::GetDefaultDepthStencilTargetView() const
 {
 	return m_defaultDepthStencilTarget->CreateOrGetDepthStencilTargetView();
 }

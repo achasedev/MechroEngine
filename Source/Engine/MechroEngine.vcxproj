@@ -384,7 +384,7 @@
     <ClInclude Include="Render\Buffer\RenderBuffer.h" />
     <ClInclude Include="Render\Sampler.h" />
     <ClInclude Include="Render\Shader\Shader.h" />
-    <ClInclude Include="Render\View\DepthStencilTargetView.h" />
+    <ClInclude Include="Render\View\DepthStencilView.h" />
     <ClInclude Include="Render\Texture\Texture.h" />
     <ClInclude Include="Render\Texture\Texture2D.h" />
     <ClInclude Include="Render\View\ShaderResourceView.h" />

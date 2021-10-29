@@ -22,7 +22,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class DepthStencilTargetView;
+class DepthStencilView;
 class Image;
 class RenderTargetView;
 class ShaderResourceView;
@@ -55,7 +55,7 @@ public:
 	void								Clear();
 	virtual ShaderResourceView*			CreateOrGetShaderResourceView(const TextureViewCreateInfo* viewInfo = nullptr);
 	virtual RenderTargetView*			CreateOrGetColorTargetView(const TextureViewCreateInfo* viewInfo = nullptr);
-	virtual DepthStencilTargetView*		CreateOrGetDepthStencilTargetView(const TextureViewCreateInfo* viewInfo = nullptr);
+	virtual DepthStencilView*			CreateOrGetDepthStencilTargetView(const TextureViewCreateInfo* viewInfo = nullptr);
 
 	int									GetWidth() const { return m_dimensions.x; }
 	int									GetHeight() const { return m_dimensions.y; }

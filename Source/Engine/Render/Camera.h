@@ -19,7 +19,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class DepthStencilTargetView;
+class DepthStencilView;
 class RenderTargetView;
 class Texture2D;
 class ConstantBuffer;
@@ -75,7 +75,7 @@ public:
 	ConstantBuffer*			GetUniformBuffer() const { return m_cameraUBO; }
 
 	RenderTargetView*		GetRenderTargetView();
-	DepthStencilTargetView*	GetDepthStencilTargetView();
+	DepthStencilView*	GetDepthStencilTargetView();
 
 	Matrix4					GetCameraMatrix();
 	Matrix4					GetViewMatrix();

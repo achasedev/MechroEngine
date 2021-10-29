@@ -144,14 +144,32 @@ ShaderResourceView* TextureCube::CreateOrGetShaderResourceView(const TextureView
 //-------------------------------------------------------------------------------------------------
 RenderTargetView* TextureCube::CreateOrGetColorTargetView(const TextureViewCreateInfo* viewInfo /*= nullptr*/)
 {
-	UNUSED(viewInfo);
-	ERROR_AND_DIE("Cannot create target views for a skybox!");
+	if (viewInfo == nullptr)
+	{
+		// Make sure we use the right default
+		TextureViewCreateInfo cubeViewInfo;
+		cubeViewInfo.m_viewDimension = VIEW_DIMENSION_TEXTURECUBE;
+		cubeViewInfo.m_viewUsage = TEXTURE_USAGE_RENDER_TARGET_BIT;
+
+		return Texture::CreateOrGetColorTargetView(&cubeViewInfo);
+	}
+
+	return Texture::CreateOrGetColorTargetView(viewInfo);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-DepthStencilTargetView* TextureCube::CreateOrGetDepthStencilTargetView(const TextureViewCreateInfo* viewInfo /*= nullptr*/)
+DepthStencilView* TextureCube::CreateOrGetDepthStencilTargetView(const TextureViewCreateInfo* viewInfo /*= nullptr*/)
 {
-	UNUSED(viewInfo);
-	ERROR_AND_DIE("Cannot create depth stencil views for a skybox!");
+	if (viewInfo == nullptr)
+	{
+		// Make sure we use the right default
+		TextureViewCreateInfo cubeViewInfo;
+		cubeViewInfo.m_viewDimension = VIEW_DIMENSION_TEXTURECUBE;
+		cubeViewInfo.m_viewUsage = TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT;
+
+		return Texture::CreateOrGetDepthStencilTargetView(&cubeViewInfo);
+	}
+
+	return Texture::CreateOrGetDepthStencilTargetView(viewInfo);
 }

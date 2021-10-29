@@ -30,15 +30,15 @@ struct ID3D11DepthStencilView;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class DepthStencilTargetView : public TextureView
+class DepthStencilView : public TextureView
 {
 	friend class Texture2D;
 
 public:
 	//-----Public Methods-----
 
-	DepthStencilTargetView() {}
-	virtual ~DepthStencilTargetView() {}
+	DepthStencilView() {}
+	virtual ~DepthStencilView() {}
 
 	ID3D11DepthStencilView* GetDxHandle() const { return m_dxDSV; }
 

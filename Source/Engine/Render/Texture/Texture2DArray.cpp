@@ -109,3 +109,43 @@ ShaderResourceView* Texture2DArray::CreateOrGetShaderResourceView(const TextureV
 
 	return Texture::CreateOrGetShaderResourceView(viewInfo);
 }
+
+
+//-------------------------------------------------------------------------------------------------
+// Creates a render target view for this texture, using reasonable defaults
+RenderTargetView* Texture2DArray::CreateOrGetColorTargetView(const TextureViewCreateInfo* viewInfo /*= nullptr*/)
+{
+	if (viewInfo == nullptr)
+	{
+		// Make sure we use the right default
+		TextureViewCreateInfo cubeViewInfo;
+		cubeViewInfo.m_viewDimension = VIEW_DIMENSION_TEXTURE2DARRAY;
+		cubeViewInfo.m_viewUsage = TEXTURE_USAGE_RENDER_TARGET_BIT;
+		cubeViewInfo.m_firstTextureIndex = 0;
+		cubeViewInfo.m_numTextures = m_numTextures;
+
+		return Texture::CreateOrGetColorTargetView(&cubeViewInfo);
+	}
+
+	return Texture::CreateOrGetColorTargetView(viewInfo);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Creates a depth stencil view for this texture, using reasonable defaults
+DepthStencilView* Texture2DArray::CreateOrGetDepthStencilTargetView(const TextureViewCreateInfo* viewInfo /*= nullptr*/)
+{
+	if (viewInfo == nullptr)
+	{
+		// Make sure we use the right default
+		TextureViewCreateInfo cubeViewInfo;
+		cubeViewInfo.m_viewDimension = VIEW_DIMENSION_TEXTURE2DARRAY;
+		cubeViewInfo.m_viewUsage = TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT;
+		cubeViewInfo.m_firstTextureIndex = 0;
+		cubeViewInfo.m_numTextures = m_numTextures;
+
+		return Texture::CreateOrGetDepthStencilTargetView(&cubeViewInfo);
+	}
+
+	return Texture::CreateOrGetDepthStencilTargetView(viewInfo);
+}

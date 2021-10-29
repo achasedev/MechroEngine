@@ -217,6 +217,42 @@ ShaderResourceView* Texture2D::CreateOrGetShaderResourceView(const TextureViewCr
 
 
 //-------------------------------------------------------------------------------------------------
+// Creates a render target view for this texture, using reasonable defaults
+RenderTargetView* Texture2D::CreateOrGetColorTargetView(const TextureViewCreateInfo* viewInfo /*= nullptr*/)
+{
+	if (viewInfo == nullptr)
+	{
+		// Make sure we use the right default
+		TextureViewCreateInfo cubeViewInfo;
+		cubeViewInfo.m_viewDimension = VIEW_DIMENSION_TEXTURE2D;
+		cubeViewInfo.m_viewUsage = TEXTURE_USAGE_RENDER_TARGET_BIT;
+
+		return Texture::CreateOrGetColorTargetView(&cubeViewInfo);
+	}
+
+	return Texture::CreateOrGetColorTargetView(viewInfo);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Creates a depth stencil view for this texture, using reasonable defaults
+DepthStencilView* Texture2D::CreateOrGetDepthStencilTargetView(const TextureViewCreateInfo* viewInfo /*= nullptr*/)
+{
+	if (viewInfo == nullptr)
+	{
+		// Make sure we use the right default
+		TextureViewCreateInfo cubeViewInfo;
+		cubeViewInfo.m_viewDimension = VIEW_DIMENSION_TEXTURE2D;
+		cubeViewInfo.m_viewUsage = TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT;
+
+		return Texture::CreateOrGetDepthStencilTargetView(&cubeViewInfo);
+	}
+
+	return Texture::CreateOrGetDepthStencilTargetView(viewInfo);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 float Texture2D::GetAspect() const
 {
 	return static_cast<float>(m_dimensions.x) / static_cast<float>(m_dimensions.y);
