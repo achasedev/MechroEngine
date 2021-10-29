@@ -7,6 +7,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Core/DevConsole.h"
 #include "Engine/Render/DX11Common.h"
 #include "Engine/Render/RenderContext.h"
 #include "Engine/Render/Texture/Texture.h"
@@ -36,7 +37,7 @@ static D3D11_SRV_DIMENSION GetDxDimensionFromViewDimension(ViewDimension dimensi
 {
 	switch (dimension)
 	{
-	case VIEW_DIMENSION_2D: return D3D11_SRV_DIMENSION_TEXTURE2D; break;
+	case VIEW_DIMENSION_TEXTURE2D: return D3D11_SRV_DIMENSION_TEXTURE2D; break;
 	case VIEW_DIMENSION_TEXTURECUBE: return D3D11_SRV_DIMENSION_TEXTURECUBE; break;
 	case VIEW_DIMENSION_TEXTURE2DARRAY: return D3D11_SRV_DIMENSION_TEXTURE2DARRAY; break;
 	default:
@@ -177,17 +178,14 @@ Texture::~Texture()
 //-------------------------------------------------------------------------------------------------
 ShaderResourceView* Texture::CreateOrGetShaderResourceView(const TextureViewCreateInfo* viewInfo /*= nullptr*/)
 {
-	ASSERT_OR_DIE(m_dxHandle != nullptr, "Attempted to create a view for an uninitialized Texture!");
-	ASSERT_OR_DIE((m_textureUsage & TEXTURE_USAGE_SHADER_RESOURCE_BIT) != 0, "Attempted to create a ShaderResourceView for a texture that doesn't support it!");
-
-	// Default the info
-	TextureViewCreateInfo defaultInfo;
-	defaultInfo.m_viewType = TEXTURE_USAGE_SHADER_RESOURCE_BIT;
-
 	if (viewInfo == nullptr)
 	{
-		viewInfo = &defaultInfo;
+		ConsoleLogErrorf("Couldn't create SRV for texture %s, viewInfo was nullptr so it wasn't defaulted.", m_resourceID.ToString());
+		return nullptr;
 	}
+
+	ASSERT_OR_DIE(m_dxHandle != nullptr, "Attempted to create a view for an uninitialized Texture!");
+	ASSERT_OR_DIE((m_textureUsage & TEXTURE_USAGE_SHADER_RESOURCE_BIT) != 0, "Attempted to create a ShaderResourceView for a texture that doesn't support it!");
 
 	TextureView* view = GetView(viewInfo);
 	if (view != nullptr)
@@ -202,6 +200,8 @@ ShaderResourceView* Texture::CreateOrGetShaderResourceView(const TextureViewCrea
 		// Create a ShaderResourceView for this texture
 		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 
+		// Set format
+		// If the texture is a depth stencil, it needs to have the right view format to be sampled
 		DXGI_FORMAT dxFormat;
 		if (m_format == TEXTURE_FORMAT_R24G8_TYPELESS)
 		{
@@ -213,9 +213,32 @@ ShaderResourceView* Texture::CreateOrGetShaderResourceView(const TextureViewCrea
 		}
 
 		srvDesc.Format = dxFormat;
+
+		// Set view dimension and dimension-specific fields
 		srvDesc.ViewDimension = GetDxDimensionFromViewDimension(viewInfo->m_viewDimension);
-		srvDesc.Texture2D.MostDetailedMip = 0;
-		srvDesc.Texture2D.MipLevels = viewInfo->m_numMipLevels;
+
+		switch (viewInfo->m_viewDimension)
+		{
+		case VIEW_DIMENSION_TEXTURE2D:
+			srvDesc.Texture2D.MostDetailedMip = viewInfo->m_mostDetailedMip;
+			srvDesc.Texture2D.MipLevels = viewInfo->m_numMipLevels;
+			break;
+		case VIEW_DIMENSION_TEXTURE2DARRAY:
+			srvDesc.Texture2DArray.MostDetailedMip = viewInfo->m_mostDetailedMip;
+			srvDesc.Texture2DArray.MipLevels = viewInfo->m_numMipLevels;
+			srvDesc.Texture2DArray.FirstArraySlice = viewInfo->m_firstTextureIndex;
+			srvDesc.Texture2DArray.ArraySize = viewInfo->m_numTextures;
+			break;
+		case VIEW_DIMENSION_TEXTURECUBE:
+			srvDesc.TextureCube.MipLevels = viewInfo->m_numMipLevels;
+			srvDesc.TextureCube.MostDetailedMip = viewInfo->m_mostDetailedMip;
+			break;
+		default:
+			ConsoleLogErrorf("Couldn't create SRV for %s, view dimension was invalid", m_resourceID.ToString());
+			return nullptr;
+			break;
+		}
+
 
 		ID3D11Device* dxDevice = g_renderContext->GetDxDevice();
 		ID3D11ShaderResourceView* dxSRV = nullptr;
@@ -254,7 +277,7 @@ RenderTargetView* Texture::CreateOrGetColorTargetView(const TextureViewCreateInf
 
 	// Default the info
 	TextureViewCreateInfo defaultInfo;
-	defaultInfo.m_viewType = TEXTURE_USAGE_RENDER_TARGET_BIT;
+	defaultInfo.m_viewUsage = TEXTURE_USAGE_RENDER_TARGET_BIT;
 
 	if (viewInfo == nullptr)
 	{
@@ -310,7 +333,7 @@ DepthStencilTargetView* Texture::CreateOrGetDepthStencilTargetView(const Texture
 
 	// Default the info
 	TextureViewCreateInfo defaultInfo;
-	defaultInfo.m_viewType = TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT;
+	defaultInfo.m_viewUsage = TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT;
 
 	if (viewInfo == nullptr)
 	{

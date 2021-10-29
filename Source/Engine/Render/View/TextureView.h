@@ -26,9 +26,10 @@ enum TextureUsageBit : uint32
 	TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT	= BIT_FLAG(4),	// Can be used to create a DepthStencilTargetView
 };
 
-enum ViewDimension : uint32
+enum ViewDimension
 {
-	VIEW_DIMENSION_2D,
+	VIEW_DIMENSIONS_INVALID = -1,
+	VIEW_DIMENSION_TEXTURE2D,
 	VIEW_DIMENSION_TEXTURECUBE,
 	VIEW_DIMENSION_TEXTURE2DARRAY
 };
@@ -43,9 +44,17 @@ struct ID3D11DepthStencilView;
 
 struct TextureViewCreateInfo
 {
-	TextureUsageBits	m_viewType = 0;
-	ViewDimension		m_viewDimension = VIEW_DIMENSION_2D;
+	TextureUsageBits	m_viewUsage = 0;
+	ViewDimension		m_viewDimension = VIEW_DIMENSIONS_INVALID;
+
+	// Texture2D and Texture2DArray
 	int					m_numMipLevels = 1;
+	int					m_mostDetailedMip = 0;
+
+	// Texture2DArray
+	int					m_numTextures = -1;
+	int					m_firstTextureIndex = 0;
+
 };
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

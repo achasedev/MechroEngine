@@ -199,6 +199,24 @@ bool Texture2D::UpdateFromImage(const Image& image)
 
 
 //-------------------------------------------------------------------------------------------------
+// Creates an SRV for this texture, defaulting to reasonable defaults if no info is provided
+ShaderResourceView* Texture2D::CreateOrGetShaderResourceView(const TextureViewCreateInfo* viewInfo /* = nullptr */)
+{
+	if (viewInfo == nullptr)
+	{
+		// Make sure we use the right default
+		TextureViewCreateInfo cubeViewInfo;
+		cubeViewInfo.m_viewDimension = VIEW_DIMENSION_TEXTURE2D;
+		cubeViewInfo.m_viewUsage = TEXTURE_USAGE_SHADER_RESOURCE_BIT;
+
+		return Texture::CreateOrGetShaderResourceView(&cubeViewInfo);
+	}
+
+	return Texture::CreateOrGetShaderResourceView(viewInfo);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 float Texture2D::GetAspect() const
 {
 	return static_cast<float>(m_dimensions.x) / static_cast<float>(m_dimensions.y);

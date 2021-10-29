@@ -95,73 +95,17 @@ bool Texture2DArray::Create(uint32 numTextures, int width, int height, TextureFo
 // Creates an SRV that's compatible with Texture2DArray in the shader
 ShaderResourceView* Texture2DArray::CreateOrGetShaderResourceView(const TextureViewCreateInfo* viewInfo /* = nullptr */)
 {
-	ASSERT_OR_DIE(m_dxHandle != nullptr, "Attempted to create a view for an uninitialized Texture!");
-	ASSERT_OR_DIE((m_textureUsage & TEXTURE_USAGE_SHADER_RESOURCE_BIT) != 0, "Attempted to create a ShaderResourceView for a texture that doesn't support it!");
-
-	// Default the info
-	TextureViewCreateInfo defaultInfo;
-	defaultInfo.m_viewType = TEXTURE_USAGE_SHADER_RESOURCE_BIT;
-	defaultInfo.m_viewDimension = VIEW_DIMENSION_TEXTURE2DARRAY;
-
 	if (viewInfo == nullptr)
 	{
-		viewInfo = &defaultInfo;
+		// Make sure we use the right default
+		TextureViewCreateInfo cubeViewInfo;
+		cubeViewInfo.m_viewDimension = VIEW_DIMENSION_TEXTURE2DARRAY;
+		cubeViewInfo.m_viewUsage = TEXTURE_USAGE_SHADER_RESOURCE_BIT;
+		cubeViewInfo.m_firstTextureIndex = 0;
+		cubeViewInfo.m_numTextures = m_numTextures;
+
+		return Texture::CreateOrGetShaderResourceView(&cubeViewInfo);
 	}
 
-	TextureView* view = GetView(viewInfo);
-	if (view != nullptr)
-	{
-		ShaderResourceView* viewAsSRV = dynamic_cast<ShaderResourceView*>(view);
-		ASSERT_OR_DIE(viewAsSRV != nullptr, "Couldn't cast view into ShaderResourceView!");
-
-		return viewAsSRV;
-	}
-	else
-	{
-		// Create a ShaderResourceView for this texture
-		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-
-		DXGI_FORMAT dxFormat;
-		if (m_format == TEXTURE_FORMAT_R24G8_TYPELESS)
-		{
-			dxFormat = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-		}
-		else
-		{
-			dxFormat = static_cast<DXGI_FORMAT>(GetDxFormatFromTextureFormat(m_format));
-		}
-
-		srvDesc.Format = dxFormat;
-		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
-		srvDesc.Texture2DArray.MostDetailedMip = 0;
-		srvDesc.Texture2DArray.MipLevels = viewInfo->m_numMipLevels;
-		srvDesc.Texture2DArray.FirstArraySlice = 0;
-		srvDesc.Texture2DArray.ArraySize = m_numTextures;
-
-		ID3D11Device* dxDevice = g_renderContext->GetDxDevice();
-		ID3D11ShaderResourceView* dxSRV = nullptr;
-		HRESULT hr = dxDevice->CreateShaderResourceView(m_dxHandle, &srvDesc, &dxSRV);
-		ASSERT_OR_DIE(SUCCEEDED(hr), "Couldn't create ShaderResourceView!");
-
-		if (dxSRV != nullptr)
-		{
-			ShaderResourceView* shaderResourceView = new ShaderResourceView();
-
-			shaderResourceView->m_dxSRV = dxSRV;
-			shaderResourceView->m_sourceTexture = this;
-			shaderResourceView->m_byteSize = m_byteSize;
-			shaderResourceView->m_usage = TEXTURE_USAGE_SHADER_RESOURCE_BIT;
-			shaderResourceView->m_createInfo = *viewInfo;
-			uint32 infoHash = HashData((void*)viewInfo, sizeof(viewInfo));
-			shaderResourceView->m_createInfoHash = infoHash;
-			DX_SET_DEBUG_NAME(dxSRV, Stringf("ShaderResourceView | Source Texture Filepath: %s | Texture Dimensions: (%i, %i)", m_srcFilepath.c_str(), m_dimensions.x, m_dimensions.y));
-
-			// Add it to the map
-			m_views.push_back(shaderResourceView);
-
-			return shaderResourceView;
-		}
-
-		return nullptr;
-	}
+	return Texture::CreateOrGetShaderResourceView(viewInfo);
 }

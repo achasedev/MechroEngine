@@ -132,6 +132,7 @@ ShaderResourceView* TextureCube::CreateOrGetShaderResourceView(const TextureView
 		// Make sure we use the right default
 		TextureViewCreateInfo cubeViewInfo;
 		cubeViewInfo.m_viewDimension = VIEW_DIMENSION_TEXTURECUBE;
+		cubeViewInfo.m_viewUsage = TEXTURE_USAGE_SHADER_RESOURCE_BIT;
 
 		return Texture::CreateOrGetShaderResourceView(&cubeViewInfo);
 	}

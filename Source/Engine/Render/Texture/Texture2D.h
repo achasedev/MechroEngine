@@ -49,6 +49,8 @@ public:
 	bool	CreateFromDxTexture2D(ID3D11Texture2D* dxTexture2D);
 	bool	UpdateFromImage(const Image& image);
 
+	virtual ShaderResourceView* CreateOrGetShaderResourceView(const TextureViewCreateInfo* viewInfo = nullptr) override;
+
 	float	GetAspect() const;
 
 };
