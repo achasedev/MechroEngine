@@ -38,6 +38,7 @@ static D3D11_SRV_DIMENSION GetDxDimensionFromViewDimension(ViewDimension dimensi
 	{
 	case VIEW_DIMENSION_2D: return D3D11_SRV_DIMENSION_TEXTURE2D; break;
 	case VIEW_DIMENSION_TEXTURECUBE: return D3D11_SRV_DIMENSION_TEXTURECUBE; break;
+	case VIEW_DIMENSION_TEXTURE2DARRAY: return D3D11_SRV_DIMENSION_TEXTURE2DARRAY; break;
 	default:
 		ERROR_AND_DIE("Invalid dimension!");
 		break;

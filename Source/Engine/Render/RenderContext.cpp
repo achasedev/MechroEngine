@@ -34,6 +34,7 @@
 #include "Engine/Render/Mesh/Vertex.h"
 #include "Engine/Render/Sampler.h"
 #include "Engine/Render/Shader/Shader.h"
+#include "Engine/Render/Texture/Texture2DArray.h"
 #include "Engine/Render/View/RenderTargetView.h"
 #include "Engine/Render/View/ShaderResourceView.h"
 #include "Engine/Render/View/DepthStencilTargetView.h"
@@ -315,54 +316,6 @@ void RenderContext::BindShaderResourceView(uint32 slot, ShaderResourceView* view
 
 
 //-------------------------------------------------------------------------------------------------
-// Binds multiple shader resource views to the given slot
-void RenderContext::BindShaderResourceViews(uint32 slot, const std::vector<ShaderResourceView*>& views)
-{
-	uint32 numViews = (uint32)views.size();
-
-	if (views.size() > 0)
-	{
-		ID3D11ShaderResourceView* dxViewHandles[MAX_RESOURCES_PER_SLOT];
-		ID3D11SamplerState* dxSampler = nullptr;
-
-		for (uint32 i = 0; i < numViews; ++i)
-		{
-			if (i < numViews && views[i] != nullptr)
-			{
-				dxViewHandles[i] = views[i]->GetDxHandle();
-
-				// Also get the sampler, defaulting to the render context default if none set
-				Sampler* sampler = views[i]->GetSampler();
-
-				if (sampler != nullptr && dxSampler == nullptr)
-				{
-					dxSampler = sampler->GetDxSamplerState();
-				}
-			}
-			else
-			{
-				// Make sure to put nulltpr in - if there needs to be gaps (like for lights that don't cast shadows) preserve them
-				dxViewHandles[i] = nullptr;
-			}
-		}
-
-		// Didn't find a single sampler, so default
-		if (dxSampler == nullptr)
-		{
-			dxSampler = m_samplers[m_samplerMode]->GetDxSamplerState();
-		}
-
-		m_dxContext->PSSetSamplers(slot, 1U, &dxSampler);
-		m_dxContext->PSSetShaderResources(slot, MAX_RESOURCES_PER_SLOT, &dxViewHandles[0]);
-	}
-	else
-	{
-		ConsoleLogErrorf("Attempted to bind multiple shader resource views, but 0 were passed in");
-	}
-}
-
-
-//-------------------------------------------------------------------------------------------------
 void RenderContext::BindSampler(uint32 slot, Sampler* sampler)
 {
 	if (sampler == nullptr)
@@ -424,7 +377,7 @@ void RenderContext::SetLightsForDrawCall(const DrawCall& drawCall)
 	m_lightUBO.CopyToGPU(&data, sizeof(LightBufferData));
 
 	// Bind shadow textures
-	BindShaderResourceView(SRV_SLOT_SHADOWMAP, shadowTextures[0]);
+	BindShaderResourceView(SRV_SLOT_SHADOWMAP, drawCall.GetShadowMaps()->CreateOrGetShaderResourceView());
 }
 
 

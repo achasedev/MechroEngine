@@ -19,6 +19,7 @@
 #include "Engine/Render/RenderScene.h"
 #include "Engine/Render/Skybox.h"
 #include "Engine/Render/Texture/Texture2D.h"
+#include "Engine/Render/Texture/Texture2DArray.h"
 #include "Engine/Resource/ResourceSystem.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -42,6 +43,32 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
+// Constructor
+ForwardRenderer::ForwardRenderer()
+{
+	m_shadowMaps = new Texture2DArray();
+	m_shadowMaps->Create(MAX_NUMBER_OF_LIGHTS, SHADOW_TEXTURE_SIZE, SHADOW_TEXTURE_SIZE, TEXTURE_FORMAT_R24G8_TYPELESS);
+
+	m_clearDepthTexture = new Texture2D();
+	m_clearDepthTexture->CreateWithNoData(SHADOW_TEXTURE_SIZE, SHADOW_TEXTURE_SIZE, TEXTURE_FORMAT_R24G8_TYPELESS, TEXTURE_USAGE_SHADER_RESOURCE_BIT | TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT, GPU_MEMORY_USAGE_GPU);
+
+	// Code reuse!
+	Camera camera;
+	camera.SetDepthTarget(m_clearDepthTexture, false);
+	camera.ClearDepthTarget(1.0f);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Destructor
+ForwardRenderer::~ForwardRenderer()
+{
+	SAFE_DELETE(m_clearDepthTexture);
+	SAFE_DELETE(m_shadowMaps);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 // Renders the given RenderScene
 void ForwardRenderer::Render(RenderScene* scene)
 {
@@ -58,7 +85,7 @@ void ForwardRenderer::Render(RenderScene* scene)
 		CreateShadowTexturesForCamera(scene, scene->m_cameras[index]);
 
 		// Draw draw draw
-		RenderSceneForCamera(scene, scene->m_cameras[index], false);
+		PerformRenderPass(scene, scene->m_cameras[index]);
 	}
 }
 
@@ -119,15 +146,45 @@ void ForwardRenderer::CreateShadowTexturesForCamera(RenderScene* scene, Camera* 
 			Camera shadowCamera;
 
 			InitializeCameraForLight(&shadowCamera, light, camera);
-			RenderSceneForCamera(scene, &shadowCamera, true);
+			PerformShadowDepthPass(&shadowCamera);
 		}
 	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
-// Renders the scene using the given camera; also used for shadow camera draws
-void ForwardRenderer::RenderSceneForCamera(RenderScene* scene, Camera* camera, bool depthOnlyPass)
+// Renders the scene for the given shadow camera
+void ForwardRenderer::PerformShadowDepthPass(Camera* shadowCamera)
+{
+	g_renderContext->BeginCamera(shadowCamera);
+	shadowCamera->ClearDepthTarget(1.0f);
+
+	// Iterate over all draw calls (already sorted) and draw them
+	for (int drawIndex = 0; drawIndex < (int)m_drawCalls.size(); ++drawIndex)
+	{
+		DrawCall& dc = m_drawCalls[drawIndex];
+
+		// Use the shadowmap shader
+		Material* depthMat = g_resourceSystem->CreateOrGetMaterial("Data/Material/depth_only.material");
+
+		// Cache off the existing material, swap to the shadow material
+		Material* prevMaterial = dc.GetMaterial();
+		dc.SetMaterial(depthMat);
+
+		g_renderContext->Draw(dc);
+
+		// Revert it back
+		dc.SetMaterial(prevMaterial);
+
+	}
+
+	g_renderContext->EndCamera();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Renders the scene using the given camera
+void ForwardRenderer::PerformRenderPass(RenderScene* scene, Camera* camera)
 {
 	g_renderContext->BeginCamera(camera);
 	camera->ClearDepthTarget(1.0f);
@@ -137,37 +194,16 @@ void ForwardRenderer::RenderSceneForCamera(RenderScene* scene, Camera* camera, b
 	{
 		DrawCall& dc = m_drawCalls[drawIndex];
 
-		if (depthOnlyPass)
-		{
-			// Use the shadowmap shader
-			Shader* shadowShader = g_resourceSystem->CreateOrGetShader("Data/Shader/shadowmap.shader");
-
-			Material shadowMat;
-			shadowMat.SetShader(shadowShader);
-
-			// Cache off the existing material, swap to the shadow material
-			Material* prevMaterial = dc.GetMaterial();
-			dc.SetMaterial(&shadowMat);
-
-			g_renderContext->Draw(dc);
-
-			// Revert it back
-			dc.SetMaterial(prevMaterial);
-		}
-		else
-		{
-			g_renderContext->Draw(dc);
-		}
+		PopulateShadowMapArray(dc);
+		g_renderContext->Draw(dc);
 	}
 
-	if (!depthOnlyPass)
-	{
-		Skybox* skybox = scene->GetSkybox();
+	// Render skybox last
+	Skybox* skybox = scene->GetSkybox();
 
-		if (skybox != nullptr)
-		{
-			skybox->Render();
-		}
+	if (skybox != nullptr)
+	{
+		skybox->Render();
 	}
 
 	g_renderContext->EndCamera();
@@ -201,6 +237,7 @@ void ForwardRenderer::ConstructDrawCallsForRenderable(const Renderable& renderab
 	for (int dcIndex = 0; dcIndex < drawCount; ++dcIndex)
 	{
 		DrawCall dc;
+		dc.SetShadowMaps(m_shadowMaps);
 
 		// Compute which lights contribute the most to this renderable
 		Material* material = renderable.GetDraw(dcIndex).m_material;
@@ -303,4 +340,26 @@ void ForwardRenderer::ComputeLightsForDrawCall(DrawCall& drawCall, RenderScene* 
 	}
 
 	drawCall.SetNumLightsInUse(numLightsToUse);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Copies the lights' shadowmaps into the array used by the shader for shadow depth tests
+void ForwardRenderer::PopulateShadowMapArray(const DrawCall& dc)
+{
+	int numLights = dc.GetNumLights();
+	for (int i = 0; i < numLights; ++i)
+	{
+		ID3D11DeviceContext* dxContext = g_renderContext->GetDxContext();
+		ID3D11Resource* dxTexArray = m_shadowMaps->GetDxHandle();
+		ID3D11Resource* dxShadowTexture = m_clearDepthTexture->GetDxHandle();
+
+		if (dc.GetLight(i)->IsShadowCasting())
+		{
+			Texture2D* shadowTexture = dc.GetLight(i)->GetShadowTexture();
+			dxShadowTexture = shadowTexture->GetDxHandle();
+		}
+
+		dxContext->CopySubresourceRegion(dxTexArray, i, 0, 0, 0, dxShadowTexture, 0, nullptr);
+	}
 }

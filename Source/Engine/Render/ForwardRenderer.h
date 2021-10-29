@@ -21,6 +21,8 @@
 class Camera;
 class Renderable;
 class RenderScene;
+class Texture2D;
+class Texture2DArray;
 class Vector3;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -37,6 +39,9 @@ class ForwardRenderer
 public:
 	//-----Public Methods-----
 
+	ForwardRenderer();
+	~ForwardRenderer();
+
 	void Render(RenderScene* scene);
 
 
@@ -44,17 +49,20 @@ private:
 	//-----Private Methods-----
 
 	void CreateShadowTexturesForCamera(RenderScene* scene, Camera* camera);
-	void RenderSceneForCamera(RenderScene* scene, Camera* camera, bool depthOnlyPass);
+	void PerformShadowDepthPass(Camera* camera);
+	void PerformRenderPass(RenderScene* scene, Camera* camera);
 	void ConstructDrawCalls(RenderScene* scene);
 	void ConstructDrawCallsForRenderable(const Renderable& renderable, RenderScene* scene);
 	void SortDrawCalls();
 	void ComputeLightsForDrawCall(DrawCall& drawCall, RenderScene* scene, const Vector3& position);
-
+	void PopulateShadowMapArray(const DrawCall& dc);
 
 private:
 	//-----Private Data-----
 
-	std::vector<DrawCall> m_drawCalls;
+	std::vector<DrawCall>	m_drawCalls;
+	Texture2DArray*			m_shadowMaps = nullptr;
+	Texture2D*				m_clearDepthTexture = nullptr;
 
 };
 

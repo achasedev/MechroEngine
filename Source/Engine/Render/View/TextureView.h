@@ -29,7 +29,8 @@ enum TextureUsageBit : uint32
 enum ViewDimension : uint32
 {
 	VIEW_DIMENSION_2D,
-	VIEW_DIMENSION_TEXTURECUBE
+	VIEW_DIMENSION_TEXTURECUBE,
+	VIEW_DIMENSION_TEXTURE2DARRAY
 };
 
 
@@ -59,6 +60,7 @@ struct TextureViewCreateInfo
 class TextureView
 {
 	friend class Texture;
+	friend class Texture2DArray;
 
 public:
 	//-----Public Methods-----

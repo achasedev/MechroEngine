@@ -201,6 +201,7 @@
     <ClCompile Include="Render\Buffer\PropertyDescription.cpp" />
     <ClCompile Include="Render\Shader\ShaderDescription.cpp" />
     <ClCompile Include="Render\Skybox.cpp" />
+    <ClCompile Include="Render\Texture\Texture2DArray.cpp" />
     <ClCompile Include="Render\Texture\TextureCube.cpp" />
     <ClCompile Include="Resource\Resource.cpp" />
     <ClCompile Include="Math\Edge3.cpp" />
@@ -331,6 +332,7 @@
     <ClInclude Include="Render\Buffer\PropertyDescription.h" />
     <ClInclude Include="Render\Shader\ShaderDescription.h" />
     <ClInclude Include="Render\Skybox.h" />
+    <ClInclude Include="Render\Texture\Texture2DArray.h" />
     <ClInclude Include="Render\Texture\TextureCube.h" />
     <ClInclude Include="Resource\Resource.h" />
     <ClInclude Include="Math\Capsule3D.h" />

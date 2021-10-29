@@ -31,6 +31,17 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
+// Constructor
+DrawCall::DrawCall()
+{
+	for (int i = 0; i < MAX_NUMBER_OF_LIGHTS; ++i)
+	{
+		m_lights[i] = nullptr;
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void DrawCall::SetFromRenderable(const Renderable& renderable, uint32 drawCallIndex)
 {
 	RenderableDraw rendDraw = renderable.GetDraw(drawCallIndex);

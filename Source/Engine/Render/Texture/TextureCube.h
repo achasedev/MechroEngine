@@ -46,7 +46,7 @@ public:
 	bool							CreateFromSixImages(const std::vector<Image*>& sixImages);
 	virtual ShaderResourceView*		CreateOrGetShaderResourceView(const TextureViewCreateInfo* viewInfo = nullptr) override;
 
-	// These textures can't have these views
+	// These textures can't have these views (for now)
 	virtual RenderTargetView*		CreateOrGetColorTargetView(const TextureViewCreateInfo* viewInfo = nullptr) override;
 	virtual DepthStencilTargetView*	CreateOrGetDepthStencilTargetView(const TextureViewCreateInfo* viewInfo = nullptr) override;
 };

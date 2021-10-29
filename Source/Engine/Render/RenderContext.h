@@ -95,7 +95,6 @@ public:
 	void								BindMaterial(Material* material);
 	void								BindShader(Shader* shader);
 	void								BindShaderResourceView(uint32 slot, ShaderResourceView* view);
-	void								BindShaderResourceViews(uint32 slot, const std::vector<ShaderResourceView*>& views);
 	void								BindSampler(uint32 slot, Sampler* sampler);
 	void								UpdateModelMatrixUBO(const Matrix4& modelMatrix);
 	void								SetLightsForDrawCall(const DrawCall& drawCall);
