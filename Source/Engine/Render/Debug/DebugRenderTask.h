@@ -143,6 +143,22 @@ private:
 
 
 //-------------------------------------------------------------------------------------------------
+class DebugRenderOBB3 : public DebugRenderTask
+{
+public:
+	//-----Public Methods-----
+
+	DebugRenderOBB3(const OBB3& obb, const DebugRenderOptions& options);
+	virtual void Render() const override;
+
+
+private:
+	//-----Private Data-----
+
+};
+
+
+//-------------------------------------------------------------------------------------------------
 class DebugRenderSphere : public DebugRenderTask
 {
 public:

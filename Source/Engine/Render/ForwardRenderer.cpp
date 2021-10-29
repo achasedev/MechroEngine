@@ -89,6 +89,7 @@ void ForwardRenderer::Render(RenderScene* scene)
 	}
 }
 
+#include "Engine/Render/Mesh/MeshBuilder.h"
 
 //-------------------------------------------------------------------------------------------------
 // Initializes the shadow camera based on the light type
@@ -112,10 +113,46 @@ void InitializeCameraForLight(Camera* shadowCamera, Light* light, Camera* gameCa
 	}
 	else if (light->IsDirectionalLight())
 	{
-		// TODO
-		// Directional
-		/*shadowCamera.SetCameraMatrix(Matrix4::MakeLookAt(light->GetLightData().m_position, cameraPos, Vector3::X_AXIS));
-		shadowCamera.SetProjectionOrthographic(Vector2(-100.f), Vector2(100.f), 0.1f, 100.f);*/
+		Frustrum frustrum = gameCamera->GetFrustrum();
+		Vector3 reference = AreMostlyEqual(lightData.m_lightDirection, Vector3::Y_AXIS) ? Vector3::X_AXIS : Vector3::Y_AXIS;
+		Matrix4 lightModel = Matrix4::MakeLookAt(lightData.m_position, lightData.m_position + lightData.m_lightDirection, reference);
+		Matrix4 invLightModel = Matrix4::GetInverse(lightModel);
+
+		// Get frustrum in light space
+		Vector3 frustrumPointsLs[8];
+		for (int i = 0; i < 8; ++i)
+		{
+			frustrumPointsLs[i] = invLightModel.TransformPosition(frustrum.GetPoint(i));
+		}
+
+		// Find the AABB bounds to encapsulate the frustrum, in light space
+		Vector3 minsLs;
+		minsLs.x = Min(frustrumPointsLs[0].x, frustrumPointsLs[1].x, frustrumPointsLs[2].x, frustrumPointsLs[3].x, frustrumPointsLs[4].x, frustrumPointsLs[5].x, frustrumPointsLs[6].x, frustrumPointsLs[7].x);
+		minsLs.y = Min(frustrumPointsLs[0].y, frustrumPointsLs[1].y, frustrumPointsLs[2].y, frustrumPointsLs[3].y, frustrumPointsLs[4].y, frustrumPointsLs[5].y, frustrumPointsLs[6].y, frustrumPointsLs[7].y);
+		minsLs.z = Min(frustrumPointsLs[0].z, frustrumPointsLs[1].z, frustrumPointsLs[2].z, frustrumPointsLs[3].z, frustrumPointsLs[4].z, frustrumPointsLs[5].z, frustrumPointsLs[6].z, frustrumPointsLs[7].z);
+
+		Vector3 maxsLs;
+		maxsLs.x = Max(frustrumPointsLs[0].x, frustrumPointsLs[1].x, frustrumPointsLs[2].x, frustrumPointsLs[3].x, frustrumPointsLs[4].x, frustrumPointsLs[5].x, frustrumPointsLs[6].x, frustrumPointsLs[7].x);
+		maxsLs.y = Max(frustrumPointsLs[0].y, frustrumPointsLs[1].y, frustrumPointsLs[2].y, frustrumPointsLs[3].y, frustrumPointsLs[4].y, frustrumPointsLs[5].y, frustrumPointsLs[6].y, frustrumPointsLs[7].y);
+		maxsLs.z = Max(frustrumPointsLs[0].z, frustrumPointsLs[1].z, frustrumPointsLs[2].z, frustrumPointsLs[3].z, frustrumPointsLs[4].z, frustrumPointsLs[5].z, frustrumPointsLs[6].z, frustrumPointsLs[7].z);
+
+		// Place the camera at the back of the AABB, in light space
+		Vector3 shadowCameraPosLs = Vector3(0.5f * (minsLs.x + maxsLs.x), 0.5f * (minsLs.y + maxsLs.y), minsLs.z);
+
+		// Determine orthobounds to represent the AABB at this location
+		Vector2 orthoBottomLeft = Vector2(minsLs.x - shadowCameraPosLs.x, minsLs.y - shadowCameraPosLs.y);
+		Vector2 orthoTopRight = Vector2(maxsLs.x - shadowCameraPosLs.x, maxsLs.y - shadowCameraPosLs.y);
+
+		// Make the projection
+		Matrix4 orthoProj = Matrix4::MakeOrtho(orthoBottomLeft, orthoTopRight, 0.1f, maxsLs.z - minsLs.z);
+
+		// Find the model to place the camera at this location in world space
+		Vector3 shadowCameraPosWs = lightModel.TransformPosition(shadowCameraPosLs);
+		Matrix4 cameraModel = Matrix4::MakeLookAt(shadowCameraPosWs, shadowCameraPosWs + lightData.m_lightDirection, reference);
+
+		// Set camera
+		shadowCamera->SetCameraMatrix(cameraModel);
+		shadowCamera->SetProjection(CAMERA_PROJECTION_ORTHOGRAPHIC, orthoProj);
 	}
 	else
 	{

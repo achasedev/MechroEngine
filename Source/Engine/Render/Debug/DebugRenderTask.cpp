@@ -240,3 +240,26 @@ void DebugRenderCapsule::Render() const
 	debugMaterial->GetShader()->SetFillMode(prevFillMode);
 	debugMaterial->SetAlbedoTextureView(prevAlbedo);
 }
+
+
+//------------------------------------------------------------------------------------------------- 
+DebugRenderOBB3::DebugRenderOBB3(const OBB3& obb, const DebugRenderOptions& options)
+	: DebugRenderTask(options)
+{
+	m_transform.position = obb.center;
+	m_transform.scale = 2.f * obb.GetExtents();
+	m_transform.rotation = obb.rotation;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void DebugRenderOBB3::Render() const
+{
+	Mesh* cubeMesh = g_resourceSystem->CreateOrGetMesh("unit_cube");
+	Material* debugMaterial = g_resourceSystem->CreateOrGetMaterial("Data/Material/debug.material");
+
+	Renderable rend;
+	rend.AddDraw(cubeMesh, debugMaterial, m_transform.GetLocalToWorldMatrix());
+
+	g_renderContext->DrawRenderable(rend);
+}

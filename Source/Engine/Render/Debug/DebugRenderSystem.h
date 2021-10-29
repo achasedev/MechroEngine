@@ -96,5 +96,6 @@ DebugRenderHandle DebugDrawLine3D(const Vector3& start, const Vector3& end, cons
 DebugRenderHandle DebugDrawPoint3D(const Vector3& position, const Rgba& color = Rgba::RED, float lifetime = FLT_MAX, const Transform* parentTransform = nullptr);
 DebugRenderHandle DebugDrawRigidBody3D(const RigidBody3D* body, const Rgba& color);
 DebugRenderHandle DebugDrawCube(const Vector3& center, const Vector3& extents, const Rgba& color = Rgba::WHITE, float lifetime = FLT_MAX, const Transform* parentTransform = nullptr);
+DebugRenderHandle DebugDrawOBB3(const OBB3& obb, const Rgba& color = Rgba::WHITE, float lifetime = FLT_MAX, const Transform* parentTransform = nullptr);
 DebugRenderHandle DebugDrawSphere(const Vector3& center, float radius, const Rgba& color = Rgba::WHITE, float lifetime = FLT_MAX, const Transform* parentTransform = nullptr);
 DebugRenderHandle DebugDrawCapsule(const Vector3& start, const Vector3& end, float radius, const Rgba& color = Rgba::WHITE, float lifetime = FLT_MAX, const Transform* parentTransform = nullptr);

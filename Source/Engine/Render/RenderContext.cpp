@@ -384,7 +384,7 @@ void RenderContext::SetLightsForDrawCall(const DrawCall& drawCall)
 //-------------------------------------------------------------------------------------------------
 void RenderContext::DrawMesh(Mesh& mesh)
 {
-	DrawMeshWithMaterial(mesh, nullptr);
+	DrawMeshWithMaterial(mesh, g_resourceSystem->CreateOrGetMaterial("Data/Material/default_alpha.material"));
 }
 
 

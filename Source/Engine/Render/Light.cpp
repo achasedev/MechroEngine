@@ -127,7 +127,7 @@ Light* Light::CreateDirectionalLight(const Vector3& position, const Vector3& dir
 	light->m_lightData.m_attenuation = attenuation;
 
 	// Don't need dots since this isn't a spot light, and directional factor = 0.f indicates this is a directional light
-	light->m_lightData.m_dotOuterAngle = -1.f;
+	light->m_lightData.m_dotOuterAngle = -2.f;
 	light->m_lightData.m_dotInnerAngle = -1.f;
 	light->m_lightData.m_directionFactor = 0.f;
 

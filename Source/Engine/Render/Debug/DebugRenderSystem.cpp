@@ -84,6 +84,19 @@ DebugRenderHandle DebugDrawCube(const Vector3& center, const Vector3& extents, c
 
 
 //-------------------------------------------------------------------------------------------------
+DebugRenderHandle DebugDrawOBB3(const OBB3& obb, const Rgba& color /*= Rgba::WHITE*/, float lifetime /*= FLT_MAX*/, const Transform* parentTransform /*= nullptr*/)
+{
+	DebugRenderOptions options;
+	options.m_lifetime = lifetime;
+	options.m_color = color;
+	options.m_parentTransform = parentTransform;
+
+	DebugRenderOBB3* debugCube = new DebugRenderOBB3(obb, options);
+	return g_debugRenderSystem->AddObject(debugCube);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 DebugRenderHandle DebugDrawSphere(const Vector3& center, float radius, const Rgba& color /*= Rgba::WHITE*/, float lifetime /*= FLT_MAX*/, const Transform* parentTransform /*= nullptr*/)
 {
 	DebugRenderOptions options;
