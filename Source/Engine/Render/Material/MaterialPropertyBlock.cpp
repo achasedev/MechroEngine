@@ -7,6 +7,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Core/DevConsole.h"
 #include "Engine/Core/EngineCommon.h"
 #include "Engine/Render/Material/MaterialPropertyBlock.h"
 #include "Engine/Render/Buffer/PropertyBlockDescription.h"
@@ -43,7 +44,12 @@ MaterialPropertyBlock::MaterialPropertyBlock(const PropertyBlockDescription* des
 // Sets the buffer to have the given data at the given offset. Will expand the buffer if necessary 
 void MaterialPropertyBlock::SetCPUData(const void* data, int dataSize, int offset)
 {
-	ASSERT_RETURN(offset + dataSize < m_description->GetSize(), NO_RETURN_VAL, "Property block attempted to write off the end of the block!");
+	if (offset + dataSize > m_description->GetSize())
+	{
+		ConsoleLogErrorf("Property block %s attempted to write off the end of the block!", m_description->GetName().ToString());
+		return;
+
+	}
 
 	if (m_cpuData == nullptr)
 	{

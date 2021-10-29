@@ -413,6 +413,15 @@ Vector3 Camera::GetUpVector()
 
 
 //-------------------------------------------------------------------------------------------------
+// Returns the frustrum for the camera
+Frustrum Camera::GetFrustrum()
+{
+	// Use accessor functions to ensure we get most up-to-date matrices
+	return Frustrum(GetViewMatrix(), GetProjectionMatrix());
+}
+
+
+//-------------------------------------------------------------------------------------------------
 bool Camera::Event_WindowResize(NamedProperties& args)
 {
 	if (m_currentProjection == CAMERA_PROJECTION_ORTHOGRAPHIC && m_renderTarget == g_renderContext->GetDefaultRenderTarget())

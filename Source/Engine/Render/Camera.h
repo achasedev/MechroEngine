@@ -9,6 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Math/AABB2.h"
+#include "Engine/Math/Frustrum.h"
 #include "Engine/Math/Matrix4.h"
 #include "Engine/Math/Transform.h"
 
@@ -75,7 +76,7 @@ public:
 	ConstantBuffer*			GetUniformBuffer() const { return m_cameraUBO; }
 
 	RenderTargetView*		GetRenderTargetView();
-	DepthStencilView*	GetDepthStencilTargetView();
+	DepthStencilView*		GetDepthStencilTargetView();
 
 	Matrix4					GetCameraMatrix();
 	Matrix4					GetViewMatrix();
@@ -93,6 +94,7 @@ public:
 	Vector3					GetForwardVector();
 	Vector3					GetRightVector();
 	Vector3					GetUpVector();
+	Frustrum				GetFrustrum();
 
 	bool					Event_WindowResize(NamedProperties& args);
 

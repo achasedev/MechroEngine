@@ -21,10 +21,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Camera;
 class Shader;
-struct DebugBufferData
-{
-	Vector4 m_colorTint = Vector4::ONES;
-};
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -51,9 +47,7 @@ public:
 	DebugRenderTask*	GetObject(const DebugRenderHandle& handle);
 	bool				ToggleWorldAxesDraw();
 
-	Shader*				GetShader() const;
 	Camera*				GetCamera() const { return m_camera; }
-	void				UpdateUniformBuffer(const DebugBufferData& data);
 
 	template<typename T>
 	T*					GetObjectAs(const DebugRenderHandle& handle);

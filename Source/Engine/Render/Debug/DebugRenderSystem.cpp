@@ -213,21 +213,6 @@ bool DebugRenderSystem::ToggleWorldAxesDraw()
 
 
 //-------------------------------------------------------------------------------------------------
-Shader* DebugRenderSystem::GetShader() const
-{
-	return g_resourceSystem->CreateOrGetShader("Data/Shader/debug.shader");
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void DebugRenderSystem::UpdateUniformBuffer(const DebugBufferData& data)
-{
-	m_uniformBuffer.CopyToGPU(&data, sizeof(data));
-	g_renderContext->BindUniformBuffer(4U, &m_uniformBuffer);
-}
-
-
-//-------------------------------------------------------------------------------------------------
 DebugRenderSystem::~DebugRenderSystem()
 {
 	int numObjects = (int)m_objects.size();

@@ -273,7 +273,7 @@ bool Material::SetProperty(const StringID& propertyName, const void* data, int b
 	}
 	else
 	{
-		ConsoleLogErrorf("Attempted to set property %s on material %s, but it's shader description doesn't have that property", propDesc->GetName().ToString(), GetResourceID().ToString());
+		ConsoleLogErrorf("Attempted to set property %s on material %s, but it's shader description doesn't have that property", propertyName.ToString(), GetResourceID().ToString());
 	}
 
 	return false;

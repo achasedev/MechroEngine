@@ -52,10 +52,8 @@ DebugRenderTask::DebugRenderTask(const DebugRenderOptions& options)
 //-------------------------------------------------------------------------------------------------
 void DebugRenderTask::PreRender() const
 {
-	// Update the UBO
-	DebugBufferData data;
-	data.m_colorTint = m_options.m_color.GetAsFloats();
-	g_debugRenderSystem->UpdateUniformBuffer(data);
+	Material* debugMaterial = g_resourceSystem->CreateOrGetMaterial("Data/Material/debug.material");
+	debugMaterial->SetProperty(SID("TINT"), m_options.m_color.GetAsFloats());
 }
 
 
@@ -95,11 +93,12 @@ DebugRenderLine3D::DebugRenderLine3D(const Vector3& start, const Vector3& end, c
 //-------------------------------------------------------------------------------------------------
 void DebugRenderLine3D::Render() const
 {
+	UNIMPLEMENTED();
 	Matrix4 mat = m_transform.GetLocalToWorldMatrix();
 	Vector3 startWs = mat.TransformPosition(m_start);
 	Vector3 endWs = mat.TransformPosition(m_end);
 
-	g_renderContext->DrawLine3D(startWs, endWs, Rgba::WHITE, g_debugRenderSystem->GetShader());
+	//g_renderContext->DrawLine3D(startWs, endWs, Rgba::WHITE, g_debugRenderSystem->GetShader());
 }
 
 
@@ -114,8 +113,9 @@ DebugRenderPoint3D::DebugRenderPoint3D(const Vector3& position, const DebugRende
 //-------------------------------------------------------------------------------------------------
 void DebugRenderPoint3D::Render() const
 {
+	UNIMPLEMENTED();
 	Vector3 posWs = m_transform.GetWorldPosition();
-	g_renderContext->DrawPoint3D(posWs, 0.25f, Rgba::WHITE, g_debugRenderSystem->GetShader());
+	g_renderContext->DrawPoint3D(posWs, 0.25f, m_options.m_color);
 }
 
 
