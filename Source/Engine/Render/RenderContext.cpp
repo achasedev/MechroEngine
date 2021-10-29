@@ -75,7 +75,8 @@ RenderContext* g_renderContext = nullptr;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-void SetupMaterial(Texture2D* albedo, Shader* shader, Material& out_material)
+// TODO remove this
+static void SetupMaterial(Texture2D* albedo, Shader* shader, Material& out_material)
 {
 	ShaderResourceView* albedoView = (albedo != nullptr ? albedo->CreateOrGetShaderResourceView() : nullptr);
 
@@ -141,6 +142,12 @@ void RenderContext::BeginFrame()
 //-------------------------------------------------------------------------------------------------
 void RenderContext::EndFrame()
 {
+	// Copy our default color target to the back buffer
+	ID3D11Texture2D* backbuffer = nullptr;
+	m_dxSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backbuffer);
+
+	m_dxContext->CopyResource(backbuffer, m_defaultColorTarget->GetDxHandle());
+
 	// Swap buffers
 	m_dxSwapChain->Present(0, 0);
 
@@ -847,17 +854,6 @@ void RenderContext::PostDxInit()
 	// Default color/depth target
 	InitDefaultColorAndDepthViews();
 
-//// Viewport
-//	D3D11_VIEWPORT viewport;
-//	memset(&viewport, 0, sizeof(viewport));
-//	viewport.TopLeftX = 0U;
-//	viewport.TopLeftY = 0U;
-//	viewport.Width = (FLOAT)m_defaultColorTarget->GetWidth();
-//	viewport.Height = (FLOAT)m_defaultColorTarget->GetHeight();
-//	viewport.MinDepth = 0.0f;
-//	viewport.MaxDepth = 1.0f;
-//	m_dxContext->RSSetViewports(1, &viewport);
-
 	// Model matrix UBO
 	UpdateModelMatrixUBO(Matrix4::IDENTITY);
 	BindUniformBuffer(CONSTANT_BUFFER_SLOT_MODEL_MATRIX, &m_modelMatrixUBO);
@@ -886,7 +882,7 @@ void RenderContext::InitDefaultColorAndDepthViews()
 		m_defaultColorTarget = new Texture2D();
 	}
 
-	m_defaultColorTarget->CreateFromDxTexture2D(backbuffer);
+	m_defaultColorTarget->CreateWithNoData(desc.Width, desc.Height, TEXTURE_FORMAT_R8G8B8A8_UNORM, TEXTURE_USAGE_SHADER_RESOURCE_BIT | TEXTURE_USAGE_RENDER_TARGET_BIT, GPU_MEMORY_USAGE_GPU);
 
 	// Depth target
 	if (m_defaultDepthStencilTarget == nullptr)

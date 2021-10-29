@@ -75,7 +75,6 @@ void InitializeCameraForLight(Camera* shadowCamera, Light* light, Camera* gameCa
 		Matrix4 cameraMatrix = Matrix4::MakeLookAt(lightData.m_position, lightData.m_position + lightData.m_lightDirection, reference);
 		shadowCamera->SetCameraMatrix(cameraMatrix);
 		shadowCamera->SetProjectionPerspective(2.f * ACosDegrees(lightData.m_dotOuterAngle), light->GetShadowTexture()->GetAspect(), gameCamera->GetNearClip(), gameCamera->GetFarClip());
-		//shadowCamera->SetProjection(CAMERA_PROJECTION_PERSPECTIVE, gameCamera->GetProjectionMatrix());
 	}
 	else if (light->IsPointLight())
 	{
