@@ -1,16 +1,15 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: Oct 24th, 2021
+/// Date Created: Oct 30th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Core/DevConsole.h"
 #include "Engine/Core/EngineCommon.h"
+#include "Engine/Render/Material/MaterialInstance.h"
 #include "Engine/Render/Material/MaterialPropertyBlock.h"
-#include "Engine/Render/Buffer/PropertyBlockDescription.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -33,83 +32,44 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-// Constructor
-MaterialPropertyBlock::MaterialPropertyBlock(const PropertyBlockDescription* description)
-	: m_description(description)
+// Constructor from base material; Shallow copy shader + views to avoid instancing
+// Deep copy property blocks for the instance
+MaterialInstance::MaterialInstance(Material* baseMaterial)
+	: m_baseMaterial(baseMaterial)
 {
+	ASSERT_OR_DIE(baseMaterial != nullptr, "Material instance being initialized from null material!");
+	ASSERT_OR_DIE(!baseMaterial->IsInstance(), "Instance being created from an instance!");
+
+	m_shader = baseMaterial->GetShader();
+
+	for (uint32 i = 0; i < MAX_SRV_SLOTS; ++i)
+	{
+		m_shaderResourceViews[i] = baseMaterial->GetShaderResourceView(i);
+	}
+
+	CloneBasePropertyBlocks();
+	m_isInstance = true;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-// Deep copies this block; Used for material instancing
-MaterialPropertyBlock* MaterialPropertyBlock::CreateClone() const
+// Restores this material back
+void MaterialInstance::ResetToBaseMaterial()
 {
-	MaterialPropertyBlock* block = new MaterialPropertyBlock(m_description);
-
-	// Deep copy the local data if there is any
-	if (m_cpuData != nullptr)
-	{
-		block->m_cpuData = malloc(m_description->GetSize());
-		memcpy(block->m_cpuData, m_cpuData, m_description->GetSize());
-	}
-	else
-	{
-		block->m_cpuData = nullptr;
-	}
-
-	block->m_gpuNeedsUpdate = m_gpuNeedsUpdate;
-
-	// Deep copy buffer on gpu if we already created one for this
-	if (m_buffer.GetDxHandle() != nullptr)
-	{
-		block->m_buffer.CopyToGPU(m_cpuData, m_description->GetSize());
-		block->m_gpuNeedsUpdate = false; // clone is up to date (although we might not be lol)
-	}
-
-	return block;
+	SafeDeleteVector(m_propertyBlocks);
+	CloneBasePropertyBlocks();
 }
 
 
 //-------------------------------------------------------------------------------------------------
-// Sets the buffer to have the given data at the given offset. Will expand the buffer if necessary 
-void MaterialPropertyBlock::SetCPUData(const void* data, int dataSize, int offset)
+// Deep copy the base material's property blocks to instance them
+void MaterialInstance::CloneBasePropertyBlocks()
 {
-	if (offset + dataSize > m_description->GetSize())
+	int numBlocks = (int)m_baseMaterial->GetPropertyBlockCount();
+	for (int i = 0; i < numBlocks; ++i)
 	{
-		ConsoleLogErrorf("Property block %s attempted to write off the end of the block!", m_description->GetName().ToString());
-		return;
-
+		MaterialPropertyBlock* block = m_baseMaterial->GetPropertyBlockAtIndex(i);
+		MaterialPropertyBlock* clone = block->CreateClone();
+		m_propertyBlocks.push_back(clone);
 	}
-
-	if (m_cpuData == nullptr)
-	{
-		// Make the cpu buffer
-		m_cpuData = malloc(m_description->GetSize());
-	}
-
-	// Copy into it with offset
-	unsigned char* dst = (unsigned char*)m_cpuData;
-
-	std::memcpy(&dst[offset], data, dataSize);
-	m_gpuNeedsUpdate = true;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-// Updates the gpu buffer with the current cpu data
-void MaterialPropertyBlock::UpdateGPUData()
-{
-	if (m_gpuNeedsUpdate)
-	{
-		m_buffer.CopyToGPU(m_cpuData, m_description->GetSize());
-		m_gpuNeedsUpdate = false;
-	}
-}
-
-
-//-------------------------------------------------------------------------------------------------
-// Returns the name of this block (matches name of the description from shader)
-StringID MaterialPropertyBlock::GetName() const
-{
-	return m_description->GetName();
 }

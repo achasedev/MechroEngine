@@ -42,6 +42,7 @@ public:
 	StringID						GetName() const;
 	const PropertyBlockDescription*	GetDescription() const { return m_description; }
 	ConstantBuffer*					GetConstantBuffer() { return &m_buffer; }
+	MaterialPropertyBlock*			CreateClone() const;
 
 	template <typename T>
 	void SetCPUData(const T& data, size_t offset) { SetCPUData(&data, sizeof(T), offset); }

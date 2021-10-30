@@ -95,6 +95,43 @@ RenderBuffer::~RenderBuffer()
 
 
 //-------------------------------------------------------------------------------------------------
+// Clones this buffer into the destination buffer
+void RenderBuffer::CloneInto(RenderBuffer* dstBuffer) const
+{
+	ASSERT_RETURN(dstBuffer != nullptr, NO_RETURN_VAL, "Attempted to clone into null buffer!");
+	ASSERT_RETURN(m_dxHandle != nullptr, NO_RETURN_VAL, "Attempted to clone an uninitialized buffer!");
+
+	dstBuffer->Reset();
+
+	dstBuffer->m_bufferSizeBytes = m_bufferSizeBytes;
+	dstBuffer->m_elementSize = m_elementSize;
+	dstBuffer->m_memoryUsage = m_memoryUsage;
+	dstBuffer->m_usageFlags = m_usageFlags;
+
+	if (m_dxHandle != nullptr)
+	{
+		bool success = dstBuffer->CreateOnGPU(nullptr, m_bufferSizeBytes, m_elementSize, m_usageFlags, m_memoryUsage);
+		ASSERT_RETURN(success, NO_RETURN_VAL, "Couldn't create render buffer during clone!");
+
+		// Copy the data
+		ID3D11DeviceContext* dxContext = g_renderContext->GetDxContext();
+		dxContext->CopyResource(dstBuffer->m_dxHandle, m_dxHandle);
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Deep copies this buffer
+RenderBuffer* RenderBuffer::CreateClone() const
+{
+	RenderBuffer* clone = new RenderBuffer();
+	CloneInto(clone);
+
+	return clone;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void RenderBuffer::Reset()
 {
 	DX_SAFE_RELEASE(m_dxHandle);

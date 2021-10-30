@@ -25,6 +25,7 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class PropertyBlockDescription;
+class MaterialInstance;
 class MaterialPropertyBlock;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -55,8 +56,8 @@ public:
 	Shader*									GetShader() const							{ return m_shader; }
 	ShaderResourceView*						GetShaderResourceView(uint32 slot) const	{ return m_shaderResourceViews[slot]; }
 	ShaderResourceView*						GetAlbedo() const							{ return m_shaderResourceViews[SRV_SLOT_ALBEDO]; }
+	bool									IsInstance() const							{ return m_isInstance; }
 	bool									UsesLights() const;
-
 	int										GetPropertyBlockCount() const { return (int)m_propertyBlocks.size(); }
 	MaterialPropertyBlock*					GetPropertyBlockAtIndex(int index) const;
 	MaterialPropertyBlock*					GetPropertyBlockAtBindSlot(int bindSlot) const;
@@ -78,13 +79,14 @@ protected:
 	MaterialPropertyBlock* CreateOrGetPropertyBlock(const PropertyBlockDescription* blockDescription);
 	MaterialPropertyBlock* CreatePropertyBlock(const PropertyBlockDescription* blockDescription);
 
-private:
-	//-----Private Data-----
+protected:
+	//-----Protected Data-----
 
 	Shader*								m_shader = nullptr;
 	ShaderResourceView*					m_shaderResourceViews[MAX_SRV_SLOTS];
 
 	std::vector<MaterialPropertyBlock*> m_propertyBlocks;
+	bool								m_isInstance = false;
 
 };
 

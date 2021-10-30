@@ -196,6 +196,7 @@
     <ClCompile Include="Physics\RigidBody\RigidBodySpring.cpp" />
     <ClCompile Include="Render\ForwardRenderer.cpp" />
     <ClCompile Include="Render\Light.cpp" />
+    <ClCompile Include="Render\Material\MaterialInstance.cpp" />
     <ClCompile Include="Render\Material\MaterialPropertyBlock.cpp" />
     <ClCompile Include="Render\RenderScene.cpp" />
     <ClCompile Include="Render\Buffer\PropertyBlockDescription.cpp" />
@@ -328,6 +329,7 @@
     <ClInclude Include="Physics\RigidBody\RigidBodySpring.h" />
     <ClInclude Include="Render\ForwardRenderer.h" />
     <ClInclude Include="Render\Light.h" />
+    <ClInclude Include="Render\Material\MaterialInstance.h" />
     <ClInclude Include="Render\Material\MaterialPropertyBlock.h" />
     <ClInclude Include="Render\RenderScene.h" />
     <ClInclude Include="Render\Buffer\PropertyBlockDescription.h" />

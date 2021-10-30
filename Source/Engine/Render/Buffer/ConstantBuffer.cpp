@@ -45,3 +45,26 @@ bool ConstantBuffer::CopyToGPU(const void* data, size_t byteSize)
 
 	return RenderBuffer::CopyToGPU(data, byteSize);
 }
+
+
+//-------------------------------------------------------------------------------------------------
+// Clones this buffer into the given constant buffer
+void ConstantBuffer::CloneInto(ConstantBuffer* dstBuffer) const
+{
+	ASSERT_RETURN(dstBuffer != nullptr, NO_RETURN_VAL, "Destination buffer was null for clone!");
+	dstBuffer->Reset();
+
+	RenderBuffer::CloneInto(dstBuffer);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Deep copies the constant buffer
+ConstantBuffer* ConstantBuffer::CreateClone() const
+{
+	// ConstantBuffer doesn't have any additional members (for now) so just clone as a RenderBuffer
+	ConstantBuffer* clone = new ConstantBuffer();
+	RenderBuffer::CloneInto(clone);
+
+	return clone;
+}

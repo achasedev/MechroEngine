@@ -55,6 +55,9 @@ public:
 	size_t			GetBufferSize() const { return m_bufferSizeBytes; }
 	ID3D11Buffer*	GetDxHandle() const { return m_dxHandle; }
 
+	RenderBuffer*	CreateClone() const;
+	void			CloneInto(RenderBuffer* dstBuffer) const;
+
 
 protected:
 	//-----Protected Methods-----

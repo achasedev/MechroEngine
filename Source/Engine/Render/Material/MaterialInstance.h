@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: December 15th, 2019
+/// Date Created: Oct 30th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,7 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Render/Buffer/RenderBuffer.h"
+#include "Engine/Render/Material/Material.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -27,17 +27,26 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class ConstantBuffer : public RenderBuffer
+class MaterialInstance : public Material
 {
 public:
 	//-----Public Methods-----
 
-	ConstantBuffer() {}
-	~ConstantBuffer() {}
+	MaterialInstance(Material* baseMaterial);
+	Material* GetBaseMaterial() const { return m_baseMaterial; }
 
-	bool			CopyToGPU(const void* data, size_t byteSize);
-	void			CloneInto(ConstantBuffer* dstBuffer) const;
-	ConstantBuffer* CreateClone() const;
+
+private:
+	//-----Private Methods-----
+
+	void ResetToBaseMaterial();
+	void CloneBasePropertyBlocks();
+
+
+private:
+	//-----Private Data-----
+
+	Material* m_baseMaterial = nullptr;
 
 };
 

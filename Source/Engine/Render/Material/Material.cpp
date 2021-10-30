@@ -13,6 +13,7 @@
 #include "Engine/Render/Buffer/PropertyDescription.h"
 #include "Engine/Render/Buffer/PropertyBlockDescription.h"
 #include "Engine/Render/Material/Material.h"
+#include "Engine/Render/Material/MaterialInstance.h"
 #include "Engine/Render/Material/MaterialPropertyBlock.h"
 #include "Engine/Render/RenderContext.h"
 #include "Engine/Render/Shader/Shader.h"
