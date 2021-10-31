@@ -153,6 +153,46 @@ DebugRenderObjectHandle DebugDrawCapsule(const Capsule3D& capsule, const DebugRe
 }
 
 
+//-------------------------------------------------------------------------------------------------
+// Draws a frustrum as 12 lines
+DebugRenderObjectHandle DebugDrawFrustrum(const Frustrum& frustrum, const DebugRenderOptions& options /*= DebugRenderOptions()*/)
+{
+	MeshBuilder mb;
+	mb.BeginBuilding(TOPOLOGY_LINE_LIST, true);
+
+	for (int i = 0; i < 8; ++i)
+	{
+		mb.PushVertex(frustrum.GetPoint(i));
+	}
+	
+	// Near clip plane
+	mb.PushIndex(0); mb.PushIndex(1);
+	mb.PushIndex(1); mb.PushIndex(2);
+	mb.PushIndex(2); mb.PushIndex(3);
+	mb.PushIndex(3); mb.PushIndex(0);
+
+	// Far clip plane
+	mb.PushIndex(4); mb.PushIndex(5);
+	mb.PushIndex(5); mb.PushIndex(6);
+	mb.PushIndex(6); mb.PushIndex(7);
+	mb.PushIndex(7); mb.PushIndex(4);
+
+	// Connecting lines to planes
+	mb.PushIndex(0); mb.PushIndex(7);
+	mb.PushIndex(1); mb.PushIndex(6);
+	mb.PushIndex(2); mb.PushIndex(5);
+	mb.PushIndex(3); mb.PushIndex(4);
+
+	mb.FinishBuilding();
+	Mesh* mesh = mb.CreateMesh<Vertex3D_PCU>();
+
+	DebugRenderObject* obj = new DebugRenderObject(options);
+	obj->AddMesh(mesh, Matrix4::IDENTITY, true);
+
+	return g_debugRenderSystem->AddObject(obj);
+}
+
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

@@ -20,6 +20,7 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Camera;
+class Frustrum;
 class Shader;
 class Texture2D;
 
@@ -104,3 +105,4 @@ DebugRenderObjectHandle DebugDrawLine(const Vector3& start, const Vector3& end, 
 DebugRenderObjectHandle DebugDrawTransform(const Transform& transform, const DebugRenderOptions& options = DebugRenderOptions());
 DebugRenderObjectHandle DebugDrawSphere(const Vector3& center, float radius, const DebugRenderOptions& options = DebugRenderOptions());
 DebugRenderObjectHandle DebugDrawCapsule(const Capsule3D& capsule, const DebugRenderOptions& options = DebugRenderOptions());
+DebugRenderObjectHandle DebugDrawFrustrum(const Frustrum& frustrum, const DebugRenderOptions& options = DebugRenderOptions());
