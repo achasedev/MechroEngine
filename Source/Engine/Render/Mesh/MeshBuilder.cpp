@@ -115,6 +115,8 @@ static uint32 PushText_Default(
 	VerticalAlignment yAlign,
 	std::vector<std::vector<AABB2>>* out_glyphBounds)
 {
+	mb.AssertBuildState(true, TOPOLOGY_TRIANGLE_LIST);
+
 	ASSERT_OR_DIE(font != nullptr, "Null font!");
 	FontAtlas* atlas = font->CreateOrGetAtlasForPixelHeight(pixelHeight);
 
@@ -203,6 +205,8 @@ static uint32 PushText_ShrinkToFit(
 	VerticalAlignment yAlign,
 	std::vector<std::vector<AABB2>>* out_glyphBounds)
 {
+	mb.AssertBuildState(true, TOPOLOGY_TRIANGLE_LIST);
+
 	FontAtlas* atlas = font->CreateOrGetAtlasForPixelHeight(pixelHeight);
 	uint32 finalHeight = pixelHeight;
 
@@ -250,6 +254,8 @@ static uint32 PushText_ExpandToFill(
 	VerticalAlignment yAlign,
 	std::vector<std::vector<AABB2>>* out_glyphBounds)
 {
+	mb.AssertBuildState(true, TOPOLOGY_TRIANGLE_LIST);
+
 	FontAtlas* atlas = font->CreateOrGetAtlasForPixelHeight(pixelHeight);
 	uint32 finalHeight = pixelHeight;
 
@@ -298,6 +304,8 @@ static uint32 PushText_WordWrap(
 	VerticalAlignment yAlign,
 	std::vector<std::vector<AABB2>>* out_glyphBounds)
 {
+	mb.AssertBuildState(true, TOPOLOGY_TRIANGLE_LIST);
+
 	FontAtlas* atlas = font->CreateOrGetAtlasForPixelHeight(pixelHeight);
 	float textBoundsWidth = textBounds.GetWidth();
 	std::vector<ColoredText> finalLines;
@@ -357,13 +365,14 @@ MeshBuilder::~MeshBuilder()
 
 
 //-------------------------------------------------------------------------------------------------
-void MeshBuilder::BeginBuilding(bool useIndices)
+void MeshBuilder::BeginBuilding(MeshTopology topology, bool useIndices)
 {
 	ASSERT_RECOVERABLE(!m_isBuilding, "You're already building!");
 
 	Clear();
 
 	m_instruction.m_useIndices = useIndices;
+	m_instruction.m_topology = topology;
 	m_isBuilding = true;
 }
 
@@ -425,12 +434,6 @@ void MeshBuilder::SetDrawInstruction(const DrawInstruction& instruction)
 
 
 //-------------------------------------------------------------------------------------------------
-void MeshBuilder::SetDrawInstruction(bool useIndices, uint32 startIndex, uint32 elementCount)
-{
-	m_instruction = DrawInstruction(useIndices, startIndex, elementCount);
-}
-
-//-------------------------------------------------------------------------------------------------
 uint32 MeshBuilder::PushVertex(const Vector3& position)
 {
 	m_stamp.m_position = position;
@@ -460,6 +463,8 @@ void MeshBuilder::PushIndex(uint32 index)
 //-------------------------------------------------------------------------------------------------
 void MeshBuilder::PushTriangle2D(const Vector2& first, const Vector2& second, const Vector2& third, const Rgba& tint /*= Rgba::WHITE*/)
 {
+	AssertBuildState(true, TOPOLOGY_TRIANGLE_LIST);
+
 	Vector3 first3D		= Vector3(first, 0.f);
 	Vector3 second3D	= Vector3(second, 0.f);
 	Vector3 third3D		= Vector3(third, 0.f);
@@ -471,6 +476,8 @@ void MeshBuilder::PushTriangle2D(const Vector2& first, const Vector2& second, co
 //-------------------------------------------------------------------------------------------------
 void MeshBuilder::PushQuad2D(const AABB2& quad, const AABB2& uvs /*= AABB2::ZERO_TO_ONE*/, const Rgba& tint /*= Rgba::WHITE*/)
 {
+	AssertBuildState(true, TOPOLOGY_TRIANGLE_LIST);
+
 	Vector3 bottomLeft		= Vector3(quad.GetBottomLeft(), 0.f);
 	Vector3 topLeft			= Vector3(quad.GetTopLeft(), 0.f);
 	Vector3 topRight		= Vector3(quad.GetTopRight(), 0.f);
@@ -495,7 +502,7 @@ uint32 MeshBuilder::PushText(
 	TextDrawMode drawMode /*= TEXT_DRAW_OVERRUN*/,
 	std::vector<std::vector<AABB2>>* out_glyphBounds /*= nullptr*/)
 {
-	ASSERT_RETURN(m_isBuilding, pixelHeight, "Meshbuilder not setup!");
+	AssertBuildState(true, TOPOLOGY_TRIANGLE_LIST);
 
 	std::vector<std::string> textLines;
 	BreakStringIntoLines(text, textLines);
@@ -516,6 +523,8 @@ uint32 MeshBuilder::PushText(
 	TextDrawMode drawMode /*= TEXT_DRAW_DEFAULT*/,
 	std::vector<std::vector<AABB2>>* out_glyphBounds /*= nullptr*/)
 {
+	AssertBuildState(true, TOPOLOGY_TRIANGLE_LIST);
+
 	std::vector<ColoredText> coloredLines;
 
 	for (size_t lineIndex = 0; lineIndex < textLines.size(); ++lineIndex)
@@ -538,7 +547,7 @@ uint32 MeshBuilder::PushText(
 	TextDrawMode drawMode /*= TEXT_DRAW_DEFAULT*/,
 	std::vector<std::vector<AABB2>>* out_glyphBounds /*= nullptr*/)
 {
-	ASSERT_RETURN(m_isBuilding, pixelHeight, "Meshbuilder not setup!");
+	AssertBuildState(true, TOPOLOGY_TRIANGLE_LIST);
 
 	switch (drawMode)
 	{
@@ -562,8 +571,28 @@ uint32 MeshBuilder::PushText(
 
 
 //-------------------------------------------------------------------------------------------------
+void MeshBuilder::PushLine3D(const Vector3& start, const Vector3& end, const Rgba& color /*= Rgba::WHITE*/)
+{
+	AssertBuildState(true, TOPOLOGY_LINE_LIST);
+
+	SetColor(color);
+
+	uint32 index = PushVertex(start);
+	PushVertex(end);
+
+	if (m_instruction.m_useIndices)
+	{
+		PushIndex(index);
+		PushIndex(index + 1);
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void MeshBuilder::PushTriangle3D(const Vector3& first, const Vector3& second, const Vector3& third, const Rgba& tint /*= Rgba::WHITE*/)
 {
+	AssertBuildState(true, TOPOLOGY_TRIANGLE_LIST);
+
 	SetColor(tint);
 
 	uint32 index = PushVertex(first);
@@ -582,6 +611,8 @@ void MeshBuilder::PushTriangle3D(const Vector3& first, const Vector3& second, co
 //-------------------------------------------------------------------------------------------------
 void MeshBuilder::PushQuad3D(const Vector3& bottomLeft, const Vector3& topLeft, const Vector3& topRight, const Vector3& bottomRight, const AABB2& uvs /*= AABB2::ZERO_TO_ONE*/, const Rgba& tint /*= Rgba::WHITE*/)
 {
+	AssertBuildState(true, TOPOLOGY_TRIANGLE_LIST);
+
 	// Calculate normal
 	Vector3 quadRight = (bottomRight - bottomLeft).GetNormalizeSafe(Vector3::X_AXIS);
 	Vector3 quadUp = (topRight - bottomRight).GetNormalizeSafe(Vector3::Y_AXIS);
@@ -659,7 +690,7 @@ void MeshBuilder::PushQuad3D(
 	const Vector3& upVector /*= Vector3::Y_AXIS*/, 
 	const Vector2& pivot /*= Vector2(0.5f, 0.5f)*/)
 {
-	ASSERT_OR_DIE(m_isBuilding, "MeshBuilder not building!");
+	AssertBuildState(true, TOPOLOGY_TRIANGLE_LIST);
 
 	//-----Set up the vertices-----
 	// Find the min and max values for the AABB2 draw bounds
@@ -687,7 +718,7 @@ void MeshBuilder::PushCube(
 	const AABB2& bottomUVs /*= AABB2::ZERO_TO_ONE*/, 
 	const Rgba& tint /*= Rgba::WHITE*/)
 {
-	ASSERT_OR_DIE(m_isBuilding, "MeshBuilder not building!");
+	AssertBuildState(true, TOPOLOGY_TRIANGLE_LIST);
 
 	// Set up the corner vertices
 	AABB3 cubeBounds = AABB3(center - dimensions * 0.5f, center + dimensions * 0.5f);
@@ -733,9 +764,6 @@ void MeshBuilder::PushCube(
 //-------------------------------------------------------------------------------------------------
 void MeshBuilder::PushSphere(const Vector3& center, float radius, const Rgba& color /*= Rgba::WHITE*/, int numUSteps /*= 10*/, int numVSteps /*= 10*/)
 {
-	ASSERT_OR_DIE(m_isBuilding, "MeshBuilder not building!");
-	ASSERT_OR_DIE(m_instruction.m_useIndices, "Spheres need indices currently!");
-
 	PushTopHemiSphere(center, radius, color, numUSteps, numVSteps / 2);
 	PushBottomHemiSphere(center, radius, color, numUSteps, numVSteps / 2);
 }
@@ -744,8 +772,8 @@ void MeshBuilder::PushSphere(const Vector3& center, float radius, const Rgba& co
 //-------------------------------------------------------------------------------------------------
 void MeshBuilder::PushTopHemiSphere(const Vector3& center, float radius, const Rgba& color /*= Rgba::WHITE*/, int numUSteps /*= 10*/, int numVSteps /*= 10*/, float startV /*= 0.5f*/, float endV /*= 1.0f*/)
 {
-	ASSERT_OR_DIE(m_isBuilding, "MeshBuilder not building!");
-	ASSERT_OR_DIE(m_instruction.m_useIndices, "Spheres need indices currently!");
+	bool useIndices = true;
+	AssertBuildState(true, TOPOLOGY_TRIANGLE_LIST, &useIndices);
 
 	SetColor(color);
 
@@ -807,8 +835,8 @@ void MeshBuilder::PushTopHemiSphere(const Vector3& center, float radius, const R
 //-------------------------------------------------------------------------------------------------
 void MeshBuilder::PushBottomHemiSphere(const Vector3& center, float radius, const Rgba& color /*= Rgba::WHITE*/, int numUSteps /*= 10*/, int numVSteps /*= 10*/, float startV /*= 0.f*/, float endV /*= 0.5f*/)
 {
-	ASSERT_OR_DIE(m_isBuilding, "MeshBuilder not building!");
-	ASSERT_OR_DIE(m_instruction.m_useIndices, "Spheres need indices currently!");
+	bool useIndices = true;
+	AssertBuildState(true, TOPOLOGY_TRIANGLE_LIST, &useIndices);
 
 	SetColor(color);
 
@@ -870,8 +898,8 @@ void MeshBuilder::PushBottomHemiSphere(const Vector3& center, float radius, cons
 //-------------------------------------------------------------------------------------------------
 void MeshBuilder::PushCapsuleSides(const Vector3& bottom, const Vector3& top, float radius, const Rgba& color /*= Rgba::WHITE*/, int numUSteps /*= 10*/, float startV /*= 0.f*/, float endV /*= 1.f*/)
 {
-	ASSERT_OR_DIE(m_isBuilding, "MeshBuilder not building!");
-	ASSERT_OR_DIE(m_instruction.m_useIndices, "Spheres need indices currently!");
+	bool useIndices = true;
+	AssertBuildState(true, TOPOLOGY_TRIANGLE_LIST, &useIndices);
 
 	SetColor(color);
 
@@ -928,8 +956,8 @@ void MeshBuilder::PushCapsuleSides(const Vector3& bottom, const Vector3& top, fl
 //-------------------------------------------------------------------------------------------------
 void MeshBuilder::PushCapsule(const Vector3& start, const Vector3& end, float radius, const Rgba& color /*= Rgba::WHITE*/)
 {
-	ASSERT_OR_DIE(m_isBuilding, "MeshBuilder not building!");
-	ASSERT_OR_DIE(m_instruction.m_useIndices, "Spheres need indices currently!");
+	bool useIndices = true;
+	AssertBuildState(true, TOPOLOGY_TRIANGLE_LIST, &useIndices);
 
 	int numUSteps = 10;
 	int numVSteps = 10;
@@ -939,4 +967,17 @@ void MeshBuilder::PushCapsule(const Vector3& start, const Vector3& end, float ra
 	PushBottomHemiSphere(start, radius, color, numUSteps, numVSteps / 2, 0.66666667f, 1.0f);
 	PushCapsuleSides(start, end, radius, color, numUSteps, startV, endV);
 	PushTopHemiSphere(end, radius, color, numUSteps, numVSteps / 2, 0.f, 0.3333333f);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Asserts that the MeshBuilder is in the current state to avoid misuse/bad cases
+void MeshBuilder::AssertBuildState(bool shouldBeBuilding, MeshTopology topology, bool* usingIndices /*= false*/)
+{
+	ASSERT_OR_DIE(m_isBuilding == shouldBeBuilding, "MeshBuilder fails building check!");
+	ASSERT_OR_DIE(m_instruction.m_topology == topology, "MeshBuilder fails topology check!");
+	if (usingIndices != nullptr)
+	{
+		ASSERT_OR_DIE(m_instruction.m_useIndices == *usingIndices, "MeshBuilder fails index check!");
+	}
 }

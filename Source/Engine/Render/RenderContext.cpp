@@ -76,6 +76,21 @@ RenderContext* g_renderContext = nullptr;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
+static D3D_PRIMITIVE_TOPOLOGY ToDxTopology(MeshTopology topoology)
+{
+	switch (topoology)
+	{
+	case TOPOLOGY_TRIANGLE_LIST: return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST; break;
+	case TOPOLOGY_LINE_LIST: return D3D11_PRIMITIVE_TOPOLOGY_LINELIST; break;
+	default:
+		ERROR_RECOVERABLE("Invalid topology!")
+			return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		break;
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
 // TODO remove this
 static void SetupMaterial(Texture2D* albedo, Shader* shader, Material& out_material)
 {
@@ -429,9 +444,15 @@ void RenderContext::Draw(const DrawCall& drawCall)
 	Mesh* mesh = drawCall.GetMesh();
 	ASSERT_OR_DIE(mesh != nullptr, "Attempting to draw null mesh!");
 
+	// Mesh
 	BindVertexStream(mesh->GetVertexBuffer());
 	BindIndexStream(mesh->GetIndexBuffer());
 	UpdateInputLayout(mesh->GetVertexLayout());
+
+	DrawInstruction instruction = mesh->GetDrawInstruction();
+	MeshTopology top = instruction.m_topology;
+	m_dxContext->IASetPrimitiveTopology(ToDxTopology(top));
+
 	UpdateModelMatrixUBO(drawCall.GetModelMatrix());
 
 	// Update light constant buffer
@@ -475,9 +496,7 @@ void RenderContext::DrawPoint2D(const Vector2& position, float radius, Material*
 	vertices.push_back(Vertex3D_PCU(sw, color, Vector2::ZERO));
 	vertices.push_back(Vertex3D_PCU(ne, color, Vector2::ZERO));
 
-	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-	DrawVertexArray(vertices.data(), (uint32)vertices.size(), nullptr, 0U, material);
-	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	DrawVertexArray(vertices.data(), (uint32)vertices.size(), TOPOLOGY_LINE_LIST, nullptr, 0U, material);
 }
 
 
@@ -503,9 +522,7 @@ void RenderContext::DrawPoint3D(const Vector3& position, float radius, const Rgb
 	Material material;
 	SetupMaterial(nullptr, shader, material);
 
-	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-	DrawVertexArray(vertices.data(), (uint32)vertices.size(), nullptr, 0U, &material);
-	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	DrawVertexArray(vertices.data(), (uint32)vertices.size(), TOPOLOGY_LINE_LIST, nullptr, 0U, &material);
 }
 
 
@@ -520,9 +537,7 @@ void RenderContext::DrawLine2D(const Vector2& start, const Vector2& end, Materia
 	vertices.push_back(Vertex3D_PCU(start3D, color, Vector2::ZERO));
 	vertices.push_back(Vertex3D_PCU(end3D, color, Vector2::ZERO));
 
-	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-	DrawVertexArray(vertices.data(), (uint32)vertices.size(), nullptr, 0U, material);
-	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	DrawVertexArray(vertices.data(), (uint32)vertices.size(), TOPOLOGY_LINE_LIST, nullptr, 0U, material);
 }
 
 
@@ -537,9 +552,7 @@ void RenderContext::DrawLine3D(const Vector3& start, const Vector3& end, const R
 	Material material;
 	SetupMaterial(nullptr, shader, material);
 
-	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-	DrawVertexArray(vertices.data(), (uint32)vertices.size(), nullptr, 0U, &material);
-	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	DrawVertexArray(vertices.data(), (uint32)vertices.size(), TOPOLOGY_LINE_LIST, nullptr, 0U, &material);
 }
 
 
@@ -559,9 +572,7 @@ void RenderContext::DrawWirePolygon2D(const Polygon2D& polygon, Material* materi
 		vertices.push_back(Vertex3D_PCU(nextPosition, color, Vector2::ZERO));
 	}
 
-	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-	DrawVertexArray(vertices.data(), (uint32)vertices.size(), nullptr, 0U, material);
-	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	DrawVertexArray(vertices.data(), (uint32)vertices.size(), TOPOLOGY_LINE_LIST, nullptr, 0U, material);
 }
 
 
@@ -594,9 +605,7 @@ void RenderContext::DrawWirePolygon3D(const Polygon3d& polygon, const Rgba& colo
 	Material material;
 	SetupMaterial(nullptr, shader, material);
 
-	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-	DrawVertexArray(vertices.data(), (uint32)vertices.size(), nullptr, 0U, &material);
-	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	DrawVertexArray(vertices.data(), (uint32)vertices.size(), TOPOLOGY_LINE_LIST, nullptr, 0U, &material);
 }
 
 
@@ -619,9 +628,7 @@ void RenderContext::DrawWireOBB2D(const OBB2& obb, Material* material, const Rgb
 		vertices.push_back(Vertex3D_PCU(nextPosition, color, Vector2::ZERO));
 	}
 
-	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-	DrawVertexArray(vertices.data(), (uint32)vertices.size(), nullptr, 0U, material);
-	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	DrawVertexArray(vertices.data(), (uint32)vertices.size(), TOPOLOGY_LINE_LIST, nullptr, 0U, material);
 }
 
 
@@ -629,7 +636,7 @@ void RenderContext::DrawWireOBB2D(const OBB2& obb, Material* material, const Rgb
 void RenderContext::DrawPlane3(const Plane3& plane, const Rgba& color /*= Rgba::WHITE*/, Shader* shader /*= nullptr*/)
 {
 	MeshBuilder mb;
-	mb.BeginBuilding(true);
+	mb.BeginBuilding(TOPOLOGY_TRIANGLE_LIST, true);
 
 	Vector3 position = plane.GetNormal() * plane.GetDistance();
 	Vector3 right = CrossProduct(Vector3::Y_AXIS, plane.GetNormal());
@@ -670,9 +677,7 @@ void RenderContext::DrawTransform(const Transform& transform, float scale, Shade
 	Material material;
 	SetupMaterial(nullptr, shader, material);
 
-	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-	DrawVertexArray(vertices.data(), static_cast<uint32>(vertices.size()), nullptr, 0, &material);
-	m_dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	DrawVertexArray(vertices.data(), static_cast<uint32>(vertices.size()), TOPOLOGY_LINE_LIST, nullptr, 0, &material);
 }
 
 
@@ -883,13 +888,9 @@ void RenderContext::BindIndexStream(const IndexBuffer* ibo)
 //-------------------------------------------------------------------------------------------------
 void RenderContext::UpdateInputLayout(const VertexLayout* vertexLayout)
 {
-	// Don't rebind if it's the same layout as previous draw
-	//if (m_currentShader->GetDxInputLayout() != m_lastInputLayout.m_dxInputLayout)
-	{
-		m_currentShader->CreateInputLayoutForVertexLayout(vertexLayout);
-		m_dxContext->IASetInputLayout(m_currentShader->GetDxInputLayout());
-		m_lastInputLayout = m_currentShader->GetInputLayout();
-	}
+	m_currentShader->CreateInputLayoutForVertexLayout(vertexLayout);
+	m_dxContext->IASetInputLayout(m_currentShader->GetDxInputLayout());
+	m_lastInputLayout = m_currentShader->GetInputLayout();
 }
 
 

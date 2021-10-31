@@ -397,7 +397,7 @@ Mesh* QEFLoader::CreateMesh()
 
 	// Now get all the voxels and build a mesh
 	MeshBuilder mb;
-	mb.BeginBuilding(true);
+	mb.BeginBuilding(TOPOLOGY_TRIANGLE_LIST, true);
 
 	m_file->GetNextLine(currLine);
 	while (!m_file->IsAtEndOfFile())

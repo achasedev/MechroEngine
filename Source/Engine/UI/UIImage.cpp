@@ -124,7 +124,7 @@ void UIImage::UpdateMesh()
 	if (m_meshDirty)
 	{
 		MeshBuilder mb;
-		mb.BeginBuilding(true);
+		mb.BeginBuilding(TOPOLOGY_TRIANGLE_LIST, true);
 		mb.PushQuad2D(AABB2::ZERO_TO_ONE, AABB2::ZERO_TO_ONE, m_colorTint);
 		mb.FinishBuilding();
 

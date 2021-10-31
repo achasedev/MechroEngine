@@ -309,7 +309,7 @@ void ResourceSystem::CreateBuiltInAssets()
 void ResourceSystem::CreateDefaultMeshes()
 {
 	MeshBuilder mb;
-	mb.BeginBuilding(true);
+	mb.BeginBuilding(TOPOLOGY_TRIANGLE_LIST, true);
 	mb.PushCube(Vector3::ZERO, Vector3::ONES);
 	mb.FinishBuilding();
 
@@ -318,7 +318,7 @@ void ResourceSystem::CreateDefaultMeshes()
 	m_meshes[cubeMesh->m_resourceID] = cubeMesh;
 
 	mb.Clear();
-	mb.BeginBuilding(true);
+	mb.BeginBuilding(TOPOLOGY_TRIANGLE_LIST, true);
 	mb.PushSphere(Vector3::ZERO, 1.f);
 	mb.FinishBuilding();
 
@@ -327,7 +327,7 @@ void ResourceSystem::CreateDefaultMeshes()
 	m_meshes[sphereMesh->m_resourceID] = sphereMesh;
 
 	mb.Clear();
-	mb.BeginBuilding(true);
+	mb.BeginBuilding(TOPOLOGY_TRIANGLE_LIST, true);
 	mb.PushTopHemiSphere(Vector3::ZERO, 1.f, Rgba::WHITE, 10, 5, (2.f / 3.f), 1.f);
 	mb.FinishBuilding();
 
@@ -336,7 +336,7 @@ void ResourceSystem::CreateDefaultMeshes()
 	m_meshes[capsuleTop->m_resourceID] = capsuleTop;
 
 	mb.Clear();
-	mb.BeginBuilding(true);
+	mb.BeginBuilding(TOPOLOGY_TRIANGLE_LIST, true);
 	mb.PushBottomHemiSphere(Vector3::ZERO, 1.f, Rgba::WHITE, 10, 5, 0.f, (1.f / 3.f));
 	mb.FinishBuilding();
 
@@ -345,7 +345,7 @@ void ResourceSystem::CreateDefaultMeshes()
 	m_meshes[capsuleBottom->m_resourceID] = capsuleBottom;
 
 	mb.Clear();
-	mb.BeginBuilding(true);
+	mb.BeginBuilding(TOPOLOGY_TRIANGLE_LIST, true);
 	mb.PushCapsuleSides(Vector3(0.f, -0.5f, 0.f), Vector3(0.f, 0.5f, 0.), 1.f, Rgba::WHITE, 10, (1.f / 3.f), (2.f / 3.f));
 	mb.FinishBuilding();
 
@@ -354,7 +354,7 @@ void ResourceSystem::CreateDefaultMeshes()
 	m_meshes[capsuleMiddle->m_resourceID] = capsuleMiddle;
 
 	mb.Clear();
-	mb.BeginBuilding(true);
+	mb.BeginBuilding(TOPOLOGY_TRIANGLE_LIST, true);
 	mb.PushQuad3D(Vector3(-0.5f, 0.f, -0.5f), Vector3(-0.5f, 0.f, 0.5f), Vector3(0.5f, 0.f, 0.5f), Vector3(0.5f, 0.f, -0.5f));
 	mb.FinishBuilding();
 

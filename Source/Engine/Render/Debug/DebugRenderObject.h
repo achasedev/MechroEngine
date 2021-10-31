@@ -81,16 +81,16 @@ public:
 	void					SetMesh(Mesh* mesh, bool ownsMesh);
 
 
-private:
-	//-----Private Methods-----
-
-	Vector4					CalculateTint() const;
-
-
 public:
 	//-----Public Data-----
 
 	Transform				m_transform;
+
+
+private:
+	//-----Private Methods-----
+
+	Vector4					CalculateTint() const;
 
 
 private:
@@ -104,6 +104,8 @@ private:
 	Material*				m_material = nullptr;
 	Mesh*					m_mesh = nullptr;
 	bool					m_ownsMesh = false;
+
+	static constexpr float	DEFAULT_XRAY_SCALE = 0.25f;
 
 };
 

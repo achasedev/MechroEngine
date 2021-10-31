@@ -159,9 +159,14 @@ float FrameTimer::GetElapsedSeconds() const
 //-------------------------------------------------------------------------------------------------
 float FrameTimer::GetElapsedTimeNormalized() const
 {
-	float elapsedSeconds = GetElapsedSeconds();
 	float intervalSeconds = static_cast<float>(TimeSystem::PerformanceCountToSeconds(m_endHPC - m_startHPC));
 
+	if (intervalSeconds == 0.f)
+	{
+		return 0.f;
+	}
+
+	float elapsedSeconds = GetElapsedSeconds();
 	return (elapsedSeconds / intervalSeconds);
 }
 

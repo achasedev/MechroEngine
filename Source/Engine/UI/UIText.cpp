@@ -547,7 +547,7 @@ void UIText::UpdateMeshAndMaterial(const OBB2& finalBounds)
 		uint32 fontPixelHeight = m_canvas->ToPixelHeight(m_fontHeight * m_transform.GetScale().y);
 
 		MeshBuilder mb;
-		mb.BeginBuilding(true);
+		mb.BeginBuilding(TOPOLOGY_TRIANGLE_LIST, true);
 
 		// Send the bounds as if they're at 0,0
 		// The model matrix will handle the positioning

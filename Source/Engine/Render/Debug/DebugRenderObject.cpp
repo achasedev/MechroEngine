@@ -119,7 +119,7 @@ void DebugRenderObject::Render()
 	// Second draw for xray
 	if (m_options.m_debugRenderMode == DEBUG_RENDER_MODE_XRAY)
 	{
-		m_material->SetProperty(SID("TINT"), Vector4(0.25f * tint.x, 0.25f * tint.y, 0.25f * tint.y, tint.w));
+		m_material->SetProperty(SID("TINT"), Vector4(DEFAULT_XRAY_SCALE * tint.xyz(), tint.w)); // Don't scale alpha
 		shader->SetDepthMode(DEPTH_MODE_GREATER_THAN, false);
 
 		g_renderContext->Draw(dc);

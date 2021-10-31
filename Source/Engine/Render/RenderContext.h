@@ -99,7 +99,7 @@ public:
 	void								UpdateModelMatrixUBO(const Matrix4& modelMatrix);
 	void								SetLightsForDrawCall(const DrawCall& drawCall);
 
-	template <typename VERT_TYPE> void	DrawVertexArray(const VERT_TYPE* vertices, uint32 numVertices, const uint32* indices = nullptr, uint32 numIndices = 0, Material* material = nullptr);
+	template <typename VERT_TYPE> void	DrawVertexArray(const VERT_TYPE* vertices, uint32 numVertices, MeshTopology topology = TOPOLOGY_TRIANGLE_LIST, const uint32* indices = nullptr, uint32 numIndices = 0, Material* material = nullptr);
 	void								DrawMesh(Mesh& mesh);
 	void								DrawMeshWithMaterial(Mesh& mesh, Material* material);
 	void								DrawRenderable(Renderable& renderable);
@@ -173,7 +173,7 @@ private:
 
 //-------------------------------------------------------------------------------------------------
 template <typename VERT_TYPE>
-void RenderContext::DrawVertexArray(const VERT_TYPE* vertices, uint32 numVertices, const uint32* indices /*= nullptr*/, uint32 numIndices /*= 0*/, Material* material /*= nullptr*/)
+void RenderContext::DrawVertexArray(const VERT_TYPE* vertices, uint32 numVertices, MeshTopology topology /*= TOPOLOGY_TRIANGLE_LIST*/, const uint32* indices /*= nullptr*/, uint32 numIndices /*= 0*/, Material* material /*= nullptr*/)
 {
 	m_immediateMesh.SetVertices(vertices, numVertices);
 	m_immediateMesh.SetIndices(indices, numIndices);
@@ -183,6 +183,7 @@ void RenderContext::DrawVertexArray(const VERT_TYPE* vertices, uint32 numVertice
 	drawInstruction.m_elementCount = (useIndices ? numIndices : numVertices);
 	drawInstruction.m_useIndices = useIndices;
 	drawInstruction.m_startIndex = 0;
+	drawInstruction.m_topology = topology;
 	m_immediateMesh.SetDrawInstruction(drawInstruction);
 
 	DrawMeshWithMaterial(m_immediateMesh, material);

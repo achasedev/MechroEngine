@@ -75,13 +75,6 @@ void Mesh::SetDrawInstruction(DrawInstruction instruction)
 
 
 //-------------------------------------------------------------------------------------------------
-void Mesh::SetDrawInstruction(bool useIndices, uint32 startIndex, uint32 elementCount)
-{
-	m_instruction = DrawInstruction(useIndices, startIndex, elementCount);
-}
-
-
-//-------------------------------------------------------------------------------------------------
 const VertexBuffer* Mesh::GetVertexBuffer() const
 {
 	return &m_vertexBuffer;

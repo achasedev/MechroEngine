@@ -19,17 +19,28 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+enum MeshTopology
+{
+	TOPOLOGY_TRIANGLE_LIST,
+	TOPOLOGY_LINE_LIST
+};
+
 struct DrawInstruction
 {
 	DrawInstruction() {}
-	DrawInstruction(bool useIndices, unsigned int startIndex, unsigned int elementCount)
-		: m_startIndex(startIndex), m_elementCount(elementCount), m_useIndices(useIndices) {}
+	explicit DrawInstruction(MeshTopology topology, bool useIndices, unsigned int startIndex, unsigned int elementCount)
+		: m_topology(topology), m_startIndex(startIndex), m_elementCount(elementCount), m_useIndices(useIndices) {}
+
+	DrawInstruction(const DrawInstruction& other)
+		: m_topology(other.m_topology), m_startIndex(other.m_startIndex), m_elementCount(other.m_elementCount), m_useIndices(other.m_useIndices) {}
 
 	unsigned int	m_startIndex = 0;
 	unsigned int	m_elementCount = 0;
 	bool			m_useIndices = true;
+	MeshTopology	m_topology = TOPOLOGY_TRIANGLE_LIST;
 
 };
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
