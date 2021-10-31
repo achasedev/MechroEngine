@@ -79,6 +79,7 @@ public:
 	Matrix4 GetModelMatrix() const { return GetLocalToWorldMatrix(); }
 	Matrix4 GetLocalToWorldMatrix() const;
 	Matrix4 GetWorldToLocalMatrix() const;
+	const Transform* GetParentTransform() const { return m_parentTransform; }
 
 	Vector3 GetIVector() const;
 	Vector3 GetJVector() const;

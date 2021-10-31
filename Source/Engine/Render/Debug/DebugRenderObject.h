@@ -78,7 +78,7 @@ public:
 	void					SetFillMode(FillMode fillMode);
 	void					SetCullMode(CullMode cullMode);
 	void					SetDebugRenderMode(DebugRenderMode mode);
-	void					SetMesh(Mesh* mesh, bool ownsMesh);
+	void					AddMesh(Mesh* mesh, const Matrix4& transform, bool ownsMesh);
 
 
 public:
@@ -101,9 +101,9 @@ private:
 	DebugRenderObjectHandle	m_handle = INVALID_DEBUG_RENDER_OBJECT_HANDLE;
 	DebugRenderSystem*		m_system = nullptr;
 
+	Renderable				m_renderable;
 	Material*				m_material = nullptr;
-	Mesh*					m_mesh = nullptr;
-	bool					m_ownsMesh = false;
+	std::vector<bool>		m_ownsMeshFlags;
 
 	static constexpr float	DEFAULT_XRAY_SCALE = 0.25f;
 

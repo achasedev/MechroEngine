@@ -98,9 +98,9 @@ T* DebugRenderSystem::GetObjectAs(const DebugRenderObjectHandle& handle)
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Convenience
-DebugRenderObjectHandle DebugDrawBox(const Vector3& center, const Vector3& extents, const Quaternion& rotation, const DebugRenderOptions& options);
-//DebugRenderObjectHandle DebugDrawTransform(const Transform& transform, float lifetime = FLT_MAX, const Transform* parentTransform = nullptr);
-//DebugRenderObjectHandle DebugDrawLine(const Vector3& start, const Vector3& end, const Rgba& color = Rgba::RED, float lifetime = FLT_MAX, const Transform* parentTransform = nullptr);
-//DebugRenderObjectHandle DebugDrawPoint(const Vector3& position, const Rgba& color = Rgba::RED, float lifetime = FLT_MAX, const Transform* parentTransform = nullptr);
-//DebugRenderObjectHandle DebugDrawSphere(const Vector3& center, float radius, const Rgba& color = Rgba::WHITE, float lifetime = FLT_MAX, const Transform* parentTransform = nullptr);
-//DebugRenderObjectHandle DebugDrawCapsule(const Vector3& start, const Vector3& end, float radius, const Rgba& color = Rgba::WHITE, float lifetime = FLT_MAX, const Transform* parentTransform = nullptr);
+DebugRenderObjectHandle DebugDrawBox(const Vector3& center, const Vector3& extents, const Quaternion& rotation, const DebugRenderOptions& options = DebugRenderOptions());
+DebugRenderObjectHandle DebugDrawPoint(const Vector3& position, float diameter, const DebugRenderOptions& options = DebugRenderOptions());
+DebugRenderObjectHandle DebugDrawLine(const Vector3& start, const Vector3& end, const DebugRenderOptions& options = DebugRenderOptions());
+DebugRenderObjectHandle DebugDrawTransform(const Transform& transform, const DebugRenderOptions& options = DebugRenderOptions());
+DebugRenderObjectHandle DebugDrawSphere(const Vector3& center, float radius, const DebugRenderOptions& options = DebugRenderOptions());
+DebugRenderObjectHandle DebugDrawCapsule(const Capsule3D& capsule, const DebugRenderOptions& options = DebugRenderOptions());

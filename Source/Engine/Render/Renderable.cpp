@@ -38,6 +38,16 @@ Renderable::Renderable(EntityID owningEntity)
 
 
 //-------------------------------------------------------------------------------------------------
+// Clears this renderable back to no draws
+void Renderable::Clear()
+{
+	m_draws.clear();
+	m_owningEntity = INVALID_ENTITY_ID;
+	m_modelMatrix = Matrix4::IDENTITY;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void Renderable::SetDrawMatrix(uint32 drawIndex, const Matrix4& drawMatrix)
 {
 	m_draws.resize(drawIndex + 1);

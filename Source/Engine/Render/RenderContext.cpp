@@ -448,10 +448,7 @@ void RenderContext::Draw(const DrawCall& drawCall)
 	BindVertexStream(mesh->GetVertexBuffer());
 	BindIndexStream(mesh->GetIndexBuffer());
 	UpdateInputLayout(mesh->GetVertexLayout());
-
-	DrawInstruction instruction = mesh->GetDrawInstruction();
-	MeshTopology top = instruction.m_topology;
-	m_dxContext->IASetPrimitiveTopology(ToDxTopology(top));
+	m_dxContext->IASetPrimitiveTopology(ToDxTopology(mesh->GetDrawInstruction().m_topology));
 
 	UpdateModelMatrixUBO(drawCall.GetModelMatrix());
 

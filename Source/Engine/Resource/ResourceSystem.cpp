@@ -346,7 +346,7 @@ void ResourceSystem::CreateDefaultMeshes()
 
 	mb.Clear();
 	mb.BeginBuilding(TOPOLOGY_TRIANGLE_LIST, true);
-	mb.PushCapsuleSides(Vector3(0.f, -0.5f, 0.f), Vector3(0.f, 0.5f, 0.), 1.f, Rgba::WHITE, 10, (1.f / 3.f), (2.f / 3.f));
+	mb.PushCapsuleSides(Vector3(0.f, -0.5f, 0.f), Vector3(0.f, 0.5f, 0.f), 1.f, Rgba::WHITE, 10, (1.f / 3.f), (2.f / 3.f));
 	mb.FinishBuilding();
 
 	Mesh* capsuleMiddle = mb.CreateMesh<VertexLit>();
@@ -361,6 +361,32 @@ void ResourceSystem::CreateDefaultMeshes()
 	Mesh* horizontalQuad = mb.CreateMesh<VertexLit>();
 	horizontalQuad->m_resourceID = SID("horizontal_quad");
 	m_meshes[horizontalQuad->m_resourceID] = horizontalQuad;
+
+	mb.Clear();
+	mb.BeginBuilding(TOPOLOGY_LINE_LIST, false);
+	mb.PushLine3D(Vector3::ZERO, Vector3::X_AXIS, Rgba::RED);
+	mb.PushLine3D(Vector3::ZERO, Vector3::Y_AXIS, Rgba::GREEN);
+	mb.PushLine3D(Vector3::ZERO, Vector3::Z_AXIS, Rgba::BLUE);
+	mb.FinishBuilding();
+
+	Mesh* transformMesh = mb.CreateMesh<Vertex3D_PCU>();
+	transformMesh->m_resourceID = SID("transform");
+	m_meshes[transformMesh->m_resourceID] = transformMesh;
+
+	mb.Clear();
+	mb.BeginBuilding(TOPOLOGY_LINE_LIST, false);
+	mb.PushLine3D(Vector3::MINUS_X_AXIS, Vector3::X_AXIS);
+	mb.PushLine3D(Vector3::MINUS_Y_AXIS, Vector3::Y_AXIS);
+	mb.PushLine3D(Vector3::MINUS_Z_AXIS, Vector3::Z_AXIS);
+	mb.PushLine3D(Vector3(-1.f).GetNormalized(), Vector3::ONES.GetNormalized());
+	mb.PushLine3D(Vector3(-1.f, 1.f, -1.f).GetNormalized(), Vector3(1.f, -1.f, 1.f).GetNormalized());
+	mb.PushLine3D(Vector3(-1.f, -1.f, 1.f).GetNormalized(), Vector3(1.f, 1.f, -1.f).GetNormalized());
+	mb.PushLine3D(Vector3(-1.f, 1.f, 1.f).GetNormalized(), Vector3(1.f, -1.f, -1.f).GetNormalized());
+	mb.FinishBuilding();
+
+	Mesh* pointMesh = mb.CreateMesh<Vertex3D_PCU>();
+	pointMesh->m_resourceID = SID("point");
+	m_meshes[pointMesh->m_resourceID] = pointMesh;
 }
 
 

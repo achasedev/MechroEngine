@@ -46,17 +46,18 @@ public:
 	Renderable() {}
 	Renderable(EntityID owningEntity);
 
+	void			Clear();
 	void			SetDrawMatrix(uint32 drawIndex, const Matrix4& drawMatrix);
 	void			SetDrawMaterial(uint32 drawIndex, Material* material);
 	void			SetDrawMesh(uint32 drawIndex, Mesh* mesh);
 	void			SetDraw(uint32 drawIndex, const RenderableDraw& draw);
-	void			SetModelMatrix(const Matrix4& rendMatrix) { m_matrix = rendMatrix; }
+	void			SetModelMatrix(const Matrix4& rendMatrix) { m_modelMatrix = rendMatrix; }
 	void			AddDraw(Mesh* mesh, Material* material, Matrix4 drawMatrix = Matrix4::IDENTITY);
 	void			RemoveDraw(int drawIndex);
 
 	uint32			GetNumDrawCalls() const { return (uint32)m_draws.size(); }
 	RenderableDraw	GetDraw(uint32 drawIndex) const;
-	Matrix4			GetModelMatrix() const { return m_matrix; }
+	Matrix4			GetModelMatrix() const { return m_modelMatrix; }
 
 	bool			IsReadyForDrawing() const;
 
@@ -64,7 +65,7 @@ public:
 private:
 	//-----Private Data-----
 
-	Matrix4							m_matrix = Matrix4::IDENTITY;
+	Matrix4							m_modelMatrix = Matrix4::IDENTITY;
 	std::vector<RenderableDraw>		m_draws;
 	EntityID						m_owningEntity = INVALID_ENTITY_ID;
 

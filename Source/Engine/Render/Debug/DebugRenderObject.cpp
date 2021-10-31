@@ -66,10 +66,16 @@ DebugRenderObject::~DebugRenderObject()
 {
 	SAFE_DELETE(m_material);
 
-	if (m_ownsMesh)
+	int numMeshes = m_renderable.GetNumDrawCalls();
+	for (int i = 0; i < numMeshes; ++i)
 	{
-		SAFE_DELETE(m_mesh);
+		if (m_ownsMeshFlags[i])
+		{
+			delete m_renderable.GetDraw(i).m_mesh;
+		}
 	}
+
+	m_renderable.Clear();
 }
 
 
@@ -83,7 +89,8 @@ void DebugRenderObject::Render()
 
 	// Get the matrix
 	Matrix4 model = m_transform.GetModelMatrix();
-	
+	m_renderable.SetModelMatrix(model);
+
 	// Set the shader to use the settings that match our options
 	Shader* shader = m_material->GetShader();
 	shader->SetCullMode(m_options.m_cullMode);
@@ -107,14 +114,8 @@ void DebugRenderObject::Render()
 		break;
 	}
 
-	// Assemble the draw call
-	DrawCall dc;
-	dc.SetModelMatrix(model);
-	dc.SetMesh(m_mesh);
-	dc.SetMaterial(m_material);
-
 	// Draw!
-	g_renderContext->Draw(dc);
+	g_renderContext->DrawRenderable(m_renderable);
 
 	// Second draw for xray
 	if (m_options.m_debugRenderMode == DEBUG_RENDER_MODE_XRAY)
@@ -122,7 +123,7 @@ void DebugRenderObject::Render()
 		m_material->SetProperty(SID("TINT"), Vector4(DEFAULT_XRAY_SCALE * tint.xyz(), tint.w)); // Don't scale alpha
 		shader->SetDepthMode(DEPTH_MODE_GREATER_THAN, false);
 
-		g_renderContext->Draw(dc);
+		g_renderContext->DrawRenderable(m_renderable);
 	}
 
 }
@@ -231,16 +232,10 @@ void DebugRenderObject::SetDebugRenderMode(DebugRenderMode mode)
 
 //-------------------------------------------------------------------------------------------------
 // Sets the mesh on the renderable to draw; Will delete the mesh on destruction if it is flagged as owning it
-void DebugRenderObject::SetMesh(Mesh* mesh, bool ownsMesh)
+void DebugRenderObject::AddMesh(Mesh* mesh, const Matrix4& transform, bool ownsMesh)
 {
-	// Clean up any old mesh on the object
-	if (m_mesh != nullptr && m_ownsMesh)
-	{
-		SAFE_DELETE(m_mesh);
-	}
-
-	m_mesh = mesh;
-	m_ownsMesh = ownsMesh;
+	m_renderable.AddDraw(mesh, m_material, transform);
+	m_ownsMeshFlags.push_back(ownsMesh);
 }
 
 
