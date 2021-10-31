@@ -58,7 +58,4 @@ void SaveTextureJob::Execute()
 //-------------------------------------------------------------------------------------------------
 void SaveTextureJob::Finalize()
 {
-	// Nothing 
-	int x = 0;
-	x = 5;
 }

@@ -634,11 +634,11 @@ Matrix4 Matrix4::MakeOrtho(float leftX, float rightX, float bottomY, float topY,
 
 	orthoMatrix.Ix = 2.f / (rightX - leftX);
 	orthoMatrix.Jy = 2.f / (topY - bottomY);
-	orthoMatrix.Kz = 2.f / (farZ - nearZ);
+	orthoMatrix.Kz = 1.f / (farZ - nearZ);
 
 	orthoMatrix.Tx = -(rightX + leftX) / (rightX - leftX);
 	orthoMatrix.Ty = -(topY + bottomY) / (topY - bottomY);
-	orthoMatrix.Tz = -(farZ + nearZ) / (farZ - nearZ);
+	orthoMatrix.Tz = -(nearZ) / (farZ - nearZ);
 
 	return orthoMatrix;
 }
@@ -660,8 +660,8 @@ Matrix4 Matrix4::MakePerspective(float fovDegrees, float aspect, float nearZ, fl
 
 	perspective.Ix = (d / aspect);
 	perspective.Jy = d;
-	perspective.Kz = (farZ + nearZ) / (farZ - nearZ);
-	perspective.Tz = (-2.f * nearZ * farZ) / (farZ - nearZ);
+	perspective.Kz = (farZ) / (farZ - nearZ);
+	perspective.Tz = (-1.f * nearZ * farZ) / (farZ - nearZ);
 
 	perspective.Kw = 1.f;
 	perspective.Tw = 0.f;

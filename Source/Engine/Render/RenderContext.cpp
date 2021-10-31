@@ -171,8 +171,14 @@ void RenderContext::EndFrame()
 	if (g_inputSystem != nullptr && g_inputSystem->WasKeyJustPressed(InputSystem::KEYBOARD_F9))
 	{
 		CreateDirectoryA("Data/Screenshots", NULL);
-		g_renderContext->SaveTextureToImage(g_renderContext->GetDefaultRenderTarget(), "Data/Screenshots/Latest.png");
-		g_renderContext->SaveTextureToImage(g_renderContext->GetDefaultRenderTarget(), Stringf("Data/Screenshots/Screenshot_%s.png", GetFormattedSystemDateAndTime().c_str()).c_str());
+
+		std::string latestPath = "Data/Screenshots/Latest.png";
+		std::string timestampPath = Stringf("Data/Screenshots/Screenshot_%s.png", GetFormattedSystemDateAndTime().c_str()).c_str();
+
+		g_renderContext->SaveTextureToImage(g_renderContext->GetDefaultRenderTarget(), latestPath.c_str());
+		g_renderContext->SaveTextureToImage(g_renderContext->GetDefaultRenderTarget(), timestampPath.c_str());
+		ConsolePrintf(Rgba::WHITE, 5.f, "Screenshot saved to %s and %s", latestPath.c_str(), timestampPath.c_str());
+		ConsoleLogf(Rgba::WHITE, "Screenshot saved to %s and %s", latestPath.c_str(), timestampPath.c_str());
 	}
 }
 

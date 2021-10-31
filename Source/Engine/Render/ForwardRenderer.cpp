@@ -90,11 +90,14 @@ void ForwardRenderer::Render(RenderScene* scene)
 }
 
 #include "Engine/Render/Mesh/MeshBuilder.h"
+#include "Engine/Render/Debug/DebugRenderSystem.h"
 
 //-------------------------------------------------------------------------------------------------
 // Initializes the shadow camera based on the light type
 void InitializeCameraForLight(Camera* shadowCamera, Light* light, Camera* gameCamera)
 {
+	static bool test = true;
+
 	LightData lightData = light->GetLightData();
 
 	if (light->IsConeLight())
@@ -114,7 +117,7 @@ void InitializeCameraForLight(Camera* shadowCamera, Light* light, Camera* gameCa
 	else if (light->IsDirectionalLight())
 	{
 		Frustrum frustrum = gameCamera->GetFrustrum();
-		Vector3 reference = AreMostlyEqual(lightData.m_lightDirection, Vector3::Y_AXIS) ? Vector3::X_AXIS : Vector3::Y_AXIS;
+		Vector3 reference = AreMostlyEqual(Abs(DotProduct(lightData.m_lightDirection, Vector3::Y_AXIS)), 1.0f) ? Vector3::X_AXIS : Vector3::Y_AXIS;
 		Matrix4 lightModel = Matrix4::MakeLookAt(lightData.m_position, lightData.m_position + lightData.m_lightDirection, reference);
 		Matrix4 invLightModel = Matrix4::GetInverse(lightModel);
 
@@ -123,6 +126,17 @@ void InitializeCameraForLight(Camera* shadowCamera, Light* light, Camera* gameCa
 		for (int i = 0; i < 8; ++i)
 		{
 			frustrumPointsLs[i] = invLightModel.TransformPosition(frustrum.GetPoint(i));
+		}
+
+		if (test)
+		{
+			DebugRenderOptions options;
+			options.m_debugRenderMode = DEBUG_RENDER_MODE_XRAY;
+			options.m_startColor = Rgba::CYAN;
+			DebugDrawFrustrum(frustrum, options);
+
+			options.m_startColor = Rgba::YELLOW;
+			DebugDrawSphere(lightData.m_position, 1.0f, options);
 		}
 
 		// Find the AABB bounds to encapsulate the frustrum, in light space
@@ -136,23 +150,50 @@ void InitializeCameraForLight(Camera* shadowCamera, Light* light, Camera* gameCa
 		maxsLs.y = Max(frustrumPointsLs[0].y, frustrumPointsLs[1].y, frustrumPointsLs[2].y, frustrumPointsLs[3].y, frustrumPointsLs[4].y, frustrumPointsLs[5].y, frustrumPointsLs[6].y, frustrumPointsLs[7].y);
 		maxsLs.z = Max(frustrumPointsLs[0].z, frustrumPointsLs[1].z, frustrumPointsLs[2].z, frustrumPointsLs[3].z, frustrumPointsLs[4].z, frustrumPointsLs[5].z, frustrumPointsLs[6].z, frustrumPointsLs[7].z);
 
+		if (test)
+		{
+			Vector3 min = lightModel.TransformPosition(minsLs);
+			Vector3 max = lightModel.TransformPosition(maxsLs);
+
+			DebugRenderOptions options;
+			options.m_debugRenderMode = DEBUG_RENDER_MODE_IGNORE_DEPTH;
+			options.m_startColor = Rgba::MAGENTA;
+
+			DebugDrawPoint(min, 1.0f, options);
+			DebugDrawPoint(max, 1.0f, options);
+			DebugDrawLine(min, max, options);
+		}
+
 		// Place the camera at the back of the AABB, in light space
 		Vector3 shadowCameraPosLs = Vector3(0.5f * (minsLs.x + maxsLs.x), 0.5f * (minsLs.y + maxsLs.y), minsLs.z);
+		Vector3 shadowCameraPosWs = lightModel.TransformPosition(shadowCameraPosLs);
 
 		// Determine orthobounds to represent the AABB at this location
 		Vector2 orthoBottomLeft = Vector2(minsLs.x - shadowCameraPosLs.x, minsLs.y - shadowCameraPosLs.y);
 		Vector2 orthoTopRight = Vector2(maxsLs.x - shadowCameraPosLs.x, maxsLs.y - shadowCameraPosLs.y);
 
 		// Make the projection
-		Matrix4 orthoProj = Matrix4::MakeOrtho(orthoBottomLeft, orthoTopRight, 0.1f, maxsLs.z - minsLs.z);
+		Matrix4 orthoProj = Matrix4::MakeOrtho(orthoBottomLeft, orthoTopRight, 0.f, maxsLs.z - minsLs.z);
 
 		// Find the model to place the camera at this location in world space
-		Vector3 shadowCameraPosWs = lightModel.TransformPosition(shadowCameraPosLs);
 		Matrix4 cameraModel = Matrix4::MakeLookAt(shadowCameraPosWs, shadowCameraPosWs + lightData.m_lightDirection, reference);
 
 		// Set camera
 		shadowCamera->SetCameraMatrix(cameraModel);
 		shadowCamera->SetProjection(CAMERA_PROJECTION_ORTHOGRAPHIC, orthoProj);
+
+		if (test)
+		{
+			Frustrum shadowFrustrum = shadowCamera->GetFrustrum();
+			DebugRenderOptions options;
+			options.m_startColor = Rgba::YELLOW;
+			options.m_debugRenderMode = DEBUG_RENDER_MODE_XRAY;
+
+			DebugDrawFrustrum(shadowFrustrum, options);
+
+			options.m_startColor = Rgba::WHITE;
+			DebugDrawTransform(shadowCamera->transform, options);
+		}
 	}
 	else
 	{
@@ -166,6 +207,7 @@ void InitializeCameraForLight(Camera* shadowCamera, Light* light, Camera* gameCa
 	// Set targets
 	shadowCamera->SetRenderTarget(nullptr, false);
 	shadowCamera->SetDepthTarget(light->GetShadowTexture(), false);
+	test = false;
 }
 
 
