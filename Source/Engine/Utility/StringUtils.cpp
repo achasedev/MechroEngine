@@ -295,11 +295,11 @@ Maybe<bool> TryParseAsBool(const std::string& str)
 
 	Maybe<bool> result = Maybe<bool>::INVALID;
 
-	if (AreEqualCaseInsensitive(strLocal, "true"))
+	if (AreEqualCaseInsensitive(strLocal, "true") || AreEqualCaseInsensitive(strLocal, "yes"))
 	{
 		result.Set(true);
 	}
-	else if (AreEqualCaseInsensitive(strLocal, "false"))
+	else if (AreEqualCaseInsensitive(strLocal, "false") || AreEqualCaseInsensitive(strLocal, "no"))
 	{
 		result.Set(false);
 	}

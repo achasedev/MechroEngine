@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: March 15th, 2020
+/// Date Created: February 12th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,22 +8,42 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/Matrix4.h"
-#include "Engine/Core/EngineCommon.h"
-#include "Engine/Render/Light.h"
+#include "Engine/Core/Entity.h"
+#include "Engine/Core/Rgba.h"
+#include "Engine/Math/Transform.h"
+#include "Engine/Math/Vector3.h"
+#include "Engine/Render/Renderable.h"
 #include "Engine/Render/Shader/Shader.h"
+#include "Engine/Time/FrameTimer.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#define INVALID_DEBUG_RENDER_OBJECT_HANDLE -1
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Mesh;
-class Material;
-class Renderable;
-class Texture2DArray;
+typedef int DebugRenderObjectHandle;
+enum DebugRenderMode
+{
+	DEBUG_RENDER_MODE_IGNORE_DEPTH,
+	DEBUG_RENDER_MODE_USE_DEPTH,
+	DEBUG_RENDER_MODE_HIDDEN,
+	DEBUG_RENDER_MODE_XRAY
+};
+
+struct DebugRenderOptions
+{
+	Rgba				m_startColor = Rgba::WHITE;
+	Rgba				m_endColor = Rgba::WHITE;
+	float				m_lifetime = FLT_MAX;
+	const Transform*	m_parentTransform = nullptr;
+	FillMode			m_fillMode = FILL_MODE_SOLID;
+	CullMode			m_cullMode = CULL_MODE_BACK;
+	DebugRenderMode		m_debugRenderMode = DEBUG_RENDER_MODE_USE_DEPTH;
+};
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -34,49 +54,59 @@ class Texture2DArray;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class DrawCall
+class DebugRenderObject
 {
 public:
+	friend class DebugRenderSystem;
+
 	//-----Public Methods-----
 
-	DrawCall();
+	DebugRenderObject(const DebugRenderOptions& options);
+	~DebugRenderObject();
 
-	void				SetFromRenderable(const Renderable& renderable, uint32 drawCallIndex);
-	void				SetAmbience(const Rgba& ambience) { m_ambience = ambience; }
-	void				SetNumLightsInUse(int numLights) { m_numLightsInUse = numLights; }
-	void				SetLight(int lightIndex, Light* light);
-	void				SetMaterial(Material* material) { m_material = material; }
-	void				SetMesh(Mesh* mesh) { m_mesh = mesh; }
-	void				SetModelMatrix(const Matrix4& model) { m_modelMatrix = model; }
-	void				SetShadowMaps(Texture2DArray* shadowMaps) { m_shadowMaps = shadowMaps; }
-	Mesh*				GetMesh() const { return m_mesh; }
-	Material*			GetMaterial() const { return m_material; }
-	Matrix4				GetModelMatrix() const { return m_modelMatrix; }
-	int					GetSortOrder() const;
-	const Light*		GetLight(int index) const { return m_lights[index]; }
-	int					GetNumLights() const { return m_numLightsInUse; }
-	Rgba				GetAmbience() const { return m_ambience; }
-	Texture2DArray*		GetShadowMaps() const { return m_shadowMaps; }
+	void					Render();
+
+	bool					IsFinished() const;			
+	DebugRenderObjectHandle	GetHandle() const { return m_handle; }
+
+	void					SetOptions(const DebugRenderOptions& options);
+	void					SetLifetime(float lifetime, bool resetTimer = true);
+	void					SetStartColor(const Rgba& color);
+	void					SetEndColor(const Rgba& color);
+	void					SetColors(const Rgba& startColor, const Rgba& endColor);
+	void					SetParentTransform(const Transform* parentTransform);
+	void					SetFillMode(FillMode fillMode);
+	void					SetCullMode(CullMode cullMode);
+	void					SetDebugRenderMode(DebugRenderMode mode);
+	void					SetMesh(Mesh* mesh, bool ownsMesh);
+
+
+private:
+	//-----Private Methods-----
+
+	Vector4					CalculateTint() const;
+
+
+public:
+	//-----Public Data-----
+
+	Transform				m_transform;
 
 
 private:
 	//-----Private Data-----
 
-	Mesh*				m_mesh = nullptr;
-	Material*			m_material = nullptr;
-	Matrix4				m_modelMatrix;
+	FrameTimer				m_timer;
+	DebugRenderOptions		m_options;
+	DebugRenderObjectHandle	m_handle = INVALID_DEBUG_RENDER_OBJECT_HANDLE;
+	DebugRenderSystem*		m_system = nullptr;
 
-	// For sorting i	n the ForwardRenderer
-	int					m_renderLayer = 0;
-	RenderQueue			m_renderQueue = RENDER_QUEUE_OPAQUE;
-
-	// Lights
-	Rgba				m_ambience = Rgba::WHITE;
-	int					m_numLightsInUse = 0;
-	Light*				m_lights[MAX_NUMBER_OF_LIGHTS];
-	Texture2DArray*		m_shadowMaps = nullptr; // Set by the ForwardRenderer
+	Material*				m_material = nullptr;
+	Mesh*					m_mesh = nullptr;
+	bool					m_ownsMesh = false;
 
 };
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS

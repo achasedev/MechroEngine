@@ -101,7 +101,8 @@ enum FillMode
 enum CullMode
 {
 	CULL_MODE_BACK,
-	CULL_MODE_FRONT
+	CULL_MODE_FRONT, 
+	CULL_MODE_NONE
 };
 
 enum DepthMode
@@ -185,7 +186,7 @@ public:
 	void						SetAlphaBlend(const BlendInfo& blend);
 	void						SetFillMode(FillMode fillMode);
 	void						SetCullMode(CullMode cullMode);
-	void						SetDepthMode(DepthMode depthMode);
+	void						SetDepthMode(DepthMode depthMode, bool writeDepth);
 	void						EnableScissor(const AABB2& screenSpaceRect);
 	void						DisableScissor();
 
@@ -226,6 +227,7 @@ private:
 	bool						m_rasterizerStateDirty = true;
 
 	DepthMode					m_depthMode = DEPTH_MODE_LESS_THAN;
+	bool						m_writeDepth = true;
 	ID3D11DepthStencilState*	m_dxDepthState = nullptr;
 	bool						m_depthStateDirty = true;
 

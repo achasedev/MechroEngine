@@ -82,6 +82,13 @@ void Renderable::AddDraw(Mesh* mesh, Material* material, Matrix4 drawMatrix /*= 
 
 
 //-------------------------------------------------------------------------------------------------
+void Renderable::RemoveDraw(int drawIndex)
+{
+	m_draws.erase(m_draws.begin() + drawIndex);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 RenderableDraw Renderable::GetDraw(uint32 drawIndex) const
 {
 	if (drawIndex < GetNumDrawCalls())

@@ -9,7 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Render/Buffer/ConstantBuffer.h"
-#include "Engine/Render/Debug/DebugRenderTask.h"
+#include "Engine/Render/Debug/DebugRenderObject.h"
 #include <map>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -21,6 +21,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Camera;
 class Shader;
+class Texture2D;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -36,27 +37,30 @@ class DebugRenderSystem
 public:
 	//-----Public Methods-----
 
-	static void			Initialize();
-	static void			Shutdown();
+	static void				Initialize();
+	static void				Shutdown();
+	void					Render();
 
-	void				SetCamera(Camera* camera);
-	void				Render();
+	void					SetCamera(Camera* camera);
+	DebugRenderObjectHandle	AddObject(DebugRenderObject* object);
+	void					DestroyObject(DebugRenderObjectHandle handle);
 
-	DebugRenderHandle	AddObject(DebugRenderTask* object);
-	void				DestroyObject(DebugRenderHandle handle);
-	DebugRenderTask*	GetObject(const DebugRenderHandle& handle);
-	bool				ToggleWorldAxesDraw();
+	DebugRenderObject*		GetObject(const DebugRenderObjectHandle& handle);
+	Camera*					GetCamera() const { return m_camera; }
+	Shader*					GetDefaultShader() const { return m_shader; }
+	Texture2D*				GetDefaultTexture2D() const { return m_texture; }
 
-	Camera*				GetCamera() const { return m_camera; }
+	bool					ToggleWorldAxesDraw(); // Special case to draw the world transform in front of the camera
 
 	template<typename T>
-	T*					GetObjectAs(const DebugRenderHandle& handle);
+	T*						GetObjectAs(const DebugRenderObjectHandle& handle);
 
 
 private:
 	//-----Private Methods-----
 
-	DebugRenderSystem() {}
+	// Singleton
+	DebugRenderSystem();
 	~DebugRenderSystem();
 	DebugRenderSystem(const DebugRenderSystem& other) = delete;
 
@@ -66,10 +70,13 @@ private:
 
 	Camera*							m_camera = nullptr;
 	ConstantBuffer					m_uniformBuffer;
-	std::vector<DebugRenderTask*>	m_objects;
-	DebugRenderHandle				m_nextHandle = 0;
+	std::vector<DebugRenderObject*>	m_objects;
 
-	DebugRenderHandle				m_worldAxesTask = INVALID_DEBUG_RENDER_OBJECT_HANDLE;
+	DebugRenderObjectHandle			m_nextHandle = 0;
+	DebugRenderObjectHandle			m_worldAxesObject = INVALID_DEBUG_RENDER_OBJECT_HANDLE;
+	Shader*							m_shader = nullptr;
+	Texture2D*						m_texture = nullptr;
+
 };
 
 
@@ -79,9 +86,9 @@ private:
 
 //-------------------------------------------------------------------------------------------------
 template<typename T>
-T* DebugRenderSystem::GetObjectAs(const DebugRenderHandle& handle)
+T* DebugRenderSystem::GetObjectAs(const DebugRenderObjectHandle& handle)
 {
-	DebugRenderTask* object = GetObject(handle);
+	DebugRenderObject* object = GetObject(handle);
 	return object->GetAsType<T>();
 }
 
@@ -91,11 +98,9 @@ T* DebugRenderSystem::GetObjectAs(const DebugRenderHandle& handle)
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Convenience
-DebugRenderHandle DebugDrawTransform(const Transform& transform, float lifetime = FLT_MAX, const Transform* parentTransform = nullptr);
-DebugRenderHandle DebugDrawLine3D(const Vector3& start, const Vector3& end, const Rgba& color = Rgba::RED, float lifetime = FLT_MAX, const Transform* parentTransform = nullptr);
-DebugRenderHandle DebugDrawPoint3D(const Vector3& position, const Rgba& color = Rgba::RED, float lifetime = FLT_MAX, const Transform* parentTransform = nullptr);
-DebugRenderHandle DebugDrawRigidBody3D(const RigidBody3D* body, const Rgba& color);
-DebugRenderHandle DebugDrawCube(const Vector3& center, const Vector3& extents, const Rgba& color = Rgba::WHITE, float lifetime = FLT_MAX, const Transform* parentTransform = nullptr);
-DebugRenderHandle DebugDrawOBB3(const OBB3& obb, const Rgba& color = Rgba::WHITE, float lifetime = FLT_MAX, const Transform* parentTransform = nullptr);
-DebugRenderHandle DebugDrawSphere(const Vector3& center, float radius, const Rgba& color = Rgba::WHITE, float lifetime = FLT_MAX, const Transform* parentTransform = nullptr);
-DebugRenderHandle DebugDrawCapsule(const Vector3& start, const Vector3& end, float radius, const Rgba& color = Rgba::WHITE, float lifetime = FLT_MAX, const Transform* parentTransform = nullptr);
+DebugRenderObjectHandle DebugDrawBox(const Vector3& center, const Vector3& extents, const Quaternion& rotation, const DebugRenderOptions& options);
+//DebugRenderObjectHandle DebugDrawTransform(const Transform& transform, float lifetime = FLT_MAX, const Transform* parentTransform = nullptr);
+//DebugRenderObjectHandle DebugDrawLine(const Vector3& start, const Vector3& end, const Rgba& color = Rgba::RED, float lifetime = FLT_MAX, const Transform* parentTransform = nullptr);
+//DebugRenderObjectHandle DebugDrawPoint(const Vector3& position, const Rgba& color = Rgba::RED, float lifetime = FLT_MAX, const Transform* parentTransform = nullptr);
+//DebugRenderObjectHandle DebugDrawSphere(const Vector3& center, float radius, const Rgba& color = Rgba::WHITE, float lifetime = FLT_MAX, const Transform* parentTransform = nullptr);
+//DebugRenderObjectHandle DebugDrawCapsule(const Vector3& start, const Vector3& end, float radius, const Rgba& color = Rgba::WHITE, float lifetime = FLT_MAX, const Transform* parentTransform = nullptr);

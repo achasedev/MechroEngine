@@ -161,6 +161,7 @@ D3D11_CULL_MODE ToDxCullMode(CullMode cullMode)
 	{
 	case CULL_MODE_BACK:	return D3D11_CULL_BACK; break;
 	case CULL_MODE_FRONT:	return D3D11_CULL_FRONT; break;
+	case CULL_MODE_NONE:	return D3D11_CULL_NONE; break;
 	default:
 		ERROR_RETURN(D3D11_CULL_BACK, "Invalid Cull Mode!");
 		break;
@@ -215,7 +216,8 @@ FillMode StringToFillMode(const std::string& fillText)
 CullMode StringToCullMode(const std::string& cullText)
 {
 	if		(cullText == "back" || cullText == "back_face") { return CULL_MODE_BACK; }
-	else if (cullText == "front" || cullText == "back_front") { return CULL_MODE_FRONT; }
+	else if (cullText == "front" || cullText == "front_face") { return CULL_MODE_FRONT; }
+	else if (cullText == "none" || cullText == "no_cull") { return CULL_MODE_NONE; }
 	else
 	{
 		ConsoleLogErrorf("Invalid CullMode %s, defaulting to back", cullText.c_str());
@@ -389,7 +391,8 @@ bool Shader::Load(const char* filepath)
 
 	// Depth
 	std::string depthText = XML::ParseAttribute(*rootElem, "depth", "less");
-	SetDepthMode(StringToDepthMode(depthText));
+	bool writeDepth = XML::ParseAttribute(*rootElem, "depth_write", true);
+	SetDepthMode(StringToDepthMode(depthText), writeDepth);
 
 	// Sorting queue and layer
 	std::string queueText = XML::ParseAttribute(*rootElem, "queue", "opaque");
@@ -602,8 +605,8 @@ void Shader::UpdateDepthState()
 		{
 			// Depth test parameters
 			dsDesc.DepthEnable = true;
-			dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-			dsDesc.DepthFunc = ToDxDepthFunc(m_depthMode);;
+			dsDesc.DepthWriteMask = (m_writeDepth ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO);
+			dsDesc.DepthFunc = ToDxDepthFunc(m_depthMode);
 
 			// Stencil test parameters
 			dsDesc.StencilEnable = true;
@@ -621,14 +624,13 @@ void Shader::UpdateDepthState()
 			dsDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
 			dsDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
 			dsDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-
-			// Create depth stencil state
-			HRESULT result = g_renderContext->GetDxDevice()->CreateDepthStencilState(&dsDesc, &m_dxDepthState);
-
-			ASSERT_OR_DIE(SUCCEEDED(result), "Couldn't create a depth stencil state!");
-			m_depthStateDirty = false;
 		}
-		
+
+		// Create depth stencil state
+		HRESULT result = g_renderContext->GetDxDevice()->CreateDepthStencilState(&dsDesc, &m_dxDepthState);
+
+		ASSERT_OR_DIE(SUCCEEDED(result), "Couldn't create a depth stencil state!");
+		m_depthStateDirty = false;
 	}
 }
 
@@ -714,9 +716,10 @@ void Shader::SetCullMode(CullMode cullMode)
 
 
 //-------------------------------------------------------------------------------------------------
-void Shader::SetDepthMode(DepthMode depthMode)
+void Shader::SetDepthMode(DepthMode depthMode, bool writeDepth)
 {
 	m_depthMode = depthMode;
+	m_writeDepth = writeDepth;
 	m_depthStateDirty = true;
 }
 

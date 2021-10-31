@@ -133,13 +133,14 @@ BoundingVolumeSphere BoundingVolumeSphere::GetTransformApplied(const Transform& 
 //-------------------------------------------------------------------------------------------------
 void BoundingVolumeSphere::DebugRender() const
 {
-	DebugRenderOptions options;
-	options.m_color = Rgba::RED;
-	options.m_lifetime = 0.f;
-	options.m_fillMode = FILL_MODE_WIREFRAME;
+	UNIMPLEMENTED();
+	//DebugRenderOptions options;
+	//options.m_color = Rgba::RED;
+	//options.m_lifetime = 0.f;
+	//options.m_fillMode = FILL_MODE_WIREFRAME;
 
-	DebugRenderSphere* drawSphere = new DebugRenderSphere(center, radius, options);
-	g_debugRenderSystem->AddObject(drawSphere);
+	//DebugRenderSphere* drawSphere = new DebugRenderSphere(center, radius, options);
+	//g_debugRenderSystem->AddObject(drawSphere);
 }
 
 

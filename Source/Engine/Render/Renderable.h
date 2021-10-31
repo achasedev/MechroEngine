@@ -52,6 +52,7 @@ public:
 	void			SetDraw(uint32 drawIndex, const RenderableDraw& draw);
 	void			SetModelMatrix(const Matrix4& rendMatrix) { m_matrix = rendMatrix; }
 	void			AddDraw(Mesh* mesh, Material* material, Matrix4 drawMatrix = Matrix4::IDENTITY);
+	void			RemoveDraw(int drawIndex);
 
 	uint32			GetNumDrawCalls() const { return (uint32)m_draws.size(); }
 	RenderableDraw	GetDraw(uint32 drawIndex) const;
