@@ -48,8 +48,8 @@ public:
 	Camera();
 	~Camera();
 
-	void					SetRenderTarget(Texture2D* renderTarget, bool ownsTarget);
-	void					SetDepthTarget(Texture2D* depthTarget, bool ownsTarget);
+	void					SetColorTargetView(RenderTargetView* colorTargetView);
+	void					SetDepthStencilView(DepthStencilView* depthStencilView);
 	void					SetProjection(CameraProjection projectionType, const Matrix4& projection);
 	void					SetProjectionOrthographic(float orthoHeight, float aspect, float nearZ = -1.0f, float farZ = 1.0f);
 	void					SetProjectionOrthographic(const Vector2& bottomLeft, const Vector2& topRight, float nearZ = -1.0f, float farZ = 1.0f);
@@ -71,11 +71,9 @@ public:
 	void					SetViewMatrix(const Matrix4& viewMatrix);
 	void					SetDrawOrder(int drawOrder) { m_drawOrder = drawOrder; }
 
-	Texture2D*				GetRenderTarget() const;
-	Texture2D*				GetDepthTarget() const;
 	ConstantBuffer*			GetUniformBuffer() const { return m_cameraUBO; }
 
-	RenderTargetView*		GetRenderTargetView();
+	RenderTargetView*		GetColorTargetView();
 	DepthStencilView*		GetDepthStencilTargetView();
 
 	Matrix4					GetCameraMatrix();
@@ -119,10 +117,8 @@ private:
 	CameraProjection		m_currentProjection = CAMERA_PROJECTION_NONE;
 
 	// Render Target
-	Texture2D*				m_renderTarget = nullptr;
-	Texture2D*				m_depthTarget = nullptr;
-	bool					m_ownsRenderTarget = false;
-	bool					m_ownsDepthTarget = false;
+	RenderTargetView*		m_colorTargetView = nullptr;
+	DepthStencilView*		m_depthStencilView = nullptr;
 
 	// Misc
 	ConstantBuffer*			m_cameraUBO = nullptr;

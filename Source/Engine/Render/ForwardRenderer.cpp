@@ -54,7 +54,7 @@ ForwardRenderer::ForwardRenderer()
 
 	// Code reuse!
 	Camera camera;
-	camera.SetDepthTarget(m_clearDepthTexture, false);
+	camera.SetDepthStencilView(m_clearDepthTexture->CreateOrGetDepthStencilView());
 	camera.ClearDepthTarget(1.0f);
 }
 
@@ -89,8 +89,6 @@ void ForwardRenderer::Render(RenderScene* scene)
 	}
 }
 
-#include "Engine/Render/Mesh/MeshBuilder.h"
-#include "Engine/Render/Debug/DebugRenderSystem.h"
 
 //-------------------------------------------------------------------------------------------------
 // Initializes the shadow camera based on the light type
@@ -109,6 +107,7 @@ void InitializeCameraForLight(Camera* shadowCamera, Light* light, Camera* gameCa
 	}
 	else if (light->IsPointLight())
 	{
+
 		// TODO
 		/*LightData data = light->GetLightData();
 		shadowCamera.SetCameraMatrix(Matrix4::MakeLookAt(light->GetLightData().m_position - 10.f * (cameraPos - light->GetLightData().m_position).GetNormalized(), cameraPos));
@@ -128,17 +127,6 @@ void InitializeCameraForLight(Camera* shadowCamera, Light* light, Camera* gameCa
 			frustrumPointsLs[i] = invLightModel.TransformPosition(frustrum.GetPoint(i));
 		}
 
-		if (test)
-		{
-			DebugRenderOptions options;
-			options.m_debugRenderMode = DEBUG_RENDER_MODE_XRAY;
-			options.m_startColor = Rgba::CYAN;
-			DebugDrawFrustrum(frustrum, options);
-
-			options.m_startColor = Rgba::YELLOW;
-			DebugDrawSphere(lightData.m_position, 1.0f, options);
-		}
-
 		// Find the AABB bounds to encapsulate the frustrum, in light space
 		Vector3 minsLs;
 		minsLs.x = Min(frustrumPointsLs[0].x, frustrumPointsLs[1].x, frustrumPointsLs[2].x, frustrumPointsLs[3].x, frustrumPointsLs[4].x, frustrumPointsLs[5].x, frustrumPointsLs[6].x, frustrumPointsLs[7].x);
@@ -149,20 +137,6 @@ void InitializeCameraForLight(Camera* shadowCamera, Light* light, Camera* gameCa
 		maxsLs.x = Max(frustrumPointsLs[0].x, frustrumPointsLs[1].x, frustrumPointsLs[2].x, frustrumPointsLs[3].x, frustrumPointsLs[4].x, frustrumPointsLs[5].x, frustrumPointsLs[6].x, frustrumPointsLs[7].x);
 		maxsLs.y = Max(frustrumPointsLs[0].y, frustrumPointsLs[1].y, frustrumPointsLs[2].y, frustrumPointsLs[3].y, frustrumPointsLs[4].y, frustrumPointsLs[5].y, frustrumPointsLs[6].y, frustrumPointsLs[7].y);
 		maxsLs.z = Max(frustrumPointsLs[0].z, frustrumPointsLs[1].z, frustrumPointsLs[2].z, frustrumPointsLs[3].z, frustrumPointsLs[4].z, frustrumPointsLs[5].z, frustrumPointsLs[6].z, frustrumPointsLs[7].z);
-
-		if (test)
-		{
-			Vector3 min = lightModel.TransformPosition(minsLs);
-			Vector3 max = lightModel.TransformPosition(maxsLs);
-
-			DebugRenderOptions options;
-			options.m_debugRenderMode = DEBUG_RENDER_MODE_IGNORE_DEPTH;
-			options.m_startColor = Rgba::MAGENTA;
-
-			DebugDrawPoint(min, 1.0f, options);
-			DebugDrawPoint(max, 1.0f, options);
-			DebugDrawLine(min, max, options);
-		}
 
 		// Place the camera at the back of the AABB, in light space
 		Vector3 shadowCameraPosLs = Vector3(0.5f * (minsLs.x + maxsLs.x), 0.5f * (minsLs.y + maxsLs.y), minsLs.z);
@@ -181,19 +155,6 @@ void InitializeCameraForLight(Camera* shadowCamera, Light* light, Camera* gameCa
 		// Set camera
 		shadowCamera->SetCameraMatrix(cameraModel);
 		shadowCamera->SetProjection(CAMERA_PROJECTION_ORTHOGRAPHIC, orthoProj);
-
-		if (test)
-		{
-			Frustrum shadowFrustrum = shadowCamera->GetFrustrum();
-			DebugRenderOptions options;
-			options.m_startColor = Rgba::YELLOW;
-			options.m_debugRenderMode = DEBUG_RENDER_MODE_XRAY;
-
-			DebugDrawFrustrum(shadowFrustrum, options);
-
-			options.m_startColor = Rgba::WHITE;
-			DebugDrawTransform(shadowCamera->transform, options);
-		}
 	}
 	else
 	{
@@ -204,9 +165,8 @@ void InitializeCameraForLight(Camera* shadowCamera, Light* light, Camera* gameCa
 	lightData.m_shadowVP = shadowCamera->GetProjectionMatrix() * shadowCamera->GetViewMatrix();
 	light->SetLightData(lightData);
 
-	// Set targets
-	shadowCamera->SetRenderTarget(nullptr, false);
-	shadowCamera->SetDepthTarget(light->GetShadowTexture(), false);
+	// Set depth target
+	shadowCamera->SetDepthStencilView(light->GetShadowTexture()->CreateOrGetDepthStencilView());
 	test = false;
 }
 

@@ -476,7 +476,7 @@ void DevConsole::EndFrame()
 void DevConsole::Render() const
 {
 	Camera camera;
-	camera.SetRenderTarget(m_canvas->GetOutputTexture(), false);
+	camera.SetColorTargetView(m_canvas->GetOutputTexture()->CreateOrGetColorTargetView());
 	camera.SetProjection(CAMERA_PROJECTION_ORTHOGRAPHIC, m_canvas->GenerateOrthoMatrix());
 
 	g_renderContext->BeginCamera(&camera);

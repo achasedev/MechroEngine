@@ -122,10 +122,10 @@ public:
 	IDXGISwapChain*						GetDxSwapChain();
 
 	Texture2D*							GetDefaultRenderTarget() const { return m_defaultColorTarget; }
-	Texture2D*							GetDefaultDepthStencilTarget() const { return m_defaultDepthStencilTarget; }
+	Texture2D*							GetDefaultDepthStencilTarget() const { return m_defaultDepthStencil; }
 
-	RenderTargetView*					GetDefaultRenderTargetView() const;
-	DepthStencilView*				GetDefaultDepthStencilTargetView() const;
+	RenderTargetView*					GetDefaultColorTargetView() const;
+	DepthStencilView*					GetDefaultDepthStencilView() const;
 
 	bool								Event_WindowResize(NamedProperties& args);
 
@@ -159,7 +159,7 @@ private:
 	Shader*						m_currentShader = nullptr;
 	ShaderInputLayout			m_lastInputLayout;
 	Texture2D*					m_defaultColorTarget = nullptr;
-	Texture2D*					m_defaultDepthStencilTarget = nullptr;
+	Texture2D*					m_defaultDepthStencil = nullptr;
 	Mesh						m_immediateMesh;
 	ConstantBuffer				m_modelMatrixUBO;
 	ConstantBuffer				m_lightUBO;

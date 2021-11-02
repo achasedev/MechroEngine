@@ -338,7 +338,7 @@ RenderTargetView* Texture::CreateOrGetColorTargetView(const TextureViewCreateInf
 
 
 //-------------------------------------------------------------------------------------------------
-DepthStencilView* Texture::CreateOrGetDepthStencilTargetView(const TextureViewCreateInfo* viewInfo /*= nullptr*/)
+DepthStencilView* Texture::CreateOrGetDepthStencilView(const TextureViewCreateInfo* viewInfo /*= nullptr*/)
 {
 	if (viewInfo == nullptr)
 	{

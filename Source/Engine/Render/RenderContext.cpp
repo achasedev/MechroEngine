@@ -150,7 +150,7 @@ void RenderContext::BeginFrame()
 
 	// Clear depth stencil
 	ID3D11DepthStencilView* dxView = nullptr;
-	dxView = m_defaultDepthStencilTarget->CreateOrGetDepthStencilTargetView()->GetDxHandle();
+	dxView = m_defaultDepthStencil->CreateOrGetDepthStencilView()->GetDxHandle();
 	m_dxContext->ClearDepthStencilView(dxView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0U);
 }
 
@@ -189,7 +189,7 @@ void RenderContext::BeginCamera(Camera* camera)
 	m_currentCamera = camera;
 
 	// Render to the camera's target
-	RenderTargetView* colorView = camera->GetRenderTargetView();
+	RenderTargetView* colorView = camera->GetColorTargetView();
 	ID3D11RenderTargetView* rtv = (colorView != nullptr ? colorView->GetDxHandle() : nullptr);
 	
 	DepthStencilView* depthView = camera->GetDepthStencilTargetView();
@@ -846,16 +846,16 @@ void RenderContext::InitDefaultColorAndDepthViews()
 	m_defaultColorTarget->CreateWithNoData(desc.Width, desc.Height, TEXTURE_FORMAT_R8G8B8A8_UNORM, TEXTURE_USAGE_SHADER_RESOURCE_BIT | TEXTURE_USAGE_RENDER_TARGET_BIT, GPU_MEMORY_USAGE_GPU);
 
 	// Depth target
-	if (m_defaultDepthStencilTarget == nullptr)
+	if (m_defaultDepthStencil == nullptr)
 	{
-		m_defaultDepthStencilTarget = new Texture2D();
+		m_defaultDepthStencil = new Texture2D();
 	}
 
-	m_defaultDepthStencilTarget->CreateWithNoData(desc.Width, desc.Height, TEXTURE_FORMAT_R24G8_TYPELESS, TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT, GPU_MEMORY_USAGE_GPU);
+	m_defaultDepthStencil->CreateWithNoData(desc.Width, desc.Height, TEXTURE_FORMAT_R24G8_TYPELESS, TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT, GPU_MEMORY_USAGE_GPU);
 
 	// Create default views for both
 	m_defaultColorTarget->CreateOrGetColorTargetView();
-	m_defaultDepthStencilTarget->CreateOrGetDepthStencilTargetView();
+	m_defaultDepthStencil->CreateOrGetDepthStencilView();
 
 	DX_SAFE_RELEASE(backbuffer);
 }
@@ -910,7 +910,7 @@ RenderContext::~RenderContext()
 	SAFE_DELETE(m_samplers[SAMPLER_MODE_LINEAR]);
 
 	SAFE_DELETE(m_defaultColorTarget);
-	SAFE_DELETE(m_defaultDepthStencilTarget);
+	SAFE_DELETE(m_defaultDepthStencil);
 
 	// Shutdown DirectX
 	// DX11 cannot shutdown in full screen
@@ -950,23 +950,23 @@ IDXGISwapChain* RenderContext::GetDxSwapChain()
 
 
 //-------------------------------------------------------------------------------------------------
-RenderTargetView* RenderContext::GetDefaultRenderTargetView() const
+RenderTargetView* RenderContext::GetDefaultColorTargetView() const
 {
 	return m_defaultColorTarget->CreateOrGetColorTargetView();
 }
 
 
 //-------------------------------------------------------------------------------------------------
-DepthStencilView* RenderContext::GetDefaultDepthStencilTargetView() const
+DepthStencilView* RenderContext::GetDefaultDepthStencilView() const
 {
-	return m_defaultDepthStencilTarget->CreateOrGetDepthStencilTargetView();
+	return m_defaultDepthStencil->CreateOrGetDepthStencilView();
 }
 
 
 //-------------------------------------------------------------------------------------------------
 bool RenderContext::Event_WindowResize(NamedProperties& args)
 {
-	m_defaultDepthStencilTarget->Clear();
+	m_defaultDepthStencil->Clear();
 	m_defaultColorTarget->Clear();
 
 	int clientWidth = args.Get("client-width", 0);

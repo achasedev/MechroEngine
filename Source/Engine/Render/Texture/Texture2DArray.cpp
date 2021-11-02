@@ -133,7 +133,7 @@ RenderTargetView* Texture2DArray::CreateOrGetColorTargetView(const TextureViewCr
 
 //-------------------------------------------------------------------------------------------------
 // Creates a depth stencil view for this texture, using reasonable defaults
-DepthStencilView* Texture2DArray::CreateOrGetDepthStencilTargetView(const TextureViewCreateInfo* viewInfo /*= nullptr*/)
+DepthStencilView* Texture2DArray::CreateOrGetDepthStencilView(const TextureViewCreateInfo* viewInfo /*= nullptr*/)
 {
 	if (viewInfo == nullptr)
 	{
@@ -144,8 +144,8 @@ DepthStencilView* Texture2DArray::CreateOrGetDepthStencilTargetView(const Textur
 		cubeViewInfo.m_firstTextureIndex = 0;
 		cubeViewInfo.m_numTextures = m_numTextures;
 
-		return Texture::CreateOrGetDepthStencilTargetView(&cubeViewInfo);
+		return Texture::CreateOrGetDepthStencilView(&cubeViewInfo);
 	}
 
-	return Texture::CreateOrGetDepthStencilTargetView(viewInfo);
+	return Texture::CreateOrGetDepthStencilView(viewInfo);
 }

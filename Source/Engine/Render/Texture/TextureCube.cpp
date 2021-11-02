@@ -159,7 +159,7 @@ RenderTargetView* TextureCube::CreateOrGetColorTargetView(const TextureViewCreat
 
 
 //-------------------------------------------------------------------------------------------------
-DepthStencilView* TextureCube::CreateOrGetDepthStencilTargetView(const TextureViewCreateInfo* viewInfo /*= nullptr*/)
+DepthStencilView* TextureCube::CreateOrGetDepthStencilView(const TextureViewCreateInfo* viewInfo /*= nullptr*/)
 {
 	if (viewInfo == nullptr)
 	{
@@ -168,8 +168,8 @@ DepthStencilView* TextureCube::CreateOrGetDepthStencilTargetView(const TextureVi
 		cubeViewInfo.m_viewDimension = VIEW_DIMENSION_TEXTURECUBE;
 		cubeViewInfo.m_viewUsage = TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT;
 
-		return Texture::CreateOrGetDepthStencilTargetView(&cubeViewInfo);
+		return Texture::CreateOrGetDepthStencilView(&cubeViewInfo);
 	}
 
-	return Texture::CreateOrGetDepthStencilTargetView(viewInfo);
+	return Texture::CreateOrGetDepthStencilView(viewInfo);
 }

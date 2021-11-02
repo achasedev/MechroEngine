@@ -51,7 +51,7 @@ public:
 
 	virtual ShaderResourceView*	CreateOrGetShaderResourceView(const TextureViewCreateInfo* viewInfo = nullptr) override;
 	virtual RenderTargetView*	CreateOrGetColorTargetView(const TextureViewCreateInfo* viewInfo = nullptr) override;
-	virtual DepthStencilView*	CreateOrGetDepthStencilTargetView(const TextureViewCreateInfo* viewInfo = nullptr) override;
+	virtual DepthStencilView*	CreateOrGetDepthStencilView(const TextureViewCreateInfo* viewInfo = nullptr) override;
 
 	float	GetAspect() const;
 

@@ -75,9 +75,6 @@ Camera::Camera()
 	transform.rotation = Quaternion::IDENTITY;
 	transform.scale = Vector3::ONES;
 
-	// Default to backbuffer for render target
-	SetRenderTarget(g_renderContext->GetDefaultRenderTarget(), false);
-
 	g_eventSystem->SubscribeEventCallbackObjectMethod("window-resize", &Camera::Event_WindowResize, *this);
 }
 
@@ -88,42 +85,20 @@ Camera::~Camera()
 	g_eventSystem->UnsubscribeEventCallbackObjectMethod("window-resize", &Camera::Event_WindowResize, *this);
 
 	SAFE_DELETE(m_cameraUBO);
-
-	if (m_ownsRenderTarget)
-	{
-		SAFE_DELETE(m_renderTarget);
-	}
-
-	if (m_ownsDepthTarget)
-	{
-		SAFE_DELETE(m_depthTarget);
-	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void Camera::SetRenderTarget(Texture2D* renderTarget, bool ownsTarget)
+void Camera::SetColorTargetView(RenderTargetView* colorTargetView)
 {
-	if (m_ownsRenderTarget)
-	{
-		SAFE_DELETE(m_renderTarget);
-	}
-
-	m_renderTarget = renderTarget;
-	m_ownsRenderTarget = ownsTarget;
+	m_colorTargetView = colorTargetView;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void Camera::SetDepthTarget(Texture2D* depthTarget, bool ownsTarget)
+void Camera::SetDepthStencilView(DepthStencilView* depthStencilView)
 {
-	if (m_ownsDepthTarget)
-	{
-		SAFE_DELETE(m_depthTarget);
-	}
-
-	m_depthTarget = depthTarget;
-	m_ownsDepthTarget = ownsTarget;
+	m_depthStencilView = depthStencilView;
 }
 
 
@@ -212,7 +187,12 @@ void Camera::UpdateUBO()
 		m_cameraUBO = new ConstantBuffer();
 	}
 
-	Texture2D* dimensionTarget = (m_renderTarget != nullptr ? m_renderTarget : m_depthTarget);
+	// Default to color target for dimensions, if null then depth
+	TextureView* view = m_colorTargetView;
+	if (view == nullptr)
+	{
+		view = m_depthStencilView;
+	}
 
 	CameraUBOLayout cameraData;
 	cameraData.m_cameraMatrix = transform.GetLocalToWorldMatrix();
@@ -220,8 +200,8 @@ void Camera::UpdateUBO()
 	cameraData.m_projectionMatrix = m_projectionMatrix;
 	cameraData.m_viewportTopLeftX = 0.f;
 	cameraData.m_viewportTopLeftY = 0.f;
-	cameraData.m_viewportWidth = ((dimensionTarget != nullptr) ? (float)dimensionTarget->GetWidth() : 0.f);
-	cameraData.m_viewportHeight = ((dimensionTarget != nullptr) ? (float)dimensionTarget->GetHeight() : 0.f);
+	cameraData.m_viewportWidth = ((view != nullptr) ? (float)view->GetWidth() : 0.f);
+	cameraData.m_viewportHeight = ((view != nullptr) ? (float)view->GetHeight() : 0.f);
 
 	m_cameraUBO->CopyToGPU(&cameraData, sizeof(cameraData));
 }
@@ -231,9 +211,9 @@ void Camera::UpdateUBO()
 // Clears the camera's color target to the given color
 void Camera::ClearColorTarget(const Rgba& clearColor)
 {
-	if (m_renderTarget != nullptr)
+	if (m_colorTargetView != nullptr)
 	{
-		ID3D11RenderTargetView* dxRTV = GetRenderTargetView()->GetDxHandle();
+		ID3D11RenderTargetView* dxRTV = m_colorTargetView->GetDxHandle();
 		ID3D11DeviceContext* dxContext = g_renderContext->GetDxContext();
 
 		Vector4 color = clearColor.GetAsFloats();
@@ -250,9 +230,9 @@ void Camera::ClearColorTarget(const Rgba& clearColor)
 // Clears the camera's depth target
 void Camera::ClearDepthTarget(float depth /*= 1.0f*/)
 {
-	if (m_depthTarget != nullptr)
+	if (m_depthStencilView != nullptr)
 	{
-		ID3D11DepthStencilView* dxView = GetDepthStencilTargetView()->GetDxHandle();
+		ID3D11DepthStencilView* dxView = m_depthStencilView->GetDxHandle();
 		ID3D11DeviceContext* dxContext = g_renderContext->GetDxContext();
 
 		dxContext->ClearDepthStencilView(dxView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, depth, 0U);
@@ -305,35 +285,17 @@ void Camera::SetViewMatrix(const Matrix4& viewMatrix)
 }
 
 
-Texture2D* Camera::GetRenderTarget() const
-{
-	return m_renderTarget;
-}
-
-
 //-------------------------------------------------------------------------------------------------
-Texture2D* Camera::GetDepthTarget() const
+RenderTargetView* Camera::GetColorTargetView()
 {
-	return m_depthTarget;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-RenderTargetView* Camera::GetRenderTargetView()
-{
-	return (m_renderTarget != nullptr ? m_renderTarget->CreateOrGetColorTargetView() : nullptr);
+	return m_colorTargetView;
 }
 
 
 //-------------------------------------------------------------------------------------------------
 DepthStencilView* Camera::GetDepthStencilTargetView()
 {
-	if (m_depthTarget != nullptr)
-	{
-		return m_depthTarget->CreateOrGetDepthStencilTargetView();
-	}
-
-	return nullptr;
+	return m_depthStencilView;
 }
 
 
@@ -424,7 +386,7 @@ Frustrum Camera::GetFrustrum()
 //-------------------------------------------------------------------------------------------------
 bool Camera::Event_WindowResize(NamedProperties& args)
 {
-	if (m_currentProjection == CAMERA_PROJECTION_ORTHOGRAPHIC && m_renderTarget == g_renderContext->GetDefaultRenderTarget())
+	if (m_currentProjection == CAMERA_PROJECTION_ORTHOGRAPHIC && m_colorTargetView == g_renderContext->GetDefaultColorTargetView())
 	{
 		// Preserve height
 		float height = m_orthoBounds.GetHeight();
