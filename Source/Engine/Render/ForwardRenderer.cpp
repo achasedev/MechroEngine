@@ -55,14 +55,6 @@ ForwardRenderer::ForwardRenderer()
 
 	m_pointShadowMaps = new TextureCubeArray();
 	m_pointShadowMaps->Create(MAX_NUMBER_OF_LIGHTS, SHADOW_TEXTURE_SIZE, SHADOW_TEXTURE_SIZE, TEXTURE_FORMAT_R24G8_TYPELESS);
-
-	m_clearDepthTexture = new Texture2D();
-	m_clearDepthTexture->CreateWithNoData(SHADOW_TEXTURE_SIZE, SHADOW_TEXTURE_SIZE, TEXTURE_FORMAT_R24G8_TYPELESS, TEXTURE_USAGE_SHADER_RESOURCE_BIT | TEXTURE_USAGE_DEPTH_STENCIL_BIT, GPU_MEMORY_USAGE_GPU);
-
-	// Code reuse!
-	Camera camera;
-	camera.SetDepthStencilView(m_clearDepthTexture->CreateOrGetDepthStencilView());
-	camera.ClearDepthTarget(1.0f);
 }
 
 
@@ -70,7 +62,6 @@ ForwardRenderer::ForwardRenderer()
 // Destructor
 ForwardRenderer::~ForwardRenderer()
 {
-	SAFE_DELETE(m_clearDepthTexture);
 	SAFE_DELETE(m_pointShadowMaps);
 	SAFE_DELETE(m_coneDirShadowMaps);
 }
@@ -101,7 +92,7 @@ void ForwardRenderer::Render(RenderScene* scene)
 
 //-------------------------------------------------------------------------------------------------
 // Sets up the camera to render a shadowmap for a cone light
-static void InitializeCameraForConeLight(Camera* shadowCamera, Light* light, Camera* gameCamera)
+static void InitializeCameraForConeLight(Camera* shadowCamera, Light* light)
 {
 	LightData lightData = light->GetLightData();
 	Vector3 reference = AreMostlyEqual(lightData.m_lightDirection, Vector3::Y_AXIS) ? Vector3::X_AXIS : Vector3::Y_AXIS;
@@ -111,7 +102,6 @@ static void InitializeCameraForConeLight(Camera* shadowCamera, Light* light, Cam
 	shadowCamera->SetProjectionPerspective(2.f * ACosDegrees(lightData.m_dotOuterAngle), light->GetShadowDepthStencilView(0)->GetAspect(), 0.1f, 100.f);
 	shadowCamera->SetDepthStencilView(light->GetShadowDepthStencilView(0));
 
-	lightData.m_shadowModel = shadowCamera->GetCameraMatrix();
 	lightData.m_shadowView = shadowCamera->GetViewMatrix();
 	lightData.m_shadowProjection = shadowCamera->GetProjectionMatrix();
 
@@ -121,7 +111,7 @@ static void InitializeCameraForConeLight(Camera* shadowCamera, Light* light, Cam
 
 //-------------------------------------------------------------------------------------------------
 // Sets up the camera to render a shadowmap for a point light in a single direction
-static void InitializeCameraForPointLight(Camera* shadowCamera, Light* light, Camera* gameCamera, int pointLightDirectionIndex)
+static void InitializeCameraForPointLight(Camera* shadowCamera, Light* light, int pointLightDirectionIndex)
 {
 	LightData lightData = light->GetLightData();
 
@@ -142,9 +132,10 @@ static void InitializeCameraForPointLight(Camera* shadowCamera, Light* light, Ca
 	shadowCamera->SetProjectionPerspective(90.f, 1.f, 0.1f, 100.f);
 	shadowCamera->SetDepthStencilView(light->GetShadowDepthStencilView(pointLightDirectionIndex));
 
+	// Set the light data to use the +Z camera info only
+	// Per-face change-of-basis will occur in the pixel shader
 	if (pointLightDirectionIndex == 4)
 	{
-		lightData.m_shadowModel = shadowCamera->GetCameraMatrix();
 		lightData.m_shadowView = shadowCamera->GetViewMatrix();
 		lightData.m_shadowProjection = shadowCamera->GetProjectionMatrix();
 	}
@@ -199,7 +190,6 @@ static void InitializeCameraForDirectionalLight(Camera* shadowCamera, Light* lig
 	shadowCamera->SetProjection(CAMERA_PROJECTION_ORTHOGRAPHIC, orthoProj);
 	shadowCamera->SetDepthStencilView(light->GetShadowDepthStencilView(0));
 
-	lightData.m_shadowModel = shadowCamera->GetCameraMatrix();
 	lightData.m_shadowView = shadowCamera->GetViewMatrix();
 	lightData.m_shadowProjection = shadowCamera->GetProjectionMatrix();
 
@@ -222,7 +212,7 @@ void ForwardRenderer::CreateShadowTexturesForCamera(RenderScene* scene, Camera* 
 
 			if (light->IsConeLight())
 			{
-				InitializeCameraForConeLight(&shadowCamera, light, camera);
+				InitializeCameraForConeLight(&shadowCamera, light);
 				PerformShadowDepthPass(&shadowCamera);
 
 			}
@@ -236,7 +226,7 @@ void ForwardRenderer::CreateShadowTexturesForCamera(RenderScene* scene, Camera* 
 				// For point lights, render 6 directions to make a shadow cube
 				for (int i = 0; i < 6; ++i)
 				{
-					InitializeCameraForPointLight(&shadowCamera, light, camera, i);
+					InitializeCameraForPointLight(&shadowCamera, light, i);
 					PerformShadowDepthPass(&shadowCamera);
 				}
 			}
@@ -259,7 +249,12 @@ void ForwardRenderer::PerformShadowDepthPass(Camera* shadowCamera)
 	// Iterate over all draw calls (already sorted) and draw them
 	for (int drawIndex = 0; drawIndex < (int)m_drawCalls.size(); ++drawIndex)
 	{
-		DrawCall& dc = m_drawCalls[drawIndex];
+		RenderOptions& options = m_drawCalls[drawIndex].second;
+
+		if (!options.m_castsShadows)
+			continue;
+
+		DrawCall& dc = m_drawCalls[drawIndex].first;
 
 		// Use the shadowmap shader
 		Material* depthMat = g_resourceSystem->CreateOrGetMaterial("Data/Material/depth_only.material");
@@ -289,7 +284,12 @@ void ForwardRenderer::PerformRenderPass(RenderScene* scene, Camera* camera)
 	// Iterate over all draw calls (already sorted) and draw them
 	for (int drawIndex = 0; drawIndex < (int)m_drawCalls.size(); ++drawIndex)
 	{
-		DrawCall& dc = m_drawCalls[drawIndex];
+		RenderOptions& options = m_drawCalls[drawIndex].second;
+
+		if (!options.m_shouldBeRendered)
+			continue;
+
+		DrawCall& dc = m_drawCalls[drawIndex].first;
 
 		PopulateShadowMapArray(dc);
 		g_renderContext->Draw(dc);
@@ -313,11 +313,10 @@ void ForwardRenderer::ConstructDrawCalls(RenderScene* scene)
 {
 	m_drawCalls.clear();
 
-	std::map<EntityID, Renderable>::const_iterator itr = scene->m_renderables.begin();
+	std::map<EntityID, std::pair<Renderable, RenderOptions>>::const_iterator itr = scene->m_renderables.begin();
 	for (itr; itr != scene->m_renderables.end(); itr++)
 	{
-		const Renderable& currRenderable = itr->second;
-		ConstructDrawCallsForRenderable(currRenderable, scene);
+		ConstructDrawCallsForRenderable(itr->second.first, itr->second.second, scene);
 	}
 
 	// Sort the draw calls by their shader's layer and queue order
@@ -327,7 +326,7 @@ void ForwardRenderer::ConstructDrawCalls(RenderScene* scene)
 
 //-------------------------------------------------------------------------------------------------
 // Constructs the draw calls needed for the given renderable
-void ForwardRenderer::ConstructDrawCallsForRenderable(const Renderable& renderable, RenderScene* scene)
+void ForwardRenderer::ConstructDrawCallsForRenderable(const Renderable& renderable, const RenderOptions& options, RenderScene* scene)
 {
 	int drawCount = (int)renderable.GetNumDrawCalls();
 
@@ -347,7 +346,7 @@ void ForwardRenderer::ConstructDrawCallsForRenderable(const Renderable& renderab
 		dc.SetFromRenderable(renderable, dcIndex);
 
 		// Add the draw call to the list to render
-		m_drawCalls.push_back(dc);
+		m_drawCalls.push_back(std::pair<DrawCall, RenderOptions>(dc, options));
 	}
 }
 
@@ -366,9 +365,9 @@ void ForwardRenderer::SortDrawCalls()
 		for (int i = 0; i < numDrawCalls - 1; ++i)
 		{
 			// Find one pair out of order, swap and continue iterating
-			if (m_drawCalls[i].GetSortOrder() > m_drawCalls[i + 1].GetSortOrder())
+			if (m_drawCalls[i].first.GetSortOrder() > m_drawCalls[i + 1].first.GetSortOrder())
 			{
-				DrawCall temp = m_drawCalls[i];
+				std::pair<DrawCall, RenderOptions> temp = m_drawCalls[i];
 				m_drawCalls[i] = m_drawCalls[i + 1];
 				m_drawCalls[i + 1] = temp;
 

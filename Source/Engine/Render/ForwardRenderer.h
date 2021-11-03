@@ -9,6 +9,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Render/DrawCall.h"
+#include "Engine/Render/RenderScene.h"
 #include <vector>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -20,7 +21,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Camera;
 class Renderable;
-class RenderScene;
 class Texture2D;
 class Texture2DArray;
 class TextureCubeArray;
@@ -53,7 +53,7 @@ private:
 	void PerformShadowDepthPass(Camera* camera);
 	void PerformRenderPass(RenderScene* scene, Camera* camera);
 	void ConstructDrawCalls(RenderScene* scene);
-	void ConstructDrawCallsForRenderable(const Renderable& renderable, RenderScene* scene);
+	void ConstructDrawCallsForRenderable(const Renderable& renderable, const RenderOptions& options, RenderScene* scene);
 	void SortDrawCalls();
 	void ComputeLightsForDrawCall(DrawCall& drawCall, RenderScene* scene, const Vector3& position);
 	void PopulateShadowMapArray(const DrawCall& dc);
@@ -61,10 +61,9 @@ private:
 private:
 	//-----Private Data-----
 
-	std::vector<DrawCall>	m_drawCalls;
-	Texture2D*				m_clearDepthTexture = nullptr;
-	Texture2DArray*			m_coneDirShadowMaps = nullptr;
-	TextureCubeArray*		m_pointShadowMaps = nullptr;
+	std::vector<std::pair<DrawCall, RenderOptions>>	m_drawCalls;
+	Texture2DArray*									m_coneDirShadowMaps = nullptr;
+	TextureCubeArray*								m_pointShadowMaps = nullptr;
 
 };
 

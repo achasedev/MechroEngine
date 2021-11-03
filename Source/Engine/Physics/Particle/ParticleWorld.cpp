@@ -61,10 +61,10 @@ ParticleWorld::~ParticleWorld()
 void ParticleWorld::DebugDrawParticles()
 {
 	UNIMPLEMENTED();
-	for (Particle* particle : m_particles)
-	{
-		//DebugDrawPoint3D(particle->GetPosition(), Rgba::RED, 0.f);
-	}
+	//for (Particle* particle : m_particles)
+	//{
+	//	//DebugDrawPoint3D(particle->GetPosition(), Rgba::RED, 0.f);
+	//}
 }
 
 

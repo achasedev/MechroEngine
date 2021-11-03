@@ -16,6 +16,7 @@
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #define MAX_NUMBER_OF_LIGHTS 8 // Max number of lights that can be used when rendering a single renderable; a scene can have more lights than this
+#define SHADOW_TEXTURE_SIZE (2048)
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
@@ -39,12 +40,12 @@ struct LightData
 
 	Vector4 m_color = Vector4(0.f, 0.f, 0.f, 0.f);
 
-	Matrix4 m_shadowModel;
 	Matrix4 m_shadowView;
 	Matrix4 m_shadowProjection;
 
-	Vector3 m_padding0 = Vector3::ZERO;
+	Vector2 m_shadowMapDimensions = Vector2(SHADOW_TEXTURE_SIZE, SHADOW_TEXTURE_SIZE);
 	float	m_castsShadows = 0.f;
+	float	m_padding0 = 0.f;
 };
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

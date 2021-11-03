@@ -44,12 +44,12 @@ RenderScene::RenderScene(const std::string& name)
 
 //-------------------------------------------------------------------------------------------------
 // Adds the renderable to the scene
-void RenderScene::AddRenderable(EntityID id, const Renderable& renderable)
+void RenderScene::AddRenderable(EntityID id, const Renderable& renderable, const RenderOptions& options /*= RenderOptions()*/)
 {
 	ASSERT_RETURN(!DoesRenderableExist(id), NO_RETURN_VAL, "Renderable already exists in the scene!");
 	ASSERT_RETURN(renderable.IsReadyForDrawing(), NO_RETURN_VAL, "Renderable isn't complete!");
 
-	m_renderables[id] = renderable;
+	m_renderables[id] = std::pair<Renderable, RenderOptions>(renderable, options);
 }
 
 
@@ -175,7 +175,7 @@ Renderable* RenderScene::GetRenderable(EntityID entityId)
 		return nullptr;
 	}
 
-	return &m_renderables.at(entityId);
+	return &m_renderables.at(entityId).first;
 }
 
 

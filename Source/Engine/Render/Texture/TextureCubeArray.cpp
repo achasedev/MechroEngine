@@ -115,6 +115,7 @@ ShaderResourceView* TextureCubeArray::CreateOrGetShaderResourceView(const Textur
 // Creates a CTV for the entire array if no create info is specified
 RenderTargetView* TextureCubeArray::CreateOrGetColorTargetView(const TextureViewCreateInfo* viewInfo /*= nullptr*/)
 {
+	UNUSED(viewInfo);
 	ConsoleLogErrorf("No creating color target views for TextureCubeArrays!");
 	return nullptr;
 }
@@ -124,6 +125,7 @@ RenderTargetView* TextureCubeArray::CreateOrGetColorTargetView(const TextureView
 // Creates a DSV for the entire array if no create info is specified
 DepthStencilView* TextureCubeArray::CreateOrGetDepthStencilView(const TextureViewCreateInfo* viewInfo /*= nullptr*/)
 {
+	UNUSED(viewInfo);
 	ConsoleLogErrorf("No creating depth stencil views for TextureCubeArrays!");
 	return nullptr;
 }

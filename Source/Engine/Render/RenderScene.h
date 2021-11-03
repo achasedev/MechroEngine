@@ -10,6 +10,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/Rgba.h"
 #include "Engine/Core/Entity.h"
+#include "Engine/Render/Renderable.h"
 #include <map>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -21,8 +22,14 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Camera;
 class Light;
-class Renderable;
 class Skybox;
+
+struct RenderOptions
+{
+	bool m_castsShadows = true; // If true, this renderable will be drawn in the depth-only pass for shadows
+	bool m_shouldBeRendered = true; // If true, will be drawn in the render pass. Useful for when I want something to cast a shadow but not render (player)
+};
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -44,7 +51,7 @@ public:
 	~RenderScene() {}
 
 	// List mutators
-	void			AddRenderable(EntityID id, const Renderable& renderable);
+	void			AddRenderable(EntityID id, const Renderable& renderable, const RenderOptions& options = RenderOptions());
 	void			AddLight(Light* light);
 	void			AddCamera(Camera* camera);
 
@@ -79,13 +86,13 @@ private:
 private:
 	//-----Private Data-----
 
-	std::string						m_name;
-	std::map<EntityID, Renderable>	m_renderables;
-	std::vector<Light*>				m_lights;
-	std::vector<Camera*>			m_cameras;
+	std::string													m_name;
+	std::map<EntityID, std::pair<Renderable, RenderOptions>>	m_renderables;
+	std::vector<Light*>											m_lights;
+	std::vector<Camera*>										m_cameras;
 
-	Rgba							m_ambience = Rgba::WHITE;
-	Skybox*							m_skybox = nullptr;
+	Rgba														m_ambience = Rgba::WHITE;
+	Skybox*														m_skybox = nullptr;
 
 };
 

@@ -70,6 +70,7 @@ SphereCollider::SphereCollider(Entity* owningEntity, const Sphere3D& sphereLs)
 //-------------------------------------------------------------------------------------------------
 void SphereCollider::DebugRender(const Rgba& color) const
 {
+	UNUSED(color);
 	UNIMPLEMENTED();
 	//DebugDrawSphere(m_dataLs.center, m_dataLs.radius, color, 0.f, &entity->transform);
 }
@@ -119,6 +120,7 @@ BoxCollider::BoxCollider(Entity* owningEntity, const OBB3& boxLs)
 //-------------------------------------------------------------------------------------------------
 void BoxCollider::DebugRender(const Rgba& color) const
 {
+	UNUSED(color);
 	UNIMPLEMENTED();
 	//DebugDrawBox(m_dataLs.center, m_dataLs.extents, color, 0.f, &entity->transform);
 }
@@ -144,6 +146,7 @@ CapsuleCollider::CapsuleCollider(Entity* owningEntity, const Capsule3D& capsuleL
 //-------------------------------------------------------------------------------------------------
 void CapsuleCollider::DebugRender(const Rgba& color) const
 {
+	UNUSED(color);
 	UNIMPLEMENTED();
 	//DebugDrawCapsule(m_dataLs.start, m_dataLs.end, m_dataLs.radius, color, 0.f, &entity->transform);
 }
