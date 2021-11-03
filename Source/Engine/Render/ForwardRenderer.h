@@ -23,6 +23,7 @@ class Renderable;
 class RenderScene;
 class Texture2D;
 class Texture2DArray;
+class TextureCubeArray;
 class Vector3;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -61,9 +62,9 @@ private:
 	//-----Private Data-----
 
 	std::vector<DrawCall>	m_drawCalls;
-	Texture2DArray*			m_shadowMaps = nullptr;
 	Texture2D*				m_clearDepthTexture = nullptr;
-	TextureCube*			m_pointLightMap = nullptr;
+	Texture2DArray*			m_coneDirShadowMaps = nullptr;
+	TextureCubeArray*		m_pointShadowMaps = nullptr;
 
 };
 

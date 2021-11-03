@@ -35,6 +35,7 @@
 #include "Engine/Render/Sampler.h"
 #include "Engine/Render/Shader/Shader.h"
 #include "Engine/Render/Texture/Texture2DArray.h"
+#include "Engine/Render/Texture/TextureCubeArray.h"
 #include "Engine/Render/Texture/TextureCube.h"
 #include "Engine/Render/View/RenderTargetView.h"
 #include "Engine/Render/View/ShaderResourceView.h"
@@ -386,24 +387,8 @@ void RenderContext::SetLightsForDrawCall(const DrawCall& drawCall)
 	m_lightUBO.CopyToGPU(&data, sizeof(LightBufferData));
 
 	// Bind shadow textures
-	BindShaderResourceView(SRV_SLOT_SHADOWMAP, drawCall.GetShadowMaps()->CreateOrGetShaderResourceView());
-
-	// TODO: Bind an array of shadow cubes
-	bool boundSampler = false;
-	for (int i = 0; i < numLights; ++i)
-	{
-		if (drawCall.GetLight(i)->IsShadowCasting() && drawCall.GetLight(i)->IsPointLight())
-		{
-			BindShaderResourceView(SRV_SLOT_POINT_LIGHT_SHADOWMAP, drawCall.GetPointLightShadowMaps()->CreateOrGetShaderResourceView());
-			boundSampler = true;
-			break;
-		}
-	}
-
-	if (!boundSampler)
-	{
-		BindSampler(SRV_SLOT_POINT_LIGHT_SHADOWMAP, nullptr);
-	}
+	BindShaderResourceView(SRV_SLOT_CONE_DIR_SHADOWMAP, drawCall.GetConeDirectionalShadowMaps()->CreateOrGetShaderResourceView());
+	BindShaderResourceView(SRV_SLOT_POINT_SHADOWMAP, drawCall.GetPointLightShadowMaps()->CreateOrGetShaderResourceView());
 }
 
 

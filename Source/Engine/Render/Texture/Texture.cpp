@@ -40,6 +40,7 @@ static D3D11_SRV_DIMENSION GetDxDimensionFromViewDimension(ViewDimension dimensi
 	case VIEW_DIMENSION_TEXTURE2D: return D3D11_SRV_DIMENSION_TEXTURE2D; break;
 	case VIEW_DIMENSION_TEXTURECUBE: return D3D11_SRV_DIMENSION_TEXTURECUBE; break;
 	case VIEW_DIMENSION_TEXTURE2DARRAY: return D3D11_SRV_DIMENSION_TEXTURE2DARRAY; break;
+	case VIEW_DIMENSION_TEXTURECUBEARRAY: return D3D11_SRV_DIMENSION_TEXTURECUBEARRAY; break;
 	default:
 		ERROR_AND_DIE("Invalid dimension!");
 		break;
@@ -235,6 +236,12 @@ ShaderResourceView* Texture::CreateOrGetShaderResourceView(const TextureViewCrea
 		case VIEW_DIMENSION_TEXTURECUBE:
 			srvDesc.TextureCube.MipLevels = viewInfo->m_numMipLevels;
 			srvDesc.TextureCube.MostDetailedMip = viewInfo->m_mostDetailedMip;
+			break;
+		case VIEW_DIMENSION_TEXTURECUBEARRAY:
+			srvDesc.TextureCubeArray.First2DArrayFace = viewInfo->m_firstTextureIndex;
+			srvDesc.TextureCubeArray.MipLevels = viewInfo->m_numMipLevels;
+			srvDesc.TextureCubeArray.MostDetailedMip = viewInfo->m_mostDetailedMip;
+			srvDesc.TextureCubeArray.NumCubes = viewInfo->m_numTextures / 6;
 			break;
 		default:
 			ConsoleLogErrorf("Couldn't create SRV for %s, view dimension was invalid", m_resourceID.ToString());

@@ -20,6 +20,7 @@
 #include "Engine/Render/Skybox.h"
 #include "Engine/Render/Texture/Texture2D.h"
 #include "Engine/Render/Texture/Texture2DArray.h"
+#include "Engine/Render/Texture/TextureCubeArray.h"
 #include "Engine/Render/Texture/TextureCube.h"
 #include "Engine/Resource/ResourceSystem.h"
 #include "Engine/Render/View/DepthStencilView.h"
@@ -49,11 +50,11 @@
 // Constructor
 ForwardRenderer::ForwardRenderer()
 {
-	m_shadowMaps = new Texture2DArray();
-	m_shadowMaps->Create(MAX_NUMBER_OF_LIGHTS, SHADOW_TEXTURE_SIZE, SHADOW_TEXTURE_SIZE, TEXTURE_FORMAT_R24G8_TYPELESS);
+	m_coneDirShadowMaps = new Texture2DArray();
+	m_coneDirShadowMaps->Create(MAX_NUMBER_OF_LIGHTS, SHADOW_TEXTURE_SIZE, SHADOW_TEXTURE_SIZE, TEXTURE_FORMAT_R24G8_TYPELESS);
 
-	m_pointLightMap = new TextureCube();
-	m_pointLightMap->CreateWithNoData(SHADOW_TEXTURE_SIZE, SHADOW_TEXTURE_SIZE, TEXTURE_FORMAT_R24G8_TYPELESS, TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_GPU);
+	m_pointShadowMaps = new TextureCubeArray();
+	m_pointShadowMaps->Create(MAX_NUMBER_OF_LIGHTS, SHADOW_TEXTURE_SIZE, SHADOW_TEXTURE_SIZE, TEXTURE_FORMAT_R24G8_TYPELESS);
 
 	m_clearDepthTexture = new Texture2D();
 	m_clearDepthTexture->CreateWithNoData(SHADOW_TEXTURE_SIZE, SHADOW_TEXTURE_SIZE, TEXTURE_FORMAT_R24G8_TYPELESS, TEXTURE_USAGE_SHADER_RESOURCE_BIT | TEXTURE_USAGE_DEPTH_STENCIL_BIT, GPU_MEMORY_USAGE_GPU);
@@ -70,8 +71,8 @@ ForwardRenderer::ForwardRenderer()
 ForwardRenderer::~ForwardRenderer()
 {
 	SAFE_DELETE(m_clearDepthTexture);
-	SAFE_DELETE(m_pointLightMap);
-	SAFE_DELETE(m_shadowMaps);
+	SAFE_DELETE(m_pointShadowMaps);
+	SAFE_DELETE(m_coneDirShadowMaps);
 }
 
 
@@ -83,8 +84,8 @@ void ForwardRenderer::Render(RenderScene* scene)
 	ConstructDrawCalls(scene);
 
 	// Ensure depth stencils are not bound before they're used as a render target
-	g_renderContext->BindShaderResourceView(SRV_SLOT_SHADOWMAP, nullptr);
-	g_renderContext->BindShaderResourceView(SRV_SLOT_POINT_LIGHT_SHADOWMAP, nullptr);
+	g_renderContext->BindShaderResourceView(SRV_SLOT_CONE_DIR_SHADOWMAP, nullptr);
+	g_renderContext->BindShaderResourceView(SRV_SLOT_POINT_SHADOWMAP, nullptr);
 
 	int numCameras = (int)scene->m_cameras.size();
 	for (int index = 0; index < numCameras; ++index)
@@ -333,7 +334,7 @@ void ForwardRenderer::ConstructDrawCallsForRenderable(const Renderable& renderab
 	for (int dcIndex = 0; dcIndex < drawCount; ++dcIndex)
 	{
 		DrawCall dc;
-		dc.SetShadowMaps(m_shadowMaps, m_pointLightMap);
+		dc.SetShadowMaps(m_coneDirShadowMaps, m_pointShadowMaps);
 
 		// Compute which lights contribute the most to this renderable
 		Material* material = renderable.GetDraw(dcIndex).m_material;
@@ -444,30 +445,32 @@ void ForwardRenderer::ComputeLightsForDrawCall(DrawCall& drawCall, RenderScene* 
 void ForwardRenderer::PopulateShadowMapArray(const DrawCall& dc)
 {
 	ID3D11DeviceContext* dxContext = g_renderContext->GetDxContext();
-	ID3D11Resource* dxTexArray = m_shadowMaps->GetDxHandle();
+	ID3D11Resource* dxConeDirMapArray = m_coneDirShadowMaps->GetDxHandle();
+	ID3D11Resource* dxPointMapArray = m_pointShadowMaps->GetDxHandle();
 
 	int numLights = dc.GetNumLights();
-	for (int i = 0; i < numLights; ++i)
+	for (int lightIndex = 0; lightIndex < numLights; ++lightIndex)
 	{
-		if (dc.GetLight(i)->IsShadowCasting())
-		{
-			if (dc.GetLight(i)->IsPointLight())
-			{
-				for (int mapIndex = 0; mapIndex < 6; ++mapIndex)
-				{
-					Texture2D* shadowMap = dc.GetLight(i)->GetShadowTexture(mapIndex);
-					ID3D11Resource* dxShadowTexture = shadowMap->GetDxHandle();
-					ID3D11Resource* dxCubeMap = m_pointLightMap->GetDxHandle();
+		const Light* light = dc.GetLight(lightIndex);
 
-					dxContext->CopySubresourceRegion(dxCubeMap, mapIndex, 0, 0, 0, dxShadowTexture, 0, nullptr);
+		if (light->IsShadowCasting())
+		{
+			if (light->IsPointLight())
+			{
+				for (int faceIndex = 0; faceIndex < 6; ++faceIndex)
+				{
+					Texture2D* shadowMap = light->GetShadowTexture(faceIndex);
+					ID3D11Resource* dxShadowTexture = shadowMap->GetDxHandle();
+
+					dxContext->CopySubresourceRegion(dxPointMapArray, 6 * lightIndex + faceIndex, 0, 0, 0, dxShadowTexture, 0, nullptr);
 				}
 			}
 			else
 			{
-				Texture* shadowTexture = dc.GetLight(i)->GetShadowTexture(0);
+				Texture* shadowTexture = dc.GetLight(lightIndex)->GetShadowTexture(0);
 				ID3D11Resource* dxShadowTexture = shadowTexture->GetDxHandle();
 
-				dxContext->CopySubresourceRegion(dxTexArray, i, 0, 0, 0, dxShadowTexture, 0, nullptr);
+				dxContext->CopySubresourceRegion(dxConeDirMapArray, lightIndex, 0, 0, 0, dxShadowTexture, 0, nullptr);
 			}
 		}
 	}

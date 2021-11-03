@@ -64,10 +64,10 @@ void DrawCall::SetLight(int lightIndex, Light* light)
 
 
 //-------------------------------------------------------------------------------------------------
-void DrawCall::SetShadowMaps(Texture2DArray* shadowMaps, TextureCube* pointLightShadowMaps)
+void DrawCall::SetShadowMaps(Texture2DArray* coneDirShadowMaps, TextureCubeArray* pointShadowMaps)
 {
-	m_shadowMaps = shadowMaps;
-	m_pointLightShadowMaps = pointLightShadowMaps;
+	m_coneDirShadowMaps = coneDirShadowMaps;
+	m_pointShadowMaps = pointShadowMaps;
 }
 
 

@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: Oct 28th, 2021
+/// Date Created: Nov 3rd, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -10,9 +10,7 @@
 #include "Engine/Core/DevConsole.h"
 #include "Engine/Core/EngineCommon.h"
 #include "Engine/Render/RenderContext.h"
-#include "Engine/Render/Texture/Texture2DArray.h"
-#include "Engine/Render/View/ShaderResourceView.h"
-#include "Engine/Utility/Hash.h"
+#include "Engine/Render/Texture/TextureCubeArray.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -36,14 +34,15 @@
 
 //-------------------------------------------------------------------------------------------------
 // Destructor
-Texture2DArray::~Texture2DArray()
+TextureCubeArray::~TextureCubeArray()
 {
+
 }
 
 
 //-------------------------------------------------------------------------------------------------
-// Creates the array, allocating space for the given number of textures; takes no data
-bool Texture2DArray::Create(uint32 numTextures, int width, int height, TextureFormat format)
+// Creates a texture cube array with each side of each cube having the given dimensions, and of the given format
+bool TextureCubeArray::Create(uint32 numCubes, int width, int height, TextureFormat format)
 {
 	Clear();
 
@@ -59,28 +58,29 @@ bool Texture2DArray::Create(uint32 numTextures, int width, int height, TextureFo
 	texDesc.Width = width;
 	texDesc.Height = height;
 	texDesc.MipLevels = 1; // Set to 0 for full chain
-	texDesc.ArraySize = numTextures;
+	texDesc.ArraySize = numCubes * 6;
 	texDesc.Usage = (D3D11_USAGE)ToDXMemoryUsage(m_memoryUsage);
 	texDesc.Format = static_cast<DXGI_FORMAT>(GetDxFormatFromTextureFormat(m_format));
 	texDesc.BindFlags = GetDxBindFromTextureUsageFlags(m_textureUsage);
 	texDesc.MiscFlags = 0U;
 	texDesc.SampleDesc.Count = 1;
 	texDesc.SampleDesc.Quality = 0;
+	texDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 	texDesc.CPUAccessFlags = 0U;
 
-	ID3D11Texture2D* tex2D = nullptr;
-	HRESULT hr = dxDevice->CreateTexture2D(&texDesc, nullptr, &tex2D);
+	ID3D11Texture2D* dxTex2D = nullptr;
+	HRESULT hr = dxDevice->CreateTexture2D(&texDesc, nullptr, &dxTex2D);
 
 	bool succeeded = SUCCEEDED(hr);
-	ASSERT_RECOVERABLE(succeeded, "Couldn't create Texture2DArray!");
+	ASSERT_RECOVERABLE(succeeded, "Couldn't create TextureCubeArray!");
 
 	if (succeeded)
 	{
-		m_dxHandle = tex2D;
+		m_dxHandle = dxTex2D;
 		m_dimensions = IntVector3(width, height, 0);
-		m_byteSize = numTextures * width * height * 4;
-		m_numTextures = numTextures;
-		DX_SET_DEBUG_NAME(m_dxHandle, Stringf("Texture2DArray | Dimensions: (%i, %i) | Number of Textures: %i ", m_srcFilepath.c_str(), width, height, numTextures));
+		m_byteSize = numCubes * width * height * 6 * 4; // 6 sides per cube, 4 bytes per texel
+		m_numCubes = numCubes;
+		DX_SET_DEBUG_NAME(m_dxHandle, Stringf("TextureCubeArray | Dimensions: (%i, %i) | Number of Cubes: %i ", m_srcFilepath.c_str(), width, height, numCubes));
 	}
 	else
 	{
@@ -92,19 +92,19 @@ bool Texture2DArray::Create(uint32 numTextures, int width, int height, TextureFo
 
 
 //-------------------------------------------------------------------------------------------------
-// Creates an SRV that's compatible with Texture2DArray in the shader
-ShaderResourceView* Texture2DArray::CreateOrGetShaderResourceView(const TextureViewCreateInfo* viewInfo /* = nullptr */)
+// Creates an SRV for the entire array no create info is specified
+ShaderResourceView* TextureCubeArray::CreateOrGetShaderResourceView(const TextureViewCreateInfo* viewInfo /*= nullptr*/)
 {
 	if (viewInfo == nullptr)
 	{
 		// Make sure we use the right default
-		TextureViewCreateInfo cubeViewInfo;
-		cubeViewInfo.m_viewDimension = VIEW_DIMENSION_TEXTURE2DARRAY;
-		cubeViewInfo.m_viewUsage = TEXTURE_USAGE_SHADER_RESOURCE_BIT;
-		cubeViewInfo.m_firstTextureIndex = 0;
-		cubeViewInfo.m_numTextures = m_numTextures;
+		TextureViewCreateInfo cubeArrayViewInfo;
+		cubeArrayViewInfo.m_viewDimension = VIEW_DIMENSION_TEXTURECUBEARRAY;
+		cubeArrayViewInfo.m_viewUsage = TEXTURE_USAGE_SHADER_RESOURCE_BIT;
+		cubeArrayViewInfo.m_firstTextureIndex = 0;
+		cubeArrayViewInfo.m_numTextures = m_numCubes * 6;
 
-		return Texture::CreateOrGetShaderResourceView(&cubeViewInfo);
+		return Texture::CreateOrGetShaderResourceView(&cubeArrayViewInfo);
 	}
 
 	return Texture::CreateOrGetShaderResourceView(viewInfo);
@@ -112,40 +112,18 @@ ShaderResourceView* Texture2DArray::CreateOrGetShaderResourceView(const TextureV
 
 
 //-------------------------------------------------------------------------------------------------
-// Creates a render target view for this texture, using reasonable defaults
-RenderTargetView* Texture2DArray::CreateOrGetColorTargetView(const TextureViewCreateInfo* viewInfo /*= nullptr*/)
+// Creates a CTV for the entire array if no create info is specified
+RenderTargetView* TextureCubeArray::CreateOrGetColorTargetView(const TextureViewCreateInfo* viewInfo /*= nullptr*/)
 {
-	if (viewInfo == nullptr)
-	{
-		// Make sure we use the right default
-		TextureViewCreateInfo textureViewInfo;
-		textureViewInfo.m_viewDimension = VIEW_DIMENSION_TEXTURE2DARRAY;
-		textureViewInfo.m_viewUsage = TEXTURE_USAGE_RENDER_TARGET_BIT;
-		textureViewInfo.m_firstTextureIndex = 0;
-		textureViewInfo.m_numTextures = m_numTextures;
-
-		return Texture::CreateOrGetColorTargetView(&textureViewInfo);
-	}
-
-	return Texture::CreateOrGetColorTargetView(viewInfo);
+	ConsoleLogErrorf("No creating color target views for TextureCubeArrays!");
+	return nullptr;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-// Creates a depth stencil view for this texture, using reasonable defaults
-DepthStencilView* Texture2DArray::CreateOrGetDepthStencilView(const TextureViewCreateInfo* viewInfo /*= nullptr*/)
+// Creates a DSV for the entire array if no create info is specified
+DepthStencilView* TextureCubeArray::CreateOrGetDepthStencilView(const TextureViewCreateInfo* viewInfo /*= nullptr*/)
 {
-	if (viewInfo == nullptr)
-	{
-		// Make sure we use the right default
-		TextureViewCreateInfo textureViewInfo;
-		textureViewInfo.m_viewDimension = VIEW_DIMENSION_TEXTURE2DARRAY;
-		textureViewInfo.m_viewUsage = TEXTURE_USAGE_DEPTH_STENCIL_BIT;
-		textureViewInfo.m_firstTextureIndex = 0;
-		textureViewInfo.m_numTextures = m_numTextures;
-
-		return Texture::CreateOrGetDepthStencilView(&textureViewInfo);
-	}
-
-	return Texture::CreateOrGetDepthStencilView(viewInfo);
+	ConsoleLogErrorf("No creating depth stencil views for TextureCubeArrays!");
+	return nullptr;
 }
