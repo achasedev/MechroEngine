@@ -67,7 +67,7 @@ bool Texture2D::CreateWithNoData(int width, int height, TextureFormat format, Te
 bool Texture2D::CreateFromBuffer(const uint8* buffer, uint32 bufferSize, int width, int height, TextureFormat format, TextureUsageBits textureUsage, GPUMemoryUsage memoryUsage)
 {
 	// Safety checks
-	bool isDepthStencil = (textureUsage & TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT);
+	bool isDepthStencil = (textureUsage & TEXTURE_USAGE_DEPTH_STENCIL_BIT);
 	bool isRenderTarget = (textureUsage & TEXTURE_USAGE_RENDER_TARGET_BIT);
 	
 	if (isDepthStencil || isRenderTarget)
@@ -243,7 +243,7 @@ DepthStencilView* Texture2D::CreateOrGetDepthStencilView(const TextureViewCreate
 		// Make sure we use the right default
 		TextureViewCreateInfo cubeViewInfo;
 		cubeViewInfo.m_viewDimension = VIEW_DIMENSION_TEXTURE2D;
-		cubeViewInfo.m_viewUsage = TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT;
+		cubeViewInfo.m_viewUsage = TEXTURE_USAGE_DEPTH_STENCIL_BIT;
 
 		return Texture::CreateOrGetDepthStencilView(&cubeViewInfo);
 	}

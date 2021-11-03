@@ -63,6 +63,7 @@ private:
 	std::vector<DrawCall>	m_drawCalls;
 	Texture2DArray*			m_shadowMaps = nullptr;
 	Texture2D*				m_clearDepthTexture = nullptr;
+	TextureCube*			m_pointLightMap = nullptr;
 
 };
 

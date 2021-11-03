@@ -35,6 +35,7 @@
 #include "Engine/Render/Sampler.h"
 #include "Engine/Render/Shader/Shader.h"
 #include "Engine/Render/Texture/Texture2DArray.h"
+#include "Engine/Render/Texture/TextureCube.h"
 #include "Engine/Render/View/RenderTargetView.h"
 #include "Engine/Render/View/ShaderResourceView.h"
 #include "Engine/Render/View/DepthStencilView.h"
@@ -368,30 +369,17 @@ void RenderContext::SetLightsForDrawCall(const DrawCall& drawCall)
 	LightBufferData data;
 	data.m_ambience = ambience.GetAsFloats();
 
-	std::vector<ShaderResourceView*> shadowTextures;
-
 	for (int i = 0; i < MAX_NUMBER_OF_LIGHTS; ++i)
 	{
 		if (i < numLights)
 		{
 			data.m_lights[i] = drawCall.GetLight(i)->GetLightData();
-
-			// Also get the shadow texture, push back nullptr to maintain order
-			if (drawCall.GetLight(i)->IsShadowCasting())
-			{
-				shadowTextures.push_back(drawCall.GetLight(i)->GetShadowTexture()->CreateOrGetShaderResourceView());
-			}
-			else
-			{
-				shadowTextures.push_back(nullptr);
-			}
 		}
 		else
 		{
 			// Disable all unused lights by turning their intensity to 0
 			data.m_lights[i].m_color.w = 0.f;
 			data.m_lights[i].m_attenuation = Vector3(1.f, 0.f, 0.f);
-			shadowTextures.push_back(nullptr);
 		}
 	}
 
@@ -399,6 +387,23 @@ void RenderContext::SetLightsForDrawCall(const DrawCall& drawCall)
 
 	// Bind shadow textures
 	BindShaderResourceView(SRV_SLOT_SHADOWMAP, drawCall.GetShadowMaps()->CreateOrGetShaderResourceView());
+
+	// TODO: Bind an array of shadow cubes
+	bool boundSampler = false;
+	for (int i = 0; i < numLights; ++i)
+	{
+		if (drawCall.GetLight(i)->IsShadowCasting() && drawCall.GetLight(i)->IsPointLight())
+		{
+			BindShaderResourceView(SRV_SLOT_POINT_LIGHT_SHADOWMAP, drawCall.GetPointLightShadowMaps()->CreateOrGetShaderResourceView());
+			boundSampler = true;
+			break;
+		}
+	}
+
+	if (!boundSampler)
+	{
+		BindSampler(SRV_SLOT_POINT_LIGHT_SHADOWMAP, nullptr);
+	}
 }
 
 
@@ -851,7 +856,7 @@ void RenderContext::InitDefaultColorAndDepthViews()
 		m_defaultDepthStencil = new Texture2D();
 	}
 
-	m_defaultDepthStencil->CreateWithNoData(desc.Width, desc.Height, TEXTURE_FORMAT_R24G8_TYPELESS, TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT, GPU_MEMORY_USAGE_GPU);
+	m_defaultDepthStencil->CreateWithNoData(desc.Width, desc.Height, TEXTURE_FORMAT_R24G8_TYPELESS, TEXTURE_USAGE_DEPTH_STENCIL_BIT, GPU_MEMORY_USAGE_GPU);
 
 	// Create default views for both
 	m_defaultColorTarget->CreateOrGetColorTargetView();

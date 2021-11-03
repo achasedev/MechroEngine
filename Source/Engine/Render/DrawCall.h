@@ -24,6 +24,7 @@ class Mesh;
 class Material;
 class Renderable;
 class Texture2DArray;
+class TextureCube;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -48,7 +49,7 @@ public:
 	void				SetMaterial(Material* material) { m_material = material; }
 	void				SetMesh(Mesh* mesh) { m_mesh = mesh; }
 	void				SetModelMatrix(const Matrix4& model) { m_modelMatrix = model; }
-	void				SetShadowMaps(Texture2DArray* shadowMaps) { m_shadowMaps = shadowMaps; }
+	void				SetShadowMaps(Texture2DArray* shadowMaps, TextureCube* pointLightShadowMaps);
 	Mesh*				GetMesh() const { return m_mesh; }
 	Material*			GetMaterial() const { return m_material; }
 	Matrix4				GetModelMatrix() const { return m_modelMatrix; }
@@ -57,6 +58,7 @@ public:
 	int					GetNumLights() const { return m_numLightsInUse; }
 	Rgba				GetAmbience() const { return m_ambience; }
 	Texture2DArray*		GetShadowMaps() const { return m_shadowMaps; }
+	TextureCube*		GetPointLightShadowMaps() const { return m_pointLightShadowMaps; }
 
 
 private:
@@ -75,6 +77,7 @@ private:
 	int					m_numLightsInUse = 0;
 	Light*				m_lights[MAX_NUMBER_OF_LIGHTS];
 	Texture2DArray*		m_shadowMaps = nullptr; // Set by the ForwardRenderer
+	TextureCube*		m_pointLightShadowMaps = nullptr; // Set by the ForwardRenderer
 
 };
 

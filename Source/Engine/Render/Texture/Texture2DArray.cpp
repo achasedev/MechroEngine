@@ -140,7 +140,7 @@ DepthStencilView* Texture2DArray::CreateOrGetDepthStencilView(const TextureViewC
 		// Make sure we use the right default
 		TextureViewCreateInfo cubeViewInfo;
 		cubeViewInfo.m_viewDimension = VIEW_DIMENSION_TEXTURE2DARRAY;
-		cubeViewInfo.m_viewUsage = TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT;
+		cubeViewInfo.m_viewUsage = TEXTURE_USAGE_DEPTH_STENCIL_BIT;
 		cubeViewInfo.m_firstTextureIndex = 0;
 		cubeViewInfo.m_numTextures = m_numTextures;
 

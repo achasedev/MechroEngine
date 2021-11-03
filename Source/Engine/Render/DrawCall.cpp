@@ -64,6 +64,14 @@ void DrawCall::SetLight(int lightIndex, Light* light)
 
 
 //-------------------------------------------------------------------------------------------------
+void DrawCall::SetShadowMaps(Texture2DArray* shadowMaps, TextureCube* pointLightShadowMaps)
+{
+	m_shadowMaps = shadowMaps;
+	m_pointLightShadowMaps = pointLightShadowMaps;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 // Returns the sorting order for the draw call, based on queue and layer (ForwardRenderer)
 int DrawCall::GetSortOrder() const
 {

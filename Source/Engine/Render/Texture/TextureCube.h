@@ -43,7 +43,10 @@ public:
 	virtual ~TextureCube() {}
 
 	bool							LoadSixFiles(const char* folderPath);
-	bool							CreateFromSixImages(const std::vector<Image*>& sixImages);
+	bool							CreateFromSixImages(const std::vector<Image*>& sixImages, TextureFormat format, TextureUsageBits textureUsage, GPUMemoryUsage memoryUsage);
+	bool							CreateFromSixBuffers(uint8* buffers[6], uint32 eachBufferSize, int width, int height, TextureFormat format, TextureUsageBits textureUsage, GPUMemoryUsage memoryUsage);
+	bool							CreateWithNoData(int width, int height, TextureFormat format, TextureUsageBits textureUsage, GPUMemoryUsage memoryUsage);
+
 	virtual ShaderResourceView*		CreateOrGetShaderResourceView(const TextureViewCreateInfo* viewInfo = nullptr) override;
 	virtual RenderTargetView*		CreateOrGetColorTargetView(const TextureViewCreateInfo* viewInfo = nullptr) override;
 	virtual DepthStencilView*		CreateOrGetDepthStencilView(const TextureViewCreateInfo* viewInfo = nullptr) override;

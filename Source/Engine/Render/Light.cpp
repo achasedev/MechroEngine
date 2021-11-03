@@ -12,6 +12,9 @@
 #include "Engine/Render/Light.h"
 #include "Engine/Render/RenderContext.h"
 #include "Engine/Render/Texture/Texture2D.h"
+#include "Engine/Render/Texture/TextureCube.h"
+#include "Engine/Render/View/DepthStencilView.h"
+#include "Engine/Render/View/RenderTargetView.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -34,10 +37,23 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
+Light::Light()
+{
+	for (int i = 0; i < 6; ++i)
+	{
+		m_shadowTextures[i] = nullptr;
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
 // Destroys the shadow texture if it was using one
 Light::~Light()
 {
-	SAFE_DELETE(m_shadowTexture);
+	for (Texture2D* texture : m_shadowTextures)
+	{
+		SAFE_DELETE(texture);
+	}
 }
 
 
@@ -63,22 +79,45 @@ void Light::SetIsShadowCasting(bool castsShadows)
 {
 	if (castsShadows)
 	{
-		if (m_shadowTexture == nullptr)
+		if (m_shadowTextures[0] == nullptr)
 		{
-			// Create a new depth buffer
-			m_shadowTexture = new Texture2D();
-			m_shadowTexture->CreateWithNoData(SHADOW_TEXTURE_SIZE, SHADOW_TEXTURE_SIZE, TEXTURE_FORMAT_R24G8_TYPELESS, TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT | TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_GPU);
-			
-			// Indicate we will cast shadows to the shader
-			m_lightData.m_castsShadows = 1.0f;
+			int numToCreate = (IsPointLight() ? 6 : 1);
+			for (int i = 0; i < numToCreate; ++i)
+			{
+				m_shadowTextures[i] = new Texture2D();
+				m_shadowTextures[i]->CreateWithNoData(SHADOW_TEXTURE_SIZE, SHADOW_TEXTURE_SIZE, TEXTURE_FORMAT_R24G8_TYPELESS, TEXTURE_USAGE_DEPTH_STENCIL_BIT | TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_GPU);
+			}
 		}
+
+		// Indicate we will cast shadows to the shader
+		m_lightData.m_castsShadows = 1.0f;
 	}
 	else
 	{
 		// Clean up
-		SAFE_DELETE(m_shadowTexture);
+		for (int i = 0; i < 6; ++i)
+		{
+			SAFE_DELETE(m_shadowTextures[i]);
+		}
+
 		m_lightData.m_castsShadows = 0.f;
 	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Returns the shadow texture itself
+Texture2D* Light::GetShadowTexture(int index) const
+{
+	return m_shadowTextures[index];
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Returns the view of the target used for writing depth
+DepthStencilView* Light::GetShadowDepthStencilView(int index) const
+{
+	return m_shadowTextures[index]->CreateOrGetDepthStencilView();
 }
 
 

@@ -67,6 +67,10 @@ static PropertyDataType ConvertDxTypeToPropertyDataType(const D3D11_SHADER_TYPE_
 		{
 			return PROPERTY_TYPE_MATRIX4;
 		}
+		if (dxTypeDesc.Rows == 3 && dxTypeDesc.Columns == 3)
+		{
+			return PROPERTY_TYPE_MATRIX3;
+		}
 	}
 		break;
 	case D3D_SVC_STRUCT:

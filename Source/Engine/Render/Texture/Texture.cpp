@@ -70,7 +70,7 @@ uint32 GetDxBindFromTextureUsageFlags(TextureUsageBits usage)
 	}
 
 	// Can I store depth info in it?
-	if (usage & TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT)
+	if (usage & TEXTURE_USAGE_DEPTH_STENCIL_BIT)
 	{
 		binds |= D3D11_BIND_DEPTH_STENCIL;
 	}
@@ -99,7 +99,7 @@ TextureUsageBits GetTextureUsageFlagsFromDxBinds(uint32 dxBind)
 	// Can I store depth info in it?
 	if (dxBind & D3D11_BIND_DEPTH_STENCIL)
 	{
-		usageFlags |= TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT;
+		usageFlags |= TEXTURE_USAGE_DEPTH_STENCIL_BIT;
 	}
 
 	return usageFlags;
@@ -354,7 +354,7 @@ DepthStencilView* Texture::CreateOrGetDepthStencilView(const TextureViewCreateIn
 
 	// Default the info
 	TextureViewCreateInfo defaultInfo;
-	defaultInfo.m_viewUsage = TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT;
+	defaultInfo.m_viewUsage = TEXTURE_USAGE_DEPTH_STENCIL_BIT;
 
 	if (viewInfo == nullptr)
 	{
@@ -379,7 +379,7 @@ DepthStencilView* Texture::CreateOrGetDepthStencilView(const TextureViewCreateIn
 		memset(&desc, 0, sizeof(D3D11_DEPTH_STENCIL_VIEW_DESC));
 		desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 		desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-
+		
 		HRESULT hr = dxDevice->CreateDepthStencilView(m_dxHandle, &desc, &dxDSV);
 
 		if (dxDSV != nullptr)
@@ -389,7 +389,7 @@ DepthStencilView* Texture::CreateOrGetDepthStencilView(const TextureViewCreateIn
 			depthStencilView->m_dxDSV = dxDSV;
 			depthStencilView->m_sourceTexture = this;
 			depthStencilView->m_byteSize = m_byteSize;
-			depthStencilView->m_usage = TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT;
+			depthStencilView->m_usage = TEXTURE_USAGE_DEPTH_STENCIL_BIT;
 			depthStencilView->m_createInfo = *viewInfo;
 			uint32 infoHash = HashData((void*)viewInfo, sizeof(viewInfo));
 			depthStencilView->m_createInfoHash = infoHash;

@@ -52,25 +52,30 @@ bool TextureCube::LoadSixFiles(const char* folderPath)
 		images.push_back(image);
 	}
 
-	return CreateFromSixImages(images);
+	return CreateFromSixImages(images, TEXTURE_FORMAT_R8G8B8A8_UNORM, TEXTURE_USAGE_SHADER_RESOURCE_BIT, GPU_MEMORY_USAGE_GPU);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-bool TextureCube::CreateFromSixImages(const std::vector<Image*>& sixImages)
+bool TextureCube::CreateFromSixImages(const std::vector<Image*>& sixImages, TextureFormat format, TextureUsageBits textureUsage, GPUMemoryUsage memoryUsage)
+{
+	uint8* buffers[6];
+
+	for (int i = 0; i < 6; ++i)
+	{
+		buffers[i] = sixImages[i]->GetData();
+	}
+
+	return CreateFromSixBuffers(buffers, sixImages[0]->GetSize(), sixImages[0]->GetTexelWidth(), sixImages[0]->GetTexelHeight(), format, textureUsage, memoryUsage);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool TextureCube::CreateFromSixBuffers(uint8* buffers[6], uint32 eachBufferSize, int width, int height, TextureFormat format, TextureUsageBits textureUsage, GPUMemoryUsage memoryUsage)
 {
 	Clear();
 
-	// All 6 images should have the same dimensions
-	int width = sixImages[0]->GetTexelWidth();
-	int height = sixImages[0]->GetTexelHeight();
-	int numComponents = sixImages[0]->GetNumComponentsPerTexel();
-
 	ID3D11Device* dxDevice = g_renderContext->GetDxDevice();
-
-	m_format = TEXTURE_FORMAT_R8G8B8A8_UNORM;
-	m_textureUsage = TEXTURE_USAGE_SHADER_RESOURCE_BIT;
-	m_memoryUsage = GPU_MEMORY_USAGE_GPU;
 
 	D3D11_TEXTURE2D_DESC texDesc;
 	memset(&texDesc, 0, sizeof(D3D11_TEXTURE2D_DESC));
@@ -79,25 +84,33 @@ bool TextureCube::CreateFromSixImages(const std::vector<Image*>& sixImages)
 	texDesc.Height = height;
 	texDesc.MipLevels = 1; // Set to 0 for full chain
 	texDesc.ArraySize = 6; // 6 images
-	texDesc.Usage = (D3D11_USAGE)ToDXMemoryUsage(m_memoryUsage);
-	texDesc.Format = static_cast<DXGI_FORMAT>(GetDxFormatFromTextureFormat(m_format));
-	texDesc.BindFlags = GetDxBindFromTextureUsageFlags(m_textureUsage);
+	texDesc.Usage = (D3D11_USAGE)ToDXMemoryUsage(memoryUsage);
+	texDesc.Format = static_cast<DXGI_FORMAT>(GetDxFormatFromTextureFormat(format));
+	texDesc.BindFlags = GetDxBindFromTextureUsageFlags(textureUsage);
 	texDesc.MiscFlags = 0U;
 	texDesc.SampleDesc.Count = 1;
 	texDesc.SampleDesc.Quality = 0;
 	texDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 	texDesc.CPUAccessFlags = 0;
-	
+
 	D3D11_SUBRESOURCE_DATA data[6];
-	for (int i = 0; i < 6; ++i)
+	D3D11_SUBRESOURCE_DATA* dataParam = nullptr;
+
+	if (buffers != nullptr)
 	{
-		data[i].pSysMem = sixImages[i]->GetData();
-		data[i].SysMemPitch = width * numComponents;
-		data[i].SysMemSlicePitch = 0;
+		for (int i = 0; i < 6; ++i)
+		{
+			data[i].pSysMem = buffers[i];
+			data[i].SysMemPitch = width * 4; // Hardcoding it to 4
+			data[i].SysMemSlicePitch = 0;
+		}
+
+		dataParam = &data[0];
 	}
 
+
 	ID3D11Texture2D* tex2D = nullptr;
-	HRESULT hr = dxDevice->CreateTexture2D(&texDesc, data, &tex2D);
+	HRESULT hr = dxDevice->CreateTexture2D(&texDesc, dataParam, &tex2D);
 
 	bool succeeded = SUCCEEDED(hr);
 	ASSERT_RECOVERABLE(succeeded, "Couldn't create Texture2D!");
@@ -106,21 +119,22 @@ bool TextureCube::CreateFromSixImages(const std::vector<Image*>& sixImages)
 	{
 		m_dxHandle = tex2D;
 		m_dimensions = IntVector3(width, height, 0);
-		m_byteSize = 0;
-
-		for (int i = 0; i < 6; ++i)
-		{
-			m_byteSize += sixImages[i]->GetSize();
-		}
+		m_byteSize = 6 * eachBufferSize;
+		m_format = format;
+		m_memoryUsage = memoryUsage;
+		m_textureUsage = textureUsage;
 
 		DX_SET_DEBUG_NAME(m_dxHandle, Stringf("Source File: %s | Size: (%i, %i)", m_srcFilepath.c_str(), width, height));
 	}
-	else
-	{
-		Clear();
-	}
 
 	return succeeded;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool TextureCube::CreateWithNoData(int width, int height, TextureFormat format, TextureUsageBits textureUsage, GPUMemoryUsage memoryUsage)
+{
+	return CreateFromSixBuffers(nullptr, 0U, width, height, format, textureUsage, memoryUsage);
 }
 
 
@@ -166,7 +180,7 @@ DepthStencilView* TextureCube::CreateOrGetDepthStencilView(const TextureViewCrea
 		// Make sure we use the right default
 		TextureViewCreateInfo cubeViewInfo;
 		cubeViewInfo.m_viewDimension = VIEW_DIMENSION_TEXTURECUBE;
-		cubeViewInfo.m_viewUsage = TEXTURE_USAGE_DEPTH_STENCIL_TARGET_BIT;
+		cubeViewInfo.m_viewUsage = TEXTURE_USAGE_DEPTH_STENCIL_BIT;
 
 		return Texture::CreateOrGetDepthStencilView(&cubeViewInfo);
 	}
