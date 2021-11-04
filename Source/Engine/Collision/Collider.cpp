@@ -122,7 +122,6 @@ void BoxCollider::DebugRender(const Rgba& color) const
 {
 	UNUSED(color);
 	UNIMPLEMENTED();
-	//DebugDrawBox(m_dataLs.center, m_dataLs.extents, color, 0.f, &entity->transform);
 }
 
 
