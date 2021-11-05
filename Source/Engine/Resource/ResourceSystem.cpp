@@ -346,7 +346,7 @@ void ResourceSystem::CreateDefaultMeshes()
 
 	mb.Clear();
 	mb.BeginBuilding(TOPOLOGY_TRIANGLE_LIST, true);
-	mb.PushCapsuleSides(Vector3(0.f, -0.5f, 0.f), Vector3(0.f, 0.5f, 0.f), 1.f, Rgba::WHITE, 10, (1.f / 3.f), (2.f / 3.f));
+	mb.PushTube(Vector3(0.f, -0.5f, 0.f), Vector3(0.f, 0.5f, 0.f), 1.f, Rgba::WHITE, 10, (1.f / 3.f), (2.f / 3.f));
 	mb.FinishBuilding();
 
 	Mesh* capsuleMiddle = mb.CreateMesh<VertexLit>();
@@ -387,6 +387,15 @@ void ResourceSystem::CreateDefaultMeshes()
 	Mesh* pointMesh = mb.CreateMesh<Vertex3D_PCU>();
 	pointMesh->m_resourceID = SID("point");
 	m_meshes[pointMesh->m_resourceID] = pointMesh;
+
+	mb.Clear();
+	mb.BeginBuilding(TOPOLOGY_TRIANGLE_LIST, true);
+	mb.PushCylinder(Vector3(0.f, -0.5f, 0.f), Vector3(0.f, 0.5f, 0.f), 1.f, Rgba::WHITE);
+	mb.FinishBuilding();
+
+	Mesh* cylinderMesh = mb.CreateMesh<VertexLit>();
+	cylinderMesh->m_resourceID = SID("cylinder");
+	m_meshes[cylinderMesh->m_resourceID] = cylinderMesh;
 }
 
 

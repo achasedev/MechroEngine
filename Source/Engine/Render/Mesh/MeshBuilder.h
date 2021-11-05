@@ -80,9 +80,12 @@ public:
 	void		PushCube(const Vector3& center, const Vector3& dimensions, const AABB2& topUVs = AABB2::ZERO_TO_ONE, const AABB2& sideUVs = AABB2::ZERO_TO_ONE, const AABB2& bottomUVs = AABB2::ZERO_TO_ONE, const Rgba& tint = Rgba::WHITE);
 	void		PushSphere(const Vector3& center, float radius, const Rgba& color = Rgba::WHITE, int numUSteps = 10, int numVSteps = 10);
 	void		PushTopHemiSphere(const Vector3& center, float radius, const Rgba& color = Rgba::WHITE, int numUSteps = 10, int numVSteps = 10, float startV = 0.5f, float endV = 1.0f);
+	void		PushTube(const Vector3& bottom, const Vector3& top, float radius, const Rgba& color = Rgba::WHITE, int numUSteps = 10, float startV = 0.f, float endV = 1.f);
 	void		PushBottomHemiSphere(const Vector3& center, float radius, const Rgba& color = Rgba::WHITE, int numUSteps = 10, int numVSteps = 10, float startV = 0.f, float endV = 0.5f);
-	void		PushCapsuleSides(const Vector3& bottom, const Vector3& top, float radius, const Rgba& color = Rgba::WHITE, int numUSteps = 10, float startV = 0.f, float endV = 1.f);
 	void		PushCapsule(const Vector3& start, const Vector3& end, float radius, const Rgba& color = Rgba::WHITE);
+
+	void		PushDisc(const Vector3& center, float radius, const Vector3& normal, const Vector3& tangent, const Rgba& color = Rgba::WHITE, int numUSteps = 10, float startV = 0.f, float endV = (1.f / 3.f));
+	void		PushCylinder(const Vector3& bottom, const Vector3& top, float radius, const Rgba& color = Rgba::WHITE, int numUSteps = 10);
 
 	uint32		GetVertexCount() const { return (uint32)m_vertices.size(); }
 	uint32		GetIndexCount() const { return (uint32)m_indices.size(); }

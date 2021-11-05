@@ -896,10 +896,15 @@ void MeshBuilder::PushBottomHemiSphere(const Vector3& center, float radius, cons
 
 
 //-------------------------------------------------------------------------------------------------
-void MeshBuilder::PushCapsuleSides(const Vector3& bottom, const Vector3& top, float radius, const Rgba& color /*= Rgba::WHITE*/, int numUSteps /*= 10*/, float startV /*= 0.f*/, float endV /*= 1.f*/)
+void MeshBuilder::PushTube(const Vector3& bottom, const Vector3& top, float radius, const Rgba& color /*= Rgba::WHITE*/, int numUSteps /*= 10*/, float startV /*= 0.f*/, float endV /*= 1.f*/)
 {
 	bool useIndices = true;
 	AssertBuildState(true, TOPOLOGY_TRIANGLE_LIST, &useIndices);
+
+	Vector3 jVector = (top - bottom).GetNormalized();
+	Vector3 reference = AreMostlyEqual(Abs(DotProduct(jVector, Vector3::Z_AXIS)), 1.0f) ? Vector3::MINUS_Y_AXIS : Vector3::Z_AXIS;
+	Vector3 iVector = CrossProduct(jVector, reference).GetNormalized();
+	Vector3 kVector = CrossProduct(iVector, jVector);
 
 	SetColor(color);
 
@@ -917,13 +922,10 @@ void MeshBuilder::PushCapsuleSides(const Vector3& bottom, const Vector3& top, fl
 			float cosAngle = CosDegrees(rotationAngle);
 			float sinAngle = SinDegrees(rotationAngle);
 
-			float x = radius * cosAngle + bottom.x;
-			float y = RangeMapFloat(v, startV, endV, bottom.y, top.y);
-			float z = radius * sinAngle + bottom.z;
-
-			Vector3 pos = Vector3(x, y, z);
-			Vector3 normal = Vector3(cosAngle, 0.f, sinAngle).GetNormalized();
-			Vector3 tangent = CrossProduct(normal, (top - bottom)).GetNormalized();
+			Vector3 center = (vStep == 0 ? bottom : top);
+			Vector3 pos = radius * cosAngle * iVector + radius * sinAngle * kVector + center;
+			Vector3 normal = (pos - center).GetNormalized();
+			Vector3 tangent = CrossProduct(normal, jVector);
 
 			SetUV(Vector2(u, v));
 			SetNormal(normal);
@@ -964,9 +966,94 @@ void MeshBuilder::PushCapsule(const Vector3& start, const Vector3& end, float ra
 	float startV = (1.f / 3.f);
 	float endV = (2.f / 3.f);
 
-	PushBottomHemiSphere(start, radius, color, numUSteps, numVSteps / 2, 0.66666667f, 1.0f);
-	PushCapsuleSides(start, end, radius, color, numUSteps, startV, endV);
-	PushTopHemiSphere(end, radius, color, numUSteps, numVSteps / 2, 0.f, 0.3333333f);
+	PushBottomHemiSphere(start, radius, color, numUSteps, numVSteps / 2, endV, 1.0f);
+	PushTube(start, end, radius, color, numUSteps, startV, endV);
+	PushTopHemiSphere(end, radius, color, numUSteps, numVSteps / 2, 0.f, startV);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void MeshBuilder::PushDisc(const Vector3& center, float radius, const Vector3& normal, const Vector3& tangent, const Rgba& color /*= Rgba::WHITE*/, int numUSteps /*= 10*/, float centerV /*= 0.f*/, float discEdgeV /*= (1.f / 3.f)*/)
+{
+	bool useIndices = true;
+	AssertBuildState(true, TOPOLOGY_TRIANGLE_LIST, &useIndices);
+
+	SetColor(color);
+
+	// Get the number of vertices before we add more
+	int initialVertexOffset = (int)m_vertices.size();
+	Vector3 bitangent = CrossProduct(tangent, normal);
+
+	for (int uStep = 0; uStep <= numUSteps; ++uStep) // <= since if we want n gaps, we need n+1 dividers
+	{
+		// UVs
+		float uInterval = 1.f / (float)numUSteps;
+		float startU = (float)uStep * uInterval;
+		float endU = startU + uInterval;
+		float centerU = 0.5f * (startU + endU);
+
+		// Position
+		float startAngle = startU * 2.f * PI;
+		float endAngle = endU * 2.f * PI;
+
+		Vector3 startPos = radius * cosf(startAngle) * tangent + radius * sinf(startAngle) * bitangent + center;
+		Vector3 endPos = radius * cosf(endAngle) * tangent + radius * sinf(endAngle) * bitangent + center;
+
+		// Tangent
+		Vector3 startTangent = Vector3(-sinf(startAngle), 0.f, cosf(startAngle));
+		Vector3 endTangent = Vector3(-sinf(endAngle), 0.f, cosf(endAngle));
+		Vector3 centerTangent = (startPos - endPos).GetNormalized();
+
+		// Only push the start at the beginning, as the subsequent steps will use the previous end as their start
+		if (uStep == 0)
+		{
+			SetUV(Vector2(startU, discEdgeV));
+			SetNormal(normal);
+			SetTangent(Vector4(startTangent, 1.0f));
+			PushVertex(startPos);
+		}
+
+		// Push center next (clockwise winding)
+		// Need to push center each time to have correct UVs for this triangle
+		SetUV(Vector2(centerU, centerV));
+		SetNormal(normal);
+		SetTangent(Vector4(centerTangent, 1.0f));
+		PushVertex(center);
+	
+		// Push end
+		SetUV(Vector2(endU, discEdgeV));
+		SetNormal(normal);
+		SetTangent(Vector4(endTangent, 1.0f));
+		PushVertex(endPos);
+	}
+
+	// Pushing the indices
+	for (int uStep = 0; uStep < (int)numUSteps; ++uStep)
+	{
+		int offsetToTriangle = initialVertexOffset + uStep * 2;
+
+		PushIndex(offsetToTriangle);
+		PushIndex(offsetToTriangle + 1);
+		PushIndex(offsetToTriangle + 2);
+	}
+}
+
+//-------------------------------------------------------------------------------------------------
+// Upright cylinder
+void MeshBuilder::PushCylinder(const Vector3& bottom, const Vector3& top, float radius, const Rgba& color /*= Rgba::WHITE*/, int numUSteps /*= 10*/)
+{
+	bool useIndices = true;
+	AssertBuildState(true, TOPOLOGY_TRIANGLE_LIST, &useIndices);
+
+	float tubeBottomV = (1.f / 3.f);
+	float tubeTopV = (2.f / 3.f);
+	Vector3 jVector = (top - bottom).GetNormalized();
+	Vector3 reference = AreMostlyEqual(Abs(DotProduct(jVector, Vector3::Z_AXIS)), 1.0f) ? Vector3::MINUS_Y_AXIS : Vector3::Z_AXIS;
+	Vector3 iVector = CrossProduct(jVector, reference).GetNormalized();
+
+	PushDisc(bottom, radius, -1.f * jVector, iVector, color, numUSteps, 0.f, tubeBottomV);
+	PushTube(bottom, top, radius, color, numUSteps, tubeBottomV, tubeTopV);
+	PushDisc(top, radius, jVector, iVector, color, numUSteps, tubeTopV, 1.0f);
 }
 
 
