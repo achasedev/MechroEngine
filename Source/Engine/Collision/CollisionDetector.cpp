@@ -27,43 +27,51 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+GenerateContactsFunction CollisionDetector::s_colliderMatrix[NUM_COLLIDER_TYPES][NUM_COLLIDER_TYPES] =
+{
+	{ nullptr, nullptr, &CollisionDetector::GenerateContacts_HalfSpaceSphere,	&CollisionDetector::GenerateContacts_HalfSpaceCapsule,	&CollisionDetector::GenerateContacts_HalfSpaceBox },
+	{ nullptr, nullptr, &CollisionDetector::GenerateContacts_PlaneSphere,		&CollisionDetector::GenerateContacts_PlaneCapsule,		&CollisionDetector::GenerateContacts_PlaneBox },
+	{ nullptr, nullptr,	&CollisionDetector::GenerateContacts_SphereSphere,		&CollisionDetector::GenerateContacts_SphereCapsule,		&CollisionDetector::GenerateContacts_SphereBox },
+	{ nullptr, nullptr, nullptr,												&CollisionDetector::GenerateContacts_CapsuleCapsule,	&CollisionDetector::GenerateContacts_CapsuleBox },
+	{ nullptr, nullptr, nullptr,												nullptr,												&CollisionDetector::GenerateContacts_BoxBox }
+};
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-static float CalculateFrictionBetween(const Collider& a, const Collider&b)
+static float CalculateFrictionBetween(const Collider* a, const Collider* b)
 {
-	if (a.ignoreFriction || b.ignoreFriction)
+	if (a->ignoreFriction || b->ignoreFriction)
 	{
 		return 0.f;
 	}
 
-	return Sqrt(a.friction + b.friction);
+	return Sqrt(a->friction + b->friction);
 }
 
 
 //-------------------------------------------------------------------------------------------------
-static float CalculateRestitutionBetween(const Collider& a, const Collider& b)
+static float CalculateRestitutionBetween(const Collider* a, const Collider* b)
 {
-	return a.restitution * b.restitution;
+	return a->restitution * b->restitution;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-static void FillOutColliderInfo(Contact* contact, const Collider& a, const Collider& b)
+static void FillOutColliderInfo(Contact* contact, const Collider* a, const Collider* b)
 {
-	if (a.GetOwnerRigidBody() == nullptr)
+	if (a->GetOwnerRigidBody() == nullptr)
 	{
-		contact->bodies[0] = b.GetOwnerRigidBody();
-		contact->bodies[1] = a.GetOwnerRigidBody();
+		contact->bodies[0] = b->GetOwnerRigidBody();
+		contact->bodies[1] = a->GetOwnerRigidBody();
 		contact->normal *= -1.f;
 	}
 	else
 	{
-		contact->bodies[0] = a.GetOwnerRigidBody();
-		contact->bodies[1] = b.GetOwnerRigidBody();
+		contact->bodies[0] = a->GetOwnerRigidBody();
+		contact->bodies[1] = b->GetOwnerRigidBody();
 	}
 
 	contact->restitution = CalculateRestitutionBetween(a, b);
@@ -75,13 +83,18 @@ static void FillOutColliderInfo(Contact* contact, const Collider& a, const Colli
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-int CollisionDetector::GenerateContacts(const SphereCollider& a, const SphereCollider& b, Contact* out_contacts, int limit)
+int CollisionDetector::GenerateContacts_SphereSphere(const Collider* a, const Collider* b, Contact* out_contacts, int limit)
 {
+	const SphereCollider* aSphereCol = a->GetAsType<SphereCollider>();
+	const SphereCollider* bSphereCol = b->GetAsType<SphereCollider>();
+
+	ASSERT_OR_DIE(aSphereCol != nullptr && bSphereCol != nullptr, "Colliders not the right type!");
+
 	if (limit <= 0)
 		return 0;
 
-	Sphere3D aSphere = a.GetDataInWorldSpace();
-	Sphere3D bSphere = b.GetDataInWorldSpace();
+	Sphere3D aSphere = aSphereCol->GetDataInWorldSpace();
+	Sphere3D bSphere = bSphereCol->GetDataInWorldSpace();
 
 	Vector3 bToA = aSphere.center - bSphere.center;
 	float distanceSquared = bToA.GetLengthSquared();
@@ -96,7 +109,7 @@ int CollisionDetector::GenerateContacts(const SphereCollider& a, const SphereCol
 	out_contacts->position = bSphere.center + 0.5f * distance * bToA;			// Contact position is the midpoint between the centers
 	out_contacts->normal = bToA;												// Orientation is set up s.t adding the normal to A would resolve the collision, -normal to B
 	out_contacts->penetration = (aSphere.radius + bSphere.radius) - distance;	// Pen is the overlap
-	FillOutColliderInfo(out_contacts, a, b);
+	FillOutColliderInfo(out_contacts, aSphereCol, bSphereCol);
 
 	out_contacts->CheckValuesAreReasonable();
 	return 1;
@@ -104,13 +117,39 @@ int CollisionDetector::GenerateContacts(const SphereCollider& a, const SphereCol
 
 
 //-------------------------------------------------------------------------------------------------
-int CollisionDetector::GenerateContacts(const SphereCollider& sphere, const HalfSpaceCollider& halfSpace, Contact* out_contacts, int limit)
+int CollisionDetector::GenerateContacts(const Collider* a, const Collider* b, Contact* out_contacts, int limit)
 {
+	int firstIndex = a->GetColliderMatrixIndex();
+	int secondIndex = b->GetColliderMatrixIndex();
+
+	if (firstIndex > secondIndex)
+	{
+		int temp = firstIndex;
+		firstIndex = secondIndex;
+		secondIndex = temp;
+
+		const Collider* tempPtr = a;
+		a = b;
+		b = tempPtr;
+	}
+
+	return (this->*s_colliderMatrix[firstIndex][secondIndex])(a, b, out_contacts, limit);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionDetector::GenerateContacts_HalfSpaceSphere(const Collider* a, const Collider* b, Contact* out_contacts, int limit)
+{
+	const HalfSpaceCollider* aHalfspaceCol = a->GetAsType<HalfSpaceCollider>();
+	const SphereCollider* bSphereCol = b->GetAsType<SphereCollider>();
+
+	ASSERT_OR_DIE(aHalfspaceCol != nullptr && bSphereCol != nullptr, "Colliders not the right type!");
+
 	if (limit <= 0)
 		return 0;
 
-	Sphere3D sphereWs = sphere.GetDataInWorldSpace();
-	Plane3 planeWs = halfSpace.GetDataInWorldSpace();
+	Plane3 planeWs = aHalfspaceCol->GetDataInWorldSpace();
+	Sphere3D sphereWs = bSphereCol->GetDataInWorldSpace();
 
 	float distance = planeWs.GetDistanceFromPlane(sphereWs.center) - sphereWs.radius;
 	
@@ -121,7 +160,7 @@ int CollisionDetector::GenerateContacts(const SphereCollider& sphere, const Half
 	out_contacts->normal = planeWs.GetNormal();
 	out_contacts->penetration = -distance;
 	out_contacts->position = planeWs.GetProjectedPointOntoPlane(sphereWs.center);
-	FillOutColliderInfo(out_contacts, sphere, halfSpace);
+	FillOutColliderInfo(out_contacts, bSphereCol, aHalfspaceCol);
 
 	out_contacts->CheckValuesAreReasonable();
 	return 1;
@@ -129,13 +168,17 @@ int CollisionDetector::GenerateContacts(const SphereCollider& sphere, const Half
 
 
 //-------------------------------------------------------------------------------------------------
-int CollisionDetector::GenerateContacts(const BoxCollider& box, const HalfSpaceCollider& halfSpace, Contact* out_contacts, int limit)
+int CollisionDetector::GenerateContacts_HalfSpaceBox(const Collider* a, const Collider* b, Contact* out_contacts, int limit)
 {
+	const HalfSpaceCollider* aHalfSpaceCol = a->GetAsType<HalfSpaceCollider>();
+	const BoxCollider* bBoxCollider = b->GetAsType<BoxCollider>();
+	ASSERT_OR_DIE(aHalfSpaceCol != nullptr && bBoxCollider != nullptr, "Colliders are of wrong type!");
+
 	if (limit <= 0)
 		return 0;
 
-	OBB3 boxWs = box.GetDataInWorldSpace();
-	Plane3 planeWs = halfSpace.GetDataInWorldSpace();
+	Plane3 planeWs = aHalfSpaceCol->GetDataInWorldSpace();
+	OBB3 boxWs = bBoxCollider->GetDataInWorldSpace();
 
 	Vector3 boxVertsWs[8];
 	boxWs.GetPoints(boxVertsWs);
@@ -153,7 +196,7 @@ int CollisionDetector::GenerateContacts(const BoxCollider& box, const HalfSpaceC
 			contactToFill->position = boxVertsWs[i]; // Position is half way between the box vertex and the plane
 			contactToFill->normal = planeWs.m_normal;
 			contactToFill->penetration = Abs(distance);
-			FillOutColliderInfo(contactToFill, box, halfSpace);
+			FillOutColliderInfo(contactToFill, bBoxCollider, aHalfSpaceCol);
 			
 			contactToFill->CheckValuesAreReasonable();
 			numContactsAdded++;
@@ -174,13 +217,17 @@ int CollisionDetector::GenerateContacts(const BoxCollider& box, const HalfSpaceC
 
 
 //-------------------------------------------------------------------------------------------------
-int CollisionDetector::GenerateContacts(const BoxCollider& box, const SphereCollider& sphere, Contact* out_contacts, int limit)
+int CollisionDetector::GenerateContacts_SphereBox(const Collider* a, const Collider* b, Contact* out_contacts, int limit)
 {
+	const SphereCollider* aSphereCol = a->GetAsType<SphereCollider>();
+	const BoxCollider* bBoxCol = b->GetAsType<BoxCollider>();
+	ASSERT_OR_DIE(aSphereCol != nullptr && bBoxCol != nullptr, "Colliders are of wrong type!");
+
 	if (limit <= 0)
 		return 0;
 
-	Sphere3D sphereWs = sphere.GetDataInWorldSpace();
-	OBB3 boxWs = box.GetDataInWorldSpace();
+	Sphere3D sphereWs = aSphereCol->GetDataInWorldSpace();
+	OBB3 boxWs = bBoxCol->GetDataInWorldSpace();
 
 	Vector3 sphereCenterRel = boxWs.TransformPositionIntoSpace(sphereWs.center);
 
@@ -209,7 +256,7 @@ int CollisionDetector::GenerateContacts(const BoxCollider& box, const SphereColl
 	out_contacts->normal = sphereToBox;
 	float distance = out_contacts->normal.SafeNormalize(Vector3::Y_AXIS);
 	out_contacts->penetration = sphereWs.radius - distance;
-	FillOutColliderInfo(out_contacts, box, sphere);
+	FillOutColliderInfo(out_contacts, bBoxCol, aSphereCol);
 
 	out_contacts->CheckValuesAreReasonable();
 	return 1;
@@ -217,9 +264,9 @@ int CollisionDetector::GenerateContacts(const BoxCollider& box, const SphereColl
 
 
 //-------------------------------------------------------------------------------------------------
-static inline float TransformToAxis(const BoxCollider& box, const Vector3 &axis)
+static inline float TransformToAxis(const BoxCollider* box, const Vector3 &axis)
 {
-	OBB3 boxWs = box.GetDataInWorldSpace();
+	OBB3 boxWs = box->GetDataInWorldSpace();
 	Matrix3 boxBasis = Matrix3(boxWs.rotation);
 	ASSERT_REASONABLE(boxBasis);
 	ASSERT_REASONABLE(axis);
@@ -237,7 +284,7 @@ static inline float TransformToAxis(const BoxCollider& box, const Vector3 &axis)
  * is used to pass in the vector between the boxes centre
  * points, to avoid having to recalculate it each time.
  */
-static inline float GetPenetrationOnAxis(const BoxCollider& a, const BoxCollider& b, const Vector3 &axis, const Vector3 &aToB)
+static inline float GetPenetrationOnAxis(const BoxCollider* a, const BoxCollider* b, const Vector3 &axis, const Vector3 &aToB)
 {
 	ASSERT_REASONABLE(axis);
 	ASSERT_REASONABLE(aToB);
@@ -258,14 +305,14 @@ static inline float GetPenetrationOnAxis(const BoxCollider& a, const BoxCollider
 
 //-------------------------------------------------------------------------------------------------
 // Returns true to signal we haven't found a gap yet and to keep checking axes
-static inline bool CheckAxis(const BoxCollider& one, const BoxCollider& two, Vector3 axis, const Vector3& toCentre, unsigned index, float& out_smallestPen, unsigned &out_smallestIndex)
+static inline bool CheckAxis(const BoxCollider* a, const BoxCollider* b, Vector3 axis, const Vector3& toCentre, unsigned index, float& out_smallestPen, unsigned &out_smallestIndex)
 {
 	// Make sure we have a normalized axis, and don't check almost parallel axes
 	if (AreMostlyEqual(axis.GetLengthSquared(), 0.f)) 
 		return true;
 
 	axis.Normalize();
-	float penetration = GetPenetrationOnAxis(one, two, axis, toCentre);
+	float penetration = GetPenetrationOnAxis(a, b, axis, toCentre);
 
 	if (penetration < 0.f) 
 		return false;
@@ -281,12 +328,12 @@ static inline bool CheckAxis(const BoxCollider& one, const BoxCollider& two, Vec
 
 
 //-------------------------------------------------------------------------------------------------
-static int CreateFaceVertexContact(const BoxCollider& faceCol, const BoxCollider& vertexCol, const Vector3 &aToB, Contact* out_contact, const int bestAxisIndex, int limit)
+static int CreateFaceVertexContact(const BoxCollider* faceCol, const BoxCollider* vertexCol, const Vector3 &aToB, Contact* out_contact, const int bestAxisIndex, int limit)
 {
 	// This method is called when we know that a vertex from
 	// box two is in contact with box one.
-	OBB3 one = faceCol.GetDataInWorldSpace();
-	OBB3 two = vertexCol.GetDataInWorldSpace();
+	OBB3 one = faceCol->GetDataInWorldSpace();
+	OBB3 two = vertexCol->GetDataInWorldSpace();
 	ASSERT_REASONABLE(one);
 	ASSERT_REASONABLE(two);
 
@@ -405,15 +452,19 @@ static inline Vector3 CalculateEdgeEdgeContactPosition(const Vector3& ptOnEdgeOn
 // This preprocessor definition is only used as a convenience
 // in the boxAndBox contact generation method.
 #define CHECK_OVERLAP(axis, index) \
-    if (!CheckAxis(a, b, (axis), aToB, (index), pen, best)) return 0;
+    if (!CheckAxis(aBoxCol, bBoxCol, (axis), aToB, (index), pen, best)) return 0;
 
-int CollisionDetector::GenerateContacts(const BoxCollider& a, const BoxCollider& b, Contact* out_contacts, int limit)
+int CollisionDetector::GenerateContacts_BoxBox(const Collider* a, const Collider* b, Contact* out_contacts, int limit)
 {
+	const BoxCollider* aBoxCol = a->GetAsType<BoxCollider>();
+	const BoxCollider* bBoxCol = b->GetAsType<BoxCollider>();
+	ASSERT_OR_DIE(aBoxCol != nullptr && bBoxCol != nullptr, "Colliders are of wrong type!");
+
 	if (limit <= 0)
 		return 0;
 
-	OBB3 aBox = a.GetDataInWorldSpace();
-	OBB3 bBox = b.GetDataInWorldSpace();
+	OBB3 aBox = aBoxCol->GetDataInWorldSpace();
+	OBB3 bBox = bBoxCol->GetDataInWorldSpace();
 	ASSERT_REASONABLE(aBox);
 	ASSERT_REASONABLE(bBox);
 
@@ -464,7 +515,7 @@ int CollisionDetector::GenerateContacts(const BoxCollider& a, const BoxCollider&
 	if (best < 3)
 	{
 		// We've vertices of box two on a face of box one.
-		return CreateFaceVertexContact(a, b, aToB, out_contacts, best, limit);
+		return CreateFaceVertexContact(aBoxCol, bBoxCol, aToB, out_contacts, best, limit);
 	}
 	else if (best < 6)
 	{
@@ -472,7 +523,7 @@ int CollisionDetector::GenerateContacts(const BoxCollider& a, const BoxCollider&
 		// We use the same algorithm as above, but swap around
 		// one and two (and therefore also the vector between their
 		// centers).
-		return CreateFaceVertexContact(b, a, aToB*-1.0f, out_contacts, best - 3, limit);
+		return CreateFaceVertexContact(bBoxCol, aBoxCol, aToB*-1.0f, out_contacts, best - 3, limit);
 	}
 	else
 	{
@@ -540,7 +591,7 @@ int CollisionDetector::GenerateContacts(const BoxCollider& a, const BoxCollider&
 		out_contacts->penetration = pen;
 		out_contacts->normal = axis;
 		out_contacts->position = vertex;
-		FillOutColliderInfo(out_contacts, a, b);
+		FillOutColliderInfo(out_contacts, aBoxCol, bBoxCol);
 
 		out_contacts->CheckValuesAreReasonable();
 		return 1;
@@ -552,13 +603,17 @@ int CollisionDetector::GenerateContacts(const BoxCollider& a, const BoxCollider&
 
 
 //-------------------------------------------------------------------------------------------------
-int CollisionDetector::GenerateContacts(const CapsuleCollider& capsule, const HalfSpaceCollider& halfSpace, Contact* out_contacts, int limit)
+int CollisionDetector::GenerateContacts_HalfSpaceCapsule(const Collider* a, const Collider* b, Contact* out_contacts, int limit)
 {
+	const HalfSpaceCollider* aHalfSpaceCol = a->GetAsType<HalfSpaceCollider>();
+	const CapsuleCollider* bCapsuleCol = b->GetAsType<CapsuleCollider>();
+	ASSERT_OR_DIE(aHalfSpaceCol != nullptr && bCapsuleCol != nullptr, "Colliders are of wrong type!");
+	
 	if (limit <= 0)
 		return 0;
 
-	Capsule3D capsuleWs = capsule.GetDataInWorldSpace();
-	Plane3 planeWs = halfSpace.GetDataInWorldSpace();
+	Plane3 planeWs = aHalfSpaceCol->GetDataInWorldSpace();
+	Capsule3D capsuleWs = bCapsuleCol->GetDataInWorldSpace();
 
 	float startDistance = planeWs.GetDistanceFromPlane(capsuleWs.start) - capsuleWs.radius;
 	float endDistance = planeWs.GetDistanceFromPlane(capsuleWs.end) - capsuleWs.radius;
@@ -572,7 +627,7 @@ int CollisionDetector::GenerateContacts(const CapsuleCollider& capsule, const Ha
 		out_contacts->normal = planeWs.GetNormal();
 		out_contacts->penetration = -startDistance;
 		out_contacts->position = capsuleWs.start - out_contacts->normal * capsuleWs.radius;
-		FillOutColliderInfo(out_contacts, capsule, halfSpace);
+		FillOutColliderInfo(out_contacts, bCapsuleCol, aHalfSpaceCol);
 		out_contacts->CheckValuesAreReasonable();
 		numAdded++;
 		out_contacts++;
@@ -586,7 +641,7 @@ int CollisionDetector::GenerateContacts(const CapsuleCollider& capsule, const Ha
 		out_contacts->normal = planeWs.GetNormal();
 		out_contacts->penetration = -endDistance;
 		out_contacts->position = capsuleWs.end - out_contacts->normal * capsuleWs.radius;
-		FillOutColliderInfo(out_contacts, capsule, halfSpace);
+		FillOutColliderInfo(out_contacts, bCapsuleCol, aHalfSpaceCol);
 		out_contacts->CheckValuesAreReasonable();
 		numAdded++;
 	}
@@ -596,13 +651,17 @@ int CollisionDetector::GenerateContacts(const CapsuleCollider& capsule, const Ha
 
 
 //-------------------------------------------------------------------------------------------------
-int CollisionDetector::GenerateContacts(const SphereCollider& sphere, const CapsuleCollider& capsule, Contact* out_contacts, int limit)
+int CollisionDetector::GenerateContacts_SphereCapsule(const Collider* a, const Collider* b, Contact* out_contacts, int limit)
 {
+	const SphereCollider* aSphereCol = a->GetAsType<SphereCollider>();
+	const CapsuleCollider* bCapsuleCol = b->GetAsType<CapsuleCollider>();
+	ASSERT_OR_DIE(aSphereCol != nullptr && bCapsuleCol != nullptr, "Colliders are of wrong type!");
+
 	if (limit <= 0)
 		return 0;
 
-	Sphere3D sphereWs = sphere.GetDataInWorldSpace();
-	Capsule3D capsuleWs = capsule.GetDataInWorldSpace();
+	Sphere3D sphereWs = aSphereCol->GetDataInWorldSpace();
+	Capsule3D capsuleWs = bCapsuleCol->GetDataInWorldSpace();
 
 	Vector3 closestCapsulePointWs;
 	float distance = GetClosestPointOnLineSegment(capsuleWs.start, capsuleWs.end, sphereWs.center, closestCapsulePointWs);
@@ -613,7 +672,7 @@ int CollisionDetector::GenerateContacts(const SphereCollider& sphere, const Caps
 		out_contacts->normal = (sphereWs.center - closestCapsulePointWs) / distance;
 		out_contacts->penetration = overlap;
 		out_contacts->position = 0.5f * (closestCapsulePointWs + sphereWs.center);
-		FillOutColliderInfo(out_contacts, sphere, capsule);
+		FillOutColliderInfo(out_contacts, aSphereCol, bCapsuleCol);
 		out_contacts->CheckValuesAreReasonable();
 
 		return 1;
@@ -624,13 +683,17 @@ int CollisionDetector::GenerateContacts(const SphereCollider& sphere, const Caps
 
 
 //-------------------------------------------------------------------------------------------------
-int CollisionDetector::GenerateContacts(const CapsuleCollider& a, const CapsuleCollider& b, Contact* out_contacts, int limit)
+int CollisionDetector::GenerateContacts_CapsuleCapsule(const Collider* a, const Collider* b, Contact* out_contacts, int limit)
 {
+	const CapsuleCollider* aCapsuleCol = a->GetAsType<CapsuleCollider>();
+	const CapsuleCollider* bCapsuleCol = b->GetAsType<CapsuleCollider>();
+	ASSERT_OR_DIE(aCapsuleCol != nullptr && bCapsuleCol != nullptr, "Colliders are of wrong type!");
+
 	if (limit <= 0)
 		return 0;
 
-	Capsule3D capsuleA = a.GetDataInWorldSpace();
-	Capsule3D capsuleB = b.GetDataInWorldSpace();
+	Capsule3D capsuleA = aCapsuleCol->GetDataInWorldSpace();
+	Capsule3D capsuleB = bCapsuleCol->GetDataInWorldSpace();
 
 	Vector3 ptOnA, ptOnB;
 	float distance = FindClosestPointsOnLineSegments(capsuleA.start, capsuleA.end, capsuleB.start, capsuleB.end, ptOnA, ptOnB);
@@ -641,7 +704,7 @@ int CollisionDetector::GenerateContacts(const CapsuleCollider& a, const CapsuleC
 		out_contacts->normal = (ptOnA - ptOnB) / distance;
 		out_contacts->penetration = overlap;
 		out_contacts->position = 0.5f * (ptOnA + ptOnB);
-		FillOutColliderInfo(out_contacts, a, b);
+		FillOutColliderInfo(out_contacts, aCapsuleCol, bCapsuleCol);
 		out_contacts->CheckValuesAreReasonable();
 
 		return 1;
@@ -836,13 +899,17 @@ static bool GetMinEdgePen(const OBB3& box, const Capsule3D& capsule, float& out_
 
 
 //-------------------------------------------------------------------------------------------------
-int CollisionDetector::GenerateContacts(const BoxCollider& box, const CapsuleCollider& capsule, Contact* out_contacts, int limit)
+int CollisionDetector::GenerateContacts_CapsuleBox(const Collider* a, const Collider* b, Contact* out_contacts, int limit)
 {
+	const CapsuleCollider* aCapsuleCol = a->GetAsType<CapsuleCollider>();
+	const BoxCollider* bBoxCol = b->GetAsType<BoxCollider>();
+	ASSERT_OR_DIE(aCapsuleCol != nullptr && bBoxCol != nullptr, "Colliders are of wrong type!");
+
 	if (limit <= 0)
 		return 0;
 
-	OBB3 boxWs = box.GetDataInWorldSpace();
-	Capsule3D capsuleWs = capsule.GetDataInWorldSpace();
+	Capsule3D capsuleWs = aCapsuleCol->GetDataInWorldSpace();
+	OBB3 boxWs = bBoxCol->GetDataInWorldSpace();
 
 	float facePens[2];
 	Vector3 faceNormal;
@@ -879,7 +946,7 @@ int CollisionDetector::GenerateContacts(const BoxCollider& box, const CapsuleCol
 			out_contacts->normal = faceNormal;
 			out_contacts->penetration = facePens[0];
 			out_contacts->position = faceContactPos[0];
-			FillOutColliderInfo(out_contacts, capsule, box);
+			FillOutColliderInfo(out_contacts, aCapsuleCol, bBoxCol);
 			out_contacts->CheckValuesAreReasonable();
 			out_contacts++;
 			numContactsAdded++;
@@ -890,7 +957,7 @@ int CollisionDetector::GenerateContacts(const BoxCollider& box, const CapsuleCol
 			out_contacts->normal = faceNormal;
 			out_contacts->penetration = facePens[1];
 			out_contacts->position = faceContactPos[1];
-			FillOutColliderInfo(out_contacts, capsule, box);
+			FillOutColliderInfo(out_contacts, aCapsuleCol, bBoxCol);
 			out_contacts->CheckValuesAreReasonable();
 			out_contacts++;
 			numContactsAdded++;
@@ -902,7 +969,7 @@ int CollisionDetector::GenerateContacts(const BoxCollider& box, const CapsuleCol
 		out_contacts->normal = edgeNormal;
 		out_contacts->penetration = edgePen;
 		out_contacts->position = edgePos;
-		FillOutColliderInfo(out_contacts, capsule, box);
+		FillOutColliderInfo(out_contacts, aCapsuleCol, bBoxCol);
 		out_contacts->CheckValuesAreReasonable();
 
 		numContactsAdded++;
@@ -913,13 +980,17 @@ int CollisionDetector::GenerateContacts(const BoxCollider& box, const CapsuleCol
 
 
 //-------------------------------------------------------------------------------------------------
-int CollisionDetector::GenerateContacts(const SphereCollider& sphere, const PlaneCollider& plane, Contact* out_contacts, int limit)
+int CollisionDetector::GenerateContacts_PlaneSphere(const Collider* a, const Collider* b, Contact* out_contacts, int limit)
 {
+	const PlaneCollider* aPlaneCol = a->GetAsType<PlaneCollider>();
+	const SphereCollider* bSphereCol = b->GetAsType<SphereCollider>();
+	ASSERT_OR_DIE(aPlaneCol != nullptr && bSphereCol != nullptr, "Colliders are of wrong type!");
+
 	if (limit <= 0)
 		return 0;
 
-	Sphere3D sphereWs = sphere.GetDataInWorldSpace();
-	Plane3 planeWs = plane.GetDataInWorldSpace();
+	Plane3 planeWs = aPlaneCol->GetDataInWorldSpace();
+	Sphere3D sphereWs = bSphereCol->GetDataInWorldSpace();
 
 	float distance = planeWs.GetDistanceFromPlane(sphereWs.center);
 
@@ -940,7 +1011,7 @@ int CollisionDetector::GenerateContacts(const SphereCollider& sphere, const Plan
 	}
 
 	out_contacts->position = planeWs.GetProjectedPointOntoPlane(sphereWs.center);
-	FillOutColliderInfo(out_contacts, sphere, plane);
+	FillOutColliderInfo(out_contacts, bSphereCol, aPlaneCol);
 
 	out_contacts->CheckValuesAreReasonable();
 	return 1;
@@ -948,13 +1019,17 @@ int CollisionDetector::GenerateContacts(const SphereCollider& sphere, const Plan
 
 
 //-------------------------------------------------------------------------------------------------
-int CollisionDetector::GenerateContacts(const CapsuleCollider& capsule, const PlaneCollider& plane, Contact* out_contacts, int limit)
+int CollisionDetector::GenerateContacts_PlaneCapsule(const Collider* a, const Collider* b, Contact* out_contacts, int limit)
 {
+	const PlaneCollider* aPlaneCol = a->GetAsType<PlaneCollider>();
+	const CapsuleCollider* bCapsuleCol = b->GetAsType<CapsuleCollider>();
+	ASSERT_OR_DIE(aPlaneCol != nullptr && bCapsuleCol != nullptr, "Capsules are of wrong type!");
+
 	if (limit <= 0)
 		return 0;
 
-	Capsule3D capsuleWs = capsule.GetDataInWorldSpace();
-	Plane3 planeWs = plane.GetDataInWorldSpace();
+	Plane3 planeWs = aPlaneCol->GetDataInWorldSpace();
+	Capsule3D capsuleWs = bCapsuleCol->GetDataInWorldSpace();
 
 	float startDistance = planeWs.GetDistanceFromPlane(capsuleWs.start);
 	float endDistance = planeWs.GetDistanceFromPlane(capsuleWs.end);
@@ -989,7 +1064,7 @@ int CollisionDetector::GenerateContacts(const CapsuleCollider& capsule, const Pl
 		out_contacts->normal = normal;
 		out_contacts->penetration = (planeWs.IsPointInFront(capsuleWs.start) ? (capsuleWs.radius - Abs(startDistance)) : (capsuleWs.radius + Abs(startDistance)));
 		out_contacts->position = capsuleWs.start - normal * capsuleWs.radius;
-		FillOutColliderInfo(out_contacts, capsule, plane);
+		FillOutColliderInfo(out_contacts, bCapsuleCol, aPlaneCol);
 		out_contacts->CheckValuesAreReasonable();
 		numAdded++;
 		out_contacts++;
@@ -1003,7 +1078,7 @@ int CollisionDetector::GenerateContacts(const CapsuleCollider& capsule, const Pl
 		out_contacts->normal = normal;
 		out_contacts->penetration = (planeWs.IsPointInFront(capsuleWs.end) ? (capsuleWs.radius - Abs(endDistance)) : (capsuleWs.radius + Abs(endDistance)));
 		out_contacts->position = capsuleWs.end - normal * capsuleWs.radius;
-		FillOutColliderInfo(out_contacts, capsule, plane);
+		FillOutColliderInfo(out_contacts, bCapsuleCol, aPlaneCol);
 		out_contacts->CheckValuesAreReasonable();
 		numAdded++;
 	}
@@ -1013,13 +1088,17 @@ int CollisionDetector::GenerateContacts(const CapsuleCollider& capsule, const Pl
 
 
 //-------------------------------------------------------------------------------------------------
-int CollisionDetector::GenerateContacts(const BoxCollider& box, const PlaneCollider& plane, Contact* out_contacts, int limit)
+int CollisionDetector::GenerateContacts_PlaneBox(const Collider* a, const Collider* b, Contact* out_contacts, int limit)
 {
+	const PlaneCollider* aPlaneCol = a->GetAsType<PlaneCollider>();
+	const BoxCollider* bBoxCol = b->GetAsType<BoxCollider>();
+	ASSERT_OR_DIE(aPlaneCol != nullptr && bBoxCol != nullptr, "Colliders are of wrong type!");
+
 	if (limit <= 0)
 		return 0;
 
-	OBB3 boxWs = box.GetDataInWorldSpace();
-	Plane3 planeWs = plane.GetDataInWorldSpace();
+	Plane3 planeWs = aPlaneCol->GetDataInWorldSpace();
+	OBB3 boxWs = bBoxCol->GetDataInWorldSpace();
 
 	Vector3 boxVertsWs[8];
 	boxWs.GetPoints(boxVertsWs);
@@ -1074,7 +1153,7 @@ int CollisionDetector::GenerateContacts(const BoxCollider& box, const PlaneColli
 		contactToFill->position = point;
 		contactToFill->normal = normalSign * planeWs.m_normal;
 		contactToFill->penetration = Abs(planeWs.GetDistanceFromPlane(point));
-		FillOutColliderInfo(contactToFill, box, plane);
+		FillOutColliderInfo(contactToFill, bBoxCol, aPlaneCol);
 
 		contactToFill->CheckValuesAreReasonable();
 		numContactsAdded++;

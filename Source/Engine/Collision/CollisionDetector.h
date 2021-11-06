@@ -12,16 +12,22 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#define NUM_COLLIDER_TYPES (5)
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class BoxCollider;
-class CapsuleCollider;
+class Collider;
 class Contact;
+class CollisionDetector;
+typedef int(CollisionDetector::*GenerateContactsFunction)(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
+
+
+class CapsuleCollider;
+class SphereCollider;
 class HalfSpaceCollider;
 class PlaneCollider;
-class SphereCollider;
+class BoxCollider;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -37,22 +43,39 @@ class CollisionDetector
 public:
 	//-----Public Methods-----
 
-	int GenerateContacts(const SphereCollider& a,			const SphereCollider& b,			Contact* out_contacts, int limit);
-	int GenerateContacts(const SphereCollider& sphere,		const HalfSpaceCollider& halfSpace, Contact* out_contacts, int limit);
-	int GenerateContacts(const SphereCollider& sphere,		const PlaneCollider& plane,			Contact* out_contacts, int limit);
-	int GenerateContacts(const SphereCollider& sphere,		const CapsuleCollider& capsule,		Contact* out_contacts, int limit);
-	int GenerateContacts(const CapsuleCollider& capsule,	const HalfSpaceCollider& halfSpace, Contact* out_contacts, int limit);
-	int GenerateContacts(const CapsuleCollider& capsule,	const PlaneCollider& plane,			Contact* out_contacts, int limit);
-	int GenerateContacts(const CapsuleCollider& a,			const CapsuleCollider& b,			Contact* out_contacts, int limit);
-	int GenerateContacts(const BoxCollider& box,			const HalfSpaceCollider& halfSpace, Contact* out_contacts, int limit);
-	int GenerateContacts(const BoxCollider& box,			const PlaneCollider& plane,			Contact* out_contacts, int limit);
-	int GenerateContacts(const BoxCollider& box,			const SphereCollider& sphere,		Contact* out_contacts, int limit);
-	int GenerateContacts(const BoxCollider& a,				const BoxCollider& b,				Contact* out_contacts, int limit);
-	int GenerateContacts(const BoxCollider& box,			const CapsuleCollider& capsule,		Contact* out_contacts, int limit);
+	int GenerateContacts(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
+
+
+private:
+	//-----Private Methods-----
+
+	// [0][X]
+	int GenerateContacts_HalfSpaceSphere(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
+	int GenerateContacts_HalfSpaceCapsule(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
+	int GenerateContacts_HalfSpaceBox(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
+
+	// [1][X]
+	int GenerateContacts_PlaneSphere(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
+	int GenerateContacts_PlaneCapsule(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
+	int GenerateContacts_PlaneBox(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
+
+	// [2][X]
+	int GenerateContacts_SphereSphere(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
+	int GenerateContacts_SphereCapsule(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
+	int GenerateContacts_SphereBox(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
+
+	// [3][X]
+	int GenerateContacts_CapsuleCapsule(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
+	int GenerateContacts_CapsuleBox(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
+
+	// [4][X]
+	int GenerateContacts_BoxBox(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
 
 
 private:
 	//-----Private Data-----
+
+	static GenerateContactsFunction s_colliderMatrix[NUM_COLLIDER_TYPES][NUM_COLLIDER_TYPES];
 
 };
 

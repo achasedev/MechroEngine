@@ -42,10 +42,11 @@ public:
 	Collider() {}
 	Collider(Entity* owningEntity);
 
-	virtual void DebugRender(const Rgba& color) const = 0;
+	virtual void	DebugRender(const Rgba& color) const = 0;
+	virtual int		GetColliderMatrixIndex() const = 0;
 
-	bool		OwnerHasRigidBody() const;
-	RigidBody*	GetOwnerRigidBody() const;
+	bool			OwnerHasRigidBody() const;
+	RigidBody*		GetOwnerRigidBody() const;
 
 
 public:
@@ -87,26 +88,6 @@ TypedCollider<T>::TypedCollider(Entity* owningEntity, const T& dataLs)
 	, m_dataLs(dataLs)
 {
 }
- 
-
-//-------------------------------------------------------------------------------------------------
-class SphereCollider : public TypedCollider<Sphere3D>
-{
-public:
-	//-----Public Methods-----
-	RTTI_DERIVED_CLASS(SphereCollider);
-
-	SphereCollider() {}
-	SphereCollider(Entity* owningEntity, const Sphere3D& sphereLs);
-
-	virtual void		DebugRender(const Rgba& color) const override;
-	virtual Sphere3D	GetDataInWorldSpace() const override;
-
-
-private:
-	//-----Private Data-----
-
-};
 
 
 //-------------------------------------------------------------------------------------------------
@@ -121,10 +102,13 @@ public:
 
 	virtual void	DebugRender(const Rgba& color) const override;
 	virtual Plane3	GetDataInWorldSpace() const override;
+	virtual int		GetColliderMatrixIndex() const { return COLLIDER_MATRIX_INDEX; }
 
 
 private:
 	//-----Private Data-----
+
+	static constexpr int COLLIDER_MATRIX_INDEX = 0;
 
 };
 
@@ -141,10 +125,59 @@ public:
 
 	virtual void	DebugRender(const Rgba& color) const override;
 	virtual Plane3	GetDataInWorldSpace() const override;
+	virtual int		GetColliderMatrixIndex() const { return COLLIDER_MATRIX_INDEX; }
 
 
 private:
 	//-----Private Data-----
+
+	static constexpr int COLLIDER_MATRIX_INDEX = 1;
+
+};
+
+
+//-------------------------------------------------------------------------------------------------
+class SphereCollider : public TypedCollider<Sphere3D>
+{
+public:
+	//-----Public Methods-----
+	RTTI_DERIVED_CLASS(SphereCollider);
+
+	SphereCollider() {}
+	SphereCollider(Entity* owningEntity, const Sphere3D& sphereLs);
+
+	virtual void		DebugRender(const Rgba& color) const override;
+	virtual Sphere3D	GetDataInWorldSpace() const override;
+	virtual int			GetColliderMatrixIndex() const { return COLLIDER_MATRIX_INDEX; }
+
+
+private:
+	//-----Private Data-----
+
+	static constexpr int COLLIDER_MATRIX_INDEX = 2;
+
+};
+
+
+//-------------------------------------------------------------------------------------------------
+class CapsuleCollider : public TypedCollider<Capsule3D>
+{
+public:
+	//-----Public Methods-----
+	RTTI_DERIVED_CLASS(CapsuleCollider);
+
+	CapsuleCollider() {}
+	CapsuleCollider(Entity* owningEntity, const Capsule3D& capsuleLs);
+
+	virtual void		DebugRender(const Rgba& color) const override;
+	virtual Capsule3D	GetDataInWorldSpace() const override;
+	virtual int			GetColliderMatrixIndex() const { return COLLIDER_MATRIX_INDEX; }
+
+
+private:
+	//-----Private Data-----
+
+	static constexpr int COLLIDER_MATRIX_INDEX = 3;
 
 };
 
@@ -161,31 +194,16 @@ public:
 
 	virtual void DebugRender(const Rgba& color) const override;
 	virtual OBB3 GetDataInWorldSpace() const override;
+	virtual int	 GetColliderMatrixIndex() const { return COLLIDER_MATRIX_INDEX; }
 
 
 private:
 	//-----Private Data-----
 
-};
-
-//-------------------------------------------------------------------------------------------------
-class CapsuleCollider : public TypedCollider<Capsule3D>
-{
-public:
-	//-----Public Methods-----
-	RTTI_DERIVED_CLASS(CapsuleCollider);
-
-	CapsuleCollider() {}
-	CapsuleCollider(Entity* owningEntity, const Capsule3D& capsuleLs);
-
-	virtual void		DebugRender(const Rgba& color) const override;
-	virtual Capsule3D	GetDataInWorldSpace() const override;
-
-
-private:
-	//-----Private Data-----
+	static constexpr int COLLIDER_MATRIX_INDEX = 4;
 
 };
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
