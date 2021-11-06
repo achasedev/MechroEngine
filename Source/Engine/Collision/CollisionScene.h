@@ -16,6 +16,7 @@
 #include "Engine/Core/DevConsole.h"
 #include "Engine/Core/Entity.h"
 #include "Engine/Math/MathUtils.h"
+#include "Engine/Render/Debug/DebugRenderSystem.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -116,7 +117,13 @@ void CollisionScene<BoundingVolumeClass>::DebugDrawContacts() const
 	for (int i = 0; i < m_numNewContacts; ++i)
 	{
 		const Contact& contact = m_newContacts[i];
-		DebugDrawSphere(contact.position, 0.1f, Rgba::CYAN, 0.f);
+
+		DebugRenderOptions options;
+		options.m_startColor = Rgba::CYAN;
+		options.m_endColor = Rgba::CYAN;
+		options.m_lifetime = 0.f;
+
+		DebugDrawSphere(contact.position, 0.1f, options);
 	}
 }
 
@@ -172,7 +179,7 @@ void CollisionScene<BoundingVolumeClass>::PerformBroadphase()
 
 	for (HalfSpaceCollider* halfSpace : m_halfspaces)
 	{
-		m_numPotentialCollisions += m_boundingTreeRoot->GetPotentialCollisionsBetween(halfSpace, m_potentialCollisions + m_numPotentialCollisions, MAX_CONTACT_COUNT - m_numPotentialCollisions);
+		m_numPotentialCollisions += m_boundingTreeRoot->GetPotentialCollisionsBetween(halfSpace, m_potentialCollisions + m_numPotentialCollisions, MAX_POTENTIAL_COLLISION_COUNT - m_numPotentialCollisions);
 
 		if (m_numPotentialCollisions == MAX_POTENTIAL_COLLISION_COUNT)
 			break;
@@ -182,7 +189,7 @@ void CollisionScene<BoundingVolumeClass>::PerformBroadphase()
 	{
 		for (PlaneCollider* plane : m_planes)
 		{
-			m_numPotentialCollisions += m_boundingTreeRoot->GetPotentialCollisionsBetween(plane, m_potentialCollisions + m_numPotentialCollisions, MAX_CONTACT_COUNT - m_numPotentialCollisions);
+			m_numPotentialCollisions += m_boundingTreeRoot->GetPotentialCollisionsBetween(plane, m_potentialCollisions + m_numPotentialCollisions, MAX_POTENTIAL_COLLISION_COUNT - m_numPotentialCollisions);
 
 			if (m_numPotentialCollisions == MAX_POTENTIAL_COLLISION_COUNT)
 				break;
@@ -220,7 +227,17 @@ void CollisionScene<BoundingVolumeClass>::GenerateContacts()
 		const Collider* a = collision.colliders[0];
 		const Collider* b = collision.colliders[1];
 
-		m_numNewContacts += m_detector.GenerateContacts(a, b, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
+		// Don't generate contacts between colliders without bodies, sleeping bodies, or static bodies
+		// At least 1 collider needs to be an awake, movable entity to make the work here worth it
+		// Otherwise we're generating contacts we're dong nothing with
+		// This will need to be updated when overlap volumes come into play...
+		bool aDoesntNeedContacts = a->entity->rigidBody == nullptr || !a->entity->rigidBody->IsAwake() || a->entity->rigidBody->IsStatic();
+		bool bDoesntNeedContacts = b->entity->rigidBody == nullptr || !b->entity->rigidBody->IsAwake() || b->entity->rigidBody->IsStatic();
+
+		if (!(aDoesntNeedContacts && bDoesntNeedContacts))
+		{
+			m_numNewContacts += m_detector.GenerateContacts(a, b, &m_newContacts[m_numNewContacts], MAX_CONTACT_COUNT - m_numNewContacts);
+		}
 	}
 }
 

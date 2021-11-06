@@ -79,6 +79,7 @@ public:
 	bool	CanSleep() const { return m_canSleep; }
 	bool	IsAffectedByGravity() const { return m_affectedByGravity; }
 	bool	IsRotationLocked() const { return m_rotationLocked; }
+	bool	IsStatic() const { return m_iMass <= 0.f; }
 
 
 public:
