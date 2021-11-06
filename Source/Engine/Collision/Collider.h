@@ -10,9 +10,11 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/EngineCommon.h"
 #include "Engine/Math/Capsule3D.h"
+#include "Engine/Math/Cylinder3D.h"
 #include "Engine/Math/OBB3.h"
 #include "Engine/Math/Sphere3D.h"
 #include "Engine/Math/Transform.h"
+#include "Engine/Render/Debug/DebugRenderObject.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -42,7 +44,8 @@ public:
 	Collider() {}
 	Collider(Entity* owningEntity);
 
-	virtual void	DebugRender(const Rgba& color) const = 0;
+	virtual void	ShowDebug() = 0;
+	virtual void	HideDebug();
 	virtual int		GetColliderMatrixIndex() const = 0;
 
 	bool			OwnerHasRigidBody() const;
@@ -52,10 +55,17 @@ public:
 public:
 	//-----Public Data-----
 
-	Entity* entity = nullptr;	// This entity doesn't need a rigidbody! It just means do the collision detection, but no correction
-	bool	ignoreFriction = false; // If true, friction won't be calculated regardless of what the value of friction is on either collider.
-	float	friction = 0.3f;
-	float	restitution = 0.f;
+	Entity*					m_entity = nullptr;	// This entity doesn't need a rigidbody! It just means do the collision detection, but no correction
+	bool					m_ignoreFriction = false; // If true, friction won't be calculated regardless of what the value of friction is on either collider.
+	float					m_friction = 0.3f;
+	float					m_restitution = 0.f;
+
+
+protected:
+	//-----Protected Data-----
+
+	static const DebugRenderOptions DEFAULT_COLLIDER_RENDER_OPTIONS;
+	DebugRenderObjectHandle m_debugRenderHandle = INVALID_DEBUG_RENDER_OBJECT_HANDLE;
 
 };
 
@@ -100,7 +110,7 @@ public:
 	HalfSpaceCollider() {}
 	HalfSpaceCollider(Entity* owningEntity, const Plane3& planeLs);
 
-	virtual void	DebugRender(const Rgba& color) const override;
+	virtual void	ShowDebug() override;
 	virtual Plane3	GetDataInWorldSpace() const override;
 	virtual int		GetColliderMatrixIndex() const { return COLLIDER_MATRIX_INDEX; }
 
@@ -123,7 +133,7 @@ public:
 	PlaneCollider() {}
 	PlaneCollider(Entity* owningEntity, const Plane3& planeLs);
 
-	virtual void	DebugRender(const Rgba& color) const override;
+	virtual void	ShowDebug() override;
 	virtual Plane3	GetDataInWorldSpace() const override;
 	virtual int		GetColliderMatrixIndex() const { return COLLIDER_MATRIX_INDEX; }
 
@@ -146,7 +156,7 @@ public:
 	SphereCollider() {}
 	SphereCollider(Entity* owningEntity, const Sphere3D& sphereLs);
 
-	virtual void		DebugRender(const Rgba& color) const override;
+	virtual void		ShowDebug() override;
 	virtual Sphere3D	GetDataInWorldSpace() const override;
 	virtual int			GetColliderMatrixIndex() const { return COLLIDER_MATRIX_INDEX; }
 
@@ -169,7 +179,7 @@ public:
 	CapsuleCollider() {}
 	CapsuleCollider(Entity* owningEntity, const Capsule3D& capsuleLs);
 
-	virtual void		DebugRender(const Rgba& color) const override;
+	virtual void		ShowDebug() override;
 	virtual Capsule3D	GetDataInWorldSpace() const override;
 	virtual int			GetColliderMatrixIndex() const { return COLLIDER_MATRIX_INDEX; }
 
@@ -192,9 +202,9 @@ public:
 	BoxCollider() {}
 	BoxCollider(Entity* owningEntity, const OBB3& boxLs);
 
-	virtual void DebugRender(const Rgba& color) const override;
-	virtual OBB3 GetDataInWorldSpace() const override;
-	virtual int	 GetColliderMatrixIndex() const { return COLLIDER_MATRIX_INDEX; }
+	virtual void	ShowDebug() override;
+	virtual OBB3	GetDataInWorldSpace() const override;
+	virtual int		GetColliderMatrixIndex() const { return COLLIDER_MATRIX_INDEX; }
 
 
 private:
@@ -205,6 +215,27 @@ private:
 };
 
 
+//-------------------------------------------------------------------------------------------------
+class CylinderCollider : public TypedCollider<Cylinder3D>
+{
+public:
+	//-----Public Methods-----
+	RTTI_DERIVED_CLASS(CylinderCollider);
+
+	CylinderCollider() {}
+	CylinderCollider(Entity* owningEntity, const Cylinder3D& cylinderLs);
+
+	virtual void		ShowDebug() override;
+	virtual Cylinder3D	GetDataInWorldSpace() const override;
+	virtual int			GetColliderMatrixIndex() const { return COLLIDER_MATRIX_INDEX; }
+
+
+private:
+	//-----Private Data-----
+
+	static constexpr int COLLIDER_MATRIX_INDEX = 5;
+
+};
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

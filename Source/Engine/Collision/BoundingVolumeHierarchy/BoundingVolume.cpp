@@ -133,14 +133,14 @@ BoundingVolumeSphere BoundingVolumeSphere::GetTransformApplied(const Transform& 
 //-------------------------------------------------------------------------------------------------
 void BoundingVolumeSphere::DebugRender() const
 {
-	UNIMPLEMENTED();
-	//DebugRenderOptions options;
-	//options.m_color = Rgba::RED;
-	//options.m_lifetime = 0.f;
-	//options.m_fillMode = FILL_MODE_WIREFRAME;
+	DebugRenderOptions options;
+	options.m_startColor = Rgba::CYAN;
+	options.m_endColor = Rgba::CYAN;
+	options.m_lifetime = 0.f;
+	options.m_fillMode = FILL_MODE_WIREFRAME;
+	options.m_cullMode = CULL_MODE_NONE; // To see the bounding volume from the inside
 
-	//DebugRenderSphere* drawSphere = new DebugRenderSphere(center, radius, options);
-	//g_debugRenderSystem->AddObject(drawSphere);
+	DebugDrawSphere(center, radius, options);
 }
 
 

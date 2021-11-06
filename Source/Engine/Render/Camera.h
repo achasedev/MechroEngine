@@ -93,6 +93,7 @@ public:
 	Vector3					GetRightVector();
 	Vector3					GetUpVector();
 	Frustrum				GetFrustrum();
+	Frustrum				GetPartialFrustrum(float nearClip, float farClip);
 
 	bool					Event_WindowResize(NamedProperties& args);
 
@@ -114,6 +115,7 @@ private:
 	float					m_fovDegrees = 90.f;
 	float					m_nearClipZ = 0.f;
 	float					m_farClipZ = 1.f;
+	float					m_projectionAspect = 1.f; // This can be different than the target's aspect
 	CameraProjection		m_currentProjection = CAMERA_PROJECTION_NONE;
 
 	// Render Target

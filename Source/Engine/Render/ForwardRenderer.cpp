@@ -148,7 +148,7 @@ static void InitializeCameraForPointLight(Camera* shadowCamera, Light* light, in
 // Sets up the camera to render a shadowmap for a directional light
 static void InitializeCameraForDirectionalLight(Camera* shadowCamera, Light* light, Camera* gameCamera)
 {
-	Frustrum frustrum = gameCamera->GetFrustrum();
+	Frustrum frustrum = gameCamera->GetPartialFrustrum(0.1f, 20.f);
 	LightData lightData = light->GetLightData();
 	Vector3 reference = AreMostlyEqual(Abs(DotProduct(lightData.m_lightDirection, Vector3::Y_AXIS)), 1.0f) ? Vector3::X_AXIS : Vector3::Y_AXIS;
 	Matrix4 lightModel = Matrix4::MakeLookAt(lightData.m_position, lightData.m_position + lightData.m_lightDirection, reference);
@@ -173,7 +173,8 @@ static void InitializeCameraForDirectionalLight(Camera* shadowCamera, Light* lig
 	maxsLs.z = Max(frustrumPointsLs[0].z, frustrumPointsLs[1].z, frustrumPointsLs[2].z, frustrumPointsLs[3].z, frustrumPointsLs[4].z, frustrumPointsLs[5].z, frustrumPointsLs[6].z, frustrumPointsLs[7].z);
 
 	// Place the camera at the back of the AABB, in light space
-	Vector3 shadowCameraPosLs = Vector3(0.5f * (minsLs.x + maxsLs.x), 0.5f * (minsLs.y + maxsLs.y), minsLs.z);
+	const float backOffset = 20.f;
+	Vector3 shadowCameraPosLs = Vector3(0.5f * (minsLs.x + maxsLs.x), 0.5f * (minsLs.y + maxsLs.y), minsLs.z - backOffset);
 	Vector3 shadowCameraPosWs = lightModel.TransformPosition(shadowCameraPosLs);
 
 	// Determine orthobounds to represent the AABB at this location
@@ -181,7 +182,7 @@ static void InitializeCameraForDirectionalLight(Camera* shadowCamera, Light* lig
 	Vector2 orthoTopRight = Vector2(maxsLs.x - shadowCameraPosLs.x, maxsLs.y - shadowCameraPosLs.y);
 
 	// Make the projection
-	Matrix4 orthoProj = Matrix4::MakeOrtho(orthoBottomLeft, orthoTopRight, 0.f, maxsLs.z - minsLs.z);
+	Matrix4 orthoProj = Matrix4::MakeOrtho(orthoBottomLeft, orthoTopRight, 0.f, maxsLs.z - minsLs.z + backOffset);
 
 	// Find the model to place the camera at this location in world space
 	Matrix4 cameraModel = Matrix4::MakeLookAt(shadowCameraPosWs, shadowCameraPosWs + lightData.m_lightDirection, reference);
@@ -194,6 +195,22 @@ static void InitializeCameraForDirectionalLight(Camera* shadowCamera, Light* lig
 	lightData.m_shadowProjection = shadowCamera->GetProjectionMatrix();
 
 	light->SetLightData(lightData);
+
+
+	//if (g_inputSystem->WasKeyJustPressed('K'))
+	//{
+	//	DebugRenderOptions options;
+	//	options.m_startColor = Rgba::CYAN;
+	//	options.m_debugRenderMode = DEBUG_RENDER_MODE_IGNORE_DEPTH;
+
+	//	DebugDrawFrustrum(frustrum, options);
+
+	//	Frustrum shadowFrustrum = shadowCamera->GetFrustrum();
+	//	options.m_startColor = Rgba::MAGENTA;
+	//	DebugDrawFrustrum(shadowFrustrum, options);
+
+	//	DebugDrawTransform(shadowCamera->transform, options);
+	//}
 }
 
 

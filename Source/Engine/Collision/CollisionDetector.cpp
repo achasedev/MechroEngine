@@ -29,11 +29,12 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 GenerateContactsFunction CollisionDetector::s_colliderMatrix[NUM_COLLIDER_TYPES][NUM_COLLIDER_TYPES] =
 {
-	{ nullptr, nullptr, &CollisionDetector::GenerateContacts_HalfSpaceSphere,	&CollisionDetector::GenerateContacts_HalfSpaceCapsule,	&CollisionDetector::GenerateContacts_HalfSpaceBox },
-	{ nullptr, nullptr, &CollisionDetector::GenerateContacts_PlaneSphere,		&CollisionDetector::GenerateContacts_PlaneCapsule,		&CollisionDetector::GenerateContacts_PlaneBox },
-	{ nullptr, nullptr,	&CollisionDetector::GenerateContacts_SphereSphere,		&CollisionDetector::GenerateContacts_SphereCapsule,		&CollisionDetector::GenerateContacts_SphereBox },
-	{ nullptr, nullptr, nullptr,												&CollisionDetector::GenerateContacts_CapsuleCapsule,	&CollisionDetector::GenerateContacts_CapsuleBox },
-	{ nullptr, nullptr, nullptr,												nullptr,												&CollisionDetector::GenerateContacts_BoxBox }
+	{ nullptr, nullptr, &CollisionDetector::GenerateContacts_HalfSpaceSphere,	&CollisionDetector::GenerateContacts_HalfSpaceCapsule,	&CollisionDetector::GenerateContacts_HalfSpaceBox, nullptr },
+	{ nullptr, nullptr, &CollisionDetector::GenerateContacts_PlaneSphere,		&CollisionDetector::GenerateContacts_PlaneCapsule,		&CollisionDetector::GenerateContacts_PlaneBox, nullptr },
+	{ nullptr, nullptr,	&CollisionDetector::GenerateContacts_SphereSphere,		&CollisionDetector::GenerateContacts_SphereCapsule,		&CollisionDetector::GenerateContacts_SphereBox, nullptr },
+	{ nullptr, nullptr, nullptr,												&CollisionDetector::GenerateContacts_CapsuleCapsule,	&CollisionDetector::GenerateContacts_CapsuleBox, nullptr },
+	{ nullptr, nullptr, nullptr,												nullptr,												&CollisionDetector::GenerateContacts_BoxBox, nullptr },
+	{ nullptr, nullptr, nullptr,												nullptr,												nullptr, nullptr }
 };
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -43,19 +44,19 @@ GenerateContactsFunction CollisionDetector::s_colliderMatrix[NUM_COLLIDER_TYPES]
 //-------------------------------------------------------------------------------------------------
 static float CalculateFrictionBetween(const Collider* a, const Collider* b)
 {
-	if (a->ignoreFriction || b->ignoreFriction)
+	if (a->m_ignoreFriction || b->m_ignoreFriction)
 	{
 		return 0.f;
 	}
 
-	return Sqrt(a->friction + b->friction);
+	return Sqrt(a->m_friction + b->m_friction);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 static float CalculateRestitutionBetween(const Collider* a, const Collider* b)
 {
-	return a->restitution * b->restitution;
+	return a->m_restitution * b->m_restitution;
 }
 
 

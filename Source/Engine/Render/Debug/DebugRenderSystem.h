@@ -20,7 +20,11 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Camera;
+class Capsule3D;
 class Frustrum;
+class OBB3;
+class Plane3;
+class Sphere3D;
 class Shader;
 class Texture2D;
 
@@ -53,9 +57,6 @@ public:
 
 	bool					ToggleWorldAxesDraw(); // Special case to draw the world transform in front of the camera
 
-	template<typename T>
-	T*						GetObjectAs(const DebugRenderObjectHandle& handle);
-
 
 private:
 	//-----Private Methods-----
@@ -85,24 +86,18 @@ private:
 /// TEMPLATES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
-//-------------------------------------------------------------------------------------------------
-template<typename T>
-T* DebugRenderSystem::GetObjectAs(const DebugRenderObjectHandle& handle)
-{
-	DebugRenderObject* object = GetObject(handle);
-	return object->GetAsType<T>();
-}
-
-
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Convenience
 DebugRenderObjectHandle DebugDrawBox(const Vector3& center, const Vector3& extents, const Quaternion& rotation, const DebugRenderOptions& options = DebugRenderOptions());
+DebugRenderObjectHandle DebugDrawBox(const OBB3& box, const DebugRenderOptions& options = DebugRenderOptions());
 DebugRenderObjectHandle DebugDrawPoint(const Vector3& position, float diameter, const DebugRenderOptions& options = DebugRenderOptions());
 DebugRenderObjectHandle DebugDrawLine(const Vector3& start, const Vector3& end, const DebugRenderOptions& options = DebugRenderOptions());
 DebugRenderObjectHandle DebugDrawTransform(const Transform& transform, const DebugRenderOptions& options = DebugRenderOptions());
 DebugRenderObjectHandle DebugDrawSphere(const Vector3& center, float radius, const DebugRenderOptions& options = DebugRenderOptions());
+DebugRenderObjectHandle DebugDrawSphere(const Sphere3D& sphere, const DebugRenderOptions& options = DebugRenderOptions());
 DebugRenderObjectHandle DebugDrawCapsule(const Capsule3D& capsule, const DebugRenderOptions& options = DebugRenderOptions());
 DebugRenderObjectHandle DebugDrawFrustrum(const Frustrum& frustrum, const DebugRenderOptions& options = DebugRenderOptions());
+DebugRenderObjectHandle DebugDrawPlane(const Plane3& plane, const DebugRenderOptions& options = DebugRenderOptions());

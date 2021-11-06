@@ -161,6 +161,7 @@ void Camera::SetProjectionOrthographic(const Vector2& bottomLeft, const Vector2&
 	m_orthoBounds.maxs = topRight;
 	m_nearClipZ = nearZ;
 	m_farClipZ = farZ;
+	m_projectionAspect = (topRight.x - bottomLeft.x) / (topRight.y - bottomLeft.y);
 	m_projectionMatrix = Matrix4::MakeOrtho(m_orthoBounds.mins, m_orthoBounds.maxs, m_nearClipZ, m_farClipZ);
 	m_currentProjection = CAMERA_PROJECTION_ORTHOGRAPHIC;
 }
@@ -172,6 +173,7 @@ void Camera::SetProjectionPerspective(float fovDegrees, float aspect, float near
 	m_fovDegrees = fovDegrees;
 	m_nearClipZ = nearZ;
 	m_farClipZ = farZ;
+	m_projectionAspect = aspect;
 
 	m_projectionMatrix = Matrix4::MakePerspective(fovDegrees, aspect, nearZ, farZ);
 	m_currentProjection = CAMERA_PROJECTION_PERSPECTIVE;
@@ -380,6 +382,14 @@ Frustrum Camera::GetFrustrum()
 {
 	// Use accessor functions to ensure we get most up-to-date matrices
 	return Frustrum(GetViewMatrix(), GetProjectionMatrix());
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Frustrum Camera::GetPartialFrustrum(float nearClip, float farClip)
+{
+	Matrix4 shortenedPerspective = Matrix4::MakePerspective(m_fovDegrees, m_projectionAspect, nearClip, farClip);
+	return Frustrum(GetViewMatrix(), shortenedPerspective);
 }
 
 

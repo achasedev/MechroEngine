@@ -26,10 +26,13 @@ RTTI_TYPE_DEFINE(HalfSpaceCollider);
 RTTI_TYPE_DEFINE(PlaneCollider);
 RTTI_TYPE_DEFINE(BoxCollider);
 RTTI_TYPE_DEFINE(CapsuleCollider);
+RTTI_TYPE_DEFINE(CylinderCollider);
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+const DebugRenderOptions Collider::DEFAULT_COLLIDER_RENDER_OPTIONS = DebugRenderOptions(Rgba::GREEN, Rgba::GREEN, FLT_MAX, nullptr, FILL_MODE_WIREFRAME, CULL_MODE_BACK, DEBUG_RENDER_MODE_IGNORE_DEPTH);
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
@@ -41,22 +44,33 @@ RTTI_TYPE_DEFINE(CapsuleCollider);
 
 //-------------------------------------------------------------------------------------------------
 Collider::Collider(Entity* owningEntity)
-	: entity(owningEntity)
+	: m_entity(owningEntity)
 {
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Collider::HideDebug()
+{
+	if (m_debugRenderHandle != INVALID_DEBUG_RENDER_OBJECT_HANDLE)
+	{
+		g_debugRenderSystem->DestroyObject(m_debugRenderHandle);
+		m_debugRenderHandle = INVALID_DEBUG_RENDER_OBJECT_HANDLE;
+	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
 bool Collider::OwnerHasRigidBody() const
 {
-	return (entity->rigidBody != nullptr);
+	return (m_entity->rigidBody != nullptr);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 RigidBody* Collider::GetOwnerRigidBody() const
 {
-	return entity->rigidBody;
+	return m_entity->rigidBody;
 }
 
 
@@ -68,18 +82,22 @@ SphereCollider::SphereCollider(Entity* owningEntity, const Sphere3D& sphereLs)
 
 
 //-------------------------------------------------------------------------------------------------
-void SphereCollider::DebugRender(const Rgba& color) const
+void SphereCollider::ShowDebug()
 {
-	UNUSED(color);
-	UNIMPLEMENTED();
-	//DebugDrawSphere(m_dataLs.center, m_dataLs.radius, color, 0.f, &entity->transform);
+	if (m_debugRenderHandle == INVALID_DEBUG_RENDER_OBJECT_HANDLE)
+	{
+		DebugRenderOptions options = DEFAULT_COLLIDER_RENDER_OPTIONS;
+		options.m_parentTransform = &m_entity->transform;
+
+		m_debugRenderHandle = DebugDrawSphere(m_dataLs, options);
+	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Sphere3D SphereCollider::GetDataInWorldSpace() const
 {
-	Vector3 centerWs = entity->transform.TransformPosition(m_dataLs.center);
+	Vector3 centerWs = m_entity->transform.TransformPosition(m_dataLs.center);
 	return Sphere3D(centerWs, m_dataLs.radius);
 }
 
@@ -92,19 +110,24 @@ HalfSpaceCollider::HalfSpaceCollider(Entity* owningEntity, const Plane3& planeLs
 
 
 //-------------------------------------------------------------------------------------------------
-void HalfSpaceCollider::DebugRender(const Rgba& color) const
+void HalfSpaceCollider::ShowDebug()
 {
-	UNUSED(color);
-	// TODO:
+	if (m_debugRenderHandle == INVALID_DEBUG_RENDER_OBJECT_HANDLE)
+	{
+		DebugRenderOptions options = DEFAULT_COLLIDER_RENDER_OPTIONS;
+		options.m_parentTransform = &m_entity->transform;
+
+		m_debugRenderHandle = DebugDrawPlane(m_dataLs, options);
+	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Plane3 HalfSpaceCollider::GetDataInWorldSpace() const
 {
-	Vector3 normalWs = entity->transform.TransformDirection(m_dataLs.m_normal);
+	Vector3 normalWs = m_entity->transform.TransformDirection(m_dataLs.m_normal);
 	Vector3 positionLs = m_dataLs.m_normal * m_dataLs.m_distance;
-	Vector3 positionWs = entity->transform.TransformPosition(positionLs);
+	Vector3 positionWs = m_entity->transform.TransformPosition(positionLs);
 
 	return Plane3(normalWs, positionWs);
 }
@@ -118,18 +141,23 @@ BoxCollider::BoxCollider(Entity* owningEntity, const OBB3& boxLs)
 
 
 //-------------------------------------------------------------------------------------------------
-void BoxCollider::DebugRender(const Rgba& color) const
+void BoxCollider::ShowDebug()
 {
-	UNUSED(color);
-	UNIMPLEMENTED();
+	if (m_debugRenderHandle == INVALID_DEBUG_RENDER_OBJECT_HANDLE)
+	{
+		DebugRenderOptions options = DEFAULT_COLLIDER_RENDER_OPTIONS;
+		options.m_parentTransform = &m_entity->transform;
+
+		m_debugRenderHandle = DebugDrawBox(m_dataLs, options);
+	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
 OBB3 BoxCollider::GetDataInWorldSpace() const
 {
-	Vector3 centerWs = entity->transform.TransformPosition(m_dataLs.center);
-	Quaternion rotationWs = entity->transform.rotation * m_dataLs.rotation;
+	Vector3 centerWs = m_entity->transform.TransformPosition(m_dataLs.center);
+	Quaternion rotationWs = m_entity->transform.rotation * m_dataLs.rotation;
 
 	return OBB3(centerWs, m_dataLs.extents, rotationWs);
 }
@@ -143,19 +171,23 @@ CapsuleCollider::CapsuleCollider(Entity* owningEntity, const Capsule3D& capsuleL
 
 
 //-------------------------------------------------------------------------------------------------
-void CapsuleCollider::DebugRender(const Rgba& color) const
+void CapsuleCollider::ShowDebug()
 {
-	UNUSED(color);
-	UNIMPLEMENTED();
-	//DebugDrawCapsule(m_dataLs.start, m_dataLs.end, m_dataLs.radius, color, 0.f, &entity->transform);
+	if (m_debugRenderHandle == INVALID_DEBUG_RENDER_OBJECT_HANDLE)
+	{
+		DebugRenderOptions options = DEFAULT_COLLIDER_RENDER_OPTIONS;
+		options.m_parentTransform = &m_entity->transform;
+
+		m_debugRenderHandle = DebugDrawCapsule(m_dataLs, options);
+	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Capsule3D CapsuleCollider::GetDataInWorldSpace() const
 {
-	Vector3 startWs = entity->transform.TransformPosition(m_dataLs.start);
-	Vector3 endWs = entity->transform.TransformPosition(m_dataLs.end);
+	Vector3 startWs = m_entity->transform.TransformPosition(m_dataLs.start);
+	Vector3 endWs = m_entity->transform.TransformPosition(m_dataLs.end);
 
 	return Capsule3D(startWs, endWs, m_dataLs.radius);
 }
@@ -169,19 +201,49 @@ PlaneCollider::PlaneCollider(Entity* owningEntity, const Plane3& planeLs)
 
 
 //-------------------------------------------------------------------------------------------------
-void PlaneCollider::DebugRender(const Rgba& color) const
+void PlaneCollider::ShowDebug()
 {
-	UNUSED(color);
-	// TODO:
+	if (m_debugRenderHandle == INVALID_DEBUG_RENDER_OBJECT_HANDLE)
+	{
+		DebugRenderOptions options = DEFAULT_COLLIDER_RENDER_OPTIONS;
+		options.m_parentTransform = &m_entity->transform;
+
+		m_debugRenderHandle = DebugDrawPlane(m_dataLs, options);
+	}
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Plane3 PlaneCollider::GetDataInWorldSpace() const
 {
-	Vector3 normalWs = entity->transform.TransformDirection(m_dataLs.m_normal);
+	Vector3 normalWs = m_entity->transform.TransformDirection(m_dataLs.m_normal);
 	Vector3 positionLs = m_dataLs.m_normal * m_dataLs.m_distance;
-	Vector3 positionWs = entity->transform.TransformPosition(positionLs);
+	Vector3 positionWs = m_entity->transform.TransformPosition(positionLs);
 
 	return Plane3(normalWs, positionWs);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+CylinderCollider::CylinderCollider(Entity* owningEntity, const Cylinder3D& cylinderLs)
+	: TypedCollider(owningEntity, cylinderLs)
+{
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void CylinderCollider::ShowDebug()
+{
+	//if (m_debugRenderHandle == INVALID_DEBUG_RENDER_OBJECT_HANDLE)
+	//{
+	//}
+	//DebugRenderOptions options = DEFAULT_COLLIDER_RENDER_OPTIONS;
+	//options.m_parentTransform = &m_entity->transform;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Cylinder3D CylinderCollider::GetDataInWorldSpace() const
+{
+	return Cylinder3D();
 }

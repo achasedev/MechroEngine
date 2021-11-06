@@ -362,6 +362,29 @@ void ResourceSystem::CreateDefaultMeshes()
 	horizontalQuad->m_resourceID = SID("horizontal_quad");
 	m_meshes[horizontalQuad->m_resourceID] = horizontalQuad;
 
+	// Plane with normal in the +z direction, so bottom left is +x, -y
+	mb.Clear();
+	mb.BeginBuilding(TOPOLOGY_TRIANGLE_LIST, true);
+	int numSteps = 20;
+	float stepSize = 1.f / (float)numSteps;
+	for (int i = 0; i < numSteps; ++i)
+	{
+		for (int j = 0; j < numSteps; ++j)
+		{
+			Vector3 bl = Vector3(0.5f, -0.5f, 0.f) + Vector3((float)i * -stepSize, (float)j * stepSize, 0.f);
+			Vector3 tl = bl + Vector3(0.f, stepSize, 0.f);
+			Vector3 tr = bl + Vector3(-stepSize, stepSize, 0.f);
+			Vector3 br = bl + Vector3(-stepSize, 0.f, 0.f);
+
+			mb.PushQuad3D(bl, tl, tr, br);
+		}
+	}
+	mb.FinishBuilding();
+
+	Mesh* plane = mb.CreateMesh<VertexLit>();
+	plane->m_resourceID = SID("plane");
+	m_meshes[plane->m_resourceID] = plane;
+
 	mb.Clear();
 	mb.BeginBuilding(TOPOLOGY_LINE_LIST, false);
 	mb.PushLine3D(Vector3::ZERO, Vector3::X_AXIS, Rgba::RED);

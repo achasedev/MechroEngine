@@ -9,7 +9,9 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/DevConsole.h"
 #include "Engine/Core/EngineCommon.h"
+#include "Engine/Math/Capsule3D.h"
 #include "Engine/Math/MathUtils.h"
+#include "Engine/Math/OBB3.h"
 #include "Engine/Render/Camera.h"
 #include "Engine/Render/Debug/DebugRenderSystem.h"
 #include "Engine/Render/Mesh/MeshBuilder.h"
@@ -47,6 +49,14 @@ DebugRenderObjectHandle DebugDrawBox(const Vector3& center, const Vector3& exten
 	obj->AddMesh(mesh, Matrix4::IDENTITY, false);
 
 	return g_debugRenderSystem->AddObject(obj);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Draws a box
+DebugRenderObjectHandle DebugDrawBox(const OBB3& box, const DebugRenderOptions& options /*= DebugRenderOptions()*/)
+{
+	return DebugDrawBox(box.center, box.extents, box.rotation, options);
 }
 
 
@@ -122,6 +132,14 @@ DebugRenderObjectHandle DebugDrawSphere(const Vector3& center, float radius, con
 
 
 //-------------------------------------------------------------------------------------------------
+// Draws a sphere
+DebugRenderObjectHandle DebugDrawSphere(const Sphere3D& sphere, const DebugRenderOptions& options /*= DebugRenderOptions()*/)
+{
+	return DebugDrawSphere(sphere.center, sphere.radius, options);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 // Draws a capsule
 DebugRenderObjectHandle DebugDrawCapsule(const Capsule3D& capsule, const DebugRenderOptions& options /*= DebugRenderOptions()*/)
 {
@@ -188,6 +206,29 @@ DebugRenderObjectHandle DebugDrawFrustrum(const Frustrum& frustrum, const DebugR
 
 	DebugRenderObject* obj = new DebugRenderObject(options);
 	obj->AddMesh(mesh, Matrix4::IDENTITY, true);
+
+	return g_debugRenderSystem->AddObject(obj);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Draws a plane really large
+DebugRenderObjectHandle DebugDrawPlane(const Plane3& plane, const DebugRenderOptions& options /*= DebugRenderOptions()*/)
+{
+	Mesh* mesh = g_resourceSystem->CreateOrGetMesh("plane");
+
+	Vector3 normal = plane.m_normal;
+	Vector3 reference = AreMostlyEqual(Abs(DotProduct(normal, Vector3::X_AXIS)), 1.0f) ? Vector3::Z_AXIS : Vector3::X_AXIS;
+	Vector3 bitangent = CrossProduct(reference, normal).GetNormalized();
+	Vector3 tangent = CrossProduct(normal, bitangent);
+	Vector3 position = plane.m_normal * plane.m_distance;
+
+	Matrix4 modelMat = Matrix4(tangent, bitangent, normal, position);
+	modelMat = modelMat * Matrix4::MakeScale(Vector3(200.f));
+
+	DebugRenderObject* obj = new DebugRenderObject(options);
+	obj->m_transform.SetLocalMatrix(modelMat);
+	obj->AddMesh(mesh, Matrix4::IDENTITY, false);
 
 	return g_debugRenderSystem->AddObject(obj);
 }
@@ -346,6 +387,7 @@ void DebugRenderSystem::DestroyObject(DebugRenderObjectHandle handle)
 		{
 			delete m_objects[objIndex];
 			m_objects.erase(m_objects.begin() + objIndex);
+			return;
 		}
 	}
 }

@@ -25,6 +25,15 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+enum CollisionDebugBit : uint32
+{
+	COLLISION_DEBUG_COLLIDERS = BIT_FLAG(1),
+	COLLISION_DEBUG_CONTACTS = BIT_FLAG(2),
+	COLLISION_DEBUG_BOUNDING_VOLUMES = BIT_FLAG(3),
+	COLLISION_DEBUG_LEAF_BOUNDING_VOLUMES = BIT_FLAG(4)
+};
+
+typedef uint32 CollisionDebugFlags;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -48,9 +57,7 @@ public:
 	void RemoveEntity(Entity* entity);
 
 	void DoCollisionStep(float deltaSeconds);
-	void DebugRenderBoundingHierarchy() const;
-	void DebugRenderLeafBoundingVolumes() const;
-	void DebugDrawContacts() const;
+	void SetDebugFlags(CollisionDebugFlags flags);
 
 
 private:
@@ -60,6 +67,12 @@ private:
 	void PerformBroadphase();
 	void GenerateContacts();
 	void ResolveContacts(float deltaSeconds);
+
+	void ShowDebugColliders();
+	void HideDebugColliders();
+	void DebugDrawBoundingVolumeHierarchy() const;
+	void DebugDrawLeafBoundingVolumes() const;
+	void DebugDrawContacts() const;
 
 	void UpdateNode(BVHNode<BoundingVolumeClass>* node, const BoundingVolumeClass& newVolume);
 	BVHNode<BoundingVolumeClass>* GetAndEraseLeafNodeForEntity(Entity* entity);
@@ -79,7 +92,7 @@ private:
 	BVHNode<BoundingVolumeClass>*				m_boundingTreeRoot = nullptr;
 	std::vector<BVHNode<BoundingVolumeClass>*>	m_leaves;  // Optimization, faster search
 
-	std::vector<HalfSpaceCollider*>				m_halfspaces;
+	std::vector<HalfSpaceCollider*>				m_halfSpaces;
 	std::vector<PlaneCollider*>					m_planes;
 
 	PotentialCollision							m_potentialCollisions[MAX_POTENTIAL_COLLISION_COUNT];
@@ -94,8 +107,69 @@ private:
 	int											m_defaultNumPenetrationIterations = 20;
 	ContactResolver								m_resolver;
 
+	// Debug
+	CollisionDebugFlags							m_debugFlags = 0;
+
 };
 
+
+//-------------------------------------------------------------------------------------------------
+template <class BoundingVolumeClass>
+void CollisionScene<BoundingVolumeClass>::SetDebugFlags(CollisionDebugFlags flags)
+{
+	m_debugFlags = flags;
+
+	if (AreBitsSet(m_debugFlags, COLLISION_DEBUG_COLLIDERS))
+	{
+		ShowDebugColliders();
+	}
+	else
+	{
+		HideDebugColliders();
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+template <class BoundingVolumeClass>
+void CollisionScene<BoundingVolumeClass>::HideDebugColliders()
+{
+	for (BVHNode<BoundingVolumeClass>* leaf : m_leaves)
+	{
+		leaf->m_entity->collider->HideDebug();
+	}
+
+	for (HalfSpaceCollider* halfSpace : m_halfSpaces)
+	{
+		halfSpace->HideDebug();
+	}
+
+	for (PlaneCollider* plane : m_planes)
+	{
+		plane->HideDebug();
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+template <class BoundingVolumeClass>
+void CollisionScene<BoundingVolumeClass>::ShowDebugColliders()
+{
+	for (BVHNode<BoundingVolumeClass>* leaf : m_leaves)
+	{
+		leaf->m_entity->collider->ShowDebug();
+	}
+
+	for (HalfSpaceCollider* halfSpace : m_halfSpaces)
+	{
+		halfSpace->ShowDebug();
+	}
+
+	for (PlaneCollider* plane : m_planes)
+	{
+		plane->ShowDebug();
+	}
+}
 
 //-------------------------------------------------------------------------------------------------
 template <class BoundingVolumeClass>
@@ -119,11 +193,13 @@ void CollisionScene<BoundingVolumeClass>::DebugDrawContacts() const
 		const Contact& contact = m_newContacts[i];
 
 		DebugRenderOptions options;
-		options.m_startColor = Rgba::CYAN;
-		options.m_endColor = Rgba::CYAN;
+		options.m_startColor = Rgba::RED;
+		options.m_endColor = Rgba::RED;
 		options.m_lifetime = 0.f;
+		options.m_fillMode = FILL_MODE_WIREFRAME;
+		options.m_debugRenderMode = DEBUG_RENDER_MODE_XRAY;
 
-		DebugDrawSphere(contact.position, 0.1f, options);
+		DebugDrawSphere(contact.position, 0.05f, options);
 	}
 }
 
@@ -177,7 +253,7 @@ void CollisionScene<BoundingVolumeClass>::PerformBroadphase()
 {
 	m_numPotentialCollisions = 0;
 
-	for (HalfSpaceCollider* halfSpace : m_halfspaces)
+	for (HalfSpaceCollider* halfSpace : m_halfSpaces)
 	{
 		m_numPotentialCollisions += m_boundingTreeRoot->GetPotentialCollisionsBetween(halfSpace, m_potentialCollisions + m_numPotentialCollisions, MAX_POTENTIAL_COLLISION_COUNT - m_numPotentialCollisions);
 
@@ -231,8 +307,8 @@ void CollisionScene<BoundingVolumeClass>::GenerateContacts()
 		// At least 1 collider needs to be an awake, movable entity to make the work here worth it
 		// Otherwise we're generating contacts we're dong nothing with
 		// This will need to be updated when overlap volumes come into play...
-		bool aDoesntNeedContacts = a->entity->rigidBody == nullptr || !a->entity->rigidBody->IsAwake() || a->entity->rigidBody->IsStatic();
-		bool bDoesntNeedContacts = b->entity->rigidBody == nullptr || !b->entity->rigidBody->IsAwake() || b->entity->rigidBody->IsStatic();
+		bool aDoesntNeedContacts = a->m_entity->rigidBody == nullptr || !a->m_entity->rigidBody->IsAwake() || a->m_entity->rigidBody->IsStatic();
+		bool bDoesntNeedContacts = b->m_entity->rigidBody == nullptr || !b->m_entity->rigidBody->IsAwake() || b->m_entity->rigidBody->IsStatic();
 
 		if (!(aDoesntNeedContacts && bDoesntNeedContacts))
 		{
@@ -257,7 +333,7 @@ void CollisionScene<BoundingVolumeClass>::ResolveContacts(float deltaSeconds)
 
 //-------------------------------------------------------------------------------------------------
 template <class BoundingVolumeClass>
-void CollisionScene<BoundingVolumeClass>::DebugRenderBoundingHierarchy() const
+void CollisionScene<BoundingVolumeClass>::DebugDrawBoundingVolumeHierarchy() const
 {
 	if (m_boundingTreeRoot != nullptr)
 	{
@@ -268,7 +344,7 @@ void CollisionScene<BoundingVolumeClass>::DebugRenderBoundingHierarchy() const
 
 //-------------------------------------------------------------------------------------------------
 template <class BoundingVolumeClass>
-void CollisionScene<BoundingVolumeClass>::DebugRenderLeafBoundingVolumes() const
+void CollisionScene<BoundingVolumeClass>::DebugDrawLeafBoundingVolumes() const
 {
 	for (BVHNode<BoundingVolumeClass>* leaf : m_leaves)
 	{
@@ -295,7 +371,7 @@ void CollisionScene<BoundingVolumeClass>::AddEntity(Entity* entity)
 
 	if (entity->collider->IsOfType<HalfSpaceCollider>())
 	{
-		m_halfspaces.push_back(entity->collider->GetAsType<HalfSpaceCollider>());
+		m_halfSpaces.push_back(entity->collider->GetAsType<HalfSpaceCollider>());
 	}
 	else if (entity->collider->IsOfType<PlaneCollider>())
 	{
@@ -322,6 +398,12 @@ void CollisionScene<BoundingVolumeClass>::AddEntity(Entity* entity)
 
 		m_leaves.push_back(node);
 	}
+
+	// Ensure we create the debug draw for the collider
+	if (AreBitsSet(m_debugFlags, COLLISION_DEBUG_COLLIDERS))
+	{
+		entity->collider->ShowDebug();
+	}
 }
 
 
@@ -334,11 +416,11 @@ void CollisionScene<BoundingVolumeClass>::RemoveEntity(Entity* entity)
 
 	if (entity->collider->IsOfType<HalfSpaceCollider>())
 	{
-		for (int i = 0; i < m_halfspaces.size(); ++i)
+		for (int i = 0; i < m_halfSpaces.size(); ++i)
 		{
-			if (m_halfspaces[i] == entity->collider)
+			if (m_halfSpaces[i] == entity->collider)
 			{
-				m_halfspaces.erase(m_halfspaces.begin() + i);
+				m_halfSpaces.erase(m_halfSpaces.begin() + i);
 				break;
 			}
 		}
@@ -385,6 +467,21 @@ void CollisionScene<BoundingVolumeClass>::DoCollisionStep(float deltaSeconds)
 	PerformBroadphase();
 	GenerateContacts();
 	ResolveContacts(deltaSeconds);
+
+	// Debug
+	if (AreBitsSet(m_debugFlags, COLLISION_DEBUG_CONTACTS))
+	{
+		DebugDrawContacts();
+	}
+
+	if (AreBitsSet(m_debugFlags, COLLISION_DEBUG_BOUNDING_VOLUMES))
+	{
+		DebugDrawBoundingVolumeHierarchy();
+	}
+	else if (AreBitsSet(m_debugFlags, COLLISION_DEBUG_LEAF_BOUNDING_VOLUMES))
+	{
+		DebugDrawLeafBoundingVolumes();
+	}
 }
 
 

@@ -15,7 +15,6 @@
 #include "Engine/Physics/Particle/ParticleContactGenerator.h"
 #include "Engine/Physics/Particle/ParticleForceGenerator.h"
 #include "Engine/Physics/Particle/ParticleWorld.h"
-#include "Engine/Render/Debug/DebugRenderSystem.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES

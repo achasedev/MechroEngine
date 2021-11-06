@@ -19,7 +19,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#define INVALID_DEBUG_RENDER_OBJECT_HANDLE -1
+#define INVALID_DEBUG_RENDER_OBJECT_HANDLE (-1)
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
@@ -35,6 +35,10 @@ enum DebugRenderMode
 
 struct DebugRenderOptions
 {
+	DebugRenderOptions() {}
+	DebugRenderOptions(const Rgba& startColor, const Rgba& endColor, float lifetime, const Transform* parentTransform, FillMode fillmode, CullMode cullMode, DebugRenderMode renderMode)
+		: m_startColor(startColor), m_endColor(endColor), m_lifetime(lifetime), m_parentTransform(parentTransform), m_fillMode(fillmode), m_cullMode(cullMode), m_debugRenderMode(renderMode) {}
+
 	Rgba				m_startColor = Rgba::WHITE;
 	Rgba				m_endColor = Rgba::WHITE;
 	float				m_lifetime = FLT_MAX;

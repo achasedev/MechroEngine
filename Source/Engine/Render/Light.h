@@ -16,7 +16,7 @@
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #define MAX_NUMBER_OF_LIGHTS 8 // Max number of lights that can be used when rendering a single renderable; a scene can have more lights than this
-#define SHADOW_TEXTURE_SIZE (2048)
+#define SHADOW_TEXTURE_SIZE (1048)
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
