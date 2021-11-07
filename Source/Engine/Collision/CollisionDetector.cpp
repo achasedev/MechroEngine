@@ -120,6 +120,9 @@ int CollisionDetector::GenerateContacts_SphereSphere(const Collider* a, const Co
 //-------------------------------------------------------------------------------------------------
 int CollisionDetector::GenerateContacts(const Collider* a, const Collider* b, Contact* out_contacts, int limit)
 {
+	if (limit <= 0)
+		return 0;
+
 	int firstIndex = a->GetTypeIndex();
 	int secondIndex = b->GetTypeIndex();
 
@@ -222,7 +225,68 @@ int CollisionDetector::GenerateContacts_HalfSpaceBox(const Collider* a, const Co
 //-------------------------------------------------------------------------------------------------
 int CollisionDetector::GenerateContacts_HalfSpaceCylinder(const Collider* a, const Collider* b, Contact* out_contacts, int limit)
 {
-	return 0;
+	const HalfSpaceCollider* aHalfSpaceCol = a->GetAsType<HalfSpaceCollider>();
+	const CylinderCollider* bCylinderCol = b->GetAsType<CylinderCollider>();
+	ASSERT_OR_DIE(aHalfSpaceCol != nullptr && bCylinderCol != nullptr, "Colliders are of wrong type!");
+
+	if (limit <= 0)
+		return 0;
+
+	const Plane3 planeWs = aHalfSpaceCol->GetDataInWorldSpace();
+	const Cylinder3D cylinderWs = bCylinderCol->GetDataInWorldSpace();
+
+	int numContactsAdded = 0;
+	Contact* contactToFill = out_contacts;
+
+	for (int i = 0; i < 2; ++i)
+	{
+		Vector3 endPoint = (i == 0 ? cylinderWs.m_bottom : cylinderWs.m_top);
+		Vector3 spineDir = (i == 0 ? (cylinderWs.m_bottom - cylinderWs.m_top) : (cylinderWs.m_top - cylinderWs.m_bottom));
+		spineDir.Normalize();
+
+		// Get the vector from the end point to the plane
+		Vector3 projectedEndPoint = planeWs.GetProjectedPointOntoPlane(endPoint);
+		Vector3 endPointToPlane = projectedEndPoint - endPoint;
+
+		// Project onto the spine vector
+		float dot = DotProduct(spineDir, endPointToPlane);
+
+		// Get the projection of the endPointToPlane onto the disc of the cylinder
+		Vector3 discVector = endPointToPlane - spineDir * dot;
+		discVector.SafeNormalize(discVector); // In the case the cylinder is aligned with the normal of the plane, this vector will be 0 - that's fine, this will return the end point as the contact point
+
+		// In the case that the end point is below the plane, make sure we go the other direction
+		// to get the lower "edge" of the cylinder disc
+		if (DotProduct(discVector, planeWs.m_normal) > 0.f)
+		{
+			discVector *= -1.0f;
+		}
+
+		Vector3 contactPos = endPoint + discVector * cylinderWs.m_radius;
+		float pen = planeWs.GetDistanceFromPlane(contactPos);
+		if (pen < 0.f)
+		{
+			// Contact!
+			contactToFill->position = contactPos;
+			contactToFill->normal = planeWs.m_normal;
+			contactToFill->penetration = Abs(pen);
+			FillOutColliderInfo(contactToFill, bCylinderCol, aHalfSpaceCol);
+
+			contactToFill->CheckValuesAreReasonable();
+			numContactsAdded++;
+
+			if (numContactsAdded < limit)
+			{
+				contactToFill = &out_contacts[numContactsAdded];
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+
+	return numContactsAdded;
 }
 
 
