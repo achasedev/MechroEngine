@@ -28,6 +28,7 @@
 InputSystem* g_inputSystem = nullptr;
 const uint8	InputSystem::KEYBOARD_ESCAPE		= VK_ESCAPE;
 const uint8 InputSystem::KEYBOARD_SPACEBAR		= VK_SPACE;
+const uint8 InputSystem::KEYBOARD_CONTROL		= VK_CONTROL;
 const uint8	InputSystem::KEYBOARD_F1			= VK_F1;
 const uint8	InputSystem::KEYBOARD_F2			= VK_F2;
 const uint8	InputSystem::KEYBOARD_F3			= VK_F3;

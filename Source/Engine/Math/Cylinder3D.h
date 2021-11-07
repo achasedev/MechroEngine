@@ -35,6 +35,8 @@ public:
 	Cylinder3D() {}
 	Cylinder3D(const Vector3& bottom, const Vector3& top, float radius);
 
+	Vector3 GetFurthestEdgePointInDirection(const Vector3& direction, bool* onTop = nullptr) const;
+
 
 public:
 	//-----Public Data-----

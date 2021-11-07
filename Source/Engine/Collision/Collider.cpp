@@ -31,7 +31,7 @@ RTTI_TYPE_DEFINE(CylinderCollider);
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-const DebugRenderOptions Collider::DEFAULT_COLLIDER_RENDER_OPTIONS = DebugRenderOptions(Rgba::GREEN, Rgba::GREEN, FLT_MAX, nullptr, FILL_MODE_WIREFRAME, CULL_MODE_BACK, DEBUG_RENDER_MODE_IGNORE_DEPTH);
+const DebugRenderOptions Collider::DEFAULT_COLLIDER_RENDER_OPTIONS = DebugRenderOptions(Rgba::GREEN, Rgba::GREEN, FLT_MAX, nullptr, FILL_MODE_WIREFRAME, CULL_MODE_NONE, DEBUG_RENDER_MODE_IGNORE_DEPTH);
 
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

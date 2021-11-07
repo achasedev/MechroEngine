@@ -30,7 +30,7 @@
 GenerateContactsFunction CollisionDetector::s_colliderMatrix[NUM_COLLIDER_TYPES][NUM_COLLIDER_TYPES] =
 {
 	{ nullptr, nullptr, &CollisionDetector::GenerateContacts_HalfSpaceSphere,	&CollisionDetector::GenerateContacts_HalfSpaceCapsule,	&CollisionDetector::GenerateContacts_HalfSpaceBox, &CollisionDetector::GenerateContacts_HalfSpaceCylinder },
-	{ nullptr, nullptr, &CollisionDetector::GenerateContacts_PlaneSphere,		&CollisionDetector::GenerateContacts_PlaneCapsule,		&CollisionDetector::GenerateContacts_PlaneBox, nullptr },
+	{ nullptr, nullptr, &CollisionDetector::GenerateContacts_PlaneSphere,		&CollisionDetector::GenerateContacts_PlaneCapsule,		&CollisionDetector::GenerateContacts_PlaneBox, &CollisionDetector::GenerateContacts_PlaneCylinder },
 	{ nullptr, nullptr,	&CollisionDetector::GenerateContacts_SphereSphere,		&CollisionDetector::GenerateContacts_SphereCapsule,		&CollisionDetector::GenerateContacts_SphereBox, nullptr },
 	{ nullptr, nullptr, nullptr,												&CollisionDetector::GenerateContacts_CapsuleCapsule,	&CollisionDetector::GenerateContacts_CapsuleBox, nullptr },
 	{ nullptr, nullptr, nullptr,												nullptr,												&CollisionDetector::GenerateContacts_BoxBox, nullptr },
@@ -1251,6 +1251,173 @@ int CollisionDetector::GenerateContacts_PlaneBox(const Collider* a, const Collid
 		else
 		{
 			break;
+		}
+	}
+
+	return numContactsAdded;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionDetector::GenerateContacts_PlaneCylinder(const Collider* a, const Collider* b, Contact* out_contacts, int limit)
+{
+	const PlaneCollider* aPlaneCol = a->GetAsType<PlaneCollider>();
+	const CylinderCollider* bCylinderCol = b->GetAsType<CylinderCollider>();
+	ASSERT_OR_DIE(aPlaneCol != nullptr && bCylinderCol != nullptr, "Colliders are of wrong type!");
+
+	if (limit <= 0)
+		return 0;
+
+	const Plane3 planeWs = aPlaneCol->GetDataInWorldSpace();
+	const Cylinder3D cylinderWs = bCylinderCol->GetDataInWorldSpace();
+
+	int numContactsAdded = 0;
+	Contact* contactToFill = out_contacts;
+
+	bool limitToTop = true;
+	Vector3 frontTopPointWs = cylinderWs.GetFurthestEdgePointInDirection(planeWs.m_normal, &limitToTop);
+	Vector3 backTopPointWs = cylinderWs.GetFurthestEdgePointInDirection(-1.0f * planeWs.m_normal, &limitToTop);
+
+	limitToTop = false;
+	Vector3 frontBottomPointWs = cylinderWs.GetFurthestEdgePointInDirection(planeWs.m_normal, &limitToTop);
+	Vector3 backBottomPointWs = cylinderWs.GetFurthestEdgePointInDirection(-1.0f * planeWs.m_normal, &limitToTop);
+
+	// If the points are on the same side of the plane, there's no intersection
+	float frontTopDist = planeWs.GetDistanceFromPlane(frontTopPointWs);
+	float backTopDist = planeWs.GetDistanceFromPlane(backTopPointWs);
+	float frontBottomDist = planeWs.GetDistanceFromPlane(frontBottomPointWs);
+	float backBottomDist = planeWs.GetDistanceFromPlane(backBottomPointWs);
+
+	// Check top face intersecting
+	bool topIntersection = false;
+	if (frontTopDist * backTopDist < 0.f)
+	{
+		topIntersection = true;
+
+		if (Abs(frontTopDist) < Abs(backTopDist))
+		{
+			// Push against the plane normal to correct
+			contactToFill->position = frontTopPointWs;
+			contactToFill->normal = -1.0f * planeWs.m_normal;
+			contactToFill->penetration = Abs(frontTopDist);
+		}
+		else
+		{
+			// Push towards the plane normal to correct
+			contactToFill->position = backTopPointWs;
+			contactToFill->normal = planeWs.m_normal;
+			contactToFill->penetration = Abs(backTopDist);
+		}
+
+		FillOutColliderInfo(contactToFill, bCylinderCol, aPlaneCol);
+
+		contactToFill->CheckValuesAreReasonable();
+		numContactsAdded++;
+
+		if (numContactsAdded < limit)
+		{
+			contactToFill = &out_contacts[numContactsAdded];
+		}
+		else
+		{
+			return numContactsAdded;
+		}
+	}
+
+	// Check bottom face intersecting
+	bool bottomIntersection = false;
+	if (frontBottomDist * backBottomDist < 0.f)
+	{
+		bottomIntersection = true;
+
+		if (Abs(frontBottomDist) < Abs(backBottomDist))
+		{
+			// Push against the plane normal to correct
+			contactToFill->position = frontBottomPointWs;
+			contactToFill->normal = -1.0f * planeWs.m_normal;
+			contactToFill->penetration = Abs(frontBottomDist);
+		}
+		else
+		{
+			// Push towards the plane normal to correct
+			contactToFill->position = backBottomPointWs;
+			contactToFill->normal = planeWs.m_normal;
+			contactToFill->penetration = Abs(backBottomDist);
+		}
+
+		FillOutColliderInfo(contactToFill, bCylinderCol, aPlaneCol);
+
+		contactToFill->CheckValuesAreReasonable();
+		numContactsAdded++;
+	}
+
+	// Check for plane bisecting the cylinder
+	if (!topIntersection && !bottomIntersection)
+	{
+		float maxDist = Max(frontBottomDist, backBottomDist, frontTopDist, backTopDist);
+		float minDist = Min(frontBottomDist, backBottomDist, frontTopDist, backTopDist);
+
+		if (minDist * maxDist < 0.f)
+		{
+			// If the min pen is closer to the plane than max, it's shorter to push with the normal
+			bool pushInFrontOfPlane = Abs(minDist) < Abs(maxDist);
+			Vector3 normal = pushInFrontOfPlane ? planeWs.m_normal : -1.0f * planeWs.m_normal;
+			bool isTopFace = (pushInFrontOfPlane ? (minDist == backTopDist) : (maxDist == frontTopDist));
+
+			// Shorter to push the cylinder in front of the plane
+			// Determine if the top or bottom of the cylinder is behind the plane
+			if (isTopFace)
+			{
+				contactToFill->position = backTopPointWs;
+				contactToFill->normal = normal;
+				contactToFill->penetration = Abs(backTopDist);
+				FillOutColliderInfo(contactToFill, bCylinderCol, aPlaneCol);
+				contactToFill->CheckValuesAreReasonable();
+				numContactsAdded++;
+
+				if (numContactsAdded < limit) { contactToFill = &out_contacts[numContactsAdded]; }
+				else
+				{
+					return numContactsAdded;
+				}
+
+				// In case the cylinder spine is parallel to the plane normal, the two edge points would be the endpoint itself
+				if (!AreMostlyEqual(backTopPointWs, frontTopPointWs))
+				{
+					contactToFill->position = frontTopPointWs;
+					contactToFill->normal = normal;
+					contactToFill->penetration = Abs(frontTopDist);
+					FillOutColliderInfo(contactToFill, bCylinderCol, aPlaneCol);
+					contactToFill->CheckValuesAreReasonable();
+					numContactsAdded++;
+				}
+			}
+			else
+			{
+				contactToFill->position = backBottomPointWs;
+				contactToFill->normal = normal;
+				contactToFill->penetration = Abs(backBottomDist);
+				FillOutColliderInfo(contactToFill, bCylinderCol, aPlaneCol);
+				contactToFill->CheckValuesAreReasonable();
+				numContactsAdded++;
+
+				if (numContactsAdded < limit) { contactToFill = &out_contacts[numContactsAdded]; }
+				else
+				{
+					return numContactsAdded;
+				}
+
+				// In case the cylinder spine is parallel to the plane normal, the two edge points would be the endpoint itself
+				if (!AreMostlyEqual(backBottomPointWs, frontBottomPointWs))
+				{
+					contactToFill->position = frontBottomPointWs;
+					contactToFill->normal = normal;
+					contactToFill->penetration = Abs(frontBottomDist);
+					FillOutColliderInfo(contactToFill, bCylinderCol, aPlaneCol);
+					contactToFill->CheckValuesAreReasonable();
+					numContactsAdded++;
+				}
+			}
 		}
 	}
 
