@@ -10,6 +10,7 @@
 #include "Engine/Core/DevConsole.h"
 #include "Engine/Core/EngineCommon.h"
 #include "Engine/Math/Capsule3D.h"
+#include "Engine/Math/Cylinder3D.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Math/OBB3.h"
 #include "Engine/Render/Camera.h"
@@ -166,6 +167,38 @@ DebugRenderObjectHandle DebugDrawCapsule(const Capsule3D& capsule, const DebugRe
 	obj->AddMesh(topMesh, topMat, false);
 	obj->AddMesh(middleMesh, middleMat, false);
 	obj->AddMesh(bottomMesh, bottomMat, false);
+
+	return g_debugRenderSystem->AddObject(obj);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Draws a cylinder
+DebugRenderObjectHandle DebugDrawCylinder(const Cylinder3D& cylinder, const DebugRenderOptions& options /*= DebugRenderOptions()*/)
+{
+	return DebugDrawCylinder(cylinder.m_bottom, cylinder.m_top, cylinder.m_radius, options);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Draws a cylinder
+DebugRenderObjectHandle DebugDrawCylinder(const Vector3& bottom, const Vector3& top, float radius, const DebugRenderOptions& options /*= DebugRenderOptions()*/)
+{
+	DebugRenderObject* obj = new DebugRenderObject(options);
+
+	Vector3 pos = 0.5f * (bottom + top);
+	Vector3 up = (top - bottom);
+	float height = up.SafeNormalize(Vector3::Y_AXIS);
+
+	Vector3 reference = (!AreMostlyEqual(up, Vector3::Z_AXIS) ? Vector3::Z_AXIS : Vector3::X_AXIS);
+	Vector3 right = CrossProduct(up, reference).GetNormalized();
+	Vector3 forward = CrossProduct(right, up);
+
+	Matrix4 model = Matrix4(right, up, forward, pos) * Matrix4::MakeScale(Vector3(radius, height, radius));
+	obj->m_transform.SetLocalMatrix(model);
+
+	Mesh* mesh = g_resourceSystem->CreateOrGetMesh("cylinder");
+	obj->AddMesh(mesh, Matrix4::IDENTITY, false);
 
 	return g_debugRenderSystem->AddObject(obj);
 }

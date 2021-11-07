@@ -234,11 +234,13 @@ CylinderCollider::CylinderCollider(Entity* owningEntity, const Cylinder3D& cylin
 //-------------------------------------------------------------------------------------------------
 void CylinderCollider::ShowDebug()
 {
-	//if (m_debugRenderHandle == INVALID_DEBUG_RENDER_OBJECT_HANDLE)
-	//{
-	//}
-	//DebugRenderOptions options = DEFAULT_COLLIDER_RENDER_OPTIONS;
-	//options.m_parentTransform = &m_entity->transform;
+	if (m_debugRenderHandle == INVALID_DEBUG_RENDER_OBJECT_HANDLE)
+	{
+		DebugRenderOptions options = DEFAULT_COLLIDER_RENDER_OPTIONS;
+		options.m_parentTransform = &m_entity->transform;
+
+		DebugDrawCylinder(m_dataLs, options);
+	}
 }
 
 

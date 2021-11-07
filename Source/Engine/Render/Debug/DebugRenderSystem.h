@@ -21,6 +21,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Camera;
 class Capsule3D;
+class Cylinder3D;
 class Frustrum;
 class OBB3;
 class Plane3;
@@ -99,5 +100,7 @@ DebugRenderObjectHandle DebugDrawTransform(const Transform& transform, const Deb
 DebugRenderObjectHandle DebugDrawSphere(const Vector3& center, float radius, const DebugRenderOptions& options = DebugRenderOptions());
 DebugRenderObjectHandle DebugDrawSphere(const Sphere3D& sphere, const DebugRenderOptions& options = DebugRenderOptions());
 DebugRenderObjectHandle DebugDrawCapsule(const Capsule3D& capsule, const DebugRenderOptions& options = DebugRenderOptions());
+DebugRenderObjectHandle DebugDrawCylinder(const Vector3& bottom, const Vector3& top, float radius, const DebugRenderOptions& options = DebugRenderOptions());
+DebugRenderObjectHandle DebugDrawCylinder(const Cylinder3D& cylinder, const DebugRenderOptions& options = DebugRenderOptions());
 DebugRenderObjectHandle DebugDrawFrustrum(const Frustrum& frustrum, const DebugRenderOptions& options = DebugRenderOptions());
 DebugRenderObjectHandle DebugDrawPlane(const Plane3& plane, const DebugRenderOptions& options = DebugRenderOptions());
