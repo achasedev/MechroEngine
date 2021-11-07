@@ -29,7 +29,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 GenerateContactsFunction CollisionDetector::s_colliderMatrix[NUM_COLLIDER_TYPES][NUM_COLLIDER_TYPES] =
 {
-	{ nullptr, nullptr, &CollisionDetector::GenerateContacts_HalfSpaceSphere,	&CollisionDetector::GenerateContacts_HalfSpaceCapsule,	&CollisionDetector::GenerateContacts_HalfSpaceBox, nullptr },
+	{ nullptr, nullptr, &CollisionDetector::GenerateContacts_HalfSpaceSphere,	&CollisionDetector::GenerateContacts_HalfSpaceCapsule,	&CollisionDetector::GenerateContacts_HalfSpaceBox, &CollisionDetector::GenerateContacts_HalfSpaceCylinder },
 	{ nullptr, nullptr, &CollisionDetector::GenerateContacts_PlaneSphere,		&CollisionDetector::GenerateContacts_PlaneCapsule,		&CollisionDetector::GenerateContacts_PlaneBox, nullptr },
 	{ nullptr, nullptr,	&CollisionDetector::GenerateContacts_SphereSphere,		&CollisionDetector::GenerateContacts_SphereCapsule,		&CollisionDetector::GenerateContacts_SphereBox, nullptr },
 	{ nullptr, nullptr, nullptr,												&CollisionDetector::GenerateContacts_CapsuleCapsule,	&CollisionDetector::GenerateContacts_CapsuleBox, nullptr },
@@ -120,8 +120,8 @@ int CollisionDetector::GenerateContacts_SphereSphere(const Collider* a, const Co
 //-------------------------------------------------------------------------------------------------
 int CollisionDetector::GenerateContacts(const Collider* a, const Collider* b, Contact* out_contacts, int limit)
 {
-	int firstIndex = a->GetColliderMatrixIndex();
-	int secondIndex = b->GetColliderMatrixIndex();
+	int firstIndex = a->GetTypeIndex();
+	int secondIndex = b->GetTypeIndex();
 
 	if (firstIndex > secondIndex)
 	{
@@ -133,6 +133,8 @@ int CollisionDetector::GenerateContacts(const Collider* a, const Collider* b, Co
 		a = b;
 		b = tempPtr;
 	}
+
+	ASSERT_OR_DIE(s_colliderMatrix[firstIndex][secondIndex] != nullptr, "Collision matrix missing an entry!");
 
 	return (this->*s_colliderMatrix[firstIndex][secondIndex])(a, b, out_contacts, limit);
 }
@@ -214,6 +216,13 @@ int CollisionDetector::GenerateContacts_HalfSpaceBox(const Collider* a, const Co
 	}
 
 	return numContactsAdded;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionDetector::GenerateContacts_HalfSpaceCylinder(const Collider* a, const Collider* b, Contact* out_contacts, int limit)
+{
+	return 0;
 }
 
 

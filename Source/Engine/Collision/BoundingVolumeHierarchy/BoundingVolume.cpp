@@ -121,6 +121,21 @@ BoundingVolumeSphere::BoundingVolumeSphere(const CapsuleCollider& capsuleCol)
 
 
 //-------------------------------------------------------------------------------------------------
+BoundingVolumeSphere::BoundingVolumeSphere(const CylinderCollider& cylinderCol)
+{
+	Cylinder3D cylinderWs = cylinderCol.GetDataInWorldSpace();
+
+	center = 0.5f * (cylinderWs.m_bottom + cylinderWs.m_top);
+
+	// Holy cows, an application of Pythagoras' Theorem :D
+	float aSquared = (cylinderWs.m_bottom - center).GetLengthSquared();
+	float bSquared = (cylinderWs.m_radius * cylinderWs.m_radius);
+
+	radius = Sqrt(aSquared + bSquared);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 BoundingVolumeSphere BoundingVolumeSphere::GetTransformApplied(const Transform& transform)
 {
 	BoundingVolumeSphere result;

@@ -50,6 +50,7 @@ public:
 	void AddWorldAngularVelocityRadians(const Vector3& angularVelocityRadians) { m_angularVelocityRadiansWs += angularVelocityRadians; }
 
 	void SetInertiaTensor_Capsule(float cylinderHeight, float radius);
+	void SetInertiaTensor_Cylinder(float height, float radius);
 	void SetInertiaTensor_Box(const Vector3& extents);
 	void SetInertiaTensor_Sphere(float radius);
 	void SetInverseInertiaTensor(const Matrix3& inverseInertiaTensor) { m_inverseInertiaTensorLocal = inverseInertiaTensor; }

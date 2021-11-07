@@ -113,6 +113,26 @@ void RigidBody::SetInertiaTensor_Capsule(float h, float r)
 
 
 //-------------------------------------------------------------------------------------------------
+void RigidBody::SetInertiaTensor_Cylinder(float h, float r)
+{
+	if (m_iMass == 0.f)
+	{
+		ConsoleWarningf("Attempting to set the inertia tensor of an immovable object to that of a cylinder. Ignoring...");
+		return;
+	}
+
+	float mass = (1.f / m_iMass);
+
+	Matrix3 inertiaTensor = Matrix3::IDENTITY;
+	inertiaTensor.Ix = (1.f / 12.f) * mass * (3 * (r * r) + (h * h));
+	inertiaTensor.Jy = 0.5f * mass * r * r;
+	inertiaTensor.Kz = inertiaTensor.Ix;
+
+	m_inverseInertiaTensorLocal = inertiaTensor.GetInverse();
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void RigidBody::SetInertiaTensor_Box(const Vector3& extents)
 {
 	if (m_iMass == 0.f)
@@ -273,8 +293,8 @@ void RigidBody::Integrate(float deltaSeconds, const Vector3& gravityAcc)
 	ClearForces();
 
 	// Update the kinetic energy store, and possibly put the body to sleep.
-	if (m_canSleep) {
-
+	if (m_canSleep) 
+	{
 		float currentMotion = DotProduct(m_velocityWs, m_velocityWs) + DotProduct(m_angularVelocityRadiansWs, m_angularVelocityRadiansWs);
 
 		// Do a recency weighted average - this way quickly moving objects that suddenly stop won't sleep immediately

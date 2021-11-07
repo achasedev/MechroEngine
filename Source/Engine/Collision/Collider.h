@@ -46,7 +46,7 @@ public:
 
 	virtual void	ShowDebug() = 0;
 	virtual void	HideDebug();
-	virtual int		GetColliderMatrixIndex() const = 0;
+	virtual int		GetTypeIndex() const = 0;
 
 	bool			OwnerHasRigidBody() const;
 	RigidBody*		GetOwnerRigidBody() const;
@@ -112,13 +112,17 @@ public:
 
 	virtual void	ShowDebug() override;
 	virtual Plane3	GetDataInWorldSpace() const override;
-	virtual int		GetColliderMatrixIndex() const { return COLLIDER_MATRIX_INDEX; }
+	virtual int		GetTypeIndex() const { return TYPE_INDEX; }
+
+
+public:
+	//-----Public Data-----
+
+	static constexpr int TYPE_INDEX = 0;
 
 
 private:
 	//-----Private Data-----
-
-	static constexpr int COLLIDER_MATRIX_INDEX = 0;
 
 };
 
@@ -135,13 +139,17 @@ public:
 
 	virtual void	ShowDebug() override;
 	virtual Plane3	GetDataInWorldSpace() const override;
-	virtual int		GetColliderMatrixIndex() const { return COLLIDER_MATRIX_INDEX; }
+	virtual int		GetTypeIndex() const { return TYPE_INDEX; }
+
+
+public:
+	//-----Public Data-----
+
+	static constexpr int TYPE_INDEX = 1;
 
 
 private:
 	//-----Private Data-----
-
-	static constexpr int COLLIDER_MATRIX_INDEX = 1;
 
 };
 
@@ -158,13 +166,17 @@ public:
 
 	virtual void		ShowDebug() override;
 	virtual Sphere3D	GetDataInWorldSpace() const override;
-	virtual int			GetColliderMatrixIndex() const { return COLLIDER_MATRIX_INDEX; }
+	virtual int			GetTypeIndex() const { return TYPE_INDEX; }
+
+
+public:
+	//-----Public Data-----
+
+	static constexpr int TYPE_INDEX = 2;
 
 
 private:
 	//-----Private Data-----
-
-	static constexpr int COLLIDER_MATRIX_INDEX = 2;
 
 };
 
@@ -181,13 +193,17 @@ public:
 
 	virtual void		ShowDebug() override;
 	virtual Capsule3D	GetDataInWorldSpace() const override;
-	virtual int			GetColliderMatrixIndex() const { return COLLIDER_MATRIX_INDEX; }
+	virtual int			GetTypeIndex() const { return TYPE_INDEX; }
+
+
+public:
+	//-----Public Data-----
+
+	static constexpr int TYPE_INDEX = 3;
 
 
 private:
 	//-----Private Data-----
-
-	static constexpr int COLLIDER_MATRIX_INDEX = 3;
 
 };
 
@@ -204,13 +220,17 @@ public:
 
 	virtual void	ShowDebug() override;
 	virtual OBB3	GetDataInWorldSpace() const override;
-	virtual int		GetColliderMatrixIndex() const { return COLLIDER_MATRIX_INDEX; }
+	virtual int		GetTypeIndex() const { return TYPE_INDEX; }
+
+
+public:
+	//-----Public Data-----
+
+	static constexpr int TYPE_INDEX = 4;
 
 
 private:
 	//-----Private Data-----
-
-	static constexpr int COLLIDER_MATRIX_INDEX = 4;
 
 };
 
@@ -227,15 +247,21 @@ public:
 
 	virtual void		ShowDebug() override;
 	virtual Cylinder3D	GetDataInWorldSpace() const override;
-	virtual int			GetColliderMatrixIndex() const { return COLLIDER_MATRIX_INDEX; }
+	virtual int			GetTypeIndex() const { return TYPE_INDEX; }
+
+
+public:
+	//-----Public Data-----
+
+	static constexpr int TYPE_INDEX = 5;
 
 
 private:
 	//-----Private Data-----
 
-	static constexpr int COLLIDER_MATRIX_INDEX = 5;
-
 };
+
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

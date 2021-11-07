@@ -76,7 +76,7 @@ private:
 
 	void UpdateNode(BVHNode<BoundingVolumeClass>* node, const BoundingVolumeClass& newVolume);
 	BVHNode<BoundingVolumeClass>* GetAndEraseLeafNodeForEntity(Entity* entity);
-	BoundingVolumeClass MakeBoundingVolumeForPrimitive(const Collider* primitive) const;
+	BoundingVolumeClass MakeBoundingVolumeForCollider(const Collider* primitive) const;
 
 
 private:
@@ -207,26 +207,39 @@ void CollisionScene<BoundingVolumeClass>::DebugDrawContacts() const
 
 //-------------------------------------------------------------------------------------------------
 template <class BoundingVolumeClass>
-BoundingVolumeClass CollisionScene<BoundingVolumeClass>::MakeBoundingVolumeForPrimitive(const Collider* primitive) const
+BoundingVolumeClass CollisionScene<BoundingVolumeClass>::MakeBoundingVolumeForCollider(const Collider* collider) const
 {
-	if (primitive->IsOfType<SphereCollider>())
+	int colliderType = collider->GetTypeIndex();
+
+	switch (colliderType)
 	{
-		const SphereCollider* primAsSphere = primitive->GetAsType<SphereCollider>();
-		return BoundingVolumeClass(*primAsSphere);
+	case SphereCollider::TYPE_INDEX:
+	{
+		const SphereCollider* sphereCol = collider->GetAsType<SphereCollider>();
+		return BoundingVolumeClass(*sphereCol);
 	}
-	else if (primitive->IsOfType<BoxCollider>())
+		break;
+	case CapsuleCollider::TYPE_INDEX:
 	{
-		const BoxCollider* primAsBox = primitive->GetAsType<BoxCollider>();
-		return BoundingVolumeClass(*primAsBox);
+		const CapsuleCollider* capsuleCol = collider->GetAsType<CapsuleCollider>();
+		return BoundingVolumeClass(*capsuleCol);
 	}
-	else if (primitive->IsOfType<CapsuleCollider>())
+		break;
+	case BoxCollider::TYPE_INDEX:
 	{
-		const CapsuleCollider* primAsCapsule = primitive->GetAsType<CapsuleCollider>();
-		return BoundingVolumeClass(*primAsCapsule);
+		const BoxCollider* boxCol = collider->GetAsType<BoxCollider>();
+		return BoundingVolumeClass(*boxCol);
 	}
-	else
+		break;
+	case CylinderCollider::TYPE_INDEX:
 	{
-		ERROR_AND_DIE("Unsupported primitive type: %s", primitive->GetTypeAsString());
+		const CylinderCollider* cylinderCol = collider->GetAsType<CylinderCollider>();
+		return BoundingVolumeClass(*cylinderCol);
+	}
+		break;
+	default:
+		ERROR_AND_DIE("Cannot make bounding volume for collider type: %s", collider->GetTypeAsString());
+		break;
 	}
 }
 
@@ -238,7 +251,7 @@ void CollisionScene<BoundingVolumeClass>::UpdateBVH()
 	// For each node, check if the entity's bounding volume changed a significant amount. If so, update it
 	for (BVHNode<BoundingVolumeClass>* node : m_leaves)
 	{
-		BoundingVolumeClass currVolumeWs = MakeBoundingVolumeForPrimitive(node->m_entity->collider);
+		BoundingVolumeClass currVolumeWs = MakeBoundingVolumeForCollider(node->m_entity->collider);
 
 		if (!AreMostlyEqual(node->m_boundingVolumeWs, currVolumeWs))
 		{
@@ -380,7 +393,7 @@ void CollisionScene<BoundingVolumeClass>::AddEntity(Entity* entity)
 	}
 	else
 	{
-		BoundingVolumeClass boundingVolume = MakeBoundingVolumeForPrimitive(entity->collider);
+		BoundingVolumeClass boundingVolume = MakeBoundingVolumeForCollider(entity->collider);
 		BVHNode<BoundingVolumeClass>* node = new BVHNode<BoundingVolumeClass>(boundingVolume);
 		node->m_entity = entity;
 

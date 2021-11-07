@@ -53,6 +53,7 @@ private:
 	int GenerateContacts_HalfSpaceSphere(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
 	int GenerateContacts_HalfSpaceCapsule(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
 	int GenerateContacts_HalfSpaceBox(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
+	int GenerateContacts_HalfSpaceCylinder(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
 
 	// [1][X]
 	int GenerateContacts_PlaneSphere(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
@@ -70,6 +71,8 @@ private:
 
 	// [4][X]
 	int GenerateContacts_BoxBox(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
+
+	// [5][X]
 
 
 private:

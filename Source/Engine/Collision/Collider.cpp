@@ -245,5 +245,8 @@ void CylinderCollider::ShowDebug()
 //-------------------------------------------------------------------------------------------------
 Cylinder3D CylinderCollider::GetDataInWorldSpace() const
 {
-	return Cylinder3D();
+	Vector3 bottomWs = m_entity->transform.TransformPosition(m_dataLs.m_bottom);
+	Vector3 topWs = m_entity->transform.TransformPosition(m_dataLs.m_top);
+
+	return Cylinder3D(bottomWs, topWs, m_dataLs.m_radius);
 }
