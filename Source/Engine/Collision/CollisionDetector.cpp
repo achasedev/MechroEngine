@@ -1289,11 +1289,11 @@ int CollisionDetector::GenerateContacts_PlaneCylinder(const Collider* a, const C
 	float backBottomDist = planeWs.GetDistanceFromPlane(backBottomPointWs);
 
 	// Check top face intersecting
-	bool topIntersection = false;
-	if (frontTopDist * backTopDist < 0.f)
-	{
-		topIntersection = true;
+	bool topIntersection = (frontTopDist * backTopDist < 0.f);
+	bool bottomIntersection = (frontBottomDist * backBottomDist < 0.f);
 
+	if (topIntersection && !bottomIntersection)
+	{
 		if (Abs(frontTopDist) < Abs(backTopDist))
 		{
 			// Push against the plane normal to correct
@@ -1313,23 +1313,9 @@ int CollisionDetector::GenerateContacts_PlaneCylinder(const Collider* a, const C
 
 		contactToFill->CheckValuesAreReasonable();
 		numContactsAdded++;
-
-		if (numContactsAdded < limit)
-		{
-			contactToFill = &out_contacts[numContactsAdded];
-		}
-		else
-		{
-			return numContactsAdded;
-		}
 	}
-
-	// Check bottom face intersecting
-	bool bottomIntersection = false;
-	if (frontBottomDist * backBottomDist < 0.f)
+	else if (!topIntersection && bottomIntersection)
 	{
-		bottomIntersection = true;
-
 		if (Abs(frontBottomDist) < Abs(backBottomDist))
 		{
 			// Push against the plane normal to correct
@@ -1350,9 +1336,118 @@ int CollisionDetector::GenerateContacts_PlaneCylinder(const Collider* a, const C
 		contactToFill->CheckValuesAreReasonable();
 		numContactsAdded++;
 	}
+	else if (topIntersection && bottomIntersection)
+	{
+		// Make sure we don't push the cylinder into a bad state
+		// This occurs if the top want to correct the opposite direction the bottom wants
 
-	// Check for plane bisecting the cylinder
-	if (!topIntersection && !bottomIntersection)
+		// If both are wanting to go to the same side of the plane, no problem!
+		bool topWantsFront = Abs(backTopDist) < Abs(frontTopDist);
+		bool bottomWantsFront = Abs(backBottomDist) < Abs(frontBottomDist);
+
+		if (topWantsFront == bottomWantsFront)
+		{
+			Vector3 normal = (topWantsFront ? planeWs.m_normal : -1.0f * planeWs.m_normal);
+
+			if (topWantsFront)
+			{
+				contactToFill->position = backTopPointWs;
+				contactToFill->normal = normal;
+				contactToFill->penetration = Abs(backTopDist);
+				FillOutColliderInfo(contactToFill, bCylinderCol, aPlaneCol);
+				contactToFill->CheckValuesAreReasonable();
+				numContactsAdded++;
+
+				if (numContactsAdded < limit) { contactToFill = &out_contacts[numContactsAdded]; }
+				else
+				{
+					return numContactsAdded;
+				}
+
+				contactToFill->position = backBottomPointWs;
+				contactToFill->normal = normal;
+				contactToFill->penetration = Abs(backBottomDist);
+				FillOutColliderInfo(contactToFill, bCylinderCol, aPlaneCol);
+				contactToFill->CheckValuesAreReasonable();
+				numContactsAdded++;
+			}
+			else
+			{
+				contactToFill->position = frontTopPointWs;
+				contactToFill->normal = normal;
+				contactToFill->penetration = Abs(frontTopDist);
+				FillOutColliderInfo(contactToFill, bCylinderCol, aPlaneCol);
+				contactToFill->CheckValuesAreReasonable();
+				numContactsAdded++;
+
+				if (numContactsAdded < limit) { contactToFill = &out_contacts[numContactsAdded]; }
+				else
+				{
+					return numContactsAdded;
+				}
+
+				contactToFill->position = frontBottomPointWs;
+				contactToFill->normal = normal;
+				contactToFill->penetration = Abs(frontBottomDist);
+				FillOutColliderInfo(contactToFill, bCylinderCol, aPlaneCol);
+				contactToFill->CheckValuesAreReasonable();
+				numContactsAdded++;
+			}
+		}
+		else
+		{
+			// Conflict - whoever has the min distance gets the say, and the other has to just go along with it
+			Vector3 topContactPos, bottomContactPos;
+			float topPen, bottomPen;
+			Vector3 normal;
+
+			float minDist = Min(frontBottomDist, backBottomDist, frontTopDist, backTopDist);
+
+			if (minDist == frontBottomDist || minDist == frontTopDist)
+			{
+				// Push backwards
+				normal = -1.0f * planeWs.m_normal;
+
+				bottomContactPos = frontBottomPointWs;
+				bottomPen = Abs(frontBottomDist);
+
+				topContactPos = frontTopPointWs;
+				topPen = Abs(frontTopDist);
+			}
+			else
+			{
+				// Push forwards
+				normal = planeWs.m_normal;
+
+				bottomContactPos = backBottomPointWs;
+				bottomPen = Abs(backBottomDist);
+
+				topContactPos = backTopPointWs;
+				topPen = Abs(backTopDist);
+			}
+
+			contactToFill->position = topContactPos;
+			contactToFill->normal = normal;
+			contactToFill->penetration = topPen;
+			FillOutColliderInfo(contactToFill, bCylinderCol, aPlaneCol);
+			contactToFill->CheckValuesAreReasonable();
+			numContactsAdded++;
+
+			if (numContactsAdded < limit) { contactToFill = &out_contacts[numContactsAdded]; }
+			else
+			{
+				return numContactsAdded;
+			}
+
+			contactToFill->position = bottomContactPos;
+			contactToFill->normal = normal;
+			contactToFill->penetration = bottomPen;
+			FillOutColliderInfo(contactToFill, bCylinderCol, aPlaneCol);
+			contactToFill->CheckValuesAreReasonable();
+			numContactsAdded++;
+		}
+	}
+	else
 	{
 		float maxDist = Max(frontBottomDist, backBottomDist, frontTopDist, backTopDist);
 		float minDist = Min(frontBottomDist, backBottomDist, frontTopDist, backTopDist);
