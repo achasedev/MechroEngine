@@ -200,6 +200,7 @@ void CollisionScene<BoundingVolumeClass>::DebugDrawContacts() const
 		options.m_debugRenderMode = DEBUG_RENDER_MODE_XRAY;
 
 		DebugDrawSphere(contact.position, 0.05f, options);
+		DebugDrawLine(contact.position, contact.position + contact.normal, options);
 	}
 }
 

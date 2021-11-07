@@ -727,15 +727,22 @@ static bool GetMinPlanePen(const OBB3& box, const Capsule3D& capsule, float* out
 	float radius = capsule.radius;
 	Vector3 extents = box.extents;
 
+	// Idea
+	// For each axis, see if the end point is "in the tube" of that axis (i.e. for x, make sure we're within the y and x extents - it's ok if we're to the left or right though, that's along the tube)
+	// If we are, that qualifies to be a face contact, so calculate the amount of push needed to correct out either side of the box for that axis
+	// At the end, take the min pen and that normal, making sure you use the right sign
 	Vector3 pens[2];
 	Vector3 signs[2];
 
+	// For each end point...
 	for (int i = 0; i < 2; ++i)
 	{
 		Vector3 endPoint = (i == 0 ? startLs : endLs);
 
+		// For each axis
 		for (int j = 0; j < 3; ++j)
 		{
+			// Check the other 2 components to see if we're "in the tube"
 			bool inLateralBounds = true;
 			for (int k = 0; k < 3; ++k)
 			{
@@ -749,11 +756,13 @@ static bool GetMinPlanePen(const OBB3& box, const Capsule3D& capsule, float* out
 				}
 			}
 
+			// If we're in the tube
 			if (inLateralBounds)
 			{
 				float posPen = extents.data[j] - endPoint.data[j] + radius;
 				float negPen = extents.data[j] + endPoint.data[j] + radius;
 
+				// See which direction along the tube is the shorter correction
 				if (posPen < negPen)
 				{
 					pens[i].data[j] = posPen;
@@ -767,16 +776,17 @@ static bool GetMinPlanePen(const OBB3& box, const Capsule3D& capsule, float* out
 			}
 			else
 			{
+				// Not in the tube - can't make a face contact on this axis (it'd be an edge contact at that point)
 				pens[i].data[j] = FLT_MAX;
 			}
 		}
 	}
 
-	// Determine the best normal for each end point
-	Vector3 normals[2];
+	// Determine the best local normal for each end point
+	Vector3 normalsLs[2];
 	for (int i = 0; i < 2; ++i)
 	{
-		normals[i] = Vector3::ZERO;
+		normalsLs[i] = Vector3::ZERO;
 
 		const Vector3& axisPens = pens[i];
 		float minPen = Min(axisPens.x, axisPens.y, axisPens.z);
@@ -790,11 +800,8 @@ static bool GetMinPlanePen(const OBB3& box, const Capsule3D& capsule, float* out
 		{
 			if (minPen == axisPens.data[j])
 			{
-				normals[i].data[j] = 1.f * signs[i].data[j];
+				normalsLs[i].data[j] = 1.f * signs[i].data[j];
 				out_pens[i] = minPen;
-
-				Vector3 endPoint = (i == 0 ? capsule.start : capsule.end);
-				out_positions[i] = endPoint - normals[i] * radius;
 				break;
 			}
 		}
@@ -802,26 +809,31 @@ static bool GetMinPlanePen(const OBB3& box, const Capsule3D& capsule, float* out
 
 	// If the endpoints find 2 different best faces, the capsule must be intersecting an edge
 	// Instead, just generate an edgepoint
-	float normalDot = DotProduct(normals[0], normals[1]);
+	float normalDot = DotProduct(normalsLs[0], normalsLs[1]);
 	if ((out_pens[0] < FLT_MAX && out_pens[1] < FLT_MAX) && AreMostlyEqual(normalDot, 0.f))
 	{
 		return false;
 	}
 	else if (AreMostlyEqual(normalDot, -1.f))
 	{
+		// The best normals are opposite sides of the cube haha
+		// Might be ok to just arbitrarily pick a way to push, as it might not matter that much at this point ("You shouldn't be here!")
 		ERROR_AND_DIE("Ha, capsule is stuck isn't it");
 	}
 
-
+	// Start and/or end could be valid contacts, but at this point they share a normal, so either once can calculate it
 	if (out_pens[0] < FLT_MAX)
 	{
 		Matrix3 basis(box.rotation);
-		out_normal = normals[0].x * basis.columnVectors[0] + normals[0].y * basis.columnVectors[1] + normals[0].z * basis.columnVectors[2];
+		out_normal = normalsLs[0].x * basis.columnVectors[0] + normalsLs[0].y * basis.columnVectors[1] + normalsLs[0].z * basis.columnVectors[2];
+		out_positions[0] = capsule.start - out_normal * radius;
 	}
-	else if (out_pens[1] < FLT_MAX)
+
+	if (out_pens[1] < FLT_MAX)
 	{
 		Matrix3 basis(box.rotation);
-		out_normal = normals[1].x * basis.columnVectors[0] + normals[1].y * basis.columnVectors[1] + normals[1].z * basis.columnVectors[2];
+		out_normal = normalsLs[1].x * basis.columnVectors[0] + normalsLs[1].y * basis.columnVectors[1] + normalsLs[1].z * basis.columnVectors[2];
+		out_positions[1] = capsule.end - out_normal * radius;
 	}
 
 	return (out_pens[0] < FLT_MAX || out_pens[1] < FLT_MAX);
@@ -922,20 +934,20 @@ int CollisionDetector::GenerateContacts_CapsuleBox(const Collider* a, const Coll
 	Vector3 edgePos = Vector3::ZERO;
 	bool hasEdgeOverlap = GetMinEdgePen(boxWs, capsuleWs, edgePen, edgeNormal, edgePos);
 
-	float worstFacePen = FLT_MAX;
+	//float worstFacePen = FLT_MAX;
 
-	if (facePens[0] < FLT_MAX && facePens[1] < FLT_MAX)
-	{
-		worstFacePen = Max(facePens[0], facePens[1]);
-	}
-	else if (facePens[0] < FLT_MAX)
-	{
-		worstFacePen = facePens[0];
-	}
-	else if (facePens[1] < FLT_MAX)
-	{
-		worstFacePen = facePens[1];
-	}
+	//if (facePens[0] < FLT_MAX && facePens[1] < FLT_MAX)
+	//{
+	//	worstFacePen = Max(facePens[0], facePens[1]);
+	//}
+	//else if (facePens[0] < FLT_MAX)
+	//{
+	//	worstFacePen = facePens[0];
+	//}
+	//else if (facePens[1] < FLT_MAX)
+	//{
+	//	worstFacePen = facePens[1];
+	//}
 
 	// If we have face overlap but no edge overlap *or* the face overlap has less pen than the edge, make face contacts
 	int numContactsAdded = 0;

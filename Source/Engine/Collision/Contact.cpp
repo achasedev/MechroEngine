@@ -166,6 +166,7 @@ void Contact::CalculateDesiredVelocityInContactSpace(float deltaSeconds)
 void Contact::CheckValuesAreReasonable() const
 {
 	ASSERT_REASONABLE(position);
+	ASSERT_OR_DIE(position.x > -10000 && position.x < 10000 && position.y > -10000 && position.y < 10000 && position.z > -10000 && position.z < 10000, "Bad contact position!");
 	ASSERT_REASONABLE(normal);
 	float length = normal.GetLength();
 	ASSERT_OR_DIE(AreMostlyEqual(length, 1.0f), "Normal not unit!");
