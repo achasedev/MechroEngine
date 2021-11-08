@@ -31,7 +31,7 @@ GenerateContactsFunction CollisionDetector::s_colliderMatrix[NUM_COLLIDER_TYPES]
 {
 	{ nullptr, nullptr, &CollisionDetector::GenerateContacts_HalfSpaceSphere,	&CollisionDetector::GenerateContacts_HalfSpaceCapsule,	&CollisionDetector::GenerateContacts_HalfSpaceBox, &CollisionDetector::GenerateContacts_HalfSpaceCylinder },
 	{ nullptr, nullptr, &CollisionDetector::GenerateContacts_PlaneSphere,		&CollisionDetector::GenerateContacts_PlaneCapsule,		&CollisionDetector::GenerateContacts_PlaneBox, &CollisionDetector::GenerateContacts_PlaneCylinder },
-	{ nullptr, nullptr,	&CollisionDetector::GenerateContacts_SphereSphere,		&CollisionDetector::GenerateContacts_SphereCapsule,		&CollisionDetector::GenerateContacts_SphereBox, nullptr },
+	{ nullptr, nullptr,	&CollisionDetector::GenerateContacts_SphereSphere,		&CollisionDetector::GenerateContacts_SphereCapsule,		&CollisionDetector::GenerateContacts_SphereBox, &CollisionDetector::GenerateContacts_SphereCylinder },
 	{ nullptr, nullptr, nullptr,												&CollisionDetector::GenerateContacts_CapsuleCapsule,	&CollisionDetector::GenerateContacts_CapsuleBox, nullptr },
 	{ nullptr, nullptr, nullptr,												nullptr,												&CollisionDetector::GenerateContacts_BoxBox, nullptr },
 	{ nullptr, nullptr, nullptr,												nullptr,												nullptr, nullptr }
@@ -137,9 +137,14 @@ int CollisionDetector::GenerateContacts(const Collider* a, const Collider* b, Co
 		b = tempPtr;
 	}
 
-	ASSERT_OR_DIE(s_colliderMatrix[firstIndex][secondIndex] != nullptr, "Collision matrix missing an entry!");
+	//ASSERT_OR_DIE(s_colliderMatrix[firstIndex][secondIndex] != nullptr, "Collision matrix missing an entry!");
 
-	return (this->*s_colliderMatrix[firstIndex][secondIndex])(a, b, out_contacts, limit);
+	if (s_colliderMatrix[firstIndex][secondIndex] != nullptr)
+	{
+		return (this->*s_colliderMatrix[firstIndex][secondIndex])(a, b, out_contacts, limit);
+	}
+
+	return 0;
 }
 
 
@@ -334,6 +339,132 @@ int CollisionDetector::GenerateContacts_SphereBox(const Collider* a, const Colli
 
 	out_contacts->CheckValuesAreReasonable();
 	return 1;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionDetector::GenerateContacts_SphereCylinder(const Collider* a, const Collider* b, Contact* out_contacts, int limit)
+{
+	if (limit <= 0)
+		return 0;
+
+	int numContacts = 0;
+	const SphereCollider* aSphereCol = a->GetAsType<SphereCollider>();
+	const CylinderCollider* bCylinderCol = b->GetAsType<CylinderCollider>();
+	ASSERT_OR_DIE(aSphereCol != nullptr && bCylinderCol != nullptr, "Colliders are of wrong type!");
+
+	const Sphere3D sphereWs = aSphereCol->GetDataInWorldSpace();
+	const Cylinder3D cylinderWs = bCylinderCol->GetDataInWorldSpace();
+
+	Vector3 bottomToSphere = (sphereWs.center - cylinderWs.m_bottom);
+
+	Vector3 cylSpine = (cylinderWs.m_top - cylinderWs.m_bottom);
+	float height = cylSpine.Normalize();
+	float dot = DotProduct(bottomToSphere, cylSpine);
+	Vector3 discVector = bottomToSphere - cylSpine * dot;
+
+	bool sphereVertical = (discVector.GetLengthSquared() < cylinderWs.m_radius * cylinderWs.m_radius);
+	float verticalPen = FLT_MAX;
+	Vector3 verticalNormal = Vector3::ZERO;
+	Vector3 verticalContactPos = Vector3::ZERO;
+
+	if (sphereVertical)
+	{
+		Plane3 topPlane(cylSpine, cylinderWs.m_top);
+		Plane3 bottomPlane(-1.0f * cylSpine, cylinderWs.m_bottom);
+		float topDist = topPlane.GetDistanceFromPlane(sphereWs.center);
+		float bottomDist = bottomPlane.GetDistanceFromPlane(sphereWs.center);
+
+		if (Abs(topDist) < Abs(bottomDist))
+		{
+			verticalNormal = cylSpine;
+			verticalPen = sphereWs.radius - topDist;
+			verticalContactPos = topPlane.GetProjectedPointOntoPlane(sphereWs.center);
+		}
+		else
+		{
+			verticalNormal = -1.0f * cylSpine;
+			verticalPen = sphereWs.radius - bottomDist;
+			verticalContactPos = bottomPlane.GetProjectedPointOntoPlane(sphereWs.center);
+		}
+	}
+
+	bool sphereHorizontal = (dot > 0.f && dot < height);
+	float horizontalPen = FLT_MAX;
+	Vector3 horizontalNormal = Vector3::ZERO;
+	Vector3 closestSpinePt;
+
+	if (sphereHorizontal)
+	{
+		float distanceToSpine = GetClosestPointOnLineSegment(cylinderWs.m_bottom, cylinderWs.m_top, sphereWs.center, closestSpinePt);
+		horizontalNormal = (sphereWs.center - closestSpinePt) / distanceToSpine;
+		ASSERT_OR_DIE(AreMostlyEqual(horizontalNormal.GetLength(), 1.0f), "My trick didn't work!");
+		horizontalPen = (sphereWs.radius + cylinderWs.m_radius) - distanceToSpine;
+	}
+
+	bool hasHorizontalPen = (horizontalPen > 0.f && horizontalPen < FLT_MAX);
+	bool hasVerticalPen = (verticalPen > 0.f && verticalPen < FLT_MAX);
+
+	if (hasHorizontalPen && hasVerticalPen)
+	{
+		// Sphere center is inside the cylinder, so push either vertically or horizontally, depending on which has less of a correction
+		if (verticalPen < horizontalPen)
+		{
+			out_contacts->position = verticalContactPos;
+			out_contacts->penetration = verticalPen;
+			out_contacts->normal = verticalNormal;
+			FillOutColliderInfo(out_contacts, aSphereCol, bCylinderCol);
+			numContacts++;
+		}
+		else
+		{
+			out_contacts->position = sphereWs.center - sphereWs.radius * horizontalNormal;
+			out_contacts->penetration = horizontalPen;
+			out_contacts->normal = horizontalNormal;
+			FillOutColliderInfo(out_contacts, aSphereCol, bCylinderCol);
+			numContacts++;
+		}
+	}
+	else if (hasVerticalPen)
+	{
+		// Sphere is overlapping a disc face, so push normal to the face
+		out_contacts->position = verticalContactPos;
+		out_contacts->penetration = verticalPen;
+		out_contacts->normal = verticalNormal;
+		FillOutColliderInfo(out_contacts, aSphereCol, bCylinderCol);
+		numContacts++;
+	}
+	else if (hasHorizontalPen)
+	{
+		// Sphere is overlapping the cylinder sides, so push outward
+		out_contacts->position = closestSpinePt + horizontalNormal * cylinderWs.m_radius;
+		out_contacts->penetration = horizontalPen;
+		out_contacts->normal = horizontalNormal;
+		FillOutColliderInfo(out_contacts, aSphereCol, bCylinderCol);
+		numContacts++;
+	}
+	else
+	{
+		// Sphere isn't overlapping the sides or the top/bottom faces, so check if it's overlapping an edge
+		Vector3 edgePoint = cylinderWs.GetFurthestEdgePointInDirection(bottomToSphere);
+		Vector3 edgeToSphere = sphereWs.center - edgePoint;
+		
+		if (edgeToSphere.GetLengthSquared() < sphereWs.radius * sphereWs.radius)
+		{
+			out_contacts->position = edgePoint;
+			out_contacts->penetration = sphereWs.radius - edgeToSphere.Normalize();
+			out_contacts->normal = edgeToSphere;
+			FillOutColliderInfo(out_contacts, aSphereCol, bCylinderCol);
+			numContacts++;
+		}
+	}
+
+	if (numContacts > 0)
+	{
+		out_contacts->CheckValuesAreReasonable();
+	}
+
+	return numContacts;
 }
 
 
@@ -1416,7 +1547,7 @@ int CollisionDetector::GenerateContacts_PlaneCylinder(const Collider* a, const C
 			}
 			else
 			{
-				// Push forwards
+				// Push forward
 				normal = planeWs.m_normal;
 
 				bottomContactPos = backBottomPointWs;

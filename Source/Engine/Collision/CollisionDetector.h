@@ -65,6 +65,7 @@ private:
 	int GenerateContacts_SphereSphere(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
 	int GenerateContacts_SphereCapsule(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
 	int GenerateContacts_SphereBox(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
+	int GenerateContacts_SphereCylinder(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
 
 	// [3][X]
 	int GenerateContacts_CapsuleCapsule(const Collider* a, const Collider* b, Contact* out_contacts, int limit);

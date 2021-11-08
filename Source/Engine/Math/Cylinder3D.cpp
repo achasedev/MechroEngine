@@ -54,8 +54,8 @@ Vector3 Cylinder3D::GetFurthestEdgePointInDirection(const Vector3& direction, bo
 	{
 		float bottomDot = DotProduct(direction, m_bottom);
 		float topDot = DotProduct(direction, m_top);
-		Vector3 endPoint = (bottomDot >= topDot ? m_bottom : m_top); // In tie cases, default to bottom
-		Vector3 spineDir = (bottomDot >= topDot ? (m_bottom - m_top) : (m_top - m_bottom));
+		endPoint = (bottomDot >= topDot ? m_bottom : m_top); // In tie cases, default to bottom
+		spineDir = (bottomDot >= topDot ? (m_bottom - m_top) : (m_top - m_bottom));
 	}
 	else if (*onTop)
 	{
