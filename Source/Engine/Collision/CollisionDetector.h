@@ -70,6 +70,7 @@ private:
 	// [3][X]
 	int GenerateContacts_CapsuleCapsule(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
 	int GenerateContacts_CapsuleBox(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
+	int GenerateContacts_CapsuleCylinder(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
 
 	// [4][X]
 	int GenerateContacts_BoxBox(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
