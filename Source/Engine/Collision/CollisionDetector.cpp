@@ -1251,7 +1251,54 @@ static float GetCapsuleCylinderVerticalPen(const Capsule3D& capsule, const Cylin
 //-------------------------------------------------------------------------------------------------
 static float GetCapsuleCylinderHorizontalPen(const Capsule3D& capsule, const Cylinder3D& cylinder, Vector3& out_contactPos, Vector3& out_normal)
 {
-	return -1.0f;
+	// Only push the capsule horizontally if it is "to the side" of the cylinder
+	// If it's only partially beside the cylinder, it's better to use an edge point
+	{
+		Vector3 cylinderSpine = (cylinder.m_top - cylinder.m_bottom).GetNormalized();
+		Plane3 topPlane(cylinderSpine, cylinder.m_top);
+		Plane3 bottomPlane(-1.0f * cylinderSpine, cylinder.m_bottom);
+		float startTopDist = topPlane.GetDistanceFromPlane(capsule.start);
+		float endTopDist = topPlane.GetDistanceFromPlane(capsule.end);
+		float startBottomDist = bottomPlane.GetDistanceFromPlane(capsule.start);
+		float endBottomDist = bottomPlane.GetDistanceFromPlane(capsule.end);
+
+		bool isHorizontal = Max(startTopDist, endTopDist, startBottomDist, endBottomDist) < 0.f;
+		if (!isHorizontal)
+		{
+			return -1.0f;
+		}
+	}
+
+	Vector3 startSpinePt, endSpinePt;
+	float startDist = GetClosestPointOnLineSegment(cylinder.m_bottom, cylinder.m_top, capsule.start, startSpinePt);
+	float endDist = GetClosestPointOnLineSegment(cylinder.m_bottom, cylinder.m_top, capsule.end, endSpinePt);
+
+	float startPen = capsule.radius + cylinder.m_radius - startDist;
+	float endPen = capsule.radius + cylinder.m_radius - endDist;
+	if (startPen < 0.f) { startPen = FLT_MAX; }
+	if (endPen < 0.f) { endPen = FLT_MAX; }
+
+	float minPen = Min(startPen, endPen);
+
+	if (minPen == FLT_MAX)
+	{
+		return -1.0f;
+	}
+
+	if (startPen < endPen)
+	{
+		Vector3 spineToStart = (capsule.start - startSpinePt) / startDist;
+		out_contactPos = capsule.start + (0.5f * startPen - capsule.radius) * spineToStart;
+		out_normal = spineToStart;
+	}
+	else
+	{
+		Vector3 spineToEnd = (capsule.end - endSpinePt) / endDist;
+		out_contactPos = capsule.end + (0.5f * endPen - capsule.radius) * spineToEnd;
+		out_normal = spineToEnd;
+	}
+
+	return minPen;
 }
 
 

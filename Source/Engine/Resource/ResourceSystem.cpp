@@ -413,7 +413,7 @@ void ResourceSystem::CreateDefaultMeshes()
 
 	mb.Clear();
 	mb.BeginBuilding(TOPOLOGY_TRIANGLE_LIST, true);
-	mb.PushCylinder(Vector3(0.f, -0.5f, 0.f), Vector3(0.f, 0.5f, 0.f), 1.f, Rgba::WHITE);
+	mb.PushCylinder(Vector3(0.f, -0.5f, 0.f), Vector3(0.f, 0.5f, 0.f), 1.f, Rgba::WHITE, 20);
 	mb.FinishBuilding();
 
 	Mesh* cylinderMesh = mb.CreateMesh<VertexLit>();
