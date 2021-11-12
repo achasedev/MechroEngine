@@ -90,7 +90,9 @@ private:
 	int			m_numVerticalContacts = 0;
 
 	// Horizontal
-	float		m_worstHorizontalPen = FLT_MAX;
+	float		m_horizontalPen = FLT_MAX;
+	Vector3		m_horizontalPosition = Vector3::ZERO;
+	Vector3		m_horizontalNormal = Vector3::ZERO;
 
 	// Edge
 	float		m_worstEdgePen = FLT_MAX;

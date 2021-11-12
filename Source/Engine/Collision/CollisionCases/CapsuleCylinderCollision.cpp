@@ -210,6 +210,20 @@ void CapsuleCylinderCollision::SolveVertical()
 //-------------------------------------------------------------------------------------------------
 void CapsuleCylinderCollision::SolveHorizontal()
 {
+	bool capSegPtHorizontal = (m_cylTopPlane.GetDistanceFromPlane(m_capClosestSegPt) < 0.f) && (m_cylBottomPlane.GetDistanceFromPlane(m_capClosestSegPt) < 0.f);
+	if (!capSegPtHorizontal)
+		return;
+
+	Vector3 cylToCap = m_capClosestSegPt - m_cylClosestSegPt;
+	float distCylToCap = cylToCap.GetLength();
+
+	if (distCylToCap >= m_cylRadius + m_capRadius || distCylToCap == 0.f) // if dist == 0.f, spines are perfectly intersecting - not worth going through the cases, just let the vertical case fix
+		return;
+
+	cylToCap /= distCylToCap;
+	m_horizontalPen = m_cylRadius + m_capRadius - distCylToCap;
+	m_horizontalNormal = cylToCap;
+	m_horizontalPosition = m_capClosestSegPt - m_capRadius * m_horizontalNormal;
 }
 
 
@@ -222,7 +236,7 @@ void CapsuleCylinderCollision::SolveEdge()
 //-------------------------------------------------------------------------------------------------
 void CapsuleCylinderCollision::MakeContacts()
 {
-	float minPen = Min(m_worstVerticalPen, m_worstHorizontalPen, m_worstEdgePen);
+	float minPen = Min(m_worstVerticalPen, m_horizontalPen, m_worstEdgePen);
 
 	if (minPen < FLT_MAX)
 	{
@@ -230,7 +244,7 @@ void CapsuleCylinderCollision::MakeContacts()
 		{
 			MakeVerticalContacts();
 		}
-		else if (minPen == m_worstHorizontalPen)
+		else if (minPen == m_horizontalPen)
 		{
 			MakeHorizontalContacts();
 		}
@@ -259,6 +273,11 @@ void CapsuleCylinderCollision::MakeVerticalContacts()
 //-------------------------------------------------------------------------------------------------
 void CapsuleCylinderCollision::MakeHorizontalContacts()
 {
+	m_contacts[0].position = m_horizontalPosition;
+	m_contacts[0].normal = m_horizontalNormal;
+	m_contacts[0].penetration = m_horizontalPen;
+	m_contacts[0].CheckValuesAreReasonable();
+	m_numContacts = 1;
 }
 
 
