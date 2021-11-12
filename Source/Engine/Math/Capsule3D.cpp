@@ -9,6 +9,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/EngineCommon.h"
 #include "Engine/Math/Capsule3D.h"
+#include "Engine/Math/MathUtils.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -34,5 +35,15 @@
 Capsule3D::Capsule3D(const Vector3& _start, const Vector3& _end, float _radius)
 	: start(_start), end(_end), radius(_radius)
 {
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool Capsule3D::ContainsPoint(const Vector3& point) const
+{
+	Vector3 spinePt;
+	float distance = GetClosestPointOnLineSegment(start, end, point, spinePt);
+
+	return distance < radius;
 }
 

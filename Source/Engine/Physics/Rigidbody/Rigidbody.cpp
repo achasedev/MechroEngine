@@ -184,6 +184,20 @@ void RigidBody::SetAngularVelocityDegreesWs(const Vector3& angularVelocityDegree
 
 
 //-------------------------------------------------------------------------------------------------
+void RigidBody::SetInverseMass(float iMass)
+{
+	m_iMass = iMass;
+
+	// Ensure we can't rotate
+	if (m_iMass <= 0.f)
+	{
+		m_inverseInertiaTensorLocal = Matrix3::ZERO;
+		m_inverseInertiaTensorWorld = Matrix3::ZERO;
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void RigidBody::SetIsAwake(bool isAwake)
 {
 	m_isAwake = isAwake;
@@ -238,7 +252,7 @@ RigidBody::RigidBody(Transform* transform)
 //-------------------------------------------------------------------------------------------------
 void RigidBody::Integrate(float deltaSeconds, const Vector3& gravityAcc)
 {
-	if (!m_isAwake)
+	if (!m_isAwake || IsStatic())
 		return;
 
 	// Corrections after last frame's integrate (as well as any rotations applied during the game frame)

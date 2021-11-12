@@ -9,6 +9,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Collision/CollisionDetector.h"
 #include "Engine/Collision/Collider.h"
+#include "Engine/Collision/CollisionCases/CapsuleCylinderCollision.h"
 #include "Engine/Collision/Contact.h"
 #include "Engine/Core/DevConsole.h"
 #include "Engine/Core/EngineCommon.h"
@@ -827,15 +828,16 @@ int CollisionDetector::GenerateContacts_HalfSpaceCapsule(const Collider* a, cons
 		return 0;
 
 	int numAdded = 0;
+	Contact* contactToFill = &out_contacts[0];
 	if (startDistance < 0.f)
 	{
-		out_contacts->normal = planeWs.GetNormal();
-		out_contacts->penetration = -startDistance;
-		out_contacts->position = capsuleWs.start - out_contacts->normal * capsuleWs.radius;
-		FillOutColliderInfo(out_contacts, bCapsuleCol, aHalfSpaceCol);
-		out_contacts->CheckValuesAreReasonable();
+		contactToFill->normal = planeWs.GetNormal();
+		contactToFill->penetration = -startDistance;
+		contactToFill->position = capsuleWs.start - capsuleWs.radius * contactToFill->normal;
+		FillOutColliderInfo(contactToFill, bCapsuleCol, aHalfSpaceCol);
+		contactToFill->CheckValuesAreReasonable();
 		numAdded++;
-		out_contacts++;
+		contactToFill = &out_contacts[numAdded];
 
 		if (limit == 1)
 			return 1;
@@ -843,11 +845,11 @@ int CollisionDetector::GenerateContacts_HalfSpaceCapsule(const Collider* a, cons
 
 	if (endDistance < 0.f)
 	{
-		out_contacts->normal = planeWs.GetNormal();
-		out_contacts->penetration = -endDistance;
-		out_contacts->position = capsuleWs.end - out_contacts->normal * capsuleWs.radius;
-		FillOutColliderInfo(out_contacts, bCapsuleCol, aHalfSpaceCol);
-		out_contacts->CheckValuesAreReasonable();
+		contactToFill->normal = planeWs.GetNormal();
+		contactToFill->penetration = -endDistance;
+		contactToFill->position = capsuleWs.end - capsuleWs.radius * contactToFill->normal;
+		FillOutColliderInfo(contactToFill, bCapsuleCol, aHalfSpaceCol);
+		contactToFill->CheckValuesAreReasonable();
 		numAdded++;
 	}
 
@@ -1182,7 +1184,7 @@ int CollisionDetector::GenerateContacts_CapsuleBox(const Collider* a, const Coll
 
 
 //-------------------------------------------------------------------------------------------------
-static float GetCapsuleCylinderVerticalPen(const Capsule3D& capsule, const Cylinder3D& cylinder, Vector3& out_contactPos, Vector3& out_normal)
+static int GetCapsuleCylinderVerticalPen(const Capsule3D& capsule, const Cylinder3D& cylinder, Vector3* out_contactPositions, Vector3* out_normals, float* out_pens)
 {
 	Vector3 cylinderSpine = (cylinder.m_top - cylinder.m_bottom).GetNormalized();
 	Plane3 topPlane(cylinderSpine, cylinder.m_top);
@@ -1193,40 +1195,79 @@ static float GetCapsuleCylinderVerticalPen(const Capsule3D& capsule, const Cylin
 
 	bool startVertical = ((projStartToTop - cylinder.m_top).GetLengthSquared() < (cylinder.m_radius * cylinder.m_radius));
 	bool endVertical = ((projEndToTop - cylinder.m_top).GetLengthSquared() < (cylinder.m_radius * cylinder.m_radius));
-	float finalPen = -1.0f; // Return negative by default for no pen
+	int numContacts = 0;
 
 	if (startVertical && endVertical)
 	{
-		// TODO: Can make 2 contacts in this case if both top and bottom want to push the same direction
 		// Both endpoints are above/below the cylinder - find out if it's better to push the capsule down or up
 		float startTopPen = capsule.radius - topPlane.GetDistanceFromPlane(capsule.start);
 		float endTopPen = capsule.radius - topPlane.GetDistanceFromPlane(capsule.end);
-		float maxTopPen = Max(startTopPen, endTopPen);
 		float startBottomPen = capsule.radius - bottomPlane.GetDistanceFromPlane(capsule.start);
 		float endBottomPen = capsule.radius - bottomPlane.GetDistanceFromPlane(capsule.end);
-		float maxBottomPen = Max(startBottomPen, endBottomPen);
 
-		finalPen = Min(maxTopPen, maxBottomPen);
+		float minStartPen = Min(startTopPen, startBottomPen);
+		float minEndPen = Min(endTopPen, endBottomPen);
+		bool bothOverlapping = (minStartPen > 0.f && minEndPen > 0.f);
+		bool bothWantTop = (minStartPen == startTopPen && minEndPen == endTopPen);
+		bool bothWantBottom = (minStartPen == startBottomPen && minEndPen == endBottomPen);
 
-		if (finalPen == startTopPen)
+		if (bothOverlapping && (bothWantTop || bothWantBottom))
 		{
-			out_normal = topPlane.m_normal;
-			out_contactPos = capsule.start + (0.5f * finalPen - capsule.radius) * out_normal; // Place contact halfway into the pen
-		}
-		else if (finalPen == Abs(endTopPen))
-		{
-			out_normal = topPlane.m_normal;
-			out_contactPos = capsule.end + (0.5f * finalPen - capsule.radius) * out_normal; // Place contact halfway into the pen
-		}
-		else if (finalPen == Abs(startBottomPen))
-		{
-			out_normal = bottomPlane.m_normal;
-			out_contactPos = capsule.start + (0.5f * finalPen - capsule.radius) * out_normal; // Place contact halfway into the pen
+			// Both endpoints of the capsule are overlapping the face - we can generate 2 contacts if they're pushing in the same direction...
+			if (bothWantTop)
+			{
+				out_pens[0] = startTopPen;
+				out_pens[1] = endTopPen;
+
+				out_normals[0] = topPlane.m_normal;
+				out_normals[1] = topPlane.m_normal;
+
+				out_contactPositions[0] = capsule.start - capsule.radius * out_normals[0];
+				out_contactPositions[1] = capsule.end - capsule.radius * out_normals[1];
+			}
+			else
+			{
+				ASSERT_OR_DIE(bothWantBottom, "Uh oh");
+				out_pens[0] = startBottomPen;
+				out_pens[1] = endBottomPen;
+
+				out_normals[0] = bottomPlane.m_normal;
+				out_normals[1] = bottomPlane.m_normal;
+
+				out_contactPositions[0] = capsule.start - capsule.radius * out_normals[0];
+				out_contactPositions[1] = capsule.end - capsule.radius * out_normals[1];
+			}
+
+			numContacts = 2;
 		}
 		else
 		{
-			out_normal = bottomPlane.m_normal;
-			out_contactPos = capsule.end + (0.5f * finalPen - capsule.radius) * out_normal; // Place contact halfway into the pen
+			float maxTopPen = Max(startTopPen, endTopPen);
+			float maxBottomPen = Max(startBottomPen, endBottomPen);
+			out_pens[0] = Min(maxTopPen, maxBottomPen);
+
+			if (out_pens[0] == startTopPen)
+			{
+				out_normals[0] = topPlane.m_normal;
+				out_contactPositions[0] = capsule.start + (0.5f * out_pens[0] - capsule.radius) * out_normals[0]; // Place contact halfway into the pen
+			}
+			else if (out_pens[0] == endTopPen)
+			{
+				out_normals[0] = topPlane.m_normal;
+				out_contactPositions[0] = capsule.end + (0.5f * out_pens[0] - capsule.radius) * out_normals[0]; // Place contact halfway into the pen
+			}
+			else if (out_pens[0] == startBottomPen)
+			{
+				out_normals[0] = bottomPlane.m_normal;
+				out_contactPositions[0] = capsule.start + (0.5f * out_pens[0] - capsule.radius) * out_normals[0]; // Place contact halfway into the pen
+			}
+			else
+			{
+				out_normals[0] = bottomPlane.m_normal;
+				out_contactPositions[0] = capsule.end + (0.5f * out_pens[0] - capsule.radius) * out_normals[0]; // Place contact halfway into the pen
+			}
+
+			numContacts = 1;
 		}
 	}
 	else if (startVertical)
@@ -1235,24 +1276,26 @@ static float GetCapsuleCylinderVerticalPen(const Capsule3D& capsule, const Cylin
 		float startTopPen = capsule.radius - topPlane.GetDistanceFromPlane(capsule.start);
 		float startBottomPen = capsule.radius - bottomPlane.GetDistanceFromPlane(capsule.start);
 
-		finalPen = Min(startTopPen, startBottomPen);
+		out_pens[0] = Min(startTopPen, startBottomPen);
 
-		if (finalPen > 0.f)
+		if (out_pens[0] > 0.f)
 		{
-			if (finalPen == startTopPen)
+			if (out_pens[0] == startTopPen)
 			{
 				if (topPlane.GetDistanceFromPlane(capsule.start) <= topPlane.GetDistanceFromPlane(capsule.end)) // If end is closer to the plane than start, it'll be an edge contact, so don't do anything
 				{
-					out_normal = topPlane.m_normal;
-					out_contactPos = capsule.start + (0.5f * finalPen - capsule.radius) * out_normal; // Place contact halfway into the pen
+					out_normals[0] = topPlane.m_normal;
+					out_contactPositions[0] = capsule.start + (0.5f * out_pens[0] - capsule.radius) * out_normals[0]; // Place contact halfway into the pen
+					numContacts = 1;
 				}
 			}
 			else
 			{
 				if (bottomPlane.GetDistanceFromPlane(capsule.start) <= bottomPlane.GetDistanceFromPlane(capsule.end)) // If end is closer to the plane than start, it'll be an edge contact, so don't do anything
 				{
-					out_normal = bottomPlane.m_normal;
-					out_contactPos = capsule.start + (0.5f * finalPen - capsule.radius) * out_normal; // Place contact halfway into the pen
+					out_normals[0] = bottomPlane.m_normal;
+					out_contactPositions[0] = capsule.start + (0.5f * out_pens[0] - capsule.radius) * out_normals[0]; // Place contact halfway into the pen
+					numContacts = 1;
 				}
 			}
 		}
@@ -1262,30 +1305,32 @@ static float GetCapsuleCylinderVerticalPen(const Capsule3D& capsule, const Cylin
 		float endTopPen = capsule.radius - topPlane.GetDistanceFromPlane(capsule.end);
 		float endBottomPen = capsule.radius - bottomPlane.GetDistanceFromPlane(capsule.end);
 
-		finalPen = Min(endTopPen, endBottomPen);
+		out_pens[0] = Min(endTopPen, endBottomPen);
 
-		if (finalPen > 0.f)
+		if (out_pens[0] > 0.f)
 		{
-			if (finalPen == endTopPen)
+			if (out_pens[0] == endTopPen)
 			{
 				if (topPlane.GetDistanceFromPlane(capsule.end) <= topPlane.GetDistanceFromPlane(capsule.start)) // If start is closer to the plane than end, it'll be an edge contact, so don't do anything
 				{
-					out_normal = topPlane.m_normal;
-					out_contactPos = capsule.end + (0.5f * finalPen - capsule.radius) * out_normal; // Place contact halfway into the pen
+					out_normals[0] = topPlane.m_normal;
+					out_contactPositions[0] = capsule.end + (0.5f * out_pens[0] - capsule.radius) * out_normals[0]; // Place contact halfway into the pen
+					numContacts = 1;
 				}
 			}
 			else
 			{
 				if (bottomPlane.GetDistanceFromPlane(capsule.end) <= bottomPlane.GetDistanceFromPlane(capsule.start)) // If start is closer to the plane than end, it'll be an edge contact, so don't do anything
 				{
-					out_normal = bottomPlane.m_normal;
-					out_contactPos = capsule.end + (0.5f * finalPen - capsule.radius) * out_normal; // Place contact halfway into the pen
+					out_normals[0] = bottomPlane.m_normal;
+					out_contactPositions[0] = capsule.end + (0.5f * out_pens[0] - capsule.radius) * out_normals[0]; // Place contact halfway into the pen
+					numContacts = 1;
 				}
 			}
 		}
 	}
 
-	return finalPen;
+	return numContacts;
 }
 
 
@@ -1355,89 +1400,21 @@ int CollisionDetector::GenerateContacts_CapsuleCylinder(const Collider* a, const
 	if (limit <= 0)
 		return 0;
 
-	int numContacts = 0;
 	const CapsuleCollider* aCapsuleCol = a->GetAsType<CapsuleCollider>();
 	const CylinderCollider* bCylinderCol = b->GetAsType<CylinderCollider>();
 	ASSERT_OR_DIE(aCapsuleCol != nullptr && bCylinderCol != nullptr, "Colliders are of wrong type!");
 
-	const Capsule3D capsuleWs = aCapsuleCol->GetDataInWorldSpace();
-	const Cylinder3D cylinderWs = bCylinderCol->GetDataInWorldSpace();
+	CapsuleCylinderCollision collision(aCapsuleCol, bCylinderCol, out_contacts, limit);
+	collision.Solve();
 
-	Vector3 horizontalNormal, horizontalContactPos;
-	float horizontalPen = GetCapsuleCylinderHorizontalPen(capsuleWs, cylinderWs, horizontalContactPos, horizontalNormal);
-
-	Vector3 verticalNormal, verticalContactPos;
-	float verticalPen = GetCapsuleCylinderVerticalPen(capsuleWs, cylinderWs, verticalContactPos, verticalNormal);
-
-	Vector3 edgeNormal, edgeContactPos;
-	float edgePen = GetCapsuleCylinderEdgePen(capsuleWs, cylinderWs, edgeContactPos, edgeNormal);
-
-	if (horizontalPen < 0.f) { horizontalPen = FLT_MAX; }
-	if (verticalPen < 0.f) { verticalPen = FLT_MAX; }
-	if (edgePen < 0.f) { edgePen = FLT_MAX; }
-
-	float minPen = Min(horizontalPen, verticalPen, edgePen);
-
-	if (minPen < FLT_MAX)
+	// This is bad, but bear with me
+	int numContacts = collision.GetNumContacts();
+	for (int i = 0; i < numContacts; ++i)
 	{
-		if (minPen == verticalPen)
-		{
-			out_contacts->position = verticalContactPos;
-			out_contacts->normal = verticalNormal;
-			out_contacts->penetration = verticalPen;
-		}
-		else if (minPen == horizontalPen)
-		{
-			out_contacts->position = horizontalContactPos;
-			out_contacts->normal = horizontalNormal;
-			out_contacts->penetration = horizontalPen;
-		}
-		else
-		{
-			out_contacts->position = edgeContactPos;
-			out_contacts->normal = edgeNormal;
-			out_contacts->penetration = edgePen;
-		}
-
-		FillOutColliderInfo(out_contacts, aCapsuleCol, bCylinderCol);
-		out_contacts->CheckValuesAreReasonable();
-		numContacts++;
+		FillOutColliderInfo(&out_contacts[i], aCapsuleCol, bCylinderCol);
 	}
 
 	return numContacts;
-	//Vector3 capsuleSpine = (capsuleWs.end - capsuleWs.start);
-	//Vector3 cylinderSpine = (cylinderWs.m_top - cylinderWs.m_bottom);
-	//float capsuleSpineLength = capsuleSpine.Normalize();
-	//float cylinderSpineLength = cylinderSpine.Normalize();
-
-	////float capsuleT = DotProduct(capsuleSpine, (capsuleSpinePt - capsuleWs.start)) / capsuleSpineLength; // Technically dot isn't needed, but this avoids a sqrt?
-	////float cylinderT = DotProduct(cylinderSpine, (cylinderSpinePt - cylinderWs.m_bottom)) / cylinderSpineLength;
-
-	//Plane3 topPlane(cylinderWs.m_top, cylinderSpine);
-	//Plane3 bottomPlane(cylinderWs.m_bottom, -1.0f * cylinderSpine);
-	//float startTopDist = topPlane.GetDistanceFromPlane(capsuleWs.start);
-	//float endTopDist = topPlane.GetDistanceFromPlane(capsuleWs.end);
-	//float startBottomDist = bottomPlane.GetDistanceFromPlane(capsuleWs.start);
-	//float endBottomDist = bottomPlane.GetDistanceFromPlane(capsuleWs.end);
-
-	//Vector3 projStartToTop = topPlane.GetProjectedPointOntoPlane(capsuleWs.start);
-	//Vector3 projEndToTop = topPlane.GetProjectedPointOntoPlane(capsuleWs.end);
-
-	//bool isVertical = ((projStartToTop - cylinderWs.m_top).GetLengthSquared() < cylinderWs.m_radius * cylinderWs.m_radius) && ((projEndToTop - cylinderWs.m_top).GetLengthSquared() < cylinderWs.m_radius * cylinderWs.m_radius);
-	//bool isHorizontal = Max(startTopDist, endTopDist, startBottomDist, endBottomDist) < 0.f;
-
-	//if (isVertical || isHorizontal)
-	//{
-	//	// Correction will either be normal to a cylinder face or a normal of the sides of the cylinder - take the one with least pen
-
-	//}
-	//else
-	//{
-	//	Vector3 capsuleSpinePt, cylinderSpinePt;
-	//	float distance = FindClosestPointsOnLineSegments(capsuleWs.start, capsuleWs.end, cylinderWs.m_bottom, cylinderWs.m_top, capsuleSpinePt, cylinderSpinePt);
-
-	//	// find furthest edge point in direction of capsule and in opposite, take less pen
-	//}
 }
 
 
@@ -1894,3 +1871,5 @@ int CollisionDetector::GenerateContacts_PlaneCylinder(const Collider* a, const C
 
 	return numContactsAdded;
 }
+
+

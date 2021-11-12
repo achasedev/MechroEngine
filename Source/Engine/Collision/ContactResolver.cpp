@@ -70,7 +70,7 @@ static void ResolveContactPenetration(Contact* contact, Vector3* out_linearChang
 	for (int bodyIndex = 0; bodyIndex < 2; ++bodyIndex)
 	{
 		RigidBody* body = contact->bodies[bodyIndex];
-		if (body == nullptr)
+		if (body == nullptr || body->IsStatic())
 		{
 			linearInertia[bodyIndex] = 0.f;
 			angularInertia[bodyIndex] = 0.f;

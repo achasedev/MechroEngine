@@ -59,7 +59,7 @@ public:
 	void SetAngularVelocityRadiansWs(const Vector3& angularVelocityRadiansWs) { m_angularVelocityRadiansWs = angularVelocityRadiansWs; }
 	void SetAngularVelocityDegreesWs(const Vector3& angularVelocityDegreesWs);
 	void SetAcceleration(const Vector3& acceleration) { m_accelerationWs = acceleration; }
-	void SetInverseMass(float iMass) { m_iMass = iMass; }
+	void SetInverseMass(float iMass);
 	void SetLinearDamping(float linearDamping) { m_linearDamping = linearDamping; }
 	void SetAngularDamping(float angularDamping) { m_angularDamping = angularDamping; }
 	void SetIsAwake(bool isAwake);
