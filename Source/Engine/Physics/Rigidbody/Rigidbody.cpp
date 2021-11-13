@@ -355,8 +355,8 @@ void RigidBody::CalculateDerivedData()
 	{
 		Matrix3 toWorldRotation = transform->GetLocalToWorldMatrix().GetMatrix3Part();
 		Matrix3 toLocalRotation = toWorldRotation;
-		toLocalRotation.Transpose();
-		ASSERT_OR_DIE(AreMostlyEqual(toLocalRotation, toWorldRotation.GetInverse()), "Transpose and inverse are not equal"); // Transpose should be the inverse, but to be safe check
+		toLocalRotation.Invert();
+		//ASSERT_OR_DIE(AreMostlyEqual(toLocalRotation, toWorldRotation.GetInverse()), "Transpose and inverse are not equal"); // Transpose should be the inverse, but to be safe check
 
 		m_inverseInertiaTensorWorld = toWorldRotation * m_inverseInertiaTensorLocal * toLocalRotation;
 	}

@@ -98,7 +98,7 @@ void SphereCollider::ShowDebug()
 Sphere3D SphereCollider::GetDataInWorldSpace() const
 {
 	Vector3 centerWs = m_entity->transform.TransformPosition(m_dataLs.center);
-	return Sphere3D(centerWs, m_dataLs.radius);
+	return Sphere3D(centerWs, m_dataLs.radius * m_entity->transform.scale.x);
 }
 
 
