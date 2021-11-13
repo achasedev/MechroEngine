@@ -54,6 +54,7 @@ private:
 	void MakeVerticalContacts();
 	void MakeHorizontalContacts();
 	void MakeEdgeContacts();
+	void SolveAlternativeMethod();
 
 
 private:

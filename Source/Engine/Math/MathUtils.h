@@ -196,6 +196,7 @@ bool IsReasonable(float value);
 bool IsReasonable(const Vector2& value);
 bool IsReasonable(const Vector3& value);
 bool IsReasonable(const Matrix3& value);
+bool IsReasonable(const Matrix4& value);
 bool IsReasonable(const Quaternion& value);
 bool IsReasonable(const OBB3& value);
 

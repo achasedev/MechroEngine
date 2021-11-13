@@ -25,6 +25,7 @@
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 const Matrix4 Matrix4::IDENTITY = Matrix4(Vector3::X_AXIS, Vector3::Y_AXIS, Vector3::Z_AXIS, Vector3::ZERO);
+const Matrix4 Matrix4::ZERO = Matrix4(Vector3::ZERO, Vector3::ZERO, Vector3::ZERO, Vector3::ZERO);
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
@@ -99,6 +100,13 @@ Matrix4::Matrix4(const Matrix4& other)
 //-------------------------------------------------------------------------------------------------
 Matrix4::Matrix4(const Matrix3& mat3)
 {
+	*this = Matrix4(mat3, Vector3::ZERO);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Matrix4::Matrix4(const Matrix3& mat3, const Vector3& translation)
+{
 	Ix = mat3.Ix;
 	Iy = mat3.Iy;
 	Iz = mat3.Iz;
@@ -114,7 +122,10 @@ Matrix4::Matrix4(const Matrix3& mat3)
 	Kz = mat3.Kz;
 	Kw = 0.f;
 
-	translation = Vector4(0.f, 0.f, 0.f, 1.0f);
+	Tx = translation.x;
+	Ty = translation.y;
+	Tz = translation.z;
+	Tw = 1.0f;
 }
 
 

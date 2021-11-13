@@ -1155,6 +1155,21 @@ bool IsReasonable(const Quaternion& value)
 
 
 //-------------------------------------------------------------------------------------------------
+bool IsReasonable(const Matrix4& value)
+{
+	for (int i = 0; i < 16; ++i)
+	{
+		if (!IsReasonable(value.data[i]))
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 bool DoRangesOverlap(const Range& a, const Range& b)
 {
 	return a.GetOverlap(b) > 0.f;

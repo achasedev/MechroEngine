@@ -42,6 +42,7 @@ public:
 	explicit Matrix4(const Vector3& iBasis, const Vector3& jBasis, const Vector3& kBasis, const Vector3& translation = Vector3::ZERO);
 	explicit Matrix4(const Vector4& iBasis, const Vector4& jBasis, const Vector4& kBasis, const Vector4& translation = Vector4::ZERO);
 	explicit Matrix4(const Matrix3& mat3);
+	explicit Matrix4(const Matrix3& mat3, const Vector3& translation);
 
 	Matrix4(const Matrix4& other);
 
@@ -144,6 +145,7 @@ public:
 	
 
 	const static Matrix4 IDENTITY;
+	const static Matrix4 ZERO;
 
 };
 
