@@ -53,7 +53,7 @@ public:
 	void SetInertiaTensor_Cylinder(float height, float radius);
 	void SetInertiaTensor_Box(const Vector3& extents);
 	void SetInertiaTensor_Sphere(float radius);
-	void SetInverseInertiaTensor(const Matrix3& inverseInertiaTensor) { m_inverseInertiaTensorLocal = inverseInertiaTensor; }
+	void SetInverseInertiaTensor(const Matrix3& inverseInertiaTensor, const Vector3& centerOfMassLs);
 
 	void SetVelocityWs(const Vector3& velocityWs) { m_velocityWs = velocityWs; }
 	void SetAngularVelocityRadiansWs(const Vector3& angularVelocityRadiansWs) { m_angularVelocityRadiansWs = angularVelocityRadiansWs; }
@@ -70,6 +70,7 @@ public:
 	void SetMaxLateralSpeed(float maxLateralSpeed) { m_maxLateralSpeed = maxLateralSpeed; }
 	void SetMaxVerticalSpeed(float maxVerticalSpeed) { m_maxVerticalSpeed = maxVerticalSpeed; }
 
+	Vector3	GetCenterOfMassWs() const;
 	Vector3 GetLastFrameAcceleration() const { return m_lastFrameAccelerationWs; }
 	float	GetInverseMass() const { return m_iMass; }
 	void	GetWorldInverseInertiaTensor(Matrix3& out_inverseInertiaTensor) const;
@@ -104,6 +105,7 @@ private:
 private:
 	//-----Private Data-----
 
+	Vector3		m_centerOfMassLs = Vector3::ZERO;
 	Vector3		m_velocityWs = Vector3::ZERO;
 	Vector3		m_accelerationWs = Vector3::ZERO;
 	Vector3		m_lastFrameAccelerationWs = Vector3::ZERO;

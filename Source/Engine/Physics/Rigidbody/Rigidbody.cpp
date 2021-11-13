@@ -108,7 +108,7 @@ void RigidBody::SetInertiaTensor_Capsule(float h, float r)
 	inertiaTensor.Jy = mcyl * (0.5f * r * r) + 2.f * mhs * (0.4f * r * r);
 	inertiaTensor.Kz = inertiaTensor.Ix;
 
-	m_inverseInertiaTensorLocal = inertiaTensor.GetInverse();
+	SetInverseInertiaTensor(inertiaTensor.GetInverse(), Vector3::ZERO);
 }
 
 
@@ -128,7 +128,7 @@ void RigidBody::SetInertiaTensor_Cylinder(float h, float r)
 	inertiaTensor.Jy = 0.5f * mass * r * r;
 	inertiaTensor.Kz = inertiaTensor.Ix;
 
-	m_inverseInertiaTensorLocal = inertiaTensor.GetInverse();
+	SetInverseInertiaTensor(inertiaTensor.GetInverse(), Vector3::ZERO);
 }
 
 
@@ -151,7 +151,7 @@ void RigidBody::SetInertiaTensor_Box(const Vector3& extents)
 	inertiaTensor.Jy = (1.f / 12.f) * mass * (w * w + l * l);
 	inertiaTensor.Kz = (1.f / 12.f) * mass * (w * w + h * h);
 
-	SetInverseInertiaTensor(inertiaTensor.GetInverse());
+	SetInverseInertiaTensor(inertiaTensor.GetInverse(), Vector3::ZERO);
 }
 
 
@@ -172,7 +172,15 @@ void RigidBody::SetInertiaTensor_Sphere(float radius)
 	inertiaTensor.Jy = moment;
 	inertiaTensor.Kz = moment;
 
-	SetInverseInertiaTensor(inertiaTensor.GetInverse());
+	SetInverseInertiaTensor(inertiaTensor.GetInverse(), Vector3::ZERO);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RigidBody::SetInverseInertiaTensor(const Matrix3& inverseInertiaTensor, const Vector3& centerOfMassLs)
+{
+	m_inverseInertiaTensorLocal = inverseInertiaTensor;
+	m_centerOfMassLs = centerOfMassLs;
 }
 
 
@@ -236,6 +244,13 @@ void RigidBody::SetRotationLocked(bool lockRotation)
 
 
 //-------------------------------------------------------------------------------------------------
+Vector3 RigidBody::GetCenterOfMassWs() const
+{
+	return transform->TransformPosition(m_centerOfMassLs);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void RigidBody::GetWorldInverseInertiaTensor(Matrix3& out_inverseInertiaTensor) const
 {
 	out_inverseInertiaTensor = m_inverseInertiaTensorWorld;
@@ -292,7 +307,10 @@ void RigidBody::Integrate(float deltaSeconds, const Vector3& gravityAcc)
 		m_angularVelocityRadiansWs *= Pow(m_angularDamping, deltaSeconds);
 
 		Quaternion deltaRotation = Quaternion::CreateFromEulerAnglesRadians(m_angularVelocityRadiansWs * deltaSeconds);
+
+		transform->Translate(m_centerOfMassLs, RELATIVE_TO_SELF);
 		transform->Rotate(deltaRotation, RELATIVE_TO_WORLD); // Forces/torques are world space, so velocity/angular velocity is ws....so this is a rotation about the world axes
+		transform->Translate(-1.0f * m_centerOfMassLs, RELATIVE_TO_SELF);
 	}
 	else
 	{

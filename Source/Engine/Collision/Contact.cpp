@@ -52,10 +52,10 @@ void Contact::CalculateInternals(float deltaSeconds)
 	CalculateBasis();
 
 	// Get R1, R2
-	bodyToContact[0] = position - bodies[0]->transform->position;
+	bodyToContact[0] = position - bodies[0]->GetCenterOfMassWs();
 	if (bodies[1] != nullptr)
 	{
-		bodyToContact[1] = position - bodies[1]->transform->position;
+		bodyToContact[1] = position - bodies[1]->GetCenterOfMassWs();
 	}
 
 	// Calculate velocities in contact space
