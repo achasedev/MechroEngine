@@ -229,22 +229,26 @@ void CapsuleCylinderCollision::SolveHorizontal()
 //-------------------------------------------------------------------------------------------------
 void CapsuleCylinderCollision::SolveEdge()
 {
+	if (m_worstVerticalPen > 0.f && m_worstVerticalPen < FLT_MAX)
+		return;
+
 	if (m_distBetweenSegs == 0.f)
 		return;
 
 	// Find edge point - solve in 2D using Quadratic Formula
-	Vector3 projStart = m_cylTopPlane.GetProjectedPointOntoPlane(m_capsule.start);
-	Vector3 projEnd = m_cylTopPlane.GetProjectedPointOntoPlane(m_capsule.end);
-
+	Vector3 projStart = m_cylTopPlane.GetProjectedPointOntoPlane(m_capsule.start - m_capRadius * m_capSpineDir);
+	Vector3 projEnd = m_cylTopPlane.GetProjectedPointOntoPlane(m_capsule.end + m_capRadius * m_capSpineDir);
 	Vector3 projDir = (projEnd - projStart);
-	float projLength = projDir.GetLength();
-	if (projLength == 0.f)
+	if (projDir.GetLengthSquared() == 0.f)
 		return;
-	projDir /= projLength;
+	//projDir /= projLength;
 
 	Vector2 ts;
 	bool hasSolution = SolveLineCircleIntersection(projStart, projDir, m_cylinder.m_top, m_cylRadius, ts);
 	if (!hasSolution)
+		return;
+
+	if (ts.x < 0.f && ts.y > 1.0f || ts.y < 0.f && ts.x > 1.f || ts.x < 0.f && ts.y < 0.f || ts.x > 1.0f && ts.y > 1.0f)
 		return;
 
 	// Need to choose the better T
@@ -290,19 +294,8 @@ void CapsuleCylinderCollision::SolveEdge()
 	}
 
 	Vector3 cylEdgeToCapSpine = (capSpinePt - cylEdgePt) / edgeToCapDist;
-
-	Vector3 cylToCap = (m_capClosestSegPt - m_cylClosestSegPt) / m_distBetweenSegs;
-	if (DotProduct(cylEdgeToCapSpine, cylToCap) > 0.f)
-	{
-		m_edgeNormal = cylEdgeToCapSpine;
-		m_edgePen = m_capRadius - edgeToCapDist;
-	}
-	else
-	{
-		m_edgeNormal = -1.0f * cylEdgeToCapSpine;
-		m_edgePen = m_capRadius + edgeToCapDist;
-	}
-
+	m_edgeNormal = cylEdgeToCapSpine;
+	m_edgePen = m_capRadius - edgeToCapDist;
 	m_edgePosition = capSpinePt - m_edgeNormal * m_capRadius;
 }
 
