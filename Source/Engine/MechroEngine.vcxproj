@@ -309,6 +309,7 @@
     <ClInclude Include="Core\CommentSnippets.h" />
     <ClInclude Include="Math\Cylinder3D.h" />
     <ClInclude Include="Math\Frustrum.h" />
+    <ClInclude Include="Math\GJK.h" />
     <ClInclude Include="Math\Matrix3.h" />
     <ClInclude Include="Math\ScaledAxisRotation.h" />
     <ClInclude Include="Physics\Particle\Particle.h" />

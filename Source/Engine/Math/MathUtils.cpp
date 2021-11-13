@@ -1410,9 +1410,28 @@ float FindClosestPointsOnLineSegments(const Vector3& startA, const Vector3& endA
 
 
 //-------------------------------------------------------------------------------------------------
+// https://www.geometrictools.com/Documentation/IntersectionLine2Circle2.pdf
 bool SolveLineCircleIntersection(const Vector3& point, const Vector3& direction, const Vector3& center, float radius, Vector2& out_tSolutions)
 {
+	Vector3 delta = point - center;
 
+	float dot = DotProduct(direction, delta);
+	float dirLength = direction.GetLength();
+	float deltaLength = delta.GetLength();
+
+	float discriminant = (dot * dot) - (dirLength * dirLength * ((deltaLength * deltaLength) - (radius * radius)));
+
+	if (discriminant < 0.f)
+		return false;
+
+	out_tSolutions.x = (-1.0f * dot + Sqrt(discriminant)) / (dirLength * dirLength);
+
+	if (discriminant > 0.f)
+	{
+		out_tSolutions.y = (-1.0f * dot - Sqrt(discriminant)) / (dirLength * dirLength);
+	}
+
+	return true;
 }
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

@@ -235,25 +235,59 @@ void CapsuleCylinderCollision::SolveEdge()
 	// Find edge point - solve in 2D using Quadratic Formula
 	Vector3 projStart = m_cylTopPlane.GetProjectedPointOntoPlane(m_capsule.start);
 	Vector3 projEnd = m_cylTopPlane.GetProjectedPointOntoPlane(m_capsule.end);
-	Vector3 dir = (projEnd - projStart);
-	float dirLength = dir.GetLength();
-	if (dirLength == 0.f)
+
+	Vector3 projDir = (projEnd - projStart);
+	float projLength = projDir.GetLength();
+	if (projLength == 0.f)
 		return;
-	dir /= dirLength;
+	projDir /= projLength;
 
 	Vector2 ts;
-	bool hasSolution = SolveLineCircleIntersection(projStart, dir, m_cylinder.m_top, m_cylRadius, ts);
+	bool hasSolution = SolveLineCircleIntersection(projStart, projDir, m_cylinder.m_top, m_cylRadius, ts);
 	if (!hasSolution)
 		return;
 
+	// Need to choose the better T
+	Vector3 right = CrossProduct(projDir, m_capSpineDir);
+	Vector3 toEdge = CrossProduct(m_capSpineDir, right).GetNormalized();
 
+	Vector3 firstEdge = projStart + ts.x * projDir;
+	Vector3 secondEdge = projStart + ts.y * projDir;
+	Vector3 firstEdgeSpinePt, secondEdgeSpinePt;
+	float firstEdgeDist = GetClosestPointOnLineSegment(m_capsule.start, m_capsule.end, firstEdge, firstEdgeSpinePt);
+	float secondEdgeDist = GetClosestPointOnLineSegment(m_capsule.start, m_capsule.end, secondEdge, secondEdgeSpinePt);
 
+	Vector3 spineToFirstEdge = (firstEdgeSpinePt - firstEdge) / firstEdgeDist;
+	Vector3 spineToSecondEdge = (secondEdgeSpinePt - secondEdge) / secondEdgeDist;
 
-	if (!m_capsule.ContainsPoint(cylEdgePt))
-		return;
+	Vector3 cylEdgePt, capSpinePt;
+	float edgeToCapDist;
+	if (Abs(DotProduct(spineToFirstEdge, toEdge)) > Abs(DotProduct(spineToSecondEdge, toEdge)))
+	{
+		cylEdgePt = firstEdge;
+		capSpinePt = firstEdgeSpinePt;
+		edgeToCapDist = firstEdgeDist;
+	}
+	else
+	{
+		cylEdgePt = secondEdge;
+		capSpinePt = secondEdgeSpinePt;
+		edgeToCapDist = secondEdgeDist;
+	}
 
-	Vector3 capSpinePt;
-	float edgeToCapDist = GetClosestPointOnLineSegment(m_capsule.start, m_capsule.end, cylEdgePt, capSpinePt);
+	// Chech the opposite side of the cylinder if that edge point is closer
+	Vector3 discVector = cylEdgePt - m_cylinder.m_top;
+	Vector3 otherCylEdgePt = m_cylBottomPlane.GetProjectedPointOntoPlane(cylEdgePt - 2.f * discVector);
+
+	Vector3 otherCapSpinePt;
+	float otherEdgeToCapDist = GetClosestPointOnLineSegment(m_capsule.start, m_capsule.end, otherCylEdgePt, otherCapSpinePt);
+
+	if (otherEdgeToCapDist < edgeToCapDist)
+	{
+		edgeToCapDist = otherEdgeToCapDist;
+		capSpinePt = otherCapSpinePt;
+		cylEdgePt = otherCylEdgePt;
+	}
 
 	Vector3 cylEdgeToCapSpine = (capSpinePt - cylEdgePt) / edgeToCapDist;
 
@@ -276,6 +310,9 @@ void CapsuleCylinderCollision::SolveEdge()
 //-------------------------------------------------------------------------------------------------
 void CapsuleCylinderCollision::MakeContacts()
 {
+	if (m_worstVerticalPen < 0.f) { m_worstVerticalPen = FLT_MAX; }
+	if (m_horizontalPen < 0.f) { m_horizontalPen = FLT_MAX; }
+	if (m_edgePen < 0.f) { m_edgePen = FLT_MAX; }
 	float minPen = Min(m_worstVerticalPen, m_horizontalPen, m_edgePen);
 
 	if (minPen < FLT_MAX)
