@@ -213,6 +213,8 @@ float	CalculateVolumeOfTetrahedron(const Vector3& a, const Vector3& b, const Vec
 Vector3 SolveLinePlaneIntersection(const Line3& line, const Plane3& plane);
 float	GetClosestPointOnLineSegment(const Vector3& start, const Vector3& end, const Vector3& point, Vector3& out_closestPoint);
 float	FindClosestPointsOnLineSegments(const Vector3& startA, const Vector3& endA, const Vector3& startB, const Vector3& endB, Vector3& out_pointOnA, Vector3& out_pointOnB);
+bool	SolveLineCircleIntersection(const Vector3& point, const Vector3& direction, const Vector3& center, float radius, Vector2& out_tSolutions);
+
 
 //-------------------------------------------------------------------------------------------------
 // Templates

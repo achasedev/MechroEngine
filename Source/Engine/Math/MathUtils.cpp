@@ -1409,6 +1409,12 @@ float FindClosestPointsOnLineSegments(const Vector3& startA, const Vector3& endA
 }
 
 
+//-------------------------------------------------------------------------------------------------
+bool SolveLineCircleIntersection(const Vector2& point, const Vector2& direction, const Vector2& center, float radius, Vector2& out_tSolutions)
+{
+
+}
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

@@ -210,33 +210,70 @@ void CapsuleCylinderCollision::SolveVertical()
 //-------------------------------------------------------------------------------------------------
 void CapsuleCylinderCollision::SolveHorizontal()
 {
+	if (m_distBetweenSegs >= (m_cylRadius + m_capRadius) || m_distBetweenSegs == 0.f) // if dist == 0.f, spines are perfectly intersecting - not worth going through the cases, just let the vertical case fix
+		return;
+
 	bool capSegPtHorizontal = (m_cylTopPlane.GetDistanceFromPlane(m_capClosestSegPt) < 0.f) && (m_cylBottomPlane.GetDistanceFromPlane(m_capClosestSegPt) < 0.f);
 	if (!capSegPtHorizontal)
 		return;
 
 	Vector3 cylToCap = m_capClosestSegPt - m_cylClosestSegPt;
-	float distCylToCap = cylToCap.GetLength();
-
-	if (distCylToCap >= m_cylRadius + m_capRadius || distCylToCap == 0.f) // if dist == 0.f, spines are perfectly intersecting - not worth going through the cases, just let the vertical case fix
-		return;
-
-	cylToCap /= distCylToCap;
-	m_horizontalPen = m_cylRadius + m_capRadius - distCylToCap;
+	cylToCap /= m_distBetweenSegs;
+	m_horizontalPen = m_cylRadius + m_capRadius - m_distBetweenSegs;
 	m_horizontalNormal = cylToCap;
 	m_horizontalPosition = m_capClosestSegPt - m_capRadius * m_horizontalNormal;
 }
 
+#include "Engine/Render/Debug/DebugRenderSystem.h"
 
 //-------------------------------------------------------------------------------------------------
 void CapsuleCylinderCollision::SolveEdge()
 {
+	if (m_distBetweenSegs == 0.f)
+		return;
+
+	// Find edge point - solve in 2D using Quadratic Formula
+	Vector3 projStart = m_cylTopPlane.GetProjectedPointOntoPlane(m_capsule.start);
+	Vector3 projEnd = m_cylTopPlane.GetProjectedPointOntoPlane(m_capsule.end);
+	Vector3 dir = (projEnd - projStart);
+	float dirLength = dir.GetLength();
+	if (dirLength == 0.f)
+		return;
+	dir /= dirLength;
+
+	Vector2 ts;
+	bool hasSolution = SolveLineCircleIntersection(projStart, dir, m_cylinder.m_top, m_cylRadius, ts);
+	if (!hasSolution)
+		return;
+
+	if (!m_capsule.ContainsPoint(cylEdgePt))
+		return;
+
+	Vector3 capSpinePt;
+	float edgeToCapDist = GetClosestPointOnLineSegment(m_capsule.start, m_capsule.end, cylEdgePt, capSpinePt);
+
+	Vector3 cylEdgeToCapSpine = (capSpinePt - cylEdgePt) / edgeToCapDist;
+
+	Vector3 cylToCap = (m_capClosestSegPt - m_cylClosestSegPt) / m_distBetweenSegs;
+	if (DotProduct(cylEdgeToCapSpine, cylToCap) > 0.f)
+	{
+		m_edgeNormal = cylEdgeToCapSpine;
+		m_edgePen = m_capRadius - edgeToCapDist;
+	}
+	else
+	{
+		m_edgeNormal = -1.0f * cylEdgeToCapSpine;
+		m_edgePen = m_capRadius + edgeToCapDist;
+	}
+
+	m_edgePosition = capSpinePt - m_edgeNormal * m_capRadius;
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void CapsuleCylinderCollision::MakeContacts()
 {
-	float minPen = Min(m_worstVerticalPen, m_horizontalPen, m_worstEdgePen);
+	float minPen = Min(m_worstVerticalPen, m_horizontalPen, m_edgePen);
 
 	if (minPen < FLT_MAX)
 	{
@@ -248,7 +285,7 @@ void CapsuleCylinderCollision::MakeContacts()
 		{
 			MakeHorizontalContacts();
 		}
-		else if (minPen == m_worstEdgePen)
+		else if (minPen == m_edgePen)
 		{
 			MakeEdgeContacts();
 		}
@@ -284,4 +321,9 @@ void CapsuleCylinderCollision::MakeHorizontalContacts()
 //-------------------------------------------------------------------------------------------------
 void CapsuleCylinderCollision::MakeEdgeContacts()
 {
+	m_contacts[0].position = m_edgePosition;
+	m_contacts[0].normal = m_edgeNormal;
+	m_contacts[0].penetration = m_edgePen;
+	m_contacts[0].CheckValuesAreReasonable();
+	m_numContacts = 1;
 }

@@ -95,7 +95,9 @@ private:
 	Vector3		m_horizontalNormal = Vector3::ZERO;
 
 	// Edge
-	float		m_worstEdgePen = FLT_MAX;
+	float		m_edgePen = FLT_MAX;
+	Vector3		m_edgePosition = Vector3::ZERO;
+	Vector3		m_edgeNormal = Vector3::ZERO;
 
 };
 
