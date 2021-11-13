@@ -246,6 +246,9 @@ void CapsuleCylinderCollision::SolveEdge()
 	if (!hasSolution)
 		return;
 
+
+
+
 	if (!m_capsule.ContainsPoint(cylEdgePt))
 		return;
 
