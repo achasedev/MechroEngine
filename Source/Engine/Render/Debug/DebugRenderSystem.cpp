@@ -160,9 +160,17 @@ DebugRenderObjectHandle DebugDrawCapsule(const Capsule3D& capsule, const DebugRe
 	Mesh* middleMesh = g_resourceSystem->CreateOrGetMesh("capsule_middle");
 	Mesh* bottomMesh = g_resourceSystem->CreateOrGetMesh("capsule_bottom");
 
-	Matrix4 topMat = Matrix4::MakeModelMatrix(Vector3(0.f, 0.5f * startEndDistance, 0.f), Quaternion::IDENTITY, Vector3(capsule.radius));
+	Vector3 endcapScale = Vector3(capsule.radius);
+	if (options.m_parentTransform != nullptr)
+	{
+		// Ugly hack - in the case the size of the capsule are embedded inside the parent transform's scale, we need
+		// to make sure the end caps aren't scaled incorrectly in the y. So make up a scale s.t. after the parent scale is applied we end up scaling by xz scale, not y scale
+		endcapScale.y *= options.m_parentTransform->scale.x / options.m_parentTransform->scale.y;
+	}
+
+	Matrix4 topMat = Matrix4::MakeModelMatrix(Vector3(0.f, 0.5f * startEndDistance, 0.f), Quaternion::IDENTITY, endcapScale);
 	Matrix4 middleMat = Matrix4::MakeScale(Vector3(capsule.radius, startEndDistance, capsule.radius));
-	Matrix4 bottomMat = Matrix4::MakeModelMatrix(Vector3(0.f, -0.5f * startEndDistance, 0.f), Quaternion::IDENTITY, Vector3(capsule.radius));
+	Matrix4 bottomMat = Matrix4::MakeModelMatrix(Vector3(0.f, -0.5f * startEndDistance, 0.f), Quaternion::IDENTITY, endcapScale);
 
 	obj->AddMesh(topMesh, topMat, false);
 	obj->AddMesh(middleMesh, middleMat, false);

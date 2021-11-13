@@ -35,7 +35,8 @@ public:
 	Capsule3D() {}
 	Capsule3D(const Vector3& start, const Vector3& end, float radius);
 
-	bool ContainsPoint(const Vector3& point) const;
+	float	GetHeight() const;
+	bool	ContainsPoint(const Vector3& point) const;
 
 
 public:

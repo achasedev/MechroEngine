@@ -39,6 +39,14 @@ Capsule3D::Capsule3D(const Vector3& _start, const Vector3& _end, float _radius)
 
 
 //-------------------------------------------------------------------------------------------------
+float Capsule3D::GetHeight() const
+{
+	Vector3 spine = end - start;
+	return spine.GetLength();
+}
+
+
+//-------------------------------------------------------------------------------------------------
 bool Capsule3D::ContainsPoint(const Vector3& point) const
 {
 	Vector3 spinePt;

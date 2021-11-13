@@ -331,7 +331,7 @@ Quaternion Transform::GetWorldRotation() const
 {
 	if (m_parentTransform != nullptr)
 	{
-		Quaternion parentWorldRotation = GetWorldRotation();
+		Quaternion parentWorldRotation = m_parentTransform->GetWorldRotation();
 		return parentWorldRotation * rotation;
 	}
 

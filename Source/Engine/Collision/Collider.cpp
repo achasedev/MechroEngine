@@ -158,8 +158,9 @@ OBB3 BoxCollider::GetDataInWorldSpace() const
 {
 	Vector3 centerWs = m_entity->transform.TransformPosition(m_dataLs.center);
 	Quaternion rotationWs = m_entity->transform.rotation * m_dataLs.rotation;
+	Vector3 extentsWs = m_dataLs.extents * m_entity->transform.scale;
 
-	return OBB3(centerWs, m_dataLs.extents, rotationWs);
+	return OBB3(centerWs, extentsWs, rotationWs);
 }
 
 
@@ -189,7 +190,7 @@ Capsule3D CapsuleCollider::GetDataInWorldSpace() const
 	Vector3 startWs = m_entity->transform.TransformPosition(m_dataLs.start);
 	Vector3 endWs = m_entity->transform.TransformPosition(m_dataLs.end);
 
-	return Capsule3D(startWs, endWs, m_dataLs.radius);
+	return Capsule3D(startWs, endWs, m_dataLs.radius * m_entity->transform.scale.x); // It should be that x == z
 }
 
 
@@ -250,5 +251,5 @@ Cylinder3D CylinderCollider::GetDataInWorldSpace() const
 	Vector3 bottomWs = m_entity->transform.TransformPosition(m_dataLs.m_bottom);
 	Vector3 topWs = m_entity->transform.TransformPosition(m_dataLs.m_top);
 
-	return Cylinder3D(bottomWs, topWs, m_dataLs.m_radius);
+	return Cylinder3D(bottomWs, topWs, m_dataLs.m_radius * m_entity->transform.scale.x); // It should be that x == z
 }
