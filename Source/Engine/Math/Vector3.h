@@ -44,6 +44,7 @@ public:
 	Vector3(const Vector3& copyFrom);
 	explicit Vector3(float value);
 	explicit Vector3(float initialX, float initialY, float initialZ);
+	explicit Vector3(double initialX, double initialY, double initialZ);
 	explicit Vector3(int initialX, int initialY, int initialZ);
 	explicit Vector3(const Vector2& xyVector, float initialZ);
 	explicit Vector3(const IntVector3& intVector);

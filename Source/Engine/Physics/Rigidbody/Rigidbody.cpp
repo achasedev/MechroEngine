@@ -11,6 +11,7 @@
 #include "Engine/Core/EngineCommon.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Physics/RigidBody/RigidBody.h"
+#include "Engine/Physics/Rigidbody/VolumeIntegration.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -173,6 +174,24 @@ void RigidBody::SetInertiaTensor_Sphere(float radius)
 	inertiaTensor.Kz = moment;
 
 	SetInverseInertiaTensor(inertiaTensor.GetInverse(), Vector3::ZERO);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void RigidBody::SetInertiaTensor_Polygon(const Polygon3d& polyLs)
+{
+	if (m_iMass == 0.f)
+	{
+		ConsoleWarningf("Attempting to set the inertia tensor of an immovable object to that of a polygon. Ignoring...");
+		return;
+	}
+
+	double mass = 1.0 / static_cast<double>(m_iMass);
+
+	Matrix3 inertiaTensor;
+	Vector3 centerOfMass = ComputeCenterOfMassAndInteriaTensor(polyLs, inertiaTensor, mass);
+
+	SetInverseInertiaTensor(inertiaTensor.GetInverse(), centerOfMass);
 }
 
 

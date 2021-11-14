@@ -196,6 +196,7 @@
     <ClCompile Include="Physics\RigidBody\RigidBodyForceRegistry.cpp" />
     <ClCompile Include="Physics\RigidBody\PhysicsScene.cpp" />
     <ClCompile Include="Physics\RigidBody\RigidBodySpring.cpp" />
+    <ClCompile Include="Physics\Rigidbody\VolumeIntegration.cpp" />
     <ClCompile Include="Render\ForwardRenderer.cpp" />
     <ClCompile Include="Render\Light.cpp" />
     <ClCompile Include="Render\Material\MaterialInstance.cpp" />
@@ -333,6 +334,7 @@
     <ClInclude Include="Physics\RigidBody\RigidBodyForceRegistry.h" />
     <ClInclude Include="Physics\RigidBody\PhysicsScene.h" />
     <ClInclude Include="Physics\RigidBody\RigidBodySpring.h" />
+    <ClInclude Include="Physics\Rigidbody\VolumeIntegration.h" />
     <ClInclude Include="Render\ForwardRenderer.h" />
     <ClInclude Include="Render\Light.h" />
     <ClInclude Include="Render\Material\MaterialInstance.h" />

@@ -94,6 +94,15 @@ Vector3::Vector3(const IntVector3& intVector)
 
 
 //-------------------------------------------------------------------------------------------------
+Vector3::Vector3(double initialX, double initialY, double initialZ)
+	: x(static_cast<float>(initialX))
+	, y(static_cast<float>(initialY))
+	, z(static_cast<float>(initialZ))
+{
+}
+
+
+//-------------------------------------------------------------------------------------------------
 const Vector3 Vector3::operator+(const Vector3& addVector) const
 {
 	return Vector3((x + addVector.x), (y + addVector.y), (z + addVector.z));
