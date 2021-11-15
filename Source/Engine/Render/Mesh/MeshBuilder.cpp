@@ -426,6 +426,65 @@ void MeshBuilder::SetTangent(const Vector4& tangent)
 }
 
 
+//-----------------------------------------------------------------------------------------------
+void MeshBuilder::GenerateFlatNormals()
+{
+	ASSERT_OR_DIE(m_instruction.m_topology == TOPOLOGY_TRIANGLE_LIST, "Error: MeshBuilder::GenerateFlatNormals() called on builder that isn't using triangles");
+
+	if (m_instruction.m_useIndices)
+	{
+		ASSERT_OR_DIE((int)m_indices.size() % 3 == 0, "Error: MeshBuilder::GenerateFlatNormals() called with weird number of indices: %i", (int)m_vertices.size());
+	}
+	else
+	{
+		ASSERT_OR_DIE((int)m_vertices.size() % 3 == 0, "Error: MeshBuilder::GenerateFlatNormals() called with weird number of vertices: %i", (int)m_vertices.size());
+	}
+
+	if (m_instruction.m_useIndices)
+	{
+		for (int iIndex = 0; iIndex < (int)m_indices.size(); iIndex += 3)
+		{
+			int iA = m_indices[iIndex];
+			int iB = m_indices[iIndex + 1];
+			int iC = m_indices[iIndex + 2];
+
+			Vector3 a = m_vertices[iA].m_position;
+			Vector3 b = m_vertices[iB].m_position;
+			Vector3 c = m_vertices[iC].m_position;
+
+			Vector3 leftSide = b - a;
+			Vector3 rightSide = c - a;
+
+			Vector3 normal = CrossProduct(leftSide, rightSide).GetNormalized();
+
+			// Set all to use the same normals
+			m_vertices[iA].m_normal = normal;
+			m_vertices[iB].m_normal = normal;
+			m_vertices[iC].m_normal = normal;
+		}
+	}
+	else
+	{
+		for (int iVertex = 0; iVertex < (int)m_vertices.size(); iVertex += 3)
+		{
+			Vector3 a = m_vertices[iVertex].m_position;
+			Vector3 b = m_vertices[iVertex + 1].m_position;
+			Vector3 c = m_vertices[iVertex + 2].m_position;
+
+			Vector3 leftSide = b - a;
+			Vector3 rightSide = c - a;
+
+			Vector3 normal = CrossProduct(leftSide, rightSide).GetNormalized();
+
+			// Set all to use the same normals
+			m_vertices[iVertex].m_normal = normal;
+			m_vertices[iVertex + 1].m_normal = normal;
+			m_vertices[iVertex + 2].m_normal = normal;
+		}
+	}
+}
+
+
 //-------------------------------------------------------------------------------------------------
 void MeshBuilder::SetDrawInstruction(const DrawInstruction& instruction)
 {

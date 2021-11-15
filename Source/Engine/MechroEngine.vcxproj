@@ -162,6 +162,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\ThirdParty\mikkt\mikktspace.c" />
     <ClCompile Include="..\ThirdParty\tinyxml2\tinyxml2.cpp" />
     <ClCompile Include="Collision\BoundingVolumeHierarchy\BoundingVolume.cpp" />
     <ClCompile Include="Collision\CollisionCases\CapsuleCylinderCollision.cpp" />
@@ -291,6 +292,7 @@
     <ClCompile Include="Voxel\QEFLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\ThirdParty\mikkt\mikktspace.h" />
     <ClInclude Include="..\ThirdParty\stb\stb_image.h" />
     <ClInclude Include="..\ThirdParty\stb\stb_image_write.h" />
     <ClInclude Include="..\ThirdParty\tinyxml2\tinyxml2.h" />

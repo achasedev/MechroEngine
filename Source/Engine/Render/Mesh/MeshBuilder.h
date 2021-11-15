@@ -56,6 +56,7 @@ public:
 	void	SetUV(const Vector2& uv);
 	void	SetNormal(const Vector3& normal);
 	void	SetTangent(const Vector4& tangent);
+	void	GenerateFlatNormals();
 
 	void	SetDrawInstruction(const DrawInstruction& instruction);
 
