@@ -25,6 +25,7 @@ class Cylinder3D;
 class Frustrum;
 class OBB3;
 class Plane3;
+class Polygon3d;
 class Sphere3D;
 class Shader;
 class Texture2D;
@@ -104,3 +105,4 @@ DebugRenderObjectHandle DebugDrawCylinder(const Vector3& bottom, const Vector3& 
 DebugRenderObjectHandle DebugDrawCylinder(const Cylinder3D& cylinder, const DebugRenderOptions& options = DebugRenderOptions());
 DebugRenderObjectHandle DebugDrawFrustrum(const Frustrum& frustrum, const DebugRenderOptions& options = DebugRenderOptions());
 DebugRenderObjectHandle DebugDrawPlane(const Plane3& plane, const DebugRenderOptions& options = DebugRenderOptions());
+DebugRenderObjectHandle DebugDrawPolygon(const Polygon3d& poly, const DebugRenderOptions& options = DebugRenderOptions());

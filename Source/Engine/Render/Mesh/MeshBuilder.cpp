@@ -973,6 +973,40 @@ void MeshBuilder::PushCapsule(const Vector3& start, const Vector3& end, float ra
 
 
 //-------------------------------------------------------------------------------------------------
+void MeshBuilder::PushPolygon(const Polygon3d& poly, const Rgba& color /*= Rgba::WHITE*/)
+{
+	bool useIndices = true;
+	AssertBuildState(true, TOPOLOGY_TRIANGLE_LIST, &useIndices);
+	
+	SetColor(color);
+	SetUV(Vector2::ZERO);
+
+	// Need to push one face at a time, duplicating verts in order to preserve normals per-face
+	int numFaces = poly.GetNumFaces();
+
+	for (int iFace = 0; iFace < numFaces; ++iFace)
+	{
+		const PolygonFace3d* face = poly.GetFace(iFace);
+		int numVertsInFace = (int)face->m_indices.size();
+		int vertOffset = (int)m_vertices.size();
+
+		for (int iVertex = 0; iVertex < numVertsInFace; ++iVertex)
+		{
+			PushVertex(poly.GetVertexPosition(face->m_indices[iVertex]));
+		}
+
+		// Push indices to triangulate - make triangles using the first vertex and a set of edge vertices
+		for (int iVertex = 1; iVertex < numVertsInFace - 1; ++iVertex)
+		{
+			PushIndex(vertOffset + 0);
+			PushIndex(vertOffset + iVertex);
+			PushIndex(vertOffset + iVertex + 1);
+		}
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void MeshBuilder::PushDisc(const Vector3& center, float radius, const Vector3& normal, const Vector3& tangent, const Rgba& color /*= Rgba::WHITE*/, int numUSteps /*= 10*/, float centerV /*= 0.f*/, float discEdgeV /*= (1.f / 3.f)*/)
 {
 	bool useIndices = true;

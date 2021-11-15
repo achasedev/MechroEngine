@@ -86,6 +86,7 @@ void DebugRenderObject::Render()
 	// Update the color tint
 	Vector4 tint = CalculateTint();
 	m_material->SetProperty(SID("TINT"), tint);
+	m_material->SetProperty(SID("WIREFRAME_BLEND"), (m_options.m_fillMode == FILL_MODE_WIREFRAME ? 1.0f : 0.f));
 
 	// Get the matrix
 	Matrix4 model = m_transform.GetModelMatrix();
