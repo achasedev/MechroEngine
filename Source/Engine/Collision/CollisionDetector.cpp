@@ -30,7 +30,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 GenerateContactsFunction CollisionDetector::s_colliderMatrix[NUM_COLLIDER_TYPES][NUM_COLLIDER_TYPES] =
 {
-	{ nullptr, nullptr, &CollisionDetector::GenerateContacts_HalfSpaceSphere,	&CollisionDetector::GenerateContacts_HalfSpaceCapsule,	&CollisionDetector::GenerateContacts_HalfSpaceBox,	&CollisionDetector::GenerateContacts_HalfSpaceCylinder, nullptr },
+	{ nullptr, nullptr, &CollisionDetector::GenerateContacts_HalfSpaceSphere,	&CollisionDetector::GenerateContacts_HalfSpaceCapsule,	&CollisionDetector::GenerateContacts_HalfSpaceBox,	&CollisionDetector::GenerateContacts_HalfSpaceCylinder, &CollisionDetector::GenerateContacts_HalfSpacePolygon },
 	{ nullptr, nullptr, &CollisionDetector::GenerateContacts_PlaneSphere,		&CollisionDetector::GenerateContacts_PlaneCapsule,		&CollisionDetector::GenerateContacts_PlaneBox,		&CollisionDetector::GenerateContacts_PlaneCylinder,		nullptr },
 	{ nullptr, nullptr,	&CollisionDetector::GenerateContacts_SphereSphere,		&CollisionDetector::GenerateContacts_SphereCapsule,		&CollisionDetector::GenerateContacts_SphereBox,		&CollisionDetector::GenerateContacts_SphereCylinder,	nullptr },
 	{ nullptr, nullptr, nullptr,												&CollisionDetector::GenerateContacts_CapsuleCapsule,	&CollisionDetector::GenerateContacts_CapsuleBox,	&CollisionDetector::GenerateContacts_CapsuleCylinder,	nullptr },
@@ -279,6 +279,52 @@ int CollisionDetector::GenerateContacts_HalfSpaceCylinder(const Collider* a, con
 			contactToFill->penetration = Abs(pen);
 			FillOutColliderInfo(contactToFill, bCylinderCol, aHalfSpaceCol);
 
+			contactToFill->CheckValuesAreReasonable();
+			numContactsAdded++;
+
+			if (numContactsAdded < limit)
+			{
+				contactToFill = &out_contacts[numContactsAdded];
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+
+	return numContactsAdded;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionDetector::GenerateContacts_HalfSpacePolygon(const Collider* a, const Collider* b, Contact* out_contacts, int limit)
+{
+	const HalfSpaceCollider* aHalfSpaceCol = a->GetAsType<HalfSpaceCollider>();
+	const PolygonCollider* bPolyCollider = b->GetAsType<PolygonCollider>();
+	ASSERT_OR_DIE(aHalfSpaceCol != nullptr && bPolyCollider != nullptr, "Colliders are of wrong type!");
+
+	if (limit <= 0)
+		return 0;
+
+	Plane3 planeWs = aHalfSpaceCol->GetDataInWorldSpace();
+	Polygon3d polyWs = bPolyCollider->GetDataInWorldSpace();
+
+	int numContactsAdded = 0;
+	Contact* contactToFill = out_contacts;
+	int numVerts = polyWs.GetNumVertices();
+
+	for (int iVert = 0; iVert < numVerts; ++iVert)
+	{
+		Vector3 vertex = polyWs.GetVertexPosition(iVert);
+		float distance = planeWs.GetDistanceFromPlane(vertex);
+
+		if (distance < 0.f)
+		{
+			contactToFill->position = vertex;
+			contactToFill->normal = planeWs.m_normal;
+			contactToFill->penetration = Abs(distance);
+			FillOutColliderInfo(contactToFill, bPolyCollider, aHalfSpaceCol);
 			contactToFill->CheckValuesAreReasonable();
 			numContactsAdded++;
 
