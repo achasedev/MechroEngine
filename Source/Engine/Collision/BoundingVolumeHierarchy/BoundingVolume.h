@@ -22,6 +22,7 @@ class CapsuleCollider;
 class CylinderCollider;
 class HalfSpaceCollider;
 class PlaneCollider;
+class PolygonCollider;
 class SphereCollider;
 class Transform;
 
@@ -46,6 +47,7 @@ public:
 	BoundingVolumeSphere(const BoxCollider& colBox);
 	BoundingVolumeSphere(const CapsuleCollider& capsuleCol);
 	BoundingVolumeSphere(const CylinderCollider& cylinderCol);
+	BoundingVolumeSphere(const PolygonCollider& polyCol);
 
 	BoundingVolumeSphere	GetTransformApplied(const Transform& transform);
 	void					DebugRender() const;

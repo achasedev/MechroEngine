@@ -12,6 +12,7 @@
 #include "Engine/Math/Capsule3D.h"
 #include "Engine/Math/Cylinder3D.h"
 #include "Engine/Math/OBB3.h"
+#include "Engine/Math/Polygon3D.h"
 #include "Engine/Math/Sphere3D.h"
 #include "Engine/Math/Transform.h"
 #include "Engine/Render/Debug/DebugRenderObject.h"
@@ -254,6 +255,33 @@ public:
 	//-----Public Data-----
 
 	static constexpr int TYPE_INDEX = 5;
+
+
+private:
+	//-----Private Data-----
+
+};
+
+
+//-------------------------------------------------------------------------------------------------
+class PolygonCollider : public TypedCollider<Polygon3d>
+{
+public:
+	//-----Public Methods-----
+	RTTI_DERIVED_CLASS(PolygonCollider);
+
+	PolygonCollider() {}
+	PolygonCollider(Entity* owningEntity, const Polygon3d& polyLs);
+
+	virtual void		ShowDebug() override;
+	virtual Polygon3d	GetDataInWorldSpace() const override;
+	virtual int			GetTypeIndex() const { return TYPE_INDEX; }
+
+
+public:
+	//-----Public Data-----
+
+	static constexpr int TYPE_INDEX = 6;
 
 
 private:

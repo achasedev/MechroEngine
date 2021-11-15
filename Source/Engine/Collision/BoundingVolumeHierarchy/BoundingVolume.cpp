@@ -136,6 +136,32 @@ BoundingVolumeSphere::BoundingVolumeSphere(const CylinderCollider& cylinderCol)
 
 
 //-------------------------------------------------------------------------------------------------
+BoundingVolumeSphere::BoundingVolumeSphere(const PolygonCollider& polyCol)
+{
+	Polygon3d polyWs = polyCol.GetDataInWorldSpace();
+	int numVerts = polyWs.GetNumVertices();
+
+	Vector3 avgPos = Vector3::ZERO;
+	for (int iVert = 0; iVert < numVerts; ++iVert)
+	{
+		avgPos += polyWs.GetVertexPosition(iVert);
+	}
+
+	avgPos /= (float)numVerts;
+
+	float maxDistSqr = -1.0f;
+	for (int iVert = 0; iVert < numVerts; ++iVert)
+	{
+		float distSqr = (avgPos - polyWs.GetVertexPosition(iVert)).GetLengthSquared();
+		maxDistSqr = Max(maxDistSqr, distSqr);
+	}
+
+	center = avgPos;
+	radius = Sqrt(maxDistSqr);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 BoundingVolumeSphere BoundingVolumeSphere::GetTransformApplied(const Transform& transform)
 {
 	BoundingVolumeSphere result;

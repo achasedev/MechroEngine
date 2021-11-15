@@ -237,6 +237,12 @@ BoundingVolumeClass CollisionScene<BoundingVolumeClass>::MakeBoundingVolumeForCo
 		return BoundingVolumeClass(*cylinderCol);
 	}
 		break;
+	case PolygonCollider::TYPE_INDEX:
+	{
+		const PolygonCollider* polyCol = collider->GetAsType<PolygonCollider>();
+		return BoundingVolumeClass(*polyCol);
+	}
+		break;
 	default:
 		ERROR_AND_DIE("Cannot make bounding volume for collider type: %s", collider->GetTypeAsString());
 		break;

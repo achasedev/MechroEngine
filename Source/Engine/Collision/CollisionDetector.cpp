@@ -30,12 +30,13 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 GenerateContactsFunction CollisionDetector::s_colliderMatrix[NUM_COLLIDER_TYPES][NUM_COLLIDER_TYPES] =
 {
-	{ nullptr, nullptr, &CollisionDetector::GenerateContacts_HalfSpaceSphere,	&CollisionDetector::GenerateContacts_HalfSpaceCapsule,	&CollisionDetector::GenerateContacts_HalfSpaceBox, &CollisionDetector::GenerateContacts_HalfSpaceCylinder },
-	{ nullptr, nullptr, &CollisionDetector::GenerateContacts_PlaneSphere,		&CollisionDetector::GenerateContacts_PlaneCapsule,		&CollisionDetector::GenerateContacts_PlaneBox, &CollisionDetector::GenerateContacts_PlaneCylinder },
-	{ nullptr, nullptr,	&CollisionDetector::GenerateContacts_SphereSphere,		&CollisionDetector::GenerateContacts_SphereCapsule,		&CollisionDetector::GenerateContacts_SphereBox, &CollisionDetector::GenerateContacts_SphereCylinder },
-	{ nullptr, nullptr, nullptr,												&CollisionDetector::GenerateContacts_CapsuleCapsule,	&CollisionDetector::GenerateContacts_CapsuleBox, &CollisionDetector::GenerateContacts_CapsuleCylinder },
-	{ nullptr, nullptr, nullptr,												nullptr,												&CollisionDetector::GenerateContacts_BoxBox, nullptr },
-	{ nullptr, nullptr, nullptr,												nullptr,												nullptr, nullptr }
+	{ nullptr, nullptr, &CollisionDetector::GenerateContacts_HalfSpaceSphere,	&CollisionDetector::GenerateContacts_HalfSpaceCapsule,	&CollisionDetector::GenerateContacts_HalfSpaceBox,	&CollisionDetector::GenerateContacts_HalfSpaceCylinder, nullptr },
+	{ nullptr, nullptr, &CollisionDetector::GenerateContacts_PlaneSphere,		&CollisionDetector::GenerateContacts_PlaneCapsule,		&CollisionDetector::GenerateContacts_PlaneBox,		&CollisionDetector::GenerateContacts_PlaneCylinder,		nullptr },
+	{ nullptr, nullptr,	&CollisionDetector::GenerateContacts_SphereSphere,		&CollisionDetector::GenerateContacts_SphereCapsule,		&CollisionDetector::GenerateContacts_SphereBox,		&CollisionDetector::GenerateContacts_SphereCylinder,	nullptr },
+	{ nullptr, nullptr, nullptr,												&CollisionDetector::GenerateContacts_CapsuleCapsule,	&CollisionDetector::GenerateContacts_CapsuleBox,	&CollisionDetector::GenerateContacts_CapsuleCylinder,	nullptr },
+	{ nullptr, nullptr, nullptr,												nullptr,												&CollisionDetector::GenerateContacts_BoxBox,		nullptr,												nullptr },
+	{ nullptr, nullptr, nullptr,												nullptr,												nullptr,											nullptr,												nullptr },
+	{ nullptr, nullptr, nullptr,												nullptr,												nullptr,											nullptr,												nullptr }
 };
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

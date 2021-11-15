@@ -27,6 +27,7 @@ RTTI_TYPE_DEFINE(PlaneCollider);
 RTTI_TYPE_DEFINE(BoxCollider);
 RTTI_TYPE_DEFINE(CapsuleCollider);
 RTTI_TYPE_DEFINE(CylinderCollider);
+RTTI_TYPE_DEFINE(PolygonCollider);
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -252,4 +253,35 @@ Cylinder3D CylinderCollider::GetDataInWorldSpace() const
 	Vector3 topWs = m_entity->transform.TransformPosition(m_dataLs.m_top);
 
 	return Cylinder3D(bottomWs, topWs, m_dataLs.m_radius * m_entity->transform.scale.x); // It should be that x == z
+}
+
+
+//-------------------------------------------------------------------------------------------------
+PolygonCollider::PolygonCollider(Entity* owningEntity, const Polygon3d& polyLs)
+	: TypedCollider(owningEntity, polyLs)
+{
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void PolygonCollider::ShowDebug()
+{
+	if (m_debugRenderHandle == INVALID_DEBUG_RENDER_OBJECT_HANDLE)
+	{
+		DebugRenderOptions options = DEFAULT_COLLIDER_RENDER_OPTIONS;
+		options.m_parentTransform = &m_entity->transform;
+
+		DebugDrawPolygon(m_dataLs, options);
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Polygon3d PolygonCollider::GetDataInWorldSpace() const
+{
+	Polygon3d polyWs;
+	Matrix4 toWorld = m_entity->transform.GetModelMatrix();
+	m_dataLs.GetTransformed(toWorld, polyWs);
+
+	return polyWs; // TODO: Don't return this
 }
