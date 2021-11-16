@@ -9,11 +9,11 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/EngineCommon.h"
-#include "Engine/Math/Capsule3D.h"
-#include "Engine/Math/Cylinder3D.h"
+#include "Engine/Math/Capsule3.h"
+#include "Engine/Math/Cylinder.h"
 #include "Engine/Math/OBB3.h"
-#include "Engine/Math/Polygon3D.h"
-#include "Engine/Math/Sphere3D.h"
+#include "Engine/Math/Polygon3.h"
+#include "Engine/Math/Sphere.h"
 #include "Engine/Math/Transform.h"
 #include "Engine/Render/Debug/DebugRenderObject.h"
 
@@ -156,17 +156,17 @@ private:
 
 
 //-------------------------------------------------------------------------------------------------
-class SphereCollider : public TypedCollider<Sphere3D>
+class SphereCollider : public TypedCollider<Sphere>
 {
 public:
 	//-----Public Methods-----
 	RTTI_DERIVED_CLASS(SphereCollider);
 
 	SphereCollider() {}
-	SphereCollider(Entity* owningEntity, const Sphere3D& sphereLs);
+	SphereCollider(Entity* owningEntity, const Sphere& sphereLs);
 
 	virtual void		ShowDebug() override;
-	virtual Sphere3D	GetDataInWorldSpace() const override;
+	virtual Sphere	GetDataInWorldSpace() const override;
 	virtual int			GetTypeIndex() const { return TYPE_INDEX; }
 
 
@@ -183,17 +183,17 @@ private:
 
 
 //-------------------------------------------------------------------------------------------------
-class CapsuleCollider : public TypedCollider<Capsule3D>
+class CapsuleCollider : public TypedCollider<Capsule3>
 {
 public:
 	//-----Public Methods-----
 	RTTI_DERIVED_CLASS(CapsuleCollider);
 
 	CapsuleCollider() {}
-	CapsuleCollider(Entity* owningEntity, const Capsule3D& capsuleLs);
+	CapsuleCollider(Entity* owningEntity, const Capsule3& capsuleLs);
 
 	virtual void		ShowDebug() override;
-	virtual Capsule3D	GetDataInWorldSpace() const override;
+	virtual Capsule3	GetDataInWorldSpace() const override;
 	virtual int			GetTypeIndex() const { return TYPE_INDEX; }
 
 
@@ -237,17 +237,17 @@ private:
 
 
 //-------------------------------------------------------------------------------------------------
-class CylinderCollider : public TypedCollider<Cylinder3D>
+class CylinderCollider : public TypedCollider<Cylinder>
 {
 public:
 	//-----Public Methods-----
 	RTTI_DERIVED_CLASS(CylinderCollider);
 
 	CylinderCollider() {}
-	CylinderCollider(Entity* owningEntity, const Cylinder3D& cylinderLs);
+	CylinderCollider(Entity* owningEntity, const Cylinder& cylinderLs);
 
 	virtual void		ShowDebug() override;
-	virtual Cylinder3D	GetDataInWorldSpace() const override;
+	virtual Cylinder	GetDataInWorldSpace() const override;
 	virtual int			GetTypeIndex() const { return TYPE_INDEX; }
 
 
@@ -264,17 +264,17 @@ private:
 
 
 //-------------------------------------------------------------------------------------------------
-class PolygonCollider : public TypedCollider<Polygon3d>
+class ConvexHullCollider : public TypedCollider<Polygon3>
 {
 public:
 	//-----Public Methods-----
-	RTTI_DERIVED_CLASS(PolygonCollider);
+	RTTI_DERIVED_CLASS(ConvexHullCollider);
 
-	PolygonCollider() {}
-	PolygonCollider(Entity* owningEntity, const Polygon3d& polyLs);
+	ConvexHullCollider() {}
+	ConvexHullCollider(Entity* owningEntity, const Polygon3& hullLs);
 
 	virtual void		ShowDebug() override;
-	virtual Polygon3d	GetDataInWorldSpace() const override;
+	virtual Polygon3	GetDataInWorldSpace() const override;
 	virtual int			GetTypeIndex() const { return TYPE_INDEX; }
 
 

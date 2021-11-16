@@ -178,7 +178,7 @@ void RigidBody::SetInertiaTensor_Sphere(float radius)
 
 
 //-------------------------------------------------------------------------------------------------
-void RigidBody::SetInertiaTensor_Polygon(const Polygon3d& polyLs)
+void RigidBody::SetInertiaTensor_Polygon(const Polygon3& polyLs)
 {
 	if (m_iMass == 0.f)
 	{

@@ -73,15 +73,15 @@ struct HalfEdge
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Polygon3d
+class Polygon3
 {
 public:
 	//-----Public Methods-----
 
 
-	Polygon3d() {}
-	~Polygon3d() {}
-	Polygon3d(const OBB3& box);
+	Polygon3() {}
+	~Polygon3() {}
+	Polygon3(const OBB3& box);
 
 	void					Clear();
 	void					GenerateHalfEdgeStructure();
@@ -114,7 +114,7 @@ public:
 	Vector3					GetEdgeDirectionNormalized(int edgeIndex) const;
 	bool					HasGeneratedHalfEdges() const { return m_edges.size() > 0; }
 
-	void					GetTransformed(const Matrix4& matrix, Polygon3d& out_polygon) const;
+	void					GetTransformed(const Matrix4& matrix, Polygon3& out_polygon) const;
 	Vector3					GetCenter() const;
 
 
@@ -136,7 +136,7 @@ class UniqueHalfEdgeIterator
 public:
 	//-----Public Methods-----
 
-	UniqueHalfEdgeIterator(const Polygon3d& polygon);
+	UniqueHalfEdgeIterator(const Polygon3& polygon);
 
 	const HalfEdge* GetNext();
 
@@ -144,7 +144,7 @@ public:
 private:
 	//-----Private Data-----
 
-	const Polygon3d&	m_polygon;
+	const Polygon3&		m_polygon;
 	int					m_currIndex = 0;
 	std::vector<int>	m_visitedList;
 

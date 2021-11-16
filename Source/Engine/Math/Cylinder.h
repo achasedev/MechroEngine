@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: September 9th, 2020
+/// Date Created: Nov 5th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,9 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Core/EngineCommon.h"
-#include "Engine/Math/Vector2.h"
-#include <vector>
+#include "Engine/Math/Vector3.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -29,46 +27,25 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Polygon2D
+class Cylinder
 {
 public:
 	//-----Public Methods-----
 
-	// Constructor/Destructors
-	Polygon2D() {}
-	Polygon2D(const std::vector<Vector2> vertices);
-	Polygon2D(uint32 reserveSize);
+	Cylinder() {}
+	Cylinder(const Vector3& bottom, const Vector3& top, float radius);
 
-	// Mutators
-	void	AddVertex(const Vector2& vertex);
-	void	AddVertices(const std::vector<Vector2>& vertices);
-	void	Clear();
-
-	// Accessors
-	uint32	GetNumVertices() const { return (uint32)m_vertices.size(); }
-	Vector2 GetVertexAtIndex(int index) const;
-	int		GetPreviousVertexToIndex(int index, Vector2& out_prevVertex) const;
-	int		GetNextVertexToIndex(int index, Vector2& out_nextVertex) const;
-	int		GetFarthestVertexInDirection(const Vector2& directionInLocalSpace, Vector2& out_vertex) const;
-
-	// Producers
-	Vector2 GetCenter() const;
-	int		GetPreviousValidIndex(int index) const;
-	int		GetNextValidIndex(int index) const;
-	bool	IsWindingClockwise() const;
-	bool	IsWindingCounterClockwise() const { return !IsWindingClockwise(); }
-	bool	IsConvex() const;
-	bool	IsConcave() const { return !IsConvex(); }
+	Vector3 GetFurthestEdgePointInDirection(const Vector3& direction, bool* onTop = nullptr) const;
 
 
-private:
-	//-----Private Data-----
+public:
+	//-----Public Data-----
 
-	std::vector<Vector2> m_vertices;
-
+	Vector3 m_bottom = Vector3(0.f, -0.5f, 0.f);
+	Vector3 m_top = Vector3(0.f, 0.5f, 0.f);
+	float	m_radius = 1.0f;
 
 };
-
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS

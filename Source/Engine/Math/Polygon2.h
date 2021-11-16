@@ -1,15 +1,16 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: Nov 5th, 2021
+/// Date Created: September 9th, 2020
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/EngineCommon.h"
-#include "Engine/Math/Cylinder3D.h"
-#include "Engine/Math/MathUtils.h"
+#include "Engine/Math/Vector2.h"
+#include <vector>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -24,58 +25,50 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// CLASS DECLARATIONS
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------
+class Polygon2
+{
+public:
+	//-----Public Methods-----
+
+	// Constructor/Destructors
+	Polygon2() {}
+	Polygon2(const std::vector<Vector2> vertices);
+	Polygon2(uint32 reserveSize);
+
+	// Mutators
+	void	AddVertex(const Vector2& vertex);
+	void	AddVertices(const std::vector<Vector2>& vertices);
+	void	Clear();
+
+	// Accessors
+	uint32	GetNumVertices() const { return (uint32)m_vertices.size(); }
+	Vector2 GetVertexAtIndex(int index) const;
+	int		GetPreviousVertexToIndex(int index, Vector2& out_prevVertex) const;
+	int		GetNextVertexToIndex(int index, Vector2& out_nextVertex) const;
+	int		GetFarthestVertexInDirection(const Vector2& directionInLocalSpace, Vector2& out_vertex) const;
+
+	// Producers
+	Vector2 GetCenter() const;
+	int		GetPreviousValidIndex(int index) const;
+	int		GetNextValidIndex(int index) const;
+	bool	IsWindingClockwise() const;
+	bool	IsWindingCounterClockwise() const { return !IsWindingClockwise(); }
+	bool	IsConvex() const;
+	bool	IsConcave() const { return !IsConvex(); }
+
+
+private:
+	//-----Private Data-----
+
+	std::vector<Vector2> m_vertices;
+
+};
+
+
+///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// CLASS IMPLEMENTATIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------------------------------
-// Constructor
-Cylinder3D::Cylinder3D(const Vector3& bottom, const Vector3& top, float radius)
-	: m_bottom(bottom)
-	, m_top(top)
-	, m_radius(radius)
-{
-}
-
-
-//-------------------------------------------------------------------------------------------------
-// Returns the point on the cylinder surface furthest in the given direction
-// This is always a point on one of the disc edges of the cylinder, except for the cases where direction is perpendicular to the cylinder spine
-// In this case, I still choose a disc edge point for consistency
-Vector3 Cylinder3D::GetFurthestEdgePointInDirection(const Vector3& direction, bool* onTop /*= nullptr*/) const
-{
-	// Get the spine direction and end point based on params
-	Vector3 endPoint;
-	Vector3 spineDir;
-	if (onTop == nullptr)
-	{
-		float bottomDot = DotProduct(direction, m_bottom);
-		float topDot = DotProduct(direction, m_top);
-		endPoint = (bottomDot >= topDot ? m_bottom : m_top); // In tie cases, default to bottom
-		spineDir = (bottomDot >= topDot ? (m_bottom - m_top) : (m_top - m_bottom));
-	}
-	else if (*onTop)
-	{
-		endPoint = m_top;
-		spineDir = (m_top - m_bottom);
-	}
-	else
-	{
-		endPoint = m_bottom;
-		spineDir = (m_bottom - m_top);
-	}
-
-	spineDir.Normalize();
-
-	// Project onto the spine vector
-	float dot = DotProduct(spineDir, direction);
-
-	// Get the projection of the endPointToPlane onto the disc of the cylinder
-	Vector3 discVector = direction - spineDir * dot;
-	discVector.SafeNormalize(discVector);
-
-	return endPoint + discVector * m_radius;
-}

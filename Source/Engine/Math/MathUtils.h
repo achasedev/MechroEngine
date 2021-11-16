@@ -14,11 +14,11 @@
 #include "Engine/Math/Line3.h"
 #include "Engine/Math/Matrix4.h"
 #include "Engine/Math/Plane3.h"
-#include "Engine/Math/Polygon2D.h"
-#include "Engine/Math/Polygon3d.h"
+#include "Engine/Math/Polygon2.h"
+#include "Engine/Math/Polygon3.h"
 #include "Engine/Math/Quaternion.h"
 #include "Engine/Math/Range.h"
-#include "Engine/Math/Sphere3D.h"
+#include "Engine/Math/Sphere.h"
 #include "Engine/Math/Vector2.h"
 #include "Engine/Math/Vector3.h"
 #include "Engine/Math/Vector4.h"
@@ -28,6 +28,7 @@
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 const float PI = 3.1415926535897932384626433832795f;
+const float TAU = 2.f * PI;
 const float PI_OVER_TWO = 0.5f * PI;
 const float DEFAULT_EPSILON = 0.0001f;
 
@@ -190,7 +191,7 @@ bool AreMostlyEqual(const Vector2& a, const Vector2& b, float epsilon = DEFAULT_
 bool AreMostlyEqual(const Vector3& a, const Vector3& b, float epsilon = DEFAULT_EPSILON);
 bool AreMostlyEqual(const Matrix3& a, const Matrix3& b, float epsilon = DEFAULT_EPSILON);
 bool AreMostlyEqual(const Quaternion& a, const Quaternion& b, float epsilon = DEFAULT_EPSILON);
-bool AreMostlyEqual(const Sphere3D& a, const Sphere3D& b, float epsilon = DEFAULT_EPSILON);
+bool AreMostlyEqual(const Sphere& a, const Sphere& b, float epsilon = DEFAULT_EPSILON);
 
 bool IsReasonable(float value);
 bool IsReasonable(const Vector2& value);
@@ -206,7 +207,7 @@ bool IsReasonable(const OBB3& value);
 bool	DoRangesOverlap(const Range& a, const Range& b);
 bool	DoAABB2sOverlap(const AABB2& boxOne, const AABB2& boxTwo);
 bool	DoAABB3sOverlap(const AABB3& a, const AABB3& b);
-bool	DoSpheresOverlap(const Sphere3D& a, const Sphere3D& b);
+bool	DoSpheresOverlap(const Sphere& a, const Sphere& b);
 Vector2 RotatePointAboutPoint2D(const Vector2& pointToRotate, const Vector2& pointOfRotation, float angleDegrees);
 Vector2 RotatePointAboutPoint2D(const Vector2& pointToRotate, const Vector2& pointOfRotation, float cosAngle, float sinAngle);
 

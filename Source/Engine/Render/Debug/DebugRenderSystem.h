@@ -20,13 +20,13 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Camera;
-class Capsule3D;
-class Cylinder3D;
+class Capsule3;
+class Cylinder;
 class Frustrum;
 class OBB3;
 class Plane3;
-class Polygon3d;
-class Sphere3D;
+class Polygon3;
+class Sphere;
 class Shader;
 class Texture2D;
 
@@ -99,10 +99,10 @@ DebugRenderObjectHandle DebugDrawPoint(const Vector3& position, float diameter, 
 DebugRenderObjectHandle DebugDrawLine(const Vector3& start, const Vector3& end, const DebugRenderOptions& options = DebugRenderOptions());
 DebugRenderObjectHandle DebugDrawTransform(const Transform& transform, const DebugRenderOptions& options = DebugRenderOptions());
 DebugRenderObjectHandle DebugDrawSphere(const Vector3& center, float radius, const DebugRenderOptions& options = DebugRenderOptions());
-DebugRenderObjectHandle DebugDrawSphere(const Sphere3D& sphere, const DebugRenderOptions& options = DebugRenderOptions());
-DebugRenderObjectHandle DebugDrawCapsule(const Capsule3D& capsule, const DebugRenderOptions& options = DebugRenderOptions());
+DebugRenderObjectHandle DebugDrawSphere(const Sphere& sphere, const DebugRenderOptions& options = DebugRenderOptions());
+DebugRenderObjectHandle DebugDrawCapsule(const Capsule3& capsule, const DebugRenderOptions& options = DebugRenderOptions());
 DebugRenderObjectHandle DebugDrawCylinder(const Vector3& bottom, const Vector3& top, float radius, const DebugRenderOptions& options = DebugRenderOptions());
-DebugRenderObjectHandle DebugDrawCylinder(const Cylinder3D& cylinder, const DebugRenderOptions& options = DebugRenderOptions());
+DebugRenderObjectHandle DebugDrawCylinder(const Cylinder& cylinder, const DebugRenderOptions& options = DebugRenderOptions());
 DebugRenderObjectHandle DebugDrawFrustrum(const Frustrum& frustrum, const DebugRenderOptions& options = DebugRenderOptions());
 DebugRenderObjectHandle DebugDrawPlane(const Plane3& plane, const DebugRenderOptions& options = DebugRenderOptions());
-DebugRenderObjectHandle DebugDrawPolygon(const Polygon3d& poly, const DebugRenderOptions& options = DebugRenderOptions());
+DebugRenderObjectHandle DebugDrawPolygon(const Polygon3& poly, const DebugRenderOptions& options = DebugRenderOptions());

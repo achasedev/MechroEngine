@@ -1032,7 +1032,7 @@ void MeshBuilder::PushCapsule(const Vector3& start, const Vector3& end, float ra
 
 
 //-------------------------------------------------------------------------------------------------
-void MeshBuilder::PushPolygon(const Polygon3d& poly, const Rgba& color /*= Rgba::WHITE*/)
+void MeshBuilder::PushPolygon(const Polygon3& poly, const Rgba& color /*= Rgba::WHITE*/)
 {
 	bool useIndices = true;
 	AssertBuildState(true, TOPOLOGY_TRIANGLE_LIST, &useIndices);

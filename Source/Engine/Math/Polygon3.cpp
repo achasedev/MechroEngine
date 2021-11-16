@@ -11,7 +11,7 @@
 #include "Engine/Math/Matrix4.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Math/OBB3.h"
-#include "Engine/Math/Polygon3d.h"
+#include "Engine/Math/Polygon3.h"
 #include "Engine/Math/Transform.h"
 #include "Engine/Render/RenderContext.h"
 
@@ -38,7 +38,7 @@ typedef std::pair<int, int> HalfEdgeKey;
 
 
 //-------------------------------------------------------------------------------------------------
-Polygon3d::Polygon3d(const OBB3& box)
+Polygon3::Polygon3(const OBB3& box)
 {
 	Vector3 points[8];
 	box.GetPoints(points);
@@ -101,7 +101,7 @@ Polygon3d::Polygon3d(const OBB3& box)
 
 
 //-------------------------------------------------------------------------------------------------
-void Polygon3d::Clear()
+void Polygon3::Clear()
 {
 	m_vertices.clear();
 	m_faces.clear();
@@ -110,7 +110,7 @@ void Polygon3d::Clear()
 
 
 //-------------------------------------------------------------------------------------------------
-void Polygon3d::GenerateHalfEdgeStructure()
+void Polygon3::GenerateHalfEdgeStructure()
 {
 	int numFaces = (int)m_faces.size();
 	int numVertices = (int)m_vertices.size();
@@ -226,7 +226,7 @@ void Polygon3d::GenerateHalfEdgeStructure()
 
 
 //-------------------------------------------------------------------------------------------------
-int Polygon3d::AddVertex(const Vector3& vertex)
+int Polygon3::AddVertex(const Vector3& vertex)
 {
 	ASSERT_OR_DIE(!HasGeneratedHalfEdges(), "Cannot edit a Polygon3d after half edges are generated!");
 
@@ -238,7 +238,7 @@ int Polygon3d::AddVertex(const Vector3& vertex)
 
 
 //-------------------------------------------------------------------------------------------------
-int Polygon3d::AddFace(const std::vector<int>& indices)
+int Polygon3::AddFace(const std::vector<int>& indices)
 {
 	ASSERT_OR_DIE(!HasGeneratedHalfEdges(), "Cannot edit a Polygon3d after half edges are generated!");
 
@@ -248,14 +248,14 @@ int Polygon3d::AddFace(const std::vector<int>& indices)
 
 
 //-------------------------------------------------------------------------------------------------
-const PolygonVertex3d* Polygon3d::GetVertex(int vertexIndex) const
+const PolygonVertex3d* Polygon3::GetVertex(int vertexIndex) const
 {
 	return &m_vertices[vertexIndex];
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void Polygon3d::GetTransformed(const Matrix4& matrix, Polygon3d& out_polygon) const
+void Polygon3::GetTransformed(const Matrix4& matrix, Polygon3& out_polygon) const
 {
 	out_polygon.Clear();
 
@@ -272,14 +272,14 @@ void Polygon3d::GetTransformed(const Matrix4& matrix, Polygon3d& out_polygon) co
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Polygon3d::GetVertexPosition(int vertexIndex) const
+Vector3 Polygon3::GetVertexPosition(int vertexIndex) const
 {
 	return m_vertices[vertexIndex].m_position;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void Polygon3d::GetAllVerticesInFace(int faceIndex, std::vector<Vector3>& out_vertices) const
+void Polygon3::GetAllVerticesInFace(int faceIndex, std::vector<Vector3>& out_vertices) const
 {
 	out_vertices.clear();
 	int startingEdge = GetFace(faceIndex)->m_halfEdgeIndex;
@@ -296,7 +296,7 @@ void Polygon3d::GetAllVerticesInFace(int faceIndex, std::vector<Vector3>& out_ve
 
 
 //-------------------------------------------------------------------------------------------------
-const PolygonFace3d* Polygon3d::GetFace(int faceIndex) const
+const PolygonFace3d* Polygon3::GetFace(int faceIndex) const
 {
 	return &m_faces[faceIndex];
 }
@@ -304,7 +304,7 @@ const PolygonFace3d* Polygon3d::GetFace(int faceIndex) const
 
 //-------------------------------------------------------------------------------------------------
 // Returns the face who's normal is the most in the given direction
-int Polygon3d::GetIndexOfFaceMostInDirection(const Vector3& direction) const
+int Polygon3::GetIndexOfFaceMostInDirection(const Vector3& direction) const
 {
 	float maxDot = 0.f;
 	int maxFaceIndex = -1;
@@ -327,7 +327,7 @@ int Polygon3d::GetIndexOfFaceMostInDirection(const Vector3& direction) const
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Polygon3d::GetFaceNormal(int faceIndex) const
+Vector3 Polygon3::GetFaceNormal(int faceIndex) const
 {
 	const PolygonFace3d* face = GetFace(faceIndex);
 	ASSERT_OR_DIE(face->m_indices.size() > 2, "Not enough vertices!");
@@ -342,7 +342,7 @@ Vector3 Polygon3d::GetFaceNormal(int faceIndex) const
 
 
 //-------------------------------------------------------------------------------------------------
-Plane3 Polygon3d::GetFaceSupportPlane(int faceIndex) const
+Plane3 Polygon3::GetFaceSupportPlane(int faceIndex) const
 {
 	Vector3 normal = GetFaceNormal(faceIndex);
 
@@ -358,7 +358,7 @@ Plane3 Polygon3d::GetFaceSupportPlane(int faceIndex) const
 
 
 //-------------------------------------------------------------------------------------------------
-const HalfEdge* Polygon3d::GetEdge(int edgeIndex) const
+const HalfEdge* Polygon3::GetEdge(int edgeIndex) const
 {
 	ASSERT_OR_DIE(HasGeneratedHalfEdges(), "No edges!");
 	return &m_edges[edgeIndex];
@@ -366,7 +366,7 @@ const HalfEdge* Polygon3d::GetEdge(int edgeIndex) const
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Polygon3d::GetEdgeDirection(int edgeIndex) const
+Vector3 Polygon3::GetEdgeDirection(int edgeIndex) const
 {
 	const HalfEdge* edge = GetEdge(edgeIndex);
 	return GetEdgeDirection(edge);
@@ -374,7 +374,7 @@ Vector3 Polygon3d::GetEdgeDirection(int edgeIndex) const
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Polygon3d::GetEdgeDirection(const HalfEdge* edge) const
+Vector3 Polygon3::GetEdgeDirection(const HalfEdge* edge) const
 {
 	Vector3 start = GetVertexPosition(edge->m_vertexIndex);
 	const HalfEdge* nextEdge = GetEdge(edge->m_nextEdgeIndex);
@@ -385,7 +385,7 @@ Vector3 Polygon3d::GetEdgeDirection(const HalfEdge* edge) const
 
 
 //-------------------------------------------------------------------------------------------------
-void Polygon3d::GetEdgeEndPoints(int edgeIndex, Vector3& out_start, Vector3& out_end) const
+void Polygon3::GetEdgeEndPoints(int edgeIndex, Vector3& out_start, Vector3& out_end) const
 {
 	const HalfEdge* edge = GetEdge(edgeIndex);
 	const HalfEdge* nextEdge = GetEdge(edge->m_nextEdgeIndex);
@@ -396,14 +396,14 @@ void Polygon3d::GetEdgeEndPoints(int edgeIndex, Vector3& out_start, Vector3& out
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Polygon3d::GetEdgeDirectionNormalized(int edgeIndex) const
+Vector3 Polygon3::GetEdgeDirectionNormalized(int edgeIndex) const
 {
 	return GetEdgeDirection(edgeIndex).GetNormalized();
 }
 
 
 //-------------------------------------------------------------------------------------------------
-int Polygon3d::GetSupportPoint(const Vector3& direction, Vector3& out_vertex) const
+int Polygon3::GetSupportPoint(const Vector3& direction, Vector3& out_vertex) const
 {
 	ASSERT_OR_DIE(m_vertices.size() > 0, "No vertices to return!");
 
@@ -436,7 +436,7 @@ int Polygon3d::GetSupportPoint(const Vector3& direction, Vector3& out_vertex) co
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Polygon3d::GetCenter() const
+Vector3 Polygon3::GetCenter() const
 {
 	uint32 numVertices = (uint32)m_vertices.size();
 	ASSERT_RETURN(numVertices > 0U, Vector3::ZERO, "Polygon3D has no vertices!");
@@ -454,7 +454,7 @@ Vector3 Polygon3d::GetCenter() const
 
 
 //-------------------------------------------------------------------------------------------------
-void Polygon3d::GetAllFacesAdjacentTo(int faceIndex, std::vector<const PolygonFace3d*>& out_faces) const
+void Polygon3::GetAllFacesAdjacentTo(int faceIndex, std::vector<const PolygonFace3d*>& out_faces) const
 {
 	const PolygonFace3d& face = m_faces[faceIndex];
 
@@ -481,7 +481,7 @@ void Polygon3d::GetAllFacesAdjacentTo(int faceIndex, std::vector<const PolygonFa
 
 
 //-------------------------------------------------------------------------------------------------
-void Polygon3d::GetAllSidePlanesForFace(int faceIndex, std::vector<Plane3>& out_planes) const
+void Polygon3::GetAllSidePlanesForFace(int faceIndex, std::vector<Plane3>& out_planes) const
 {
 	out_planes.clear();
 
@@ -508,7 +508,7 @@ void Polygon3d::GetAllSidePlanesForFace(int faceIndex, std::vector<Plane3>& out_
 
 
 //-------------------------------------------------------------------------------------------------
-UniqueHalfEdgeIterator::UniqueHalfEdgeIterator(const Polygon3d& polygon)
+UniqueHalfEdgeIterator::UniqueHalfEdgeIterator(const Polygon3& polygon)
 	: m_polygon(polygon)
 {
 }

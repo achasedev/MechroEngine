@@ -18,7 +18,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Polygon3d;
+class Polygon3;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -54,7 +54,7 @@ public:
 	void SetInertiaTensor_Cylinder(float height, float radius);
 	void SetInertiaTensor_Box(const Vector3& extents);
 	void SetInertiaTensor_Sphere(float radius);
-	void SetInertiaTensor_Polygon(const Polygon3d& polyLs);
+	void SetInertiaTensor_Polygon(const Polygon3& polyLs);
 	void SetInverseInertiaTensor(const Matrix3& inverseInertiaTensor, const Vector3& centerOfMassLs);
 
 	void SetVelocityWs(const Vector3& velocityWs) { m_velocityWs = velocityWs; }

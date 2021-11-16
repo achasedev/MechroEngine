@@ -27,7 +27,7 @@ RTTI_TYPE_DEFINE(PlaneCollider);
 RTTI_TYPE_DEFINE(BoxCollider);
 RTTI_TYPE_DEFINE(CapsuleCollider);
 RTTI_TYPE_DEFINE(CylinderCollider);
-RTTI_TYPE_DEFINE(PolygonCollider);
+RTTI_TYPE_DEFINE(ConvexHullCollider);
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -76,7 +76,7 @@ RigidBody* Collider::GetOwnerRigidBody() const
 
 
 //-------------------------------------------------------------------------------------------------
-SphereCollider::SphereCollider(Entity* owningEntity, const Sphere3D& sphereLs)
+SphereCollider::SphereCollider(Entity* owningEntity, const Sphere& sphereLs)
 	: TypedCollider(owningEntity, sphereLs)
 {
 }
@@ -96,10 +96,10 @@ void SphereCollider::ShowDebug()
 
 
 //-------------------------------------------------------------------------------------------------
-Sphere3D SphereCollider::GetDataInWorldSpace() const
+Sphere SphereCollider::GetDataInWorldSpace() const
 {
-	Vector3 centerWs = m_entity->transform.TransformPosition(m_dataLs.center);
-	return Sphere3D(centerWs, m_dataLs.radius * m_entity->transform.scale.x);
+	Vector3 centerWs = m_entity->transform.TransformPosition(m_dataLs.m_center);
+	return Sphere(centerWs, m_dataLs.m_radius * m_entity->transform.scale.x);
 }
 
 
@@ -166,7 +166,7 @@ OBB3 BoxCollider::GetDataInWorldSpace() const
 
 
 //-------------------------------------------------------------------------------------------------
-CapsuleCollider::CapsuleCollider(Entity* owningEntity, const Capsule3D& capsuleLs)
+CapsuleCollider::CapsuleCollider(Entity* owningEntity, const Capsule3& capsuleLs)
 	: TypedCollider(owningEntity, capsuleLs)
 {
 }
@@ -186,12 +186,12 @@ void CapsuleCollider::ShowDebug()
 
 
 //-------------------------------------------------------------------------------------------------
-Capsule3D CapsuleCollider::GetDataInWorldSpace() const
+Capsule3 CapsuleCollider::GetDataInWorldSpace() const
 {
 	Vector3 startWs = m_entity->transform.TransformPosition(m_dataLs.start);
 	Vector3 endWs = m_entity->transform.TransformPosition(m_dataLs.end);
 
-	return Capsule3D(startWs, endWs, m_dataLs.radius * m_entity->transform.scale.x); // It should be that x == z
+	return Capsule3(startWs, endWs, m_dataLs.radius * m_entity->transform.scale.x); // It should be that x == z
 }
 
 
@@ -227,7 +227,7 @@ Plane3 PlaneCollider::GetDataInWorldSpace() const
 
 
 //-------------------------------------------------------------------------------------------------
-CylinderCollider::CylinderCollider(Entity* owningEntity, const Cylinder3D& cylinderLs)
+CylinderCollider::CylinderCollider(Entity* owningEntity, const Cylinder& cylinderLs)
 	: TypedCollider(owningEntity, cylinderLs)
 {
 }
@@ -247,24 +247,24 @@ void CylinderCollider::ShowDebug()
 
 
 //-------------------------------------------------------------------------------------------------
-Cylinder3D CylinderCollider::GetDataInWorldSpace() const
+Cylinder CylinderCollider::GetDataInWorldSpace() const
 {
 	Vector3 bottomWs = m_entity->transform.TransformPosition(m_dataLs.m_bottom);
 	Vector3 topWs = m_entity->transform.TransformPosition(m_dataLs.m_top);
 
-	return Cylinder3D(bottomWs, topWs, m_dataLs.m_radius * m_entity->transform.scale.x); // It should be that x == z
+	return Cylinder(bottomWs, topWs, m_dataLs.m_radius * m_entity->transform.scale.x); // It should be that x == z
 }
 
 
 //-------------------------------------------------------------------------------------------------
-PolygonCollider::PolygonCollider(Entity* owningEntity, const Polygon3d& polyLs)
-	: TypedCollider(owningEntity, polyLs)
+ConvexHullCollider::ConvexHullCollider(Entity* owningEntity, const Polygon3& hullLs)
+	: TypedCollider(owningEntity, hullLs)
 {
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void PolygonCollider::ShowDebug()
+void ConvexHullCollider::ShowDebug()
 {
 	if (m_debugRenderHandle == INVALID_DEBUG_RENDER_OBJECT_HANDLE)
 	{
@@ -277,9 +277,9 @@ void PolygonCollider::ShowDebug()
 
 
 //-------------------------------------------------------------------------------------------------
-Polygon3d PolygonCollider::GetDataInWorldSpace() const
+Polygon3 ConvexHullCollider::GetDataInWorldSpace() const
 {
-	Polygon3d polyWs;
+	Polygon3 polyWs;
 	Matrix4 toWorld = m_entity->transform.GetModelMatrix();
 	m_dataLs.GetTransformed(toWorld, polyWs);
 

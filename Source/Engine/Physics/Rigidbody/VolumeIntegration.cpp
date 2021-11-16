@@ -244,7 +244,7 @@ static void ComputeVolumeIntegrals(POLYHEDRON *p)
 
 
 //-------------------------------------------------------------------------------------------------
-static void ConvertEnginePolyToThirdPartyPoly(const Polygon3d& enginePoly, POLYHEDRON& tpPoly)
+static void ConvertEnginePolyToThirdPartyPoly(const Polygon3& enginePoly, POLYHEDRON& tpPoly)
 {
 	tpPoly.numFaces = enginePoly.GetNumFaces();
 	tpPoly.numVerts = enginePoly.GetNumVertices();
@@ -289,7 +289,7 @@ static void ConvertEnginePolyToThirdPartyPoly(const Polygon3d& enginePoly, POLYH
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 ComputeCenterOfMassAndInteriaTensor(const Polygon3d& poly, Matrix3& out_tensor, double mass)
+Vector3 ComputeCenterOfMassAndInteriaTensor(const Polygon3& poly, Matrix3& out_tensor, double mass)
 {
 	POLYHEDRON p;
 	ConvertEnginePolyToThirdPartyPoly(poly, p);

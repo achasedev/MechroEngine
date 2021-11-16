@@ -1,14 +1,15 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: March 18th, 2021
+/// Date Created: Nov 5th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/Vector3.h"
+#include "Engine/Core/EngineCommon.h"
+#include "Engine/Math/Cylinder.h"
+#include "Engine/Math/MathUtils.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -23,31 +24,58 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// CLASS DECLARATIONS
+/// C FUNCTIONS
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Capsule3D
+// Constructor
+Cylinder::Cylinder(const Vector3& bottom, const Vector3& top, float radius)
+	: m_bottom(bottom)
+	, m_top(top)
+	, m_radius(radius)
 {
-public:
-	//-----Public Methods-----
-
-	Capsule3D() {}
-	Capsule3D(const Vector3& start, const Vector3& end, float radius);
-
-	float	GetHeight() const;
-	bool	ContainsPoint(const Vector3& point) const;
+}
 
 
-public:
-	//-----Public Data-----
+//-------------------------------------------------------------------------------------------------
+// Returns the point on the cylinder surface furthest in the given direction
+// This is always a point on one of the disc edges of the cylinder, except for the cases where direction is perpendicular to the cylinder spine
+// In this case, I still choose a disc edge point for consistency
+Vector3 Cylinder::GetFurthestEdgePointInDirection(const Vector3& direction, bool* onTop /*= nullptr*/) const
+{
+	// Get the spine direction and end point based on params
+	Vector3 endPoint;
+	Vector3 spineDir;
+	if (onTop == nullptr)
+	{
+		float bottomDot = DotProduct(direction, m_bottom);
+		float topDot = DotProduct(direction, m_top);
+		endPoint = (bottomDot >= topDot ? m_bottom : m_top); // In tie cases, default to bottom
+		spineDir = (bottomDot >= topDot ? (m_bottom - m_top) : (m_top - m_bottom));
+	}
+	else if (*onTop)
+	{
+		endPoint = m_top;
+		spineDir = (m_top - m_bottom);
+	}
+	else
+	{
+		endPoint = m_bottom;
+		spineDir = (m_bottom - m_top);
+	}
 
-	Vector3 start = Vector3::ZERO;
-	Vector3	end = Vector3::ZERO;
-	float	radius = 1.f;
+	spineDir.Normalize();
 
-};
+	// Project onto the spine vector
+	float dot = DotProduct(spineDir, direction);
 
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// C FUNCTIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
+	// Get the projection of the endPointToPlane onto the disc of the cylinder
+	Vector3 discVector = direction - spineDir * dot;
+	discVector.SafeNormalize(discVector);
+
+	return endPoint + discVector * m_radius;
+}

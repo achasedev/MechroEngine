@@ -8,7 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/Sphere3D.h"
+#include "Engine/Math/Sphere.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -22,7 +22,7 @@ class CapsuleCollider;
 class CylinderCollider;
 class HalfSpaceCollider;
 class PlaneCollider;
-class PolygonCollider;
+class ConvexHullCollider;
 class SphereCollider;
 class Transform;
 
@@ -35,19 +35,19 @@ class Transform;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class BoundingVolumeSphere : public Sphere3D
+class BoundingVolumeSphere : public Sphere
 {
 public:
 	//-----Public Methods-----
 
 	BoundingVolumeSphere();
-	BoundingVolumeSphere(const Sphere3D& sphere);
+	BoundingVolumeSphere(const Sphere& sphere);
 	BoundingVolumeSphere(const BoundingVolumeSphere& a, const BoundingVolumeSphere& b); // For combining bounding volumes
 	BoundingVolumeSphere(const SphereCollider& colSphere);
 	BoundingVolumeSphere(const BoxCollider& colBox);
 	BoundingVolumeSphere(const CapsuleCollider& capsuleCol);
 	BoundingVolumeSphere(const CylinderCollider& cylinderCol);
-	BoundingVolumeSphere(const PolygonCollider& polyCol);
+	BoundingVolumeSphere(const ConvexHullCollider& polyCol);
 
 	BoundingVolumeSphere	GetTransformApplied(const Transform& transform);
 	void					DebugRender() const;
@@ -55,7 +55,7 @@ public:
 	bool					Overlaps(const BoundingVolumeSphere& sphere) const;
 	bool					Overlaps(const HalfSpaceCollider* halfspace) const;
 	bool					Overlaps(const PlaneCollider* planeCol) const;
-	float					GetSize() const { return radius; }
+	float					GetSize() const { return m_radius; }
 	float					GetGrowth(const BoundingVolumeSphere& other) const;
 
 

@@ -9,8 +9,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/DevConsole.h"
 #include "Engine/Core/EngineCommon.h"
-#include "Engine/Math/Capsule3D.h"
-#include "Engine/Math/Cylinder3D.h"
+#include "Engine/Math/Capsule3.h"
+#include "Engine/Math/Cylinder.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Math/OBB3.h"
 #include "Engine/Render/Camera.h"
@@ -134,15 +134,15 @@ DebugRenderObjectHandle DebugDrawSphere(const Vector3& center, float radius, con
 
 //-------------------------------------------------------------------------------------------------
 // Draws a sphere
-DebugRenderObjectHandle DebugDrawSphere(const Sphere3D& sphere, const DebugRenderOptions& options /*= DebugRenderOptions()*/)
+DebugRenderObjectHandle DebugDrawSphere(const Sphere& sphere, const DebugRenderOptions& options /*= DebugRenderOptions()*/)
 {
-	return DebugDrawSphere(sphere.center, sphere.radius, options);
+	return DebugDrawSphere(sphere.m_center, sphere.m_radius, options);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 // Draws a capsule
-DebugRenderObjectHandle DebugDrawCapsule(const Capsule3D& capsule, const DebugRenderOptions& options /*= DebugRenderOptions()*/)
+DebugRenderObjectHandle DebugDrawCapsule(const Capsule3& capsule, const DebugRenderOptions& options /*= DebugRenderOptions()*/)
 {
 	DebugRenderObject* obj = new DebugRenderObject(options);
 
@@ -182,7 +182,7 @@ DebugRenderObjectHandle DebugDrawCapsule(const Capsule3D& capsule, const DebugRe
 
 //-------------------------------------------------------------------------------------------------
 // Draws a cylinder
-DebugRenderObjectHandle DebugDrawCylinder(const Cylinder3D& cylinder, const DebugRenderOptions& options /*= DebugRenderOptions()*/)
+DebugRenderObjectHandle DebugDrawCylinder(const Cylinder& cylinder, const DebugRenderOptions& options /*= DebugRenderOptions()*/)
 {
 	return DebugDrawCylinder(cylinder.m_bottom, cylinder.m_top, cylinder.m_radius, options);
 }
@@ -276,7 +276,7 @@ DebugRenderObjectHandle DebugDrawPlane(const Plane3& plane, const DebugRenderOpt
 
 
 //-------------------------------------------------------------------------------------------------
-DebugRenderObjectHandle DebugDrawPolygon(const Polygon3d& poly, const DebugRenderOptions& options /*= DebugRenderOptions()*/)
+DebugRenderObjectHandle DebugDrawPolygon(const Polygon3& poly, const DebugRenderOptions& options /*= DebugRenderOptions()*/)
 {
 	MeshBuilder mb;
 	mb.BeginBuilding(TOPOLOGY_TRIANGLE_LIST, true);

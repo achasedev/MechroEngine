@@ -1105,9 +1105,9 @@ bool AreMostlyEqual(const Matrix3& a, const Matrix3& b, float epsilon /*= DEFAUL
 
 
 //-------------------------------------------------------------------------------------------------
-bool AreMostlyEqual(const Sphere3D& a, const Sphere3D& b, float epsilon /*= DEFAULT_EPSILON*/)
+bool AreMostlyEqual(const Sphere& a, const Sphere& b, float epsilon /*= DEFAULT_EPSILON*/)
 {
-	return AreMostlyEqual(a.center, b.center, epsilon) && AreMostlyEqual(a.radius, b.radius, epsilon);
+	return AreMostlyEqual(a.m_center, b.m_center, epsilon) && AreMostlyEqual(a.m_radius, b.m_radius, epsilon);
 }
 
 
@@ -1237,10 +1237,10 @@ bool DoAABB3sOverlap(const AABB3& a, const AABB3& b)
 
 
 //-------------------------------------------------------------------------------------------------
-bool DoSpheresOverlap(const Sphere3D& a, const Sphere3D& b)
+bool DoSpheresOverlap(const Sphere& a, const Sphere& b)
 {
-	float radiusSquared = (a.radius + b.radius) * (a.radius + b.radius);
-	float distanceSquared = (a.center - b.center).GetLengthSquared();
+	float radiusSquared = (a.m_radius + b.m_radius) * (a.m_radius + b.m_radius);
+	float distanceSquared = (a.m_center - b.m_center).GetLengthSquared();
 
 	return distanceSquared < radiusSquared;
 }

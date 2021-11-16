@@ -17,8 +17,8 @@
 #include "Engine/Job/JobSystem.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Math/OBB2.h"
-#include "Engine/Math/Polygon2D.h"
-#include "Engine/Math/Polygon3d.h"
+#include "Engine/Math/Polygon2.h"
+#include "Engine/Math/Polygon3.h"
 #include "Engine/Render/Buffer/ConstantBuffer.h"
 #include "Engine/Render/Buffer/PropertyBlockDescription.h"
 #include "Engine/Render/Buffer/VertexBuffer.h"
@@ -550,7 +550,7 @@ void RenderContext::DrawLine3D(const Vector3& start, const Vector3& end, const R
 
 
 //-------------------------------------------------------------------------------------------------
-void RenderContext::DrawWirePolygon2D(const Polygon2D& polygon, Material* material, const Rgba& color /*= Rgba::WHITE*/)
+void RenderContext::DrawWirePolygon2D(const Polygon2& polygon, Material* material, const Rgba& color /*= Rgba::WHITE*/)
 {
 	uint32 numVertices = polygon.GetNumVertices();
 	std::vector<Vertex3D_PCU> vertices;
@@ -570,7 +570,7 @@ void RenderContext::DrawWirePolygon2D(const Polygon2D& polygon, Material* materi
 
 
 //-------------------------------------------------------------------------------------------------
-void RenderContext::DrawWirePolygon3D(const Polygon3d& polygon, const Rgba& color /*= Rgba::WHITE*/, Shader* shader /*= nullptr*/)
+void RenderContext::DrawWirePolygon3D(const Polygon3& polygon, const Rgba& color /*= Rgba::WHITE*/, Shader* shader /*= nullptr*/)
 {
 	int numFaces = polygon.GetNumFaces();
 	ASSERT_RETURN(numFaces > 0, NO_RETURN_VAL, "No Faces!");

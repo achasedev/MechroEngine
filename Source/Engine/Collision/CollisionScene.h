@@ -237,9 +237,9 @@ BoundingVolumeClass CollisionScene<BoundingVolumeClass>::MakeBoundingVolumeForCo
 		return BoundingVolumeClass(*cylinderCol);
 	}
 		break;
-	case PolygonCollider::TYPE_INDEX:
+	case ConvexHullCollider::TYPE_INDEX:
 	{
-		const PolygonCollider* polyCol = collider->GetAsType<PolygonCollider>();
+		const ConvexHullCollider* polyCol = collider->GetAsType<ConvexHullCollider>();
 		return BoundingVolumeClass(*polyCol);
 	}
 		break;

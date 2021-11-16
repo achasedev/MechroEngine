@@ -8,8 +8,8 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/Capsule3D.h"
-#include "Engine/Math/Cylinder3D.h"
+#include "Engine/Math/Capsule3.h"
+#include "Engine/Math/Cylinder.h"
 #include "Engine/Math/Plane3.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -67,8 +67,8 @@ private:
 	int			m_numContacts = 0;
 	int			m_contactLimit = 2;
 
-	Capsule3D	m_capsule;
-	Cylinder3D	m_cylinder;
+	Capsule3	m_capsule;
+	Cylinder	m_cylinder;
 
 	// General
 	Vector3		m_capSpineDir = Vector3::ZERO;

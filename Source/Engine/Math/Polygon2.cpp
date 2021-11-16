@@ -9,7 +9,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/EngineCommon.h"
 #include "Engine/Math/MathUtils.h"
-#include "Engine/Math/Polygon2D.h"
+#include "Engine/Math/Polygon2.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -32,7 +32,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-Polygon2D::Polygon2D(const std::vector<Vector2> vertices)
+Polygon2::Polygon2(const std::vector<Vector2> vertices)
 {
 	Clear();
 	m_vertices = vertices;
@@ -40,7 +40,7 @@ Polygon2D::Polygon2D(const std::vector<Vector2> vertices)
 
 
 //-------------------------------------------------------------------------------------------------
-Polygon2D::Polygon2D(uint32 reserveSize)
+Polygon2::Polygon2(uint32 reserveSize)
 {
 	Clear();
 	m_vertices.reserve(reserveSize);
@@ -48,7 +48,7 @@ Polygon2D::Polygon2D(uint32 reserveSize)
 
 
 //-------------------------------------------------------------------------------------------------
-void Polygon2D::AddVertex(const Vector2& vertex)
+void Polygon2::AddVertex(const Vector2& vertex)
 {
 #ifndef DISABLE_ASSERTS
 	for (uint32 i = 0; i < (uint32)m_vertices.size(); ++i)
@@ -65,7 +65,7 @@ void Polygon2D::AddVertex(const Vector2& vertex)
 
 
 //-------------------------------------------------------------------------------------------------
-void Polygon2D::AddVertices(const std::vector<Vector2>& vertices)
+void Polygon2::AddVertices(const std::vector<Vector2>& vertices)
 {
 	uint32 numVertsToAdd = (uint32)vertices.size();
 
@@ -77,14 +77,14 @@ void Polygon2D::AddVertices(const std::vector<Vector2>& vertices)
 
 
 //-------------------------------------------------------------------------------------------------
-void Polygon2D::Clear()
+void Polygon2::Clear()
 {
 	m_vertices.clear();
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Vector2 Polygon2D::GetVertexAtIndex(int index) const
+Vector2 Polygon2::GetVertexAtIndex(int index) const
 {
 	ASSERT_OR_DIE(index >= 0 && index < (int)m_vertices.size(), "Index out of bounds!");
 
@@ -93,7 +93,7 @@ Vector2 Polygon2D::GetVertexAtIndex(int index) const
 
 
 //-------------------------------------------------------------------------------------------------
-int Polygon2D::GetPreviousVertexToIndex(int index, Vector2& out_prevVertex) const
+int Polygon2::GetPreviousVertexToIndex(int index, Vector2& out_prevVertex) const
 {
 	int prevIndex = GetPreviousValidIndex(index);
 
@@ -103,7 +103,7 @@ int Polygon2D::GetPreviousVertexToIndex(int index, Vector2& out_prevVertex) cons
 
 
 //-------------------------------------------------------------------------------------------------
-int Polygon2D::GetNextVertexToIndex(int index, Vector2& out_nextVertex) const
+int Polygon2::GetNextVertexToIndex(int index, Vector2& out_nextVertex) const
 {
 	int nextIndex = GetNextValidIndex(index);
 
@@ -113,7 +113,7 @@ int Polygon2D::GetNextVertexToIndex(int index, Vector2& out_nextVertex) const
 
 
 //-------------------------------------------------------------------------------------------------
-int Polygon2D::GetFarthestVertexInDirection(const Vector2& direction, Vector2& out_vertex) const
+int Polygon2::GetFarthestVertexInDirection(const Vector2& direction, Vector2& out_vertex) const
 {
 	ASSERT_OR_DIE(m_vertices.size() > 0, "No vertices to return!");
 
@@ -146,7 +146,7 @@ int Polygon2D::GetFarthestVertexInDirection(const Vector2& direction, Vector2& o
 
 
 //-------------------------------------------------------------------------------------------------
-Vector2 Polygon2D::GetCenter() const
+Vector2 Polygon2::GetCenter() const
 {
 	uint32 numVertices = (uint32)m_vertices.size();
 	ASSERT_RETURN(numVertices > 0U, Vector2::ZERO, "Polygon2D has no vertices!");
@@ -164,7 +164,7 @@ Vector2 Polygon2D::GetCenter() const
 
 
 //-------------------------------------------------------------------------------------------------
-int Polygon2D::GetPreviousValidIndex(int index) const
+int Polygon2::GetPreviousValidIndex(int index) const
 {
 	int numVertices = (int)m_vertices.size();
 	ASSERT_OR_DIE(index >= 0 && index < numVertices, "Bad index!");
@@ -175,7 +175,7 @@ int Polygon2D::GetPreviousValidIndex(int index) const
 
 
 //-------------------------------------------------------------------------------------------------
-int Polygon2D::GetNextValidIndex(int index) const
+int Polygon2::GetNextValidIndex(int index) const
 {
 	int numVertices = (int)m_vertices.size();
 	ASSERT_OR_DIE(index >= 0 && index < numVertices, "Bad index!");
@@ -188,7 +188,7 @@ int Polygon2D::GetNextValidIndex(int index) const
 //-------------------------------------------------------------------------------------------------
 // Works for concave polygons! Even self-intersecting ones!
 // i.e figure 8 shaped polygons - it will then report whether it moves more clockwise or not
-bool Polygon2D::IsWindingClockwise() const
+bool Polygon2::IsWindingClockwise() const
 {
 	uint32 numVertices = (uint32)m_vertices.size();
 	float sum = 0.f;
@@ -209,7 +209,7 @@ bool Polygon2D::IsWindingClockwise() const
 
 //-------------------------------------------------------------------------------------------------
 // This may not work for self-intersecting polygons
-bool Polygon2D::IsConvex() const
+bool Polygon2::IsConvex() const
 {
 	size_t numVertices = m_vertices.size();
 	if (numVertices <= 3)
