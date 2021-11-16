@@ -10,7 +10,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Math/Vector3.h"
 #include "Engine/Math/Matrix3.h"
-#include "Engine/Math/Polygon3.h"
+#include "Engine/Math/Polyhedron.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -32,4 +32,4 @@
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
-Vector3 ComputeCenterOfMassAndInteriaTensor(const Polygon3& poly, Matrix3& out_tensor, double mass);
+Vector3 ComputeCenterOfMassAndInteriaTensor(const Polyhedron& poly, Matrix3& out_tensor, double mass);

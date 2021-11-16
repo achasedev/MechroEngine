@@ -257,7 +257,7 @@ Cylinder CylinderCollider::GetDataInWorldSpace() const
 
 
 //-------------------------------------------------------------------------------------------------
-ConvexHullCollider::ConvexHullCollider(Entity* owningEntity, const Polygon3& hullLs)
+ConvexHullCollider::ConvexHullCollider(Entity* owningEntity, const Polyhedron& hullLs)
 	: TypedCollider(owningEntity, hullLs)
 {
 }
@@ -277,9 +277,9 @@ void ConvexHullCollider::ShowDebug()
 
 
 //-------------------------------------------------------------------------------------------------
-Polygon3 ConvexHullCollider::GetDataInWorldSpace() const
+Polyhedron ConvexHullCollider::GetDataInWorldSpace() const
 {
-	Polygon3 polyWs;
+	Polyhedron polyWs;
 	Matrix4 toWorld = m_entity->transform.GetModelMatrix();
 	m_dataLs.GetTransformed(toWorld, polyWs);
 

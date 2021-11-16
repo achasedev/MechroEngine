@@ -308,7 +308,7 @@ int CollisionDetector::GenerateContacts_HalfSpacePolygon(const Collider* a, cons
 		return 0;
 
 	Plane3 planeWs = aHalfSpaceCol->GetDataInWorldSpace();
-	Polygon3 polyWs = bPolyCollider->GetDataInWorldSpace();
+	Polyhedron polyWs = bPolyCollider->GetDataInWorldSpace();
 
 	int numContactsAdded = 0;
 	Contact* contactToFill = out_contacts;

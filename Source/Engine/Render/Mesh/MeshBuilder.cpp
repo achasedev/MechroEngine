@@ -1032,7 +1032,7 @@ void MeshBuilder::PushCapsule(const Vector3& start, const Vector3& end, float ra
 
 
 //-------------------------------------------------------------------------------------------------
-void MeshBuilder::PushPolygon(const Polygon3& poly, const Rgba& color /*= Rgba::WHITE*/)
+void MeshBuilder::PushPolygon(const Polyhedron& poly, const Rgba& color /*= Rgba::WHITE*/)
 {
 	bool useIndices = true;
 	AssertBuildState(true, TOPOLOGY_TRIANGLE_LIST, &useIndices);
@@ -1045,7 +1045,7 @@ void MeshBuilder::PushPolygon(const Polygon3& poly, const Rgba& color /*= Rgba::
 
 	for (int iFace = 0; iFace < numFaces; ++iFace)
 	{
-		const PolygonFace3d* face = poly.GetFace(iFace);
+		const PolyhedronFace* face = poly.GetFace(iFace);
 		int numVertsInFace = (int)face->m_indices.size();
 		int vertOffset = (int)m_vertices.size();
 

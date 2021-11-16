@@ -276,7 +276,7 @@ DebugRenderObjectHandle DebugDrawPlane(const Plane3& plane, const DebugRenderOpt
 
 
 //-------------------------------------------------------------------------------------------------
-DebugRenderObjectHandle DebugDrawPolygon(const Polygon3& poly, const DebugRenderOptions& options /*= DebugRenderOptions()*/)
+DebugRenderObjectHandle DebugDrawPolygon(const Polyhedron& poly, const DebugRenderOptions& options /*= DebugRenderOptions()*/)
 {
 	MeshBuilder mb;
 	mb.BeginBuilding(TOPOLOGY_TRIANGLE_LIST, true);

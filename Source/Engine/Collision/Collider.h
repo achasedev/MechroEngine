@@ -12,7 +12,7 @@
 #include "Engine/Math/Capsule3.h"
 #include "Engine/Math/Cylinder.h"
 #include "Engine/Math/OBB3.h"
-#include "Engine/Math/Polygon3.h"
+#include "Engine/Math/Polyhedron.h"
 #include "Engine/Math/Sphere.h"
 #include "Engine/Math/Transform.h"
 #include "Engine/Render/Debug/DebugRenderObject.h"
@@ -264,17 +264,17 @@ private:
 
 
 //-------------------------------------------------------------------------------------------------
-class ConvexHullCollider : public TypedCollider<Polygon3>
+class ConvexHullCollider : public TypedCollider<Polyhedron>
 {
 public:
 	//-----Public Methods-----
 	RTTI_DERIVED_CLASS(ConvexHullCollider);
 
 	ConvexHullCollider() {}
-	ConvexHullCollider(Entity* owningEntity, const Polygon3& hullLs);
+	ConvexHullCollider(Entity* owningEntity, const Polyhedron& hullLs);
 
 	virtual void		ShowDebug() override;
-	virtual Polygon3	GetDataInWorldSpace() const override;
+	virtual Polyhedron	GetDataInWorldSpace() const override;
 	virtual int			GetTypeIndex() const { return TYPE_INDEX; }
 
 

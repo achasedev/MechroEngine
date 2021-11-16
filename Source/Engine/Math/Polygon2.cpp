@@ -40,43 +40,6 @@ Polygon2::Polygon2(const std::vector<Vector2> vertices)
 
 
 //-------------------------------------------------------------------------------------------------
-Polygon2::Polygon2(uint32 reserveSize)
-{
-	Clear();
-	m_vertices.reserve(reserveSize);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void Polygon2::AddVertex(const Vector2& vertex)
-{
-#ifndef DISABLE_ASSERTS
-	for (uint32 i = 0; i < (uint32)m_vertices.size(); ++i)
-	{
-		if (m_vertices[i] == vertex)
-		{
-			ERROR_RETURN(, "Duplicate vertex pushed!");
-		}
-	}
-#endif
-
-	m_vertices.push_back(vertex);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void Polygon2::AddVertices(const std::vector<Vector2>& vertices)
-{
-	uint32 numVertsToAdd = (uint32)vertices.size();
-
-	for (uint32 i = 0; i < numVertsToAdd; ++i)
-	{
-		AddVertex(vertices[i]);
-	}
-}
-
-
-//-------------------------------------------------------------------------------------------------
 void Polygon2::Clear()
 {
 	m_vertices.clear();
@@ -84,36 +47,25 @@ void Polygon2::Clear()
 
 
 //-------------------------------------------------------------------------------------------------
-Vector2 Polygon2::GetVertexAtIndex(int index) const
+int Polygon2::AddVertex(const Vector2& vertex)
 {
-	ASSERT_OR_DIE(index >= 0 && index < (int)m_vertices.size(), "Index out of bounds!");
+#ifndef DISABLE_ASSERTS
+	for (int i = 0; i < (int)m_vertices.size(); ++i)
+	{
+		if (AreMostlyEqual(m_vertices[i], vertex))
+		{
+			ERROR_RETURN(-1, "Duplicate vertex pushed!");
+		}
+	}
+#endif
 
-	return m_vertices[index];
+	m_vertices.push_back(vertex);
+	return (int)m_vertices.size();
 }
 
 
 //-------------------------------------------------------------------------------------------------
-int Polygon2::GetPreviousVertexToIndex(int index, Vector2& out_prevVertex) const
-{
-	int prevIndex = GetPreviousValidIndex(index);
-
-	out_prevVertex = m_vertices[prevIndex];
-	return prevIndex;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-int Polygon2::GetNextVertexToIndex(int index, Vector2& out_nextVertex) const
-{
-	int nextIndex = GetNextValidIndex(index);
-
-	out_nextVertex = m_vertices[nextIndex];
-	return nextIndex;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-int Polygon2::GetFarthestVertexInDirection(const Vector2& direction, Vector2& out_vertex) const
+int Polygon2::GetSupportPoint(const Vector2& direction, Vector2& out_vertex) const
 {
 	ASSERT_OR_DIE(m_vertices.size() > 0, "No vertices to return!");
 
@@ -146,7 +98,7 @@ int Polygon2::GetFarthestVertexInDirection(const Vector2& direction, Vector2& ou
 
 
 //-------------------------------------------------------------------------------------------------
-Vector2 Polygon2::GetCenter() const
+Vector2 Polygon2::GetAveragePosition() const
 {
 	uint32 numVertices = (uint32)m_vertices.size();
 	ASSERT_RETURN(numVertices > 0U, Vector2::ZERO, "Polygon2D has no vertices!");
@@ -160,28 +112,6 @@ Vector2 Polygon2::GetCenter() const
 	average /= static_cast<float>(numVertices);
 
 	return average;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-int Polygon2::GetPreviousValidIndex(int index) const
-{
-	int numVertices = (int)m_vertices.size();
-	ASSERT_OR_DIE(index >= 0 && index < numVertices, "Bad index!");
-	int prevIndex = (index == 0 ? numVertices - 1 : index - 1);
-
-	return prevIndex;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-int Polygon2::GetNextValidIndex(int index) const
-{
-	int numVertices = (int)m_vertices.size();
-	ASSERT_OR_DIE(index >= 0 && index < numVertices, "Bad index!");
-	int nextIndex = (index == numVertices - 1 ? 0 : index + 1);
-
-	return nextIndex;
 }
 
 
@@ -235,14 +165,14 @@ bool Polygon2::IsConvex() const
 
 		if (isClockwiseWinding)
 		{
-			if (cross > 0.f)
+			if (cross < 0.f)
 			{
 				return false;
 			}
 		}
 		else
 		{
-			if (cross < 0.f)
+			if (cross > 0.f)
 			{
 				return false;
 			}

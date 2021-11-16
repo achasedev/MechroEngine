@@ -56,6 +56,7 @@ public:
 	bool					operator!=(const Vector2& compare) const;
 	friend const Vector2	operator*(float uniformScale, const Vector2& vecToScale);
 
+	float					SafeNormalize();
 	float					Normalize();
 	Vector2					GetNormalized() const;
 	float					GetLength() const;

@@ -15,7 +15,7 @@
 #include "Engine/Math/Matrix4.h"
 #include "Engine/Math/Plane3.h"
 #include "Engine/Math/Polygon2.h"
-#include "Engine/Math/Polygon3.h"
+#include "Engine/Math/Polyhedron.h"
 #include "Engine/Math/Quaternion.h"
 #include "Engine/Math/Range.h"
 #include "Engine/Math/Sphere.h"

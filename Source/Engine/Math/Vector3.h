@@ -118,6 +118,14 @@ public:
 			float k;
 		};
 
+		// Barycentric coordinates
+		struct
+		{
+			float u;
+			float v;
+			float w;
+		};
+
 		// Swizzles!
 		// Must be unioned to not pad out the length of Vector2
 		// Swizzles have no data, so no fear of overwrite

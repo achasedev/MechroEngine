@@ -176,6 +176,7 @@
     <ClCompile Include="Math\Capsule3.cpp" />
     <ClCompile Include="Math\Cylinder.cpp" />
     <ClCompile Include="Math\Frustrum.cpp" />
+    <ClCompile Include="Math\GJK.cpp" />
     <ClCompile Include="Math\Matrix3.cpp" />
     <ClCompile Include="Math\ScaledAxisRotation.cpp" />
     <ClCompile Include="Physics\Particle\Particle.cpp" />
@@ -232,7 +233,7 @@
     <ClCompile Include="Math\OBB2.cpp" />
     <ClCompile Include="Math\Plane3.cpp" />
     <ClCompile Include="Math\Polygon2.cpp" />
-    <ClCompile Include="Math\Polygon3.cpp" />
+    <ClCompile Include="Math\Polyhedron.cpp" />
     <ClCompile Include="Render\Camera.cpp" />
     <ClCompile Include="Render\DrawCall.cpp" />
     <ClCompile Include="Render\DX11Common.cpp" />
@@ -313,9 +314,12 @@
     <ClInclude Include="Math\Cylinder.h" />
     <ClInclude Include="Math\Frustrum.h" />
     <ClInclude Include="Math\GJK.h" />
+    <ClInclude Include="Math\LineSegment2.h" />
     <ClInclude Include="Math\LineSegment3.h" />
     <ClInclude Include="Math\Matrix3.h" />
+    <ClInclude Include="Math\Polygon3.h" />
     <ClInclude Include="Math\ScaledAxisRotation.h" />
+    <ClInclude Include="Math\Triangle2.h" />
     <ClInclude Include="Math\Triangle3.h" />
     <ClInclude Include="Physics\Particle\Particle.h" />
     <ClInclude Include="Physics\Particle\ParticleAnchoredBungee.h" />
@@ -376,7 +380,7 @@
     <ClInclude Include="Math\OBB2.h" />
     <ClInclude Include="Math\Plane3.h" />
     <ClInclude Include="Math\Polygon2.h" />
-    <ClInclude Include="Math\Polygon3.h" />
+    <ClInclude Include="Math\Polyhedron.h" />
     <ClInclude Include="Render\Debug\DebugRenderSystem.h" />
     <ClInclude Include="Resource\ResourceSystem.h" />
     <ClInclude Include="UI\UIButton.h" />

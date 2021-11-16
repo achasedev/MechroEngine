@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: September 9th, 2020
+/// Date Created: Nov 16th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -8,9 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Core/EngineCommon.h"
 #include "Engine/Math/Vector2.h"
-#include <vector>
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -29,38 +27,25 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Polygon2
+class LineSegment2
 {
 public:
 	//-----Public Methods-----
 
-	// Constructor/Destructors
-	Polygon2() {}
-	Polygon2(const std::vector<Vector2> vertices);
+	LineSegment2() {}
+	explicit LineSegment2(const Vector2& a, const Vector2& b)
+		: m_a(a), m_b(b) {}
 
-	// Mutators
-	void	Clear();
-	int		AddVertex(const Vector2& vertex);
-
-	// Accessors
-	int		GetSupportPoint(const Vector2& direction, Vector2& out_vertex) const;
-	Vector2 GetVertex(int index) const { return m_vertices[index]; }
-	int		GetNumVertices() const { return (int)m_vertices.size(); }
-	// Producers
-	Vector2 GetAveragePosition() const;
-	bool	IsWindingClockwise() const;
-	bool	IsWindingCounterClockwise() const { return !IsWindingClockwise(); }
-	bool	IsConvex() const;
-	bool	IsConcave() const { return !IsConvex(); }
+	float GetLength() const;
 
 
-private:
-	//-----Private Data-----
+public:
+	//-----Public Data-----
 
-	std::vector<Vector2> m_vertices;
+	Vector2 m_a;
+	Vector2 m_b;
 
 };
-
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS

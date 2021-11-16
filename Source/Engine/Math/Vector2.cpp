@@ -196,12 +196,34 @@ float Vector2::GetLengthSquared() const
 float Vector2::Normalize()
 {
 	float length = GetLength();
-	ASSERT_OR_DIE(length > 0, "Vector2::Normalize() called on a zero vector!");
+	ASSERT_OR_DIE(length > 0.f, "Vector2::Normalize() called on a zero vector!");
 
 	float oneOverLength = (1.f / length);
 
 	x *= oneOverLength;
 	y *= oneOverLength;
+
+	return length;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float Vector2::SafeNormalize()
+{
+	float length = GetLength();
+
+	if (length == 0.f)
+	{
+		x = 0.f;
+		y = 0.f;
+	}
+	else
+	{
+		float oneOverLength = (1.f / length);
+
+		x *= oneOverLength;
+		y *= oneOverLength;
+	}
 
 	return length;
 }

@@ -138,7 +138,7 @@ BoundingVolumeSphere::BoundingVolumeSphere(const CylinderCollider& cylinderCol)
 //-------------------------------------------------------------------------------------------------
 BoundingVolumeSphere::BoundingVolumeSphere(const ConvexHullCollider& polyCol)
 {
-	Polygon3 polyWs = polyCol.GetDataInWorldSpace();
+	Polyhedron polyWs = polyCol.GetDataInWorldSpace();
 	int numVerts = polyWs.GetNumVertices();
 
 	Vector3 avgPos = Vector3::ZERO;

@@ -35,7 +35,7 @@ class Mesh;
 class OBB2;
 class Plane3;
 class Polygon2;
-class Polygon3;
+class Polyhedron;
 class Renderable;
 class Sampler;
 class Shader;
@@ -109,7 +109,7 @@ public:
 	void								DrawLine2D(const Vector2& start, const Vector2& end, Material* material, const Rgba& color = Rgba::WHITE);
 	void								DrawLine3D(const Vector3& start, const Vector3& end, const Rgba& color = Rgba::WHITE, Shader* shader = nullptr);
 	void								DrawWirePolygon2D(const Polygon2& polygon, Material* material, const Rgba& color = Rgba::WHITE);
-	void								DrawWirePolygon3D(const Polygon3& polygon, const Rgba& color = Rgba::WHITE, Shader* shader = nullptr);
+	void								DrawWirePolygon3D(const Polyhedron& polygon, const Rgba& color = Rgba::WHITE, Shader* shader = nullptr);
 	void								DrawWireOBB2D(const OBB2& obb, Material* material, const Rgba& color = Rgba::WHITE);
 	void								DrawPlane3(const Plane3& plane, const Rgba& color = Rgba::WHITE, Shader* shader = nullptr);
 	void								DrawTransform(const Transform& transform, float scale, Shader* shader = nullptr);

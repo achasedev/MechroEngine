@@ -18,7 +18,7 @@
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Math/OBB2.h"
 #include "Engine/Math/Polygon2.h"
-#include "Engine/Math/Polygon3.h"
+#include "Engine/Math/Polyhedron.h"
 #include "Engine/Render/Buffer/ConstantBuffer.h"
 #include "Engine/Render/Buffer/PropertyBlockDescription.h"
 #include "Engine/Render/Buffer/VertexBuffer.h"
@@ -557,11 +557,11 @@ void RenderContext::DrawWirePolygon2D(const Polygon2& polygon, Material* materia
 
 	for (uint32 i = 0; i < numVertices; ++i)
 	{
-		Vector3 position = Vector3(polygon.GetVertexAtIndex(i), 0.f);
+		Vector3 position = Vector3(polygon.GetVertex(i), 0.f);
 		vertices.push_back(Vertex3D_PCU(position, color, Vector2::ZERO));
 
 		uint32 nextIndex = ((i == (numVertices - 1U)) ? 0 : i + 1U);
-		Vector3 nextPosition = Vector3(polygon.GetVertexAtIndex(nextIndex), 0.f);
+		Vector3 nextPosition = Vector3(polygon.GetVertex(nextIndex), 0.f);
 		vertices.push_back(Vertex3D_PCU(nextPosition, color, Vector2::ZERO));
 	}
 
@@ -570,7 +570,7 @@ void RenderContext::DrawWirePolygon2D(const Polygon2& polygon, Material* materia
 
 
 //-------------------------------------------------------------------------------------------------
-void RenderContext::DrawWirePolygon3D(const Polygon3& polygon, const Rgba& color /*= Rgba::WHITE*/, Shader* shader /*= nullptr*/)
+void RenderContext::DrawWirePolygon3D(const Polyhedron& polygon, const Rgba& color /*= Rgba::WHITE*/, Shader* shader /*= nullptr*/)
 {
 	int numFaces = polygon.GetNumFaces();
 	ASSERT_RETURN(numFaces > 0, NO_RETURN_VAL, "No Faces!");
@@ -579,7 +579,7 @@ void RenderContext::DrawWirePolygon3D(const Polygon3& polygon, const Rgba& color
 
 	for (int faceIndex = 0; faceIndex < numFaces; ++faceIndex)
 	{
-		const PolygonFace3d* face = polygon.GetFace(faceIndex);
+		const PolyhedronFace* face = polygon.GetFace(faceIndex);
 
 		int numVertsInFace = (int)face->m_indices.size();
 
