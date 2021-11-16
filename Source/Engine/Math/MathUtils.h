@@ -12,13 +12,18 @@
 #include "Engine/Math/AABB2.h"
 #include "Engine/Math/IntVector2.h"
 #include "Engine/Math/Line3.h"
+#include "Engine/Math/LineSegment2.h"
+#include "Engine/Math/LineSegment3.h"
 #include "Engine/Math/Matrix4.h"
 #include "Engine/Math/Plane3.h"
 #include "Engine/Math/Polygon2.h"
+#include "Engine/Math/Polygon3.h"
 #include "Engine/Math/Polyhedron.h"
 #include "Engine/Math/Quaternion.h"
 #include "Engine/Math/Range.h"
 #include "Engine/Math/Sphere.h"
+#include "Engine/Math/Triangle2.h"
+#include "Engine/Math/Triangle3.h"
 #include "Engine/Math/Vector2.h"
 #include "Engine/Math/Vector3.h"
 #include "Engine/Math/Vector4.h"
@@ -213,10 +218,28 @@ Vector2 RotatePointAboutPoint2D(const Vector2& pointToRotate, const Vector2& poi
 
 float	CalculateVolumeOfTetrahedron(const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& d);
 Vector3 SolveLinePlaneIntersection(const Line3& line, const Plane3& plane);
-float	GetClosestPointOnLineSegment(const Vector3& start, const Vector3& end, const Vector3& point, Vector3& out_closestPoint);
 float	FindClosestPointsOnLineSegments(const Vector3& startA, const Vector3& endA, const Vector3& startB, const Vector3& endB, Vector3& out_pointOnA, Vector3& out_pointOnB);
 bool	SolveLineCircleIntersection(const Vector3& point, const Vector3& direction, const Vector3& center, float radius, Vector2& out_tSolutions);
 
+// Line Segment
+float	FindNearestPoint(const Vector2& point, const LineSegment2& lineSegment, Vector2& out_closestPt);
+float	FindNearestPoint(const Vector2& point, const Vector2& segA, const Vector2& segB, Vector2& out_closestPt);
+float	FindNearestPoint(const Vector3& point, const LineSegment3& lineSegment, Vector3& out_closestPt);
+float	FindNearestPoint(const Vector3& point, const Vector3& segA, const Vector3& segB, Vector3& out_closestPt);
+
+// Triangle
+float	FindNearestPoint(const Vector2& point, const Triangle2& triangle, Vector2& out_closestPt);
+float	FindNearestPoint(const Vector3& point, const Triangle3& triangle, Vector2& out_closestPt);
+
+// Polygon
+float	FindNearestPoint(const Vector2& point, const Polygon2& polygon, Vector2& out_closestPt);
+float	FindNearestPoint(const Vector2& point, const Polygon3& polygon, Vector2& out_closestPt);
+
+// Polyhedron
+float	FindNearestPoint(const Vector3& point, const Polyhedron& polyhedron, Vector2& out_closestPt);
+
+Vector2 ComputeLineSegmentBarycentricCoords(const Vector2& point, const LineSegment2& lineSegment);
+Vector3 ComputeTriangleBarycentricCoords(const Vector2& point, const Triangle2& triangle);
 
 //-------------------------------------------------------------------------------------------------
 // Templates

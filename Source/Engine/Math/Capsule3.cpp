@@ -50,7 +50,7 @@ float Capsule3::GetHeight() const
 bool Capsule3::ContainsPoint(const Vector3& point) const
 {
 	Vector3 spinePt;
-	float distance = GetClosestPointOnLineSegment(start, end, point, spinePt);
+	float distance = FindNearestPoint(point, start, end, spinePt);
 
 	return distance < radius;
 }

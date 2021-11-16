@@ -444,7 +444,7 @@ int CollisionDetector::GenerateContacts_SphereCylinder(const Collider* a, const 
 
 	if (sphereHorizontal)
 	{
-		float distanceToSpine = GetClosestPointOnLineSegment(cylinderWs.m_bottom, cylinderWs.m_top, sphereWs.m_center, closestSpinePt);
+		float distanceToSpine = FindNearestPoint(sphereWs.m_center, cylinderWs.m_bottom, cylinderWs.m_top, closestSpinePt);
 		horizontalNormal = (sphereWs.m_center - closestSpinePt) / distanceToSpine;
 		ASSERT_OR_DIE(AreMostlyEqual(horizontalNormal.GetLength(), 1.0f), "My trick didn't work!");
 		horizontalPen = (sphereWs.m_radius + cylinderWs.m_radius) - distanceToSpine;
@@ -918,7 +918,7 @@ int CollisionDetector::GenerateContacts_SphereCapsule(const Collider* a, const C
 	Capsule3 capsuleWs = bCapsuleCol->GetDataInWorldSpace();
 
 	Vector3 closestCapsulePointWs;
-	float distance = GetClosestPointOnLineSegment(capsuleWs.start, capsuleWs.end, sphereWs.m_center, closestCapsulePointWs);
+	float distance = FindNearestPoint(sphereWs.m_center, capsuleWs.start, capsuleWs.end, closestCapsulePointWs);
 	float overlap = (sphereWs.m_radius + capsuleWs.radius) - distance;
 
 	if (overlap > 0.f)

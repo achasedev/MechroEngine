@@ -47,16 +47,6 @@ class GJK
 public:
 	//-----Public Methods-----
 
-	static float PointToLineSegment(const Vector2& point, const LineSegment2& lineSegment, Vector2& out_closestPt);
-	static float PointToLineSegment(const Vector3& point, const LineSegment3& lineSegment, Vector2& out_closestPt);
-	static float PointToTriangle(const Vector2& point, const Triangle2& triangle, Vector2& out_closestPt);
-	static float PointToTriangle(const Vector3& point, const Triangle3& triangle, Vector2& out_closestPt);
-	static float PointToPolygon(const Vector2& point, const Polygon2& polygon, Vector2& out_closestPt);
-	static float PointToPolygon(const Vector2& point, const Polygon3& polygon, Vector2& out_closestPt);
-	static float PointToPolyhedron(const Vector3& point, const Polyhedron& polygon, Vector2& out_closestPt);
-
-	static Vector2 ComputeLineSegmentBarycentricCoords(const Vector2& point, const LineSegment2& lineSegment);
-	static Vector3 ComputeTriangleBarycentricCoords(const Vector2& point, const Triangle2& triangle);
 
 };
 

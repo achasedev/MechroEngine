@@ -7,9 +7,13 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Math/LineSegment2.h"
+#include "Engine/Math/LineSegment3.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Math/Matrix3.h"
 #include "Engine/Math/OBB3.h"
+#include "Engine/Math/Triangle2.h"
+#include "Engine/Math/Triangle3.h"
 #include "Engine/Math/Vector2.h"
 #include <math.h>
 #include <cstdlib>
@@ -1309,32 +1313,6 @@ Vector3 SolveLinePlaneIntersection(const Line3& line, const Plane3& plane)
 
 
 //-------------------------------------------------------------------------------------------------
-float GetClosestPointOnLineSegment(const Vector3& start, const Vector3& end, const Vector3& point, Vector3& out_closestPoint)
-{
-	Vector3 direction = end - start;
-	float d = direction.Normalize();
-
-	float dot = DotProduct(point - start, direction);
-	float t = dot / d;
-
-	if (t < 0.f)
-	{
-		out_closestPoint = start;
-	}
-	else if (t > 1.f)
-	{
-		out_closestPoint = end;
-	}
-	else
-	{
-		out_closestPoint = start + t * (end - start);
-	}
-
-	return (out_closestPoint - point).GetLength();
-}
-
-
-//-------------------------------------------------------------------------------------------------
 float FindClosestPointsOnLineSegments(const Vector3& startA, const Vector3& endA, const Vector3& startB, const Vector3& endB, Vector3& out_pointOnA, Vector3& out_pointOnB)
 {
 	float EPS = 0.00000001f;
@@ -1447,6 +1425,167 @@ bool SolveLineCircleIntersection(const Vector3& point, const Vector3& direction,
 	}
 
 	return true;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float FindNearestPoint(const Vector2& point, const LineSegment2& lineSegment, Vector2& out_closestPt)
+{
+	Vector2 uvs = ComputeLineSegmentBarycentricCoords(point, lineSegment);
+	Vector2 closestPt;
+
+	if (uvs.u <= 0.f)
+	{
+		closestPt = lineSegment.m_b;
+	}
+	else if (uvs.v <= 0.f)
+	{
+		closestPt = lineSegment.m_a;
+	}
+	else
+	{
+		closestPt = uvs.u * lineSegment.m_a + uvs.v * lineSegment.m_b;
+	}
+
+	out_closestPt = closestPt;
+	return (closestPt - point).GetLength();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float FindNearestPoint(const Vector2& point, const Triangle2& triangle, Vector2& out_closestPt)
+{
+	LineSegment2 ab(triangle.m_a, triangle.m_b);
+	LineSegment2 bc(triangle.m_b, triangle.m_c);
+	LineSegment2 ca(triangle.m_c, triangle.m_a);
+
+	Vector2 abUVs = ComputeLineSegmentBarycentricCoords(point, ab);
+	Vector2 bcUVs = ComputeLineSegmentBarycentricCoords(point, bc);
+	Vector2 caUVs = ComputeLineSegmentBarycentricCoords(point, ca);
+
+	Maybe<Vector2> closestPt;
+
+	// Check endpoints
+	if (caUVs.u <= 0.f && abUVs.v <= 0.f)
+	{
+		closestPt.Set(triangle.m_a);
+	}
+	else if (abUVs.u <= 0.f && bcUVs.v <= 0.f)
+	{
+		closestPt.Set(triangle.m_b);
+	}
+	else if (bcUVs.u <= 0.f && caUVs.v <= 0.f)
+	{
+		closestPt.Set(triangle.m_c);
+	}
+
+	// Check triangle edges
+	if (!closestPt.IsValid())
+	{
+		Vector3 triUVW = ComputeTriangleBarycentricCoords(point, triangle);
+
+		if (abUVs.u > 0.f && abUVs.v > 0.f && triUVW.w <= 0.f)
+		{
+			closestPt.Set(abUVs.u * triangle.m_a + abUVs.v * triangle.m_b);
+		}
+		else if (bcUVs.u > 0.f && bcUVs.v > 0.f && triUVW.u <= 0.f)
+		{
+			closestPt.Set(bcUVs.u * triangle.m_b + bcUVs.v * triangle.m_c);
+		}
+		else if (caUVs.u > 0.f && caUVs.v > 0.f && triUVW.v <= 0.f)
+		{
+			closestPt.Set(caUVs.u * triangle.m_c + caUVs.v * triangle.m_a);
+		}
+	}
+
+	if (!closestPt.IsValid())
+	{
+		// Point should be in the triangle
+		closestPt.Set(point);
+	}
+
+	out_closestPt = closestPt.Get();
+	return (out_closestPt - point).GetLength();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float FindNearestPoint(const Vector3& point, const LineSegment3& lineSegment, Vector3& out_closestPt)
+{
+	Vector3 ab = lineSegment.m_b - lineSegment.m_a;
+	float length = ab.GetLength();
+	float dot = DotProduct(point - lineSegment.m_a, ab);
+	float t = dot / length;
+
+	if (t < 0.f)
+	{
+		out_closestPt = lineSegment.m_a;
+	}
+	else if (t > 1.f)
+	{
+		out_closestPt = lineSegment.m_b;
+	}
+	else
+	{
+		out_closestPt = lineSegment.m_a + t * ab;
+	}
+
+	return (out_closestPt - point).GetLength();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float FindNearestPoint(const Vector2& point, const Vector2& segA, const Vector2& segB, Vector2& out_closestPt)
+{
+	LineSegment2 seg(segA, segB);
+	return FindNearestPoint(point, seg, out_closestPt);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float FindNearestPoint(const Vector3& point, const Vector3& segA, const Vector3& segB, Vector3& out_closestPt)
+{
+	LineSegment3 seg(segA, segB);
+	return FindNearestPoint(point, seg, out_closestPt);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector2 ComputeLineSegmentBarycentricCoords(const Vector2& point, const LineSegment2& lineSegment)
+{
+	Vector2 dir = (lineSegment.m_b - lineSegment.m_a);
+	float length = dir.Normalize();
+	float invLength = (length > 0.f ? 1.f / length : 0.f);
+
+	float u = DotProduct(lineSegment.m_b - point, dir) * invLength;
+	float v = DotProduct(point - lineSegment.m_a, dir) * invLength;
+
+	return Vector2(u, v);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector3 ComputeTriangleBarycentricCoords(const Vector2& point, const Triangle2& triangle)
+{
+	Vector2 ab = triangle.m_b - triangle.m_a;
+	Vector2 bc = triangle.m_c - triangle.m_b;
+	Vector2 ca = triangle.m_a - triangle.m_c;
+
+	float totalArea = 0.5f * CrossProduct(ab, bc);
+
+	Vector2 bp = (point - triangle.m_b);
+	float areaBCP = 0.5f * CrossProduct(bc, bp);
+	float u = areaBCP / totalArea;
+
+	Vector2 cp = (point - triangle.m_c);
+	float areaCAP = 0.5f * CrossProduct(ca, cp);
+	float v = areaCAP / totalArea;
+
+	Vector2 ap = (point - triangle.m_a);
+	float areaABP = 0.5f * CrossProduct(ab, ap);
+	float w = areaABP / totalArea;
+
+	return Vector3(u, v, w);
 }
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
