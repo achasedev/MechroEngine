@@ -37,52 +37,36 @@
 //-------------------------------------------------------------------------------------------------
 Triangle2 Triangle3::GetInPlaneRepresentation() const
 {
-	Matrix3 basisVectors;
-	GetIJBasis(basisVectors);
-	basisVectors.Invert(); // Invert to go into this space, not out
-
-	// Choose a to be the origin
-	Vector2 a = Vector2::ZERO;
-
-	// Determine the other values in this space
-
-	Vector2 b = (basisVectors * (m_b - m_a)).xy;
-	Vector2 c = (basisVectors * (m_c - m_a)).xy;
-
-	return Triangle2(a, b, c);
+	return Triangle2();
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Vector2 Triangle3::TransformPointInto2DBasis(const Vector3& point) const
 {
-	Matrix3 basisVectors;
+	Matrix4 basisVectors;
 	GetIJBasis(basisVectors);
 	basisVectors.Invert();
 
-	return (basisVectors * (point - m_a)).xy;
+	return basisVectors.TransformPosition(point).xy;
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Vector3 Triangle3::TransformPointOutOf2DBasis(const Vector2& point) const
 {
-	Matrix3 basisVectors;
+	Matrix4 basisVectors;
 	GetIJBasis(basisVectors);
 
-	return basisVectors * Vector3(point, 0.f); // K basic of the matrix is (0,0,0) so the last component here doesn't matter
+	return basisVectors.iBasis.xyz() * point.x + basisVectors.jBasis.xyz() * point.y + m_a;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void Triangle3::GetIJBasis(Matrix3& out_bases) const
+void Triangle3::GetIJBasis(Matrix4& out_bases) const
 {
-	// Choose ab to be the i vector
-	out_bases.iBasis = (m_b - m_a);
-
-	// Choose ac to be the j vector
-	out_bases.jBasis = (m_c - m_a);
-
-	// No k basis needed
-	out_bases.kBasis = Vector3::ZERO;
+	Vector3 i = (m_b - m_a);
+	Vector3 j = (m_c - m_a);
+	Vector3 k = CrossProduct(i, j);
+	out_bases = Matrix4(i, j, k, m_a);
 }
