@@ -44,29 +44,29 @@ Triangle2 Triangle3::GetInPlaneRepresentation() const
 //-------------------------------------------------------------------------------------------------
 Vector2 Triangle3::TransformPointInto2DBasis(const Vector3& point) const
 {
-	Matrix4 basisVectors;
-	GetIJBasis(basisVectors);
-	basisVectors.Invert();
+	Matrix3 basis;
+	GetBasis(basis);
+	basis.Invert();
 
-	return basisVectors.TransformPosition(point).xy;
+	return (basis * (point - m_a)).xy;
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Vector3 Triangle3::TransformPointOutOf2DBasis(const Vector2& point) const
 {
-	Matrix4 basisVectors;
-	GetIJBasis(basisVectors);
+	Matrix3 basisVectors;
+	GetBasis(basisVectors);
 
-	return basisVectors.iBasis.xyz() * point.x + basisVectors.jBasis.xyz() * point.y + m_a;
+	return basisVectors.iBasis * point.x + basisVectors.jBasis * point.y + m_a;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void Triangle3::GetIJBasis(Matrix4& out_bases) const
+void Triangle3::GetBasis(Matrix3& out_bases) const
 {
 	Vector3 i = (m_b - m_a);
 	Vector3 j = (m_c - m_a);
 	Vector3 k = CrossProduct(i, j);
-	out_bases = Matrix4(i, j, k, m_a);
+	out_bases = Matrix3(i, j, k);
 }
