@@ -3,12 +3,16 @@
 /// Date Created: Nov 16th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/Vector3.h"
+#include "Engine/Core/EngineCommon.h"
+#include "Engine/Math/MathUtils.h"
+#include "Engine/Math/Matrix3.h"
+#include "Engine/Math/Triangle2.h"
+#include "Engine/Math/Triangle3.h"
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -17,47 +21,68 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Matrix3;
-class Triangle2;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// CLASS DECLARATIONS
+/// C FUNCTIONS
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+
+///--------------------------------------------------------------------------------------------------------------------------------------------------
+/// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class Triangle3
+Triangle2 Triangle3::GetInPlaneRepresentation() const
 {
-public:
-	//-----Public Methods-----
+	Matrix3 basisVectors;
+	GetIJBasis(basisVectors);
+	basisVectors.Invert(); // Invert to go into this space, not out
 
-	Triangle3() {}
-	Triangle3(const Vector3& a, const Vector3& b, const Vector3& c)
-		: m_a(a), m_b(b), m_c(c) {}
+	// Choose a to be the origin
+	Vector2 a = Vector2::ZERO;
 
-	Triangle2	GetInPlaneRepresentation() const;
-	Vector2		TransformPointInto2DBasis(const Vector3& point) const;
-	Vector3		TransformPointOutOf2DBasis(const Vector2& point) const;
+	// Determine the other values in this space
 
+	Vector2 b = (basisVectors * (m_b - m_a)).xy;
+	Vector2 c = (basisVectors * (m_c - m_a)).xy;
 
-private:
-	//-----Private Methods-----
-
-	void GetIJBasis(Matrix3& out_bases) const;
+	return Triangle2(a, b, c);
+}
 
 
-public:
-	//-----Public Data-----
+//-------------------------------------------------------------------------------------------------
+Vector2 Triangle3::TransformPointInto2DBasis(const Vector3& point) const
+{
+	Matrix3 basisVectors;
+	GetIJBasis(basisVectors);
+	basisVectors.Invert();
 
-	Vector3 m_a;
-	Vector3 m_b;
-	Vector3 m_c;
+	return (basisVectors * (point - m_a)).xy;
+}
 
-};
 
-///--------------------------------------------------------------------------------------------------------------------------------------------------
-/// C FUNCTIONS
-///--------------------------------------------------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+Vector3 Triangle3::TransformPointOutOf2DBasis(const Vector2& point) const
+{
+	Matrix3 basisVectors;
+	GetIJBasis(basisVectors);
+
+	return basisVectors * Vector3(point, 0.f); // K basic of the matrix is (0,0,0) so the last component here doesn't matter
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Triangle3::GetIJBasis(Matrix3& out_bases) const
+{
+	// Choose ab to be the i vector
+	out_bases.iBasis = (m_b - m_a);
+
+	// Choose ac to be the j vector
+	out_bases.jBasis = (m_c - m_a);
+
+	// No k basis needed
+	out_bases.kBasis = Vector3::ZERO;
+}

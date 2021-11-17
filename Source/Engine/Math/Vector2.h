@@ -41,7 +41,6 @@ public:
 	explicit Vector2(int initialX, int initialY);
 	explicit Vector2(const IntVector2& intVector);
 	explicit Vector2(float initialValue);
-	~Vector2() {}
 
 	const Vector2			operator+(const Vector2& vecToAdd) const;
 	const Vector2			operator-(const Vector2& vecToSubtract) const;

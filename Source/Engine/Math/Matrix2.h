@@ -8,7 +8,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/Vector3.h"
+#include "Engine/Math/Vector2.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -17,8 +17,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Matrix3;
-class Triangle2;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -27,37 +25,63 @@ class Triangle2;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#pragma warning(disable : 4201) // Keep the structs anonymous
 
 //-------------------------------------------------------------------------------------------------
-class Triangle3
+class Matrix2
 {
 public:
 	//-----Public Methods-----
 
-	Triangle3() {}
-	Triangle3(const Vector3& a, const Vector3& b, const Vector3& c)
-		: m_a(a), m_b(b), m_c(c) {}
+	Matrix2();
+	Matrix2(const Matrix2& other);
+	explicit Matrix2(const Vector2& iBasis, const Vector2& jBasis);
 
-	Triangle2	GetInPlaneRepresentation() const;
-	Vector2		TransformPointInto2DBasis(const Vector3& point) const;
-	Vector3		TransformPointOutOf2DBasis(const Vector2& point) const;
+	void	operator=(const Matrix2& other);
+	bool	operator==(const Matrix2& other) const;
+	Matrix2 operator*(const float scalar) const;
+	void	operator*=(const float scalar);
+	Matrix2 operator*(const Matrix2& other) const;
+	Vector2 operator*(const Vector2& v) const;
 
-
-private:
-	//-----Private Methods-----
-
-	void GetIJBasis(Matrix3& out_bases) const;
+	void	Transpose();
+	void	Invert();
+	Matrix2 GetTranspose() const;
+	Matrix2 GetInverse() const;
+	Vector2 GetXVector() const;
+	Vector2 GetYVector() const;
+	float	GetDeterminant() const;
 
 
 public:
 	//-----Public Data-----
 
-	Vector3 m_a;
-	Vector3 m_b;
-	Vector3 m_c;
+	union
+	{
+		struct
+		{
+			float Ix;
+			float Iy;
+			float Jx;
+			float Jy;
+		};
+
+		struct
+		{
+			Vector2 iBasis;
+			Vector2 jBasis;
+		};
+
+		Vector2 columnVectors[2];
+		float data[4];
+	};
+
+	static const Matrix2 IDENTITY;
+	static const Matrix2 ZERO;
 
 };
 
+#pragma warning(default : 4201)
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------

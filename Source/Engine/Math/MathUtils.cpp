@@ -1431,7 +1431,7 @@ bool SolveLineCircleIntersection(const Vector3& point, const Vector3& direction,
 //-------------------------------------------------------------------------------------------------
 float FindNearestPoint(const Vector2& point, const LineSegment2& lineSegment, Vector2& out_closestPt)
 {
-	Vector2 uvs = ComputeLineSegmentBarycentricCoords(point, lineSegment);
+	Vector2 uvs = ComputeBarycentricCoordinates(point, lineSegment);
 	Vector2 closestPt;
 
 	if (uvs.u <= 0.f)
@@ -1459,9 +1459,9 @@ float FindNearestPoint(const Vector2& point, const Triangle2& triangle, Vector2&
 	LineSegment2 bc(triangle.m_b, triangle.m_c);
 	LineSegment2 ca(triangle.m_c, triangle.m_a);
 
-	Vector2 abUVs = ComputeLineSegmentBarycentricCoords(point, ab);
-	Vector2 bcUVs = ComputeLineSegmentBarycentricCoords(point, bc);
-	Vector2 caUVs = ComputeLineSegmentBarycentricCoords(point, ca);
+	Vector2 abUVs = ComputeBarycentricCoordinates(point, ab);
+	Vector2 bcUVs = ComputeBarycentricCoordinates(point, bc);
+	Vector2 caUVs = ComputeBarycentricCoordinates(point, ca);
 
 	Maybe<Vector2> closestPt;
 
@@ -1482,7 +1482,7 @@ float FindNearestPoint(const Vector2& point, const Triangle2& triangle, Vector2&
 	// Check triangle edges
 	if (!closestPt.IsValid())
 	{
-		Vector3 triUVW = ComputeTriangleBarycentricCoords(point, triangle);
+		Vector3 triUVW = ComputeBarycentricCoordinates(point, triangle);
 
 		if (abUVs.u > 0.f && abUVs.v > 0.f && triUVW.w <= 0.f)
 		{
@@ -1551,7 +1551,22 @@ float FindNearestPoint(const Vector3& point, const Vector3& segA, const Vector3&
 
 
 //-------------------------------------------------------------------------------------------------
-Vector2 ComputeLineSegmentBarycentricCoords(const Vector2& point, const LineSegment2& lineSegment)
+float FindNearestPoint(const Vector3& point, const Triangle3& triangle, Vector3& out_closestPt)
+{
+	Triangle2 inPlaneTri = triangle.GetInPlaneRepresentation();
+	Vector2 inPlanePt = triangle.TransformPointInto2DBasis(point);
+
+	Vector2 inPlaneNearestPt;
+	FindNearestPoint(inPlanePt, inPlaneTri, inPlaneNearestPt);
+
+	out_closestPt = triangle.TransformPointOutOf2DBasis(inPlaneNearestPt);
+
+	return (out_closestPt - point).GetLength();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector2 ComputeBarycentricCoordinates(const Vector2& point, const LineSegment2& lineSegment)
 {
 	Vector2 dir = (lineSegment.m_b - lineSegment.m_a);
 	float length = dir.Normalize();
@@ -1565,7 +1580,7 @@ Vector2 ComputeLineSegmentBarycentricCoords(const Vector2& point, const LineSegm
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 ComputeTriangleBarycentricCoords(const Vector2& point, const Triangle2& triangle)
+Vector3 ComputeBarycentricCoordinates(const Vector2& point, const Triangle2& triangle)
 {
 	Vector2 ab = triangle.m_b - triangle.m_a;
 	Vector2 bc = triangle.m_c - triangle.m_b;

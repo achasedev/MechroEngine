@@ -229,7 +229,7 @@ float	FindNearestPoint(const Vector3& point, const Vector3& segA, const Vector3&
 
 // Triangle
 float	FindNearestPoint(const Vector2& point, const Triangle2& triangle, Vector2& out_closestPt);
-float	FindNearestPoint(const Vector3& point, const Triangle3& triangle, Vector2& out_closestPt);
+float	FindNearestPoint(const Vector3& point, const Triangle3& triangle, Vector3& out_closestPt);
 
 // Polygon
 float	FindNearestPoint(const Vector2& point, const Polygon2& polygon, Vector2& out_closestPt);
@@ -238,8 +238,9 @@ float	FindNearestPoint(const Vector2& point, const Polygon3& polygon, Vector2& o
 // Polyhedron
 float	FindNearestPoint(const Vector3& point, const Polyhedron& polyhedron, Vector2& out_closestPt);
 
-Vector2 ComputeLineSegmentBarycentricCoords(const Vector2& point, const LineSegment2& lineSegment);
-Vector3 ComputeTriangleBarycentricCoords(const Vector2& point, const Triangle2& triangle);
+// Barycentric Coords
+Vector2 ComputeBarycentricCoordinates(const Vector2& point, const LineSegment2& lineSegment);
+Vector3 ComputeBarycentricCoordinates(const Vector2& point, const Triangle2& triangle);
 
 //-------------------------------------------------------------------------------------------------
 // Templates
