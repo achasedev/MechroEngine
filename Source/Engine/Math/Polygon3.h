@@ -18,6 +18,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class Matrix3;
 class Polygon2;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -39,7 +40,15 @@ public:
 
 	int			AddVertex(const Vector3& vertex);
 	Vector3		GetVertex(int index);
-	Polygon2	Get2DVersion();
+	void		TransformSelfInto2DBasis(Polygon2& out_poly2) const;
+	Vector2		TransformPointInto2DBasis(const Vector3& point) const;
+	Vector3		TransformPointOutOf2DBasis(const Vector2& point) const;
+
+
+private:
+	//-----Private Methods-----
+
+	void		GetBasis(Matrix3& out_bases) const;
 
 
 private:

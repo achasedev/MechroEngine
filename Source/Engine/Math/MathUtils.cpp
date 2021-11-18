@@ -1569,11 +1569,8 @@ float FindNearestPoint(const Vector3& point, const Triangle3& triangle, Vector3&
 //-------------------------------------------------------------------------------------------------
 float FindNearestPoint(const Vector2& point, const Polygon2& polygon, Vector2& out_closestPt)
 {
-	GJKSolver solver(point, polygon);
-	solver.Solve();
-
-	out_closestPt = solver.GetClosestPoint();
-	return solver.GetClosestDistance();
+	GJKSolver solver;
+	return solver.Solve(point, &polygon, out_closestPt);
 }
 
 

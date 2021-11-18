@@ -34,8 +34,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-GJKSolver::GJKSolver(const Vector2& point, const Polygon2& poly)
-	: m_poly(poly), m_point(point)
+GJKSolver::GJKSolver()
 {
 	for (int i = 0; i < MAX_SIMPLEX_VERTS; ++i)
 	{
@@ -45,8 +44,11 @@ GJKSolver::GJKSolver(const Vector2& point, const Polygon2& poly)
 
 
 //-------------------------------------------------------------------------------------------------
-void GJKSolver::Solve()
+float GJKSolver::Solve(const Vector2& point, const Polygon2* poly, Vector2& out_closestPt)
 {
+	m_point = point;
+	m_poly = poly;
+
 	bool done = false;
 	while (!done)
 	{
@@ -69,6 +71,27 @@ void GJKSolver::Solve()
 			break;
 		}
 	}
+
+	out_closestPt = m_closestPt;
+	return m_minDist;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float GJKSolver::Solve(const Vector3& point, const Polygon3* poly3, Vector3& out_closestPt)
+{
+	// Get poly and point in 2D basis
+	Polygon2 poly2;
+	poly3->TransformSelfInto2DBasis(poly2);
+	Vector2 point2 = poly3->TransformPointInto2DBasis(point);
+
+	// Solve in 2D
+	Vector2 closestPt2;
+	Solve(point2, &poly2, closestPt2);
+
+	// Convert back to 3D
+	out_closestPt = poly3->TransformPointOutOf2DBasis(closestPt2);
+	return (out_closestPt - point).GetLength();
 }
 
 
@@ -84,17 +107,17 @@ void GJKSolver::StartEvolution()
 //-------------------------------------------------------------------------------------------------
 bool GJKSolver::EvolveFromPoint()
 {
-	Vector2 aToPt = m_point - m_poly.GetVertex(m_iA);
+	Vector2 aToPt = m_point - m_poly->GetVertex(m_iA);
 
 	Vector2 b;
-	m_iB = m_poly.GetSupportPoint(aToPt, b);
+	m_iB = m_poly->GetSupportPoint(aToPt, b);
 	m_numVerts = 2;
 
 	if (m_iA == m_iB)
 	{
 		// Closest point is a vertex
-		m_closestPt = b;
-		m_distance = (m_point - m_closestPt).GetLength();
+		m_closestPt.xy = b;
+		m_minDist = (m_point - m_closestPt.xy).GetLength();
 		return true;
 	}
 
@@ -105,8 +128,8 @@ bool GJKSolver::EvolveFromPoint()
 //-------------------------------------------------------------------------------------------------
 bool GJKSolver::EvolveFromSegment()
 {
-	Vector2 a = m_poly.GetVertex(m_iA);
-	Vector2 b = m_poly.GetVertex(m_iB);
+	Vector2 a = m_poly->GetVertex(m_iA);
+	Vector2 b = m_poly->GetVertex(m_iB);
 
 	Vector2 aToB = b - a;
 	Vector2 searchDir = Vector2(-1.0f * aToB.y, aToB.x);
@@ -119,13 +142,15 @@ bool GJKSolver::EvolveFromSegment()
 	}
 	
 	Vector2 c;
-	m_iC = m_poly.GetSupportPoint(searchDir, c);
+	m_iC = m_poly->GetSupportPoint(searchDir, c);
 	m_numVerts = 3;
 
 	if (m_iC == m_iA || m_iC == m_iB)
 	{
 		// Closest point will be on this segment
-		m_distance = FindNearestPoint(m_point, LineSegment2(a, b), m_closestPt);
+		Vector2 closestPt;
+		m_minDist = FindNearestPoint(m_point, LineSegment2(a, b), closestPt);
+		m_closestPt.xy = closestPt;
 		return true;
 	}
 
@@ -136,16 +161,16 @@ bool GJKSolver::EvolveFromSegment()
 //-------------------------------------------------------------------------------------------------
 bool GJKSolver::EvolveFromTriangle()
 {
-	Vector2 a = m_poly.GetVertex(m_iA);
-	Vector2 b = m_poly.GetVertex(m_iB);
-	Vector2 c = m_poly.GetVertex(m_iC);
+	Vector2 a = m_poly->GetVertex(m_iA);
+	Vector2 b = m_poly->GetVertex(m_iB);
+	Vector2 c = m_poly->GetVertex(m_iC);
 	Vector3 baryCoords = ComputeBarycentricCoordinates(m_point, Triangle2(a, b, c));
 
 	if (baryCoords.u > 0.f && baryCoords.v > 0.f && baryCoords.w > 0.f)
 	{
 		// Point is inside the simplex
-		m_distance = 0.f;
-		m_closestPt = m_point;
+		m_minDist = 0.f;
+		m_closestPt.xy = m_point;
 		return true;
 	}
 

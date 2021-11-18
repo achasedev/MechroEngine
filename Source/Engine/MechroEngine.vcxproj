@@ -179,6 +179,7 @@
     <ClCompile Include="Math\GJK.cpp" />
     <ClCompile Include="Math\Matrix2.cpp" />
     <ClCompile Include="Math\Matrix3.cpp" />
+    <ClCompile Include="Math\Polygon3.cpp" />
     <ClCompile Include="Math\ScaledAxisRotation.cpp" />
     <ClCompile Include="Math\Triangle3.cpp" />
     <ClCompile Include="Physics\Particle\Particle.cpp" />

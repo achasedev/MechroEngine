@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: Nov 16th, 2021
+/// Date Created: Nov 18th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -10,9 +10,8 @@
 #include "Engine/Core/EngineCommon.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Math/Matrix3.h"
-#include "Engine/Math/Triangle2.h"
-#include "Engine/Math/Triangle3.h"
-
+#include "Engine/Math/Polygon3.h"
+#include "Engine/Math/Vector2.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -34,33 +33,56 @@
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
+//-------------------------------------------------------------------------------------------------
+void Polygon3::TransformSelfInto2DBasis(Polygon2& out_poly2) const
+{
+	out_poly2.Clear();
+
+	Matrix3 basis;
+	GetBasis(basis);
+	basis.Invert();
+
+	for (Vector3 vertex3 : m_vertices)
+	{
+		Vector2 vertex2 = (basis * (vertex3 - m_vertices[0])).xy;
+		out_poly2.AddVertex(vertex2);
+	}
+
+	// Sanity checks
+	ASSERT_OR_DIE(AreMostlyEqual(out_poly2.GetVertex(0), Vector2::ZERO), "First point isn't origin!");
+	ASSERT_OR_DIE(AreMostlyEqual(out_poly2.GetVertex(1), Vector2(1.f, 0.f)), "Second point isn't I vector!");
+	ASSERT_OR_DIE(AreMostlyEqual(out_poly2.GetVertex(2), Vector2(0.f, 1.0f)), "Third point isn't J vector!");
+}
+
 
 //-------------------------------------------------------------------------------------------------
-Vector2 Triangle3::TransformPointInto2DBasis(const Vector3& point) const
+Vector2 Polygon3::TransformPointInto2DBasis(const Vector3& point) const
 {
 	Matrix3 basis;
 	GetBasis(basis);
 	basis.Invert();
 
-	return (basis * (point - m_a)).xy;
+	return (basis * (point - m_vertices[0])).xy;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 Triangle3::TransformPointOutOf2DBasis(const Vector2& point) const
+Vector3 Polygon3::TransformPointOutOf2DBasis(const Vector2& point) const
 {
 	Matrix3 basisVectors;
 	GetBasis(basisVectors);
 
-	return basisVectors.iBasis * point.x + basisVectors.jBasis * point.y + m_a;
+	return basisVectors.iBasis * point.x + basisVectors.jBasis * point.y + m_vertices[0];
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void Triangle3::GetBasis(Matrix3& out_bases) const
+void Polygon3::GetBasis(Matrix3& out_bases) const
 {
-	Vector3 i = (m_b - m_a);
-	Vector3 j = (m_c - m_a);
+	ASSERT_OR_DIE(m_vertices.size() > 2, "Not enough vertices!");
+
+	Vector3 i = (m_vertices[1] - m_vertices[0]);
+	Vector3 j = (m_vertices[2] - m_vertices[0]);
 	Vector3 k = CrossProduct(i, j);
 	out_bases = Matrix3(i, j, k);
 }

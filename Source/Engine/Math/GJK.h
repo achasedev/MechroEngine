@@ -19,6 +19,8 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Polygon2;
+class Polygon3;
+class Vector3;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -36,11 +38,9 @@ class GJKSolver
 public:
 	//-----Public Methods-----
 
-	GJKSolver(const Vector2& point, const Polygon2& poly);
-	void Solve();
-
-	Vector2 GetClosestPoint() const { return m_closestPt; }
-	float	GetClosestDistance() const { return m_distance; }
+	GJKSolver();
+	float Solve(const Vector2& point, const Polygon2* poly, Vector2& out_closestPt);
+	float Solve(const Vector3& point, const Polygon3* poly, Vector3& out_closestPt);
 
 
 private:
@@ -50,7 +50,6 @@ private:
 	bool EvolveFromPoint();
 	bool EvolveFromSegment();
 	bool EvolveFromTriangle();
-
 	void CleanUpVertices();
 
 
@@ -59,7 +58,7 @@ private:
 
 	// Input
 	Vector2			m_point = Vector2::ZERO;
-	const Polygon2& m_poly;
+	const Polygon2* m_poly = nullptr;
 
 	// Simplex vertices - as index into poly vertices
 	union
@@ -76,7 +75,7 @@ private:
 
 	// Results
 	Vector2			m_closestPt = Vector2::ZERO;
-	float			m_distance = -1.0f;
+	float			m_minDist = -1.0f;
 
 };
 
