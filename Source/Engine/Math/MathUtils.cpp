@@ -7,6 +7,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Math/GJK.h"
 #include "Engine/Math/LineSegment2.h"
 #include "Engine/Math/LineSegment3.h"
 #include "Engine/Math/MathUtils.h"
@@ -1566,6 +1567,17 @@ float FindNearestPoint(const Vector3& point, const Triangle3& triangle, Vector3&
 
 
 //-------------------------------------------------------------------------------------------------
+float FindNearestPoint(const Vector2& point, const Polygon2& polygon, Vector2& out_closestPt)
+{
+	GJKSolver solver(point, polygon);
+	solver.Solve();
+
+	out_closestPt = solver.GetClosestPoint();
+	return solver.GetClosestDistance();
+}
+
+
+//-------------------------------------------------------------------------------------------------
 Vector2 ComputeBarycentricCoordinates(const Vector2& point, const LineSegment2& lineSegment)
 {
 	Vector2 dir = (lineSegment.m_b - lineSegment.m_a);
@@ -1587,18 +1599,19 @@ Vector3 ComputeBarycentricCoordinates(const Vector2& point, const Triangle2& tri
 	Vector2 ca = triangle.m_a - triangle.m_c;
 
 	float totalArea = 0.5f * CrossProduct(ab, bc);
+	float invTotalArea = 1.f / totalArea;
 
 	Vector2 bp = (point - triangle.m_b);
 	float areaBCP = 0.5f * CrossProduct(bc, bp);
-	float u = areaBCP / totalArea;
+	float u = areaBCP * invTotalArea;
 
 	Vector2 cp = (point - triangle.m_c);
 	float areaCAP = 0.5f * CrossProduct(ca, cp);
-	float v = areaCAP / totalArea;
+	float v = areaCAP * invTotalArea;
 
 	Vector2 ap = (point - triangle.m_a);
 	float areaABP = 0.5f * CrossProduct(ab, ap);
-	float w = areaABP / totalArea;
+	float w = areaABP * invTotalArea;
 
 	return Vector3(u, v, w);
 }

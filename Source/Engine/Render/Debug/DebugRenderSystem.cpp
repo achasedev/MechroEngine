@@ -276,11 +276,28 @@ DebugRenderObjectHandle DebugDrawPlane(const Plane3& plane, const DebugRenderOpt
 
 
 //-------------------------------------------------------------------------------------------------
-DebugRenderObjectHandle DebugDrawPolygon(const Polyhedron& poly, const DebugRenderOptions& options /*= DebugRenderOptions()*/)
+DebugRenderObjectHandle DebugDrawPolyhedron(const Polyhedron& poly, const DebugRenderOptions& options /*= DebugRenderOptions()*/)
 {
 	MeshBuilder mb;
 	mb.BeginBuilding(TOPOLOGY_TRIANGLE_LIST, true);
-	mb.PushPolygon(poly, Rgba::WHITE);
+	mb.PushPolyhedron(poly, Rgba::WHITE);
+	mb.FinishBuilding();
+
+	Mesh* mesh = mb.CreateMesh<Vertex3D_PCU>();
+
+	DebugRenderObject* obj = new DebugRenderObject(options);
+	obj->AddMesh(mesh, Matrix4::IDENTITY, true);
+
+	return g_debugRenderSystem->AddObject(obj);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+DebugRenderObjectHandle DebugDrawTriangle3(const Triangle3& triangle, const DebugRenderOptions& options /*= DebugRenderOptions()*/)
+{
+	MeshBuilder mb;
+	mb.BeginBuilding(TOPOLOGY_TRIANGLE_LIST, true);
+	mb.PushTriangle3(triangle, Rgba::WHITE);
 	mb.FinishBuilding();
 
 	Mesh* mesh = mb.CreateMesh<Vertex3D_PCU>();

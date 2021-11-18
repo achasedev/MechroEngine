@@ -29,6 +29,8 @@ class Polyhedron;
 class Sphere;
 class Shader;
 class Texture2D;
+class Triangle2;
+class Triangle3;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -105,4 +107,5 @@ DebugRenderObjectHandle DebugDrawCylinder(const Vector3& bottom, const Vector3& 
 DebugRenderObjectHandle DebugDrawCylinder(const Cylinder& cylinder, const DebugRenderOptions& options = DebugRenderOptions());
 DebugRenderObjectHandle DebugDrawFrustrum(const Frustrum& frustrum, const DebugRenderOptions& options = DebugRenderOptions());
 DebugRenderObjectHandle DebugDrawPlane(const Plane3& plane, const DebugRenderOptions& options = DebugRenderOptions());
-DebugRenderObjectHandle DebugDrawPolygon(const Polyhedron& poly, const DebugRenderOptions& options = DebugRenderOptions());
+DebugRenderObjectHandle DebugDrawPolyhedron(const Polyhedron& poly, const DebugRenderOptions& options = DebugRenderOptions());
+DebugRenderObjectHandle DebugDrawTriangle3(const Triangle3& triangle, const DebugRenderOptions& options = DebugRenderOptions());

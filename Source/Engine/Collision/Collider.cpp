@@ -271,7 +271,7 @@ void ConvexHullCollider::ShowDebug()
 		DebugRenderOptions options = DEFAULT_COLLIDER_RENDER_OPTIONS;
 		options.m_parentTransform = &m_entity->transform;
 
-		DebugDrawPolygon(m_dataLs, options);
+		DebugDrawPolyhedron(m_dataLs, options);
 	}
 }
 

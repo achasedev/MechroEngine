@@ -528,7 +528,7 @@ void MeshBuilder::PushTriangle2D(const Vector2& first, const Vector2& second, co
 	Vector3 second3D	= Vector3(second, 0.f);
 	Vector3 third3D		= Vector3(third, 0.f);
 
-	PushTriangle3D(first3D, second3D, third3D, tint);
+	PushTriangle3(first3D, second3D, third3D, tint);
 }
 
 
@@ -648,7 +648,7 @@ void MeshBuilder::PushLine3D(const Vector3& start, const Vector3& end, const Rgb
 
 
 //-------------------------------------------------------------------------------------------------
-void MeshBuilder::PushTriangle3D(const Vector3& first, const Vector3& second, const Vector3& third, const Rgba& tint /*= Rgba::WHITE*/)
+void MeshBuilder::PushTriangle3(const Vector3& first, const Vector3& second, const Vector3& third, const Rgba& tint /*= Rgba::WHITE*/)
 {
 	AssertBuildState(true, TOPOLOGY_TRIANGLE_LIST);
 
@@ -664,6 +664,13 @@ void MeshBuilder::PushTriangle3D(const Vector3& first, const Vector3& second, co
 		PushIndex(index + 1);
 		PushIndex(index + 2);
 	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void MeshBuilder::PushTriangle3(const Triangle3& triangle, const Rgba& tint /*= Rgba::WHITE*/)
+{
+	PushTriangle3(triangle.m_a, triangle.m_b, triangle.m_c, tint);
 }
 
 
@@ -1032,7 +1039,7 @@ void MeshBuilder::PushCapsule(const Vector3& start, const Vector3& end, float ra
 
 
 //-------------------------------------------------------------------------------------------------
-void MeshBuilder::PushPolygon(const Polyhedron& poly, const Rgba& color /*= Rgba::WHITE*/)
+void MeshBuilder::PushPolyhedron(const Polyhedron& poly, const Rgba& color /*= Rgba::WHITE*/)
 {
 	bool useIndices = true;
 	AssertBuildState(true, TOPOLOGY_TRIANGLE_LIST, &useIndices);

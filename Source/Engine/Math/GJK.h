@@ -8,30 +8,17 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Math/Vector2.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#define MAX_SIMPLEX_VERTS (3)
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class LineSegment2;
-class LineSegment3;
 class Polygon2;
-class Polygon3;
-class Polyhedron;
-class Triangle2;
-class Triangle3;
-class Vector2;
-class Vector3;
-
-enum SimplexResult
-{
-	SIMPLEX_RESULT_NO_INTERSECTION,
-	SIMPLEX_RESULT_INTERSECTION_FOUND,
-	SIMPLEX_RESULT_STILL_EVOLVING
-};
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -41,14 +28,59 @@ enum SimplexResult
 /// CLASS DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
+#pragma warning(disable : 4201) // Keep the structs anonymous
+
 //-------------------------------------------------------------------------------------------------
-class GJK
+class GJKSolver
 {
 public:
 	//-----Public Methods-----
 
+	GJKSolver(const Vector2& point, const Polygon2& poly);
+	void Solve();
+
+	Vector2 GetClosestPoint() const { return m_closestPt; }
+	float	GetClosestDistance() const { return m_distance; }
+
+
+private:
+	//-----Private Methods-----
+
+	void StartEvolution();
+	bool EvolveFromPoint();
+	bool EvolveFromSegment();
+	bool EvolveFromTriangle();
+
+	void CleanUpVertices();
+
+
+private:
+	//-----Private Data-----
+
+	// Input
+	Vector2			m_point = Vector2::ZERO;
+	const Polygon2& m_poly;
+
+	// Simplex vertices - as index into poly vertices
+	union
+	{
+		int	m_iVert[MAX_SIMPLEX_VERTS];
+		struct
+		{
+			int m_iA;
+			int m_iB;
+			int m_iC;
+		};
+	};
+	int m_numVerts = 0;
+
+	// Results
+	Vector2			m_closestPt = Vector2::ZERO;
+	float			m_distance = -1.0f;
 
 };
+
+#pragma warning(default : 4201)
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
