@@ -1281,19 +1281,25 @@ static float GetWindingDirection(const Vector2& a, const Vector2& b, const Vecto
 //-------------------------------------------------------------------------------------------------
 bool DoLineSegmentsIntersect(const LineSegment2& line1, const LineSegment2& line2)
 {
+	return DoLineSegmentsIntersect(line1.m_a, line1.m_b, line2.m_a, line2.m_b);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool DoLineSegmentsIntersect(const Vector2& a, const Vector2& b, const Vector2& c, const Vector2& d)
+{
 	// > 0 for clockwise, < 0 for counterclockwise, == 0 is colinear
-	float dir1 = GetWindingDirection(line1.m_a, line1.m_b, line2.m_a);
-	float dir2 = GetWindingDirection(line1.m_a, line1.m_b, line2.m_b);
-	float dir3 = GetWindingDirection(line2.m_a, line2.m_b, line1.m_a);
-	float dir4 = GetWindingDirection(line2.m_a, line2.m_b, line1.m_b);
+	float dir1 = GetWindingDirection(a, b, c);
+	float dir2 = GetWindingDirection(a, b, d);
+	float dir3 = GetWindingDirection(c, d, a);
+	float dir4 = GetWindingDirection(c, d, b);
 
 	if (dir1 == 0.f && dir2 == 0.f && dir3 == 0.f && dir4 == 0.f)
 	{
-		// Segments are colinear, just check for overlap on an axis
-		Vector2 dir = line1.m_b - line1.m_a;
-		
-		float t0 = DotProduct(line2.m_a - line1.m_a, dir) / dir.GetLengthSquared();
-		float t1 = DotProduct(line2.m_b - line1.m_a, dir) / dir.GetLengthSquared();
+		// Segments are colinear - project second line onto first to see if they overlap
+		Vector2 dir = b - a;
+		float t0 = DotProduct(c - a, dir) / dir.GetLengthSquared();
+		float t1 = DotProduct(d - a, dir) / dir.GetLengthSquared();
 
 		return (Min(t0, t1) <= 1.0f && Max(t0, t1) >= 0.f);
 	}

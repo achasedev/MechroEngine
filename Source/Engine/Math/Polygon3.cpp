@@ -83,6 +83,7 @@ int Polygon3::AddVertex(const Vector3& vertex)
 #endif
 
 	m_vertices.push_back(vertex);
+	ASSERT_OR_DIE(!IsSelfIntersecting(), "Polygon self intersects!");
 
 	return (int)m_vertices.size() - 1;
 }
@@ -131,8 +132,24 @@ Vector3 Polygon3::TransformPointOutOf2DBasis(const Vector2& point) const
 
 
 //-------------------------------------------------------------------------------------------------
+bool Polygon3::IsSelfIntersecting() const
+{
+	if (m_vertices.size() <= 3)
+		return false;
+
+	Polygon2 poly2;
+	TransformSelfInto2DBasis(poly2);
+
+	return poly2.IsSelfIntersecting();
+}
+
+
+//-------------------------------------------------------------------------------------------------
 bool Polygon3::IsConvex() const
 {
+	if (m_vertices.size() <= 3)
+		return true;
+
 	Polygon2 poly2;
 	TransformSelfInto2DBasis(poly2);
 

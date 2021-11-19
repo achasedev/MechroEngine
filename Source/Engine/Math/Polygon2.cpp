@@ -60,6 +60,8 @@ int Polygon2::AddVertex(const Vector2& vertex)
 #endif
 
 	m_vertices.push_back(vertex);
+	ASSERT_OR_DIE(!IsSelfIntersecting(), "Polygon self intersects!");
+
 	return (int)m_vertices.size();
 }
 
@@ -181,4 +183,38 @@ bool Polygon2::IsConvex() const
 	}
 
 	return true;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Checks each non-adjacent edge pair for intersection
+bool Polygon2::IsSelfIntersecting() const
+{
+	int numVertices = (int)m_vertices.size();
+
+	if (numVertices > 3)
+	{
+		for (int iA1 = 0; iA1 < numVertices - 2; ++iA1)
+		{
+			int iB1 = (iA1 + 1);
+
+			// Select the second edge to be the one after the edge immediately after the first
+			for (int iA2 = iB1 + 1; iA2 < numVertices; ++iA2)
+			{
+				int iB2 = (iA2 + 1) % numVertices;
+
+				// Wrap around case
+				// Don't check 0th edge against n - 1 edge
+				if (iB2 == iA1)
+					continue;
+
+				bool edgesIntersect = DoLineSegmentsIntersect(m_vertices[iA1], m_vertices[iB1], m_vertices[iA2], m_vertices[iB2]);
+
+				if (edgesIntersect)
+					return true;
+			}
+		}
+	}
+
+	return false;
 }

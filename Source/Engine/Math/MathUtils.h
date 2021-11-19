@@ -214,6 +214,7 @@ bool	DoAABB3sOverlap(const AABB3& a, const AABB3& b);
 bool	DoSpheresOverlap(const Sphere& a, const Sphere& b);
 Vector2 RotatePointAboutPoint2D(const Vector2& pointToRotate, const Vector2& pointOfRotation, float angleDegrees);
 Vector2 RotatePointAboutPoint2D(const Vector2& pointToRotate, const Vector2& pointOfRotation, float cosAngle, float sinAngle);
+bool	DoLineSegmentsIntersect(const Vector2& a, const Vector2& b, const Vector2& c, const Vector2& d);
 bool	DoLineSegmentsIntersect(const LineSegment2& a, const LineSegment2& b);
 bool	DoPointsWindClockwise(const Vector2& a, const Vector2& b, const Vector2& c);
 bool	IsPointOnLineSegment(const Vector2& p, const LineSegment2& lineSegment);

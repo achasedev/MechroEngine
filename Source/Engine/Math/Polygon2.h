@@ -52,6 +52,7 @@ public:
 	bool	IsWindingCounterClockwise() const { return !IsWindingClockwise(); }
 	bool	IsConvex() const;
 	bool	IsConcave() const { return !IsConvex(); }
+	bool	IsSelfIntersecting() const;
 
 
 private:
