@@ -23,6 +23,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Font;
 class Mesh;
+class Polygon3;
 class Polyhedron;
 class Rgba;
 class Triangle2;
@@ -88,6 +89,7 @@ public:
 	void		PushTube(const Vector3& bottom, const Vector3& top, float radius, const Rgba& color = Rgba::WHITE, int numUSteps = 10, float startV = 0.f, float endV = 1.f);
 	void		PushBottomHemiSphere(const Vector3& center, float radius, const Rgba& color = Rgba::WHITE, int numUSteps = 10, int numVSteps = 10, float startV = 0.f, float endV = 0.5f);
 	void		PushCapsule(const Vector3& start, const Vector3& end, float radius, const Rgba& color = Rgba::WHITE);
+	void		PushPolygon(const Polygon3& poly, const Rgba& color = Rgba::WHITE);
 	void		PushPolyhedron(const Polyhedron& poly, const Rgba& color = Rgba::WHITE);
 	void		PushDisc(const Vector3& center, float radius, const Vector3& normal, const Vector3& tangent, const Rgba& color = Rgba::WHITE, int numUSteps = 10, float startV = 0.f, float endV = (1.f / 3.f));
 	void		PushCylinder(const Vector3& bottom, const Vector3& top, float radius, const Rgba& color = Rgba::WHITE, int numUSteps = 10);

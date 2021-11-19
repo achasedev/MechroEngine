@@ -39,10 +39,15 @@ public:
 	Polygon3(const std::vector<Vector3>& vertices);
 
 	int			AddVertex(const Vector3& vertex);
-	Vector3		GetVertex(int index);
+	Vector3		GetVertex(int index) const { return m_vertices[index]; }
+	int			GetNumVertices() const { return (int)m_vertices.size(); }
 	void		TransformSelfInto2DBasis(Polygon2& out_poly2) const;
 	Vector2		TransformPointInto2DBasis(const Vector3& point) const;
 	Vector3		TransformPointOutOf2DBasis(const Vector2& point) const;
+
+	bool		IsSelfIntersecting() const;
+	bool		IsConvex() const;
+	bool		IsConvave() const { return !IsConvex(); }
 
 
 private:

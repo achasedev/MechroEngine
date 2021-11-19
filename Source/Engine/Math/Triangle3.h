@@ -38,6 +38,7 @@ public:
 	Triangle3(const Vector3& a, const Vector3& b, const Vector3& c)
 		: m_a(a), m_b(b), m_c(c) {}
 
+	void		TransformSelfInto2DBasis(Triangle2& out_triangle2) const;
 	Vector2		TransformPointInto2DBasis(const Vector3& point) const;
 	Vector3		TransformPointOutOf2DBasis(const Vector2& point) const;
 

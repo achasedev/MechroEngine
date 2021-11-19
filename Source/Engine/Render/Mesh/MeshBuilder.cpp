@@ -1039,9 +1039,47 @@ void MeshBuilder::PushCapsule(const Vector3& start, const Vector3& end, float ra
 
 
 //-------------------------------------------------------------------------------------------------
+void MeshBuilder::PushPolygon(const Polygon3& poly, const Rgba& color /*= Rgba::WHITE*/)
+{
+	AssertBuildState(true, TOPOLOGY_TRIANGLE_LIST);
+	
+	SetColor(color);
+	SetUV(Vector2::ZERO);
+	int numVertices = poly.GetNumVertices();
+	ASSERT_OR_DIE(numVertices > 2, "Not enough vertices!");
+
+	if (m_instruction.m_useIndices)
+	{
+		int vertOffset = (int)m_vertices.size();
+
+		for (int iVertex = 0; iVertex < numVertices; ++iVertex)
+		{
+			PushVertex(poly.GetVertex(iVertex));
+		}
+
+		for (int iVertex = 1; iVertex < numVertices - 1; ++iVertex)
+		{
+			PushIndex(vertOffset + 0);
+			PushIndex(vertOffset + iVertex);
+			PushIndex(vertOffset + iVertex + 1);
+		}
+	}
+	else
+	{
+		for (int iVertex = 1; iVertex < numVertices - 1; ++iVertex)
+		{
+			PushVertex(poly.GetVertex(0));
+			PushVertex(poly.GetVertex(iVertex));
+			PushVertex(poly.GetVertex(iVertex + 1));
+		}
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void MeshBuilder::PushPolyhedron(const Polyhedron& poly, const Rgba& color /*= Rgba::WHITE*/)
 {
-	bool useIndices = true;
+	bool useIndices = true; // TODO: This assertion isn't needed
 	AssertBuildState(true, TOPOLOGY_TRIANGLE_LIST, &useIndices);
 	
 	SetColor(color);

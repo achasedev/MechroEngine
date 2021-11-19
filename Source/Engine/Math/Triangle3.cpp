@@ -34,6 +34,19 @@
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
+//-------------------------------------------------------------------------------------------------
+void Triangle3::TransformSelfInto2DBasis(Triangle2& out_triangle2) const
+{
+	Matrix3 basis;
+	GetBasis(basis);
+	basis.Invert();
+
+	// Choose a to be origin, b - a is i vector
+	out_triangle2.m_a = Vector2::ZERO;
+	out_triangle2.m_b = (basis * (m_b - m_a)).xy;
+	out_triangle2.m_c = (basis * (m_c - m_a)).xy;
+}
+
 
 //-------------------------------------------------------------------------------------------------
 Vector2 Triangle3::TransformPointInto2DBasis(const Vector3& point) const
@@ -59,8 +72,10 @@ Vector3 Triangle3::TransformPointOutOf2DBasis(const Vector2& point) const
 //-------------------------------------------------------------------------------------------------
 void Triangle3::GetBasis(Matrix3& out_bases) const
 {
-	Vector3 i = (m_b - m_a);
-	Vector3 j = (m_c - m_a);
-	Vector3 k = CrossProduct(i, j);
+	Vector3 i = (m_b - m_a).GetNormalized();
+	Vector3 inPlaneRef = (m_c - m_a); // Keep things ortho
+	Vector3 k = CrossProduct(i, inPlaneRef).GetNormalized();
+	Vector3 j = CrossProduct(k, i);
+
 	out_bases = Matrix3(i, j, k);
 }

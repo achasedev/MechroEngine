@@ -233,7 +233,7 @@ float	FindNearestPoint(const Vector3& point, const Triangle3& triangle, Vector3&
 
 // Polygon
 float	FindNearestPoint(const Vector2& point, const Polygon2& polygon, Vector2& out_closestPt);
-float	FindNearestPoint(const Vector2& point, const Polygon3& polygon, Vector2& out_closestPt);
+float	FindNearestPoint(const Vector3& point, const Polygon3& polygon, Vector3& out_closestPt);
 
 // Polyhedron
 float	FindNearestPoint(const Vector3& point, const Polyhedron& polyhedron, Vector2& out_closestPt);

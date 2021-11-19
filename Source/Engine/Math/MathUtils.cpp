@@ -1554,7 +1554,8 @@ float FindNearestPoint(const Vector3& point, const Vector3& segA, const Vector3&
 //-------------------------------------------------------------------------------------------------
 float FindNearestPoint(const Vector3& point, const Triangle3& triangle, Vector3& out_closestPt)
 {
-	Triangle2 inPlaneTri = Triangle2(Vector2::ZERO, Vector2(1.f, 0.f), Vector2(0.f, 1.f));
+	Triangle2 inPlaneTri;
+	triangle.TransformSelfInto2DBasis(inPlaneTri);
 	Vector2 inPlanePt = triangle.TransformPointInto2DBasis(point);
 
 	Vector2 inPlaneNearestPt;
@@ -1568,6 +1569,14 @@ float FindNearestPoint(const Vector3& point, const Triangle3& triangle, Vector3&
 
 //-------------------------------------------------------------------------------------------------
 float FindNearestPoint(const Vector2& point, const Polygon2& polygon, Vector2& out_closestPt)
+{
+	GJKSolver solver;
+	return solver.Solve(point, &polygon, out_closestPt);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float FindNearestPoint(const Vector3& point, const Polygon3& polygon, Vector3& out_closestPt)
 {
 	GJKSolver solver;
 	return solver.Solve(point, &polygon, out_closestPt);

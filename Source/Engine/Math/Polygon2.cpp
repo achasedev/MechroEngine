@@ -165,14 +165,14 @@ bool Polygon2::IsConvex() const
 
 		if (isClockwiseWinding)
 		{
-			if (cross < 0.f)
+			if (cross > 0.f)
 			{
 				return false;
 			}
 		}
 		else
 		{
-			if (cross > 0.f)
+			if (cross < 0.f)
 			{
 				return false;
 			}

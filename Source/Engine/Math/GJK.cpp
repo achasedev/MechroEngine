@@ -46,6 +46,8 @@ GJKSolver::GJKSolver()
 //-------------------------------------------------------------------------------------------------
 float GJKSolver::Solve(const Vector2& point, const Polygon2* poly, Vector2& out_closestPt)
 {
+	ASSERT_RETURN(poly->IsConvex(), 0.f, "Polygon not convex!");
+
 	m_point = point;
 	m_poly = poly;
 
@@ -80,11 +82,13 @@ float GJKSolver::Solve(const Vector2& point, const Polygon2* poly, Vector2& out_
 //-------------------------------------------------------------------------------------------------
 float GJKSolver::Solve(const Vector3& point, const Polygon3* poly3, Vector3& out_closestPt)
 {
+	ASSERT_RETURN(poly3->IsConvex(), 0.f, "Polygon not convex!");
+
 	// Get poly and point in 2D basis
 	Polygon2 poly2;
 	poly3->TransformSelfInto2DBasis(poly2);
 	Vector2 point2 = poly3->TransformPointInto2DBasis(point);
-
+	Vector3 backtoWorld = poly3->TransformPointOutOf2DBasis(point2);
 	// Solve in 2D
 	Vector2 closestPt2;
 	Solve(point2, &poly2, closestPt2);
@@ -148,9 +152,7 @@ bool GJKSolver::EvolveFromSegment()
 	if (m_iC == m_iA || m_iC == m_iB)
 	{
 		// Closest point will be on this segment
-		Vector2 closestPt;
-		m_minDist = FindNearestPoint(m_point, LineSegment2(a, b), closestPt);
-		m_closestPt.xy = closestPt;
+		m_minDist = FindNearestPoint(m_point, LineSegment2(a, b), m_closestPt);
 		return true;
 	}
 
@@ -166,7 +168,7 @@ bool GJKSolver::EvolveFromTriangle()
 	Vector2 c = m_poly->GetVertex(m_iC);
 	Vector3 baryCoords = ComputeBarycentricCoordinates(m_point, Triangle2(a, b, c));
 
-	if (baryCoords.u > 0.f && baryCoords.v > 0.f && baryCoords.w > 0.f)
+	if (baryCoords.u >= 0.f && baryCoords.v >= 0.f && baryCoords.w >= 0.f)
 	{
 		// Point is inside the simplex
 		m_minDist = 0.f;
@@ -210,7 +212,7 @@ void GJKSolver::CleanUpVertices()
 	while (!done)
 	{
 		done = true;
-		for (int i = 0; i < MAX_SIMPLEX_VERTS; ++i)
+		for (int i = 0; i < MAX_SIMPLEX_VERTS - 1; ++i)
 		{
 			if (m_iVert[i] == -1 && m_iVert[i + 1] != -1)
 			{
