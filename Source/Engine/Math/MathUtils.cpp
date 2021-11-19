@@ -1272,6 +1272,65 @@ Vector2 RotatePointAboutPoint2D(const Vector2& pointToRotate, const Vector2& poi
 
 
 //-------------------------------------------------------------------------------------------------
+static float GetWindingDirection(const Vector2& a, const Vector2& b, const Vector2& c)
+{
+	return (b.y - a.y) * (c.x - b.x) - (b.x - a.x) * (c.y - b.y);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool DoLineSegmentsIntersect(const LineSegment2& line1, const LineSegment2& line2)
+{
+	// > 0 for clockwise, < 0 for counterclockwise, == 0 is colinear
+	float dir1 = GetWindingDirection(line1.m_a, line1.m_b, line2.m_a);
+	float dir2 = GetWindingDirection(line1.m_a, line1.m_b, line2.m_b);
+	float dir3 = GetWindingDirection(line2.m_a, line2.m_b, line1.m_a);
+	float dir4 = GetWindingDirection(line2.m_a, line2.m_b, line1.m_b);
+
+	if (dir1 == 0.f && dir2 == 0.f && dir3 == 0.f && dir4 == 0.f)
+	{
+		// Segments are colinear, just check for overlap on an axis
+		Vector2 dir = line1.m_b - line1.m_a;
+		
+		float t0 = DotProduct(line2.m_a - line1.m_a, dir) / dir.GetLengthSquared();
+		float t1 = DotProduct(line2.m_b - line1.m_a, dir) / dir.GetLengthSquared();
+
+		return (Min(t0, t1) <= 1.0f && Max(t0, t1) >= 0.f);
+	}
+
+	if (dir1 * dir2 <= 0.f && dir3 * dir4 <= 0.f)
+		return true;
+
+	return false;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool DoPointsWindClockwise(const Vector2& a, const Vector2& b, const Vector2& c)
+{
+	return GetWindingDirection(a, b, c) > 0.f;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool IsPointOnLineSegment(const Vector2& p, const LineSegment2& lineSegment)
+{
+	// Project to the line
+	Vector2 dir = (lineSegment.m_b - lineSegment.m_a);
+	Vector2 lineToP = p - lineSegment.m_a;
+	float t = DotProduct(lineToP, dir) / dir.GetLengthSquared();
+
+	// Not between the end points
+	if (t < 0.f || t > 1.0f)
+		return false;
+
+	// Check the projection is the point
+	Vector2 projP = lineSegment.m_a + dir * t;
+	return AreMostlyEqual(projP, p);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 float CalculateVolumeOfTetrahedron(const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& d)
 {
 	return (1.f / 6.f) * Abs(DotProduct(CrossProduct(b - a, c - a), d - a));
@@ -1587,11 +1646,11 @@ float FindNearestPoint(const Vector3& point, const Polygon3& polygon, Vector3& o
 Vector2 ComputeBarycentricCoordinates(const Vector2& point, const LineSegment2& lineSegment)
 {
 	Vector2 dir = (lineSegment.m_b - lineSegment.m_a);
-	float length = dir.Normalize();
-	float invLength = (length > 0.f ? 1.f / length : 0.f);
+	float lengthSqr = dir.GetLengthSquared();
+	float invLengthSqr = (lengthSqr > 0.f ? 1.f / lengthSqr : 0.f);
 
-	float u = DotProduct(lineSegment.m_b - point, dir) * invLength;
-	float v = DotProduct(point - lineSegment.m_a, dir) * invLength;
+	float u = DotProduct(lineSegment.m_b - point, dir) * invLengthSqr;
+	float v = DotProduct(point - lineSegment.m_a, dir) * invLengthSqr;
 
 	return Vector2(u, v);
 }

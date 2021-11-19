@@ -163,6 +163,7 @@ bool Polygon2::IsConvex() const
 
 		float cross = CrossProduct(ab, bc);
 
+		// Z points into the plane! So it's reversed from what you would expect
 		if (isClockwiseWinding)
 		{
 			if (cross > 0.f)

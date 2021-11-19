@@ -73,7 +73,6 @@ Vector3	Abs(const Vector3& inValue);
 float Normalize(uint8 inValue);
 uint8 NormalizedFloatToByte(float inValue);
 
-
 //-------------------------------------------------------------------------------------------------
 // Coordinate system
 Vector2 PolarToCartesian(float radius, float angleRadians);
@@ -215,6 +214,9 @@ bool	DoAABB3sOverlap(const AABB3& a, const AABB3& b);
 bool	DoSpheresOverlap(const Sphere& a, const Sphere& b);
 Vector2 RotatePointAboutPoint2D(const Vector2& pointToRotate, const Vector2& pointOfRotation, float angleDegrees);
 Vector2 RotatePointAboutPoint2D(const Vector2& pointToRotate, const Vector2& pointOfRotation, float cosAngle, float sinAngle);
+bool	DoLineSegmentsIntersect(const LineSegment2& a, const LineSegment2& b);
+bool	DoPointsWindClockwise(const Vector2& a, const Vector2& b, const Vector2& c);
+bool	IsPointOnLineSegment(const Vector2& p, const LineSegment2& lineSegment);
 
 float	CalculateVolumeOfTetrahedron(const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& d);
 Vector3 SolveLinePlaneIntersection(const Line3& line, const Plane3& plane);
