@@ -1525,6 +1525,7 @@ float FindNearestPoint(const Vector2& point, const LineSegment2& lineSegment, Ve
 	return (closestPt - point).GetLength();
 }
 
+#include "Engine/Core/DevConsole.h"
 
 //-------------------------------------------------------------------------------------------------
 float FindNearestPoint(const Vector2& point, const Triangle2& triangle, Vector2& out_closestPt)
@@ -1657,30 +1658,6 @@ float FindNearestPoint(const Vector3& point, const Polygon3& polygon, Vector3& o
 
 
 //-------------------------------------------------------------------------------------------------
-static void DoThing(const Vector3& point, const Triangle3& triangle, const Vector2& abUVs, const Vector2& bcUVs, const Vector2& caUVs, Maybe<Vector3>& out_closestPt)
-{
-	Vector3 triBaryCoords = ComputeBarycentricCoordinates(point, triangle);
-
-	if (abUVs.u > 0.f && abUVs.v > 0.f && triBaryCoords.w <= 0.f)
-	{
-		out_closestPt.Set(abUVs.u * triangle.m_a + abUVs.v * triangle.m_b);
-	}
-	else if (bcUVs.u > 0.f && bcUVs.v > 0.f && triBaryCoords.u <= 0.f)
-	{
-		out_closestPt.Set(bcUVs.u * triangle.m_b + bcUVs.v * triangle.m_c);
-	}
-	else if (caUVs.u > 0.f && caUVs.v > 0.f && triBaryCoords.v <= 0.f)
-	{
-		out_closestPt.Set(caUVs.u * triangle.m_c + caUVs.v * triangle.m_a);
-	}
-	else
-	{
-		out_closestPt.Set(triBaryCoords.u * triangle.m_a + triBaryCoords.v * triangle.m_b + triBaryCoords.w * triangle.m_c);
-	}
-}
-
-#include "Engine/Core/DevConsole.h"
-//-------------------------------------------------------------------------------------------------
 float FindNearestPoint(const Vector3& point, const Tetrahedron& tetrahedron, Vector3& out_closestPt)
 {
 	LineSegment3 ab(tetrahedron.m_a, tetrahedron.m_b);
@@ -1700,22 +1677,10 @@ float FindNearestPoint(const Vector3& point, const Tetrahedron& tetrahedron, Vec
 	Maybe<Vector3> closestPt;
 
 	// Check vertex regions
-	if (abUVs.v <= 0.f && caUVs.u <= 0.f && adUVs.v <= 0.f)
-	{
-		closestPt.Set(tetrahedron.m_a);
-	}
-	else if (abUVs.u <= 0.f && bcUVs.v <= 0.f && bdUVs.v <= 0.f)
-	{
-		closestPt.Set(tetrahedron.m_b);
-	}
-	else if (bcUVs.u <= 0.f && caUVs.v <= 0.f && cdUVs.v <= 0.f)
-	{
-		closestPt.Set(tetrahedron.m_c);
-	}
-	else if (adUVs.u <= 0.f && bdUVs.u <= 0.f && cdUVs.u <= 0.f)
-	{
-		closestPt.Set(tetrahedron.m_d);
-	}
+	if		(abUVs.v <= 0.f && caUVs.u <= 0.f && adUVs.v <= 0.f) { closestPt.Set(tetrahedron.m_a); }
+	else if (abUVs.u <= 0.f && bcUVs.v <= 0.f && bdUVs.v <= 0.f) { closestPt.Set(tetrahedron.m_b); }
+	else if (bcUVs.u <= 0.f && caUVs.v <= 0.f && cdUVs.v <= 0.f) { closestPt.Set(tetrahedron.m_c); }
+	else if (adUVs.u <= 0.f && bdUVs.u <= 0.f && cdUVs.u <= 0.f) { closestPt.Set(tetrahedron.m_d); }
 
 	// Check edge regions
 	if (!closestPt.IsValid())
@@ -1733,36 +1698,17 @@ float FindNearestPoint(const Vector3& point, const Tetrahedron& tetrahedron, Vec
 			faceBaryCoords[i] = ComputeBarycentricCoordinates(point, faces[i]);
 		}
 
-		if (abUVs.u > 0.f && abUVs.v > 0.f && faceBaryCoords[2].y <= 0.f && faceBaryCoords[3].z <= 0.f)
-		{
-			closestPt.Set(tetrahedron.m_a * abUVs.u + tetrahedron.m_b * abUVs.v);
-		}
-		else if (bcUVs.u > 0.f && bcUVs.v > 0.f && faceBaryCoords[0].y <= 0.f && faceBaryCoords[3].x <= 0.f)
-		{
-			closestPt.Set(tetrahedron.m_b * bcUVs.u + tetrahedron.m_c * bcUVs.v);
-		}
-		else if (caUVs.u > 0.f && caUVs.v > 0.f && faceBaryCoords[1].y <= 0.f && faceBaryCoords[3].y <= 0.f)
-		{
-			closestPt.Set(tetrahedron.m_c * caUVs.u + tetrahedron.m_a * caUVs.v);
-		}
-		else if (adUVs.u > 0.f && adUVs.v > 0.f && faceBaryCoords[1].x <= 0.f && faceBaryCoords[2].z <= 0.f)
-		{
-			closestPt.Set(tetrahedron.m_a * adUVs.u + tetrahedron.m_d * adUVs.v);
-		}
-		else if (bdUVs.u > 0.f && bdUVs.v > 0.f && faceBaryCoords[0].z <= 0.f && faceBaryCoords[2].x < 0.f)
-		{
-			closestPt.Set(tetrahedron.m_b * bdUVs.u + tetrahedron.m_d * bdUVs.v);
-		}
-		else if (cdUVs.u > 0.f && cdUVs.v > 0.f && faceBaryCoords[0].x <= 0.f && faceBaryCoords[1].z <= 0.f)
-		{
-			closestPt.Set(tetrahedron.m_c * cdUVs.u + tetrahedron.m_d * cdUVs.v);
-		}
+		if		(abUVs.u > 0.f && abUVs.v > 0.f && faceBaryCoords[2].y <= 0.f && faceBaryCoords[3].z <= 0.f) { closestPt.Set(tetrahedron.m_a * abUVs.u + tetrahedron.m_b * abUVs.v); }
+		else if (bcUVs.u > 0.f && bcUVs.v > 0.f && faceBaryCoords[0].y <= 0.f && faceBaryCoords[3].x <= 0.f) { closestPt.Set(tetrahedron.m_b * bcUVs.u + tetrahedron.m_c * bcUVs.v); }
+		else if (caUVs.u > 0.f && caUVs.v > 0.f && faceBaryCoords[1].y <= 0.f && faceBaryCoords[3].y <= 0.f) { closestPt.Set(tetrahedron.m_c * caUVs.u + tetrahedron.m_a * caUVs.v); }
+		else if (adUVs.u > 0.f && adUVs.v > 0.f && faceBaryCoords[1].x <= 0.f && faceBaryCoords[2].z <= 0.f) { closestPt.Set(tetrahedron.m_a * adUVs.u + tetrahedron.m_d * adUVs.v); }
+		else if (bdUVs.u > 0.f && bdUVs.v > 0.f && faceBaryCoords[0].z <= 0.f && faceBaryCoords[2].x <= 0.f) { closestPt.Set(tetrahedron.m_b * bdUVs.u + tetrahedron.m_d * bdUVs.v); }
+		else if (cdUVs.u > 0.f && cdUVs.v > 0.f && faceBaryCoords[0].x <= 0.f && faceBaryCoords[1].z <= 0.f) { closestPt.Set(tetrahedron.m_c * cdUVs.u + tetrahedron.m_d * cdUVs.v); }
 
 		// Check face regions
 		if (!closestPt.IsValid())
 		{
 			Vector4 tetraBary = ComputeBarycentricCoordinates(point, tetrahedron);
-			ConsolePrintf(Rgba::ORANGE, 0.f, "(%.3f, %.3f, %.3f, %.3f)", tetraBary.x, tetraBary.y, tetraBary.z, tetraBary.w);
 
 			for (int i = 0; i < 4; ++i)
 			{
@@ -1771,6 +1717,8 @@ float FindNearestPoint(const Vector3& point, const Tetrahedron& tetrahedron, Vec
 					Vector3 p = Vector3::ZERO;
 					for (int j = 0; j < 3; ++j)
 					{
+						// Match each of the face's bary coordinate to the associated vertex of that coordinate
+						// Position is a sum of products of these coordinates and vertices
 						p += faceBaryCoords[i].data[j] * faces[i].m_points[j];
 					}
 
@@ -1778,28 +1726,6 @@ float FindNearestPoint(const Vector3& point, const Tetrahedron& tetrahedron, Vec
 					break;
 				}
 			}
-
-
-			//if (tetraBary.x <= 0.f && AreAllComponentsGreaterThanZero(faceBaryCoords[0]))
-			//{
-			//	// ABC
-			//	closestPt.Set(faceBaryCoords[0].u * tetrahedron.m_a + faceBaryCoords[0].v * tetrahedron.m_b + faceBaryCoords[0].w * tetrahedron.m_c);
-			//}
-			//else if (tetraBary.y <= 0.f && AreAllComponentsGreaterThanZero(faceBaryCoords[1]))
-			//{
-			//	// ADB
-			//	closestPt.Set(faceBaryCoords[1].u * tetrahedron.m_a + faceBaryCoords[1].v * tetrahedron.m_d + faceBaryCoords[1].w * tetrahedron.m_b);
-			//}
-			//else if (tetraBary.z <= 0.f && AreAllComponentsGreaterThanZero(faceBaryCoords[2]))
-			//{
-			//	// CDA
-			//	closestPt.Set(faceBaryCoords[2].u * tetrahedron.m_c + faceBaryCoords[2].v * tetrahedron.m_d + faceBaryCoords[2].w * tetrahedron.m_a);
-			//}
-			//else if ((tetraBary.w <= 0.f && AreAllComponentsGreaterThanZero(faceBaryCoords[3])))
-			//{
-			//	// BDC
-			//	closestPt.Set(faceBaryCoords[3].u * tetrahedron.m_b + faceBaryCoords[3].v * tetrahedron.m_d + faceBaryCoords[3].w * tetrahedron.m_c);
-			//}
 		}
 	}
 
