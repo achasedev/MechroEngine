@@ -270,6 +270,8 @@ static void ConvertEnginePolyToThirdPartyPoly(const Polyhedron& enginePoly, POLY
 		const PolyhedronFace* engineFace = enginePoly.GetFace(i);
 
 		tpFace->numVerts = static_cast<int>(engineFace->m_indices.size());
+		ASSERT_OR_DIE(tpFace->numVerts <= MAX_POLYGON_SZ, "Too many vertices in face!");
+
 		for (int j = 0; j < tpFace->numVerts; ++j)
 		{
 			tpFace->verts[j] = engineFace->m_indices[j];
