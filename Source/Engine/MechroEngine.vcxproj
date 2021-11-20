@@ -181,6 +181,7 @@
     <ClCompile Include="Math\Matrix3.cpp" />
     <ClCompile Include="Math\Polygon3.cpp" />
     <ClCompile Include="Math\ScaledAxisRotation.cpp" />
+    <ClCompile Include="Math\Tetrahedron.cpp" />
     <ClCompile Include="Math\Triangle3.cpp" />
     <ClCompile Include="Physics\Particle\Particle.cpp" />
     <ClCompile Include="Physics\Particle\ParticleAnchoredSpring.cpp" />
@@ -323,6 +324,7 @@
     <ClInclude Include="Math\Matrix3.h" />
     <ClInclude Include="Math\Polygon3.h" />
     <ClInclude Include="Math\ScaledAxisRotation.h" />
+    <ClInclude Include="Math\Tetrahedron.h" />
     <ClInclude Include="Math\Triangle2.h" />
     <ClInclude Include="Math\Triangle3.h" />
     <ClInclude Include="Physics\Particle\Particle.h" />

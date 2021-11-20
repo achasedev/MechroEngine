@@ -22,6 +22,7 @@
 #include "Engine/Math/Quaternion.h"
 #include "Engine/Math/Range.h"
 #include "Engine/Math/Sphere.h"
+#include "Engine/Math/Tetrahedron.h"
 #include "Engine/Math/Triangle2.h"
 #include "Engine/Math/Triangle3.h"
 #include "Engine/Math/Vector2.h"
@@ -139,6 +140,7 @@ bool	Refract(const Vector3& incidentVector, const Vector3& normal, float niOverN
 Vector2	RotateDirectionByEulerAngleDegrees(const Vector2& direction, float angleDegrees);
 Vector3	RotateDirectionByEulerAnglesDegrees(const Vector3& direction, const Vector3& eulerAnglesDegrees);
 Vector3 CalculateNormalForTriangle(const Vector3& a, const Vector3& b, const Vector3& c);
+bool	AreAllComponentsGreaterThanZero(const Vector3& v);
 
 
 //-------------------------------------------------------------------------------------------------
@@ -238,12 +240,18 @@ float	FindNearestPoint(const Vector3& point, const Triangle3& triangle, Vector3&
 float	FindNearestPoint(const Vector2& point, const Polygon2& polygon, Vector2& out_closestPt);
 float	FindNearestPoint(const Vector3& point, const Polygon3& polygon, Vector3& out_closestPt);
 
+// Tetrahedron
+float	FindNearestPoint(const Vector3& point, const Tetrahedron& tetrahedron, Vector3& out_closestPt);
+
 // Polyhedron
-float	FindNearestPoint(const Vector3& point, const Polyhedron& polyhedron, Vector2& out_closestPt);
+float	FindNearestPoint(const Vector3& point, const Polyhedron& polyhedron, Vector3& out_closestPt);
 
 // Barycentric Coords
 Vector2 ComputeBarycentricCoordinates(const Vector2& point, const LineSegment2& lineSegment);
+Vector2 ComputeBarycentricCoordinates(const Vector3& point, const LineSegment3& lineSegment);
 Vector3 ComputeBarycentricCoordinates(const Vector2& point, const Triangle2& triangle);
+Vector3 ComputeBarycentricCoordinates(const Vector3& point, const Triangle3& triangle);
+Vector4 ComputeBarycentricCoordinates(const Vector3& point, const Tetrahedron& tetrahedron);
 
 //-------------------------------------------------------------------------------------------------
 // Templates

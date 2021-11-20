@@ -653,6 +653,10 @@ void MeshBuilder::PushTriangle3(const Vector3& first, const Vector3& second, con
 	AssertBuildState(true, TOPOLOGY_TRIANGLE_LIST);
 
 	SetColor(tint);
+	Vector3 ab = second - first;
+	Vector3 ac = third - first;
+	Vector3 normal = CrossProduct(ab, ac).GetNormalized();
+	SetNormal(normal);
 
 	uint32 index = PushVertex(first);
 	PushVertex(second);
@@ -1035,6 +1039,21 @@ void MeshBuilder::PushCapsule(const Vector3& start, const Vector3& end, float ra
 	PushBottomHemiSphere(start, radius, color, numUSteps, numVSteps / 2, endV, 1.0f);
 	PushTube(start, end, radius, color, numUSteps, startV, endV);
 	PushTopHemiSphere(end, radius, color, numUSteps, numVSteps / 2, 0.f, startV);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void MeshBuilder::PushTetrahedron(const Tetrahedron& tetra, const Rgba& color /*= Rgba::WHITE*/)
+{
+	AssertBuildState(true, TOPOLOGY_TRIANGLE_LIST);
+
+	Triangle3 faces[4];
+	tetra.GetFaces(faces);
+
+	for (int i = 0; i < 4; ++i)
+	{
+		PushTriangle3(faces[i], color);
+	}
 }
 
 

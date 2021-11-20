@@ -13,6 +13,7 @@
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Math/Matrix3.h"
 #include "Engine/Math/OBB3.h"
+#include "Engine/Math/Tetrahedron.h"
 #include "Engine/Math/Triangle2.h"
 #include "Engine/Math/Triangle3.h"
 #include "Engine/Math/Vector2.h"
@@ -709,6 +710,13 @@ Vector3 CalculateNormalForTriangle(const Vector3& a, const Vector3& b, const Vec
 	cross.Normalize();
 
 	return cross;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool AreAllComponentsGreaterThanZero(const Vector3& v)
+{
+	return v.x > 0.f && v.y > 0.f && v.z > 0.f;
 }
 
 
@@ -1649,6 +1657,164 @@ float FindNearestPoint(const Vector3& point, const Polygon3& polygon, Vector3& o
 
 
 //-------------------------------------------------------------------------------------------------
+static void DoThing(const Vector3& point, const Triangle3& triangle, const Vector2& abUVs, const Vector2& bcUVs, const Vector2& caUVs, Maybe<Vector3>& out_closestPt)
+{
+	Vector3 triBaryCoords = ComputeBarycentricCoordinates(point, triangle);
+
+	if (abUVs.u > 0.f && abUVs.v > 0.f && triBaryCoords.w <= 0.f)
+	{
+		out_closestPt.Set(abUVs.u * triangle.m_a + abUVs.v * triangle.m_b);
+	}
+	else if (bcUVs.u > 0.f && bcUVs.v > 0.f && triBaryCoords.u <= 0.f)
+	{
+		out_closestPt.Set(bcUVs.u * triangle.m_b + bcUVs.v * triangle.m_c);
+	}
+	else if (caUVs.u > 0.f && caUVs.v > 0.f && triBaryCoords.v <= 0.f)
+	{
+		out_closestPt.Set(caUVs.u * triangle.m_c + caUVs.v * triangle.m_a);
+	}
+	else
+	{
+		out_closestPt.Set(triBaryCoords.u * triangle.m_a + triBaryCoords.v * triangle.m_b + triBaryCoords.w * triangle.m_c);
+	}
+}
+
+#include "Engine/Core/DevConsole.h"
+//-------------------------------------------------------------------------------------------------
+float FindNearestPoint(const Vector3& point, const Tetrahedron& tetrahedron, Vector3& out_closestPt)
+{
+	LineSegment3 ab(tetrahedron.m_a, tetrahedron.m_b);
+	LineSegment3 bc(tetrahedron.m_b, tetrahedron.m_c);
+	LineSegment3 ca(tetrahedron.m_c, tetrahedron.m_a);
+	LineSegment3 ad(tetrahedron.m_a, tetrahedron.m_d);
+	LineSegment3 bd(tetrahedron.m_b, tetrahedron.m_d);
+	LineSegment3 cd(tetrahedron.m_c, tetrahedron.m_d);
+
+	Vector2 abUVs = ComputeBarycentricCoordinates(point, ab);
+	Vector2 bcUVs = ComputeBarycentricCoordinates(point, bc);
+	Vector2 caUVs = ComputeBarycentricCoordinates(point, ca);
+	Vector2 adUVs = ComputeBarycentricCoordinates(point, ad);
+	Vector2 bdUVs = ComputeBarycentricCoordinates(point, bd);
+	Vector2 cdUVs = ComputeBarycentricCoordinates(point, cd);
+
+	Maybe<Vector3> closestPt;
+
+	// Check vertex regions
+	if (abUVs.v <= 0.f && caUVs.u <= 0.f && adUVs.v <= 0.f)
+	{
+		closestPt.Set(tetrahedron.m_a);
+	}
+	else if (abUVs.u <= 0.f && bcUVs.v <= 0.f && bdUVs.v <= 0.f)
+	{
+		closestPt.Set(tetrahedron.m_b);
+	}
+	else if (bcUVs.u <= 0.f && caUVs.v <= 0.f && cdUVs.v <= 0.f)
+	{
+		closestPt.Set(tetrahedron.m_c);
+	}
+	else if (adUVs.u <= 0.f && bdUVs.u <= 0.f && cdUVs.u <= 0.f)
+	{
+		closestPt.Set(tetrahedron.m_d);
+	}
+
+	// Check edge regions
+	if (!closestPt.IsValid())
+	{
+		Triangle3 faces[4];
+		tetrahedron.GetFaces(faces);
+		// 0 - BDC - X Barycentric Coordinate
+		// 1 - CDA - Y Barycentric Coordinate
+		// 2 - ADB - Z Barycentric Coordinate 
+		// 3 - ABC - W Barycentric Coordinate
+
+		Vector3 faceBaryCoords[4];
+		for (int i = 0; i < 4; ++i)
+		{
+			faceBaryCoords[i] = ComputeBarycentricCoordinates(point, faces[i]);
+		}
+
+		if (abUVs.u > 0.f && abUVs.v > 0.f && faceBaryCoords[2].y <= 0.f && faceBaryCoords[3].z <= 0.f)
+		{
+			closestPt.Set(tetrahedron.m_a * abUVs.u + tetrahedron.m_b * abUVs.v);
+		}
+		else if (bcUVs.u > 0.f && bcUVs.v > 0.f && faceBaryCoords[0].y <= 0.f && faceBaryCoords[3].x <= 0.f)
+		{
+			closestPt.Set(tetrahedron.m_b * bcUVs.u + tetrahedron.m_c * bcUVs.v);
+		}
+		else if (caUVs.u > 0.f && caUVs.v > 0.f && faceBaryCoords[1].y <= 0.f && faceBaryCoords[3].y <= 0.f)
+		{
+			closestPt.Set(tetrahedron.m_c * caUVs.u + tetrahedron.m_a * caUVs.v);
+		}
+		else if (adUVs.u > 0.f && adUVs.v > 0.f && faceBaryCoords[1].x <= 0.f && faceBaryCoords[2].z <= 0.f)
+		{
+			closestPt.Set(tetrahedron.m_a * adUVs.u + tetrahedron.m_d * adUVs.v);
+		}
+		else if (bdUVs.u > 0.f && bdUVs.v > 0.f && faceBaryCoords[0].z <= 0.f && faceBaryCoords[2].x < 0.f)
+		{
+			closestPt.Set(tetrahedron.m_b * bdUVs.u + tetrahedron.m_d * bdUVs.v);
+		}
+		else if (cdUVs.u > 0.f && cdUVs.v > 0.f && faceBaryCoords[0].x <= 0.f && faceBaryCoords[1].z <= 0.f)
+		{
+			closestPt.Set(tetrahedron.m_c * cdUVs.u + tetrahedron.m_d * cdUVs.v);
+		}
+
+		// Check face regions
+		if (!closestPt.IsValid())
+		{
+			Vector4 tetraBary = ComputeBarycentricCoordinates(point, tetrahedron);
+			ConsolePrintf(Rgba::ORANGE, 0.f, "(%.3f, %.3f, %.3f, %.3f)", tetraBary.x, tetraBary.y, tetraBary.z, tetraBary.w);
+
+			for (int i = 0; i < 4; ++i)
+			{
+				if (tetraBary.data[i] <= 0.f && AreAllComponentsGreaterThanZero(faceBaryCoords[i]))
+				{
+					Vector3 p = Vector3::ZERO;
+					for (int j = 0; j < 3; ++j)
+					{
+						p += faceBaryCoords[i].data[j] * faces[i].m_points[j];
+					}
+
+					closestPt.Set(p);
+					break;
+				}
+			}
+
+
+			//if (tetraBary.x <= 0.f && AreAllComponentsGreaterThanZero(faceBaryCoords[0]))
+			//{
+			//	// ABC
+			//	closestPt.Set(faceBaryCoords[0].u * tetrahedron.m_a + faceBaryCoords[0].v * tetrahedron.m_b + faceBaryCoords[0].w * tetrahedron.m_c);
+			//}
+			//else if (tetraBary.y <= 0.f && AreAllComponentsGreaterThanZero(faceBaryCoords[1]))
+			//{
+			//	// ADB
+			//	closestPt.Set(faceBaryCoords[1].u * tetrahedron.m_a + faceBaryCoords[1].v * tetrahedron.m_d + faceBaryCoords[1].w * tetrahedron.m_b);
+			//}
+			//else if (tetraBary.z <= 0.f && AreAllComponentsGreaterThanZero(faceBaryCoords[2]))
+			//{
+			//	// CDA
+			//	closestPt.Set(faceBaryCoords[2].u * tetrahedron.m_c + faceBaryCoords[2].v * tetrahedron.m_d + faceBaryCoords[2].w * tetrahedron.m_a);
+			//}
+			//else if ((tetraBary.w <= 0.f && AreAllComponentsGreaterThanZero(faceBaryCoords[3])))
+			//{
+			//	// BDC
+			//	closestPt.Set(faceBaryCoords[3].u * tetrahedron.m_b + faceBaryCoords[3].v * tetrahedron.m_d + faceBaryCoords[3].w * tetrahedron.m_c);
+			//}
+		}
+	}
+
+	if (!closestPt.IsValid())
+	{
+		// Point should be in the tetrahedron
+		closestPt.Set(point);
+	}
+
+	out_closestPt = closestPt.Get();
+	return (out_closestPt - point).GetLength();
+}
+
+
+//-------------------------------------------------------------------------------------------------
 Vector2 ComputeBarycentricCoordinates(const Vector2& point, const LineSegment2& lineSegment)
 {
 	Vector2 dir = (lineSegment.m_b - lineSegment.m_a);
@@ -1686,6 +1852,55 @@ Vector3 ComputeBarycentricCoordinates(const Vector2& point, const Triangle2& tri
 
 	return Vector3(u, v, w);
 }
+
+
+//-------------------------------------------------------------------------------------------------
+Vector4 ComputeBarycentricCoordinates(const Vector3& point, const Tetrahedron& tetrahedron)
+{
+	Triangle3 faces[4];
+	tetrahedron.GetFaces(faces);
+
+	float totalVolume = tetrahedron.CalculateSignedVolume();
+	float invTotalVolume = (1.f / totalVolume);
+	Vector4 baryCoords;
+
+	for (int i = 0; i < 4; ++i)
+	{
+		Tetrahedron partialTetra(faces[i].m_a, faces[i].m_b, faces[i].m_c, point);
+		float partialVolume = partialTetra.CalculateSignedVolume();
+
+		baryCoords.data[i] = partialVolume * invTotalVolume;
+	}
+
+	ASSERT_OR_DIE(AreMostlyEqual(baryCoords.x + baryCoords.y + baryCoords.z + baryCoords.w, 1.0f), "Barycentric coordinates don't add up!");
+	return baryCoords;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector2 ComputeBarycentricCoordinates(const Vector3& point, const LineSegment3& lineSegment)
+{
+	Vector3 dir = (lineSegment.m_b - lineSegment.m_a);
+	float lengthSqr = dir.GetLengthSquared();
+	float invLengthSqr = (lengthSqr > 0.f ? 1.f / lengthSqr : 0.f);
+
+	float u = DotProduct(lineSegment.m_b - point, dir) * invLengthSqr;
+	float v = DotProduct(point - lineSegment.m_a, dir) * invLengthSqr;
+
+	return Vector2(u, v);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Vector3 ComputeBarycentricCoordinates(const Vector3& point, const Triangle3& triangle)
+{
+	Triangle2 tri2;
+	triangle.TransformSelfInto2DBasis(tri2);
+	Vector2 p2 = triangle.TransformPointInto2DBasis(point);
+
+	return ComputeBarycentricCoordinates(p2, tri2);
+}
+
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS

@@ -1,6 +1,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: Nov 16th, 2021
+/// Date Created: Nov 19th, 2021
 /// Description: 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
@@ -16,9 +16,8 @@
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
+class Triangle3;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-class Matrix3;
-class Triangle2;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -27,47 +26,30 @@ class Triangle2;
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#pragma warning(disable : 4201) // Keep the structs anonymous
 
 //-------------------------------------------------------------------------------------------------
-class Triangle3
+class Tetrahedron
 {
 public:
 	//-----Public Methods-----
 
-	Triangle3() {}
-	Triangle3(const Vector3& a, const Vector3& b, const Vector3& c)
-		: m_a(a), m_b(b), m_c(c) {}
+	Tetrahedron() {}
+	Tetrahedron(const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& d);
 
-	void operator=(const Triangle3& copy);
-
-	void		TransformSelfInto2DBasis(Triangle2& out_triangle2) const;
-	Vector2		TransformPointInto2DBasis(const Vector3& point) const;
-	Vector3		TransformPointOutOf2DBasis(const Vector2& point) const;
-
-
-private:
-	//-----Private Methods-----
-
-	void GetBasis(Matrix3& out_bases) const;
+	void	GetFaces(Triangle3* out_faces) const;
+	float	CalculateSignedVolume() const;
+	float	CalculateUnsignedVolume() const;
 
 
 public:
 	//-----Public Data-----
 
-	union 
-	{
-		struct  
-		{
-			Vector3 m_a;
-			Vector3 m_b;
-			Vector3 m_c;
-		};
+	Vector3 m_a;
+	Vector3 m_b;
+	Vector3 m_c;
+	Vector3 m_d;
 
-		Vector3 m_points[3];
-	};
 };
-#pragma warning(default : 4201)
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
