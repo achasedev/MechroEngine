@@ -277,8 +277,21 @@ float GJKSolver3D::Solve(const Vector3& point, const Polyhedron* poly, Vector3& 
 //-------------------------------------------------------------------------------------------------
 void GJKSolver3D::StartEvolution()
 {
-	// Arbitrarily choose a to be the first vertex
-	m_iA = 0;
+	int numVerts = m_poly->GetNumVertices();
+	float minDistSqr = -1.f;
+	int minIndex = -1;
+	for (int i = 0; i < numVerts; ++i)
+	{
+		float distSqr = (m_point - m_poly->GetVertexPosition(i)).GetLengthSquared();
+
+		if (i == 0 || distSqr < minDistSqr)
+		{
+			minDistSqr = distSqr;
+			minIndex = i;
+		}
+	}
+
+	m_iA = minIndex;
 	m_numVerts = 1;
 }
 
@@ -377,20 +390,21 @@ bool GJKSolver3D::EvolveFromTriangle()
 			return true;
 		}
 
-		// Try to find a face we're in front of?
-		if (triBaryCoords.u < 0.f)
+		// Remove the least contributing point
+		// Don't remove more than 1 point, as it creates infinite loop issues (cone case)
+		float minCoord = Min(triBaryCoords.u, triBaryCoords.v, triBaryCoords.w);
+
+		if (minCoord == triBaryCoords.u)
 		{
 			m_iA = -1;
 			m_numVerts--;
 		}
-
-		if (triBaryCoords.v < 0.f)
+		else if (minCoord == triBaryCoords.v)
 		{
 			m_iB = -1;
 			m_numVerts--;
 		}
-		
-		if (triBaryCoords.w < 0.f)
+		else if (minCoord == triBaryCoords.w)
 		{
 			m_iC = -1;
 			m_numVerts--;
@@ -414,7 +428,7 @@ bool GJKSolver3D::EvolveFromTetrahedron()
 
 	Vector4 baryCoords = ComputeBarycentricCoordinates(m_point, tetra);
 
-	if (AreAllComponentsGreaterThanZero(baryCoords))
+	if (baryCoords.x >= 0.f && baryCoords.y >= 0.f && baryCoords.z >= 0.f && baryCoords.w >= 0.f)
 	{
 		// Point is inside tetrahedron == point is inside the polygon
 		// We don't know the penetration, so just return 0
@@ -424,34 +438,88 @@ bool GJKSolver3D::EvolveFromTetrahedron()
 	}
 
 	// Point is outside tetrahedron, so evolve
+	// Only drop one point since there's infinite loop issues related to dropping multiple points (cone issue)
+	// So - if there's more than one negative coordinate, choose to drop the one that leaves behind a triangle with a normal that'd be the best search direction for the next iteration
+	float bestDot = -1.f;
+	int coordinateToRemove = -1;
 
-	// A doesn't contribute
-	if (baryCoords.x <= 0.f)
+	if (baryCoords.x < 0.f) // A doesn't contribute
 	{
+		Vector3 bc = c - b;
+		Vector3 bd = d - b;
+		Vector3 normal = CrossProduct(bc, bd).GetNormalized();
+		float dot = Abs(DotProduct(normal, m_point - b)); // Abs since we don't care which direction, we flip as needed later
+
+		if (dot > bestDot)
+		{
+			bestDot = dot;
+			coordinateToRemove = 0;
+		}
+	}
+	
+	if (baryCoords.y < 0.f) // B doesn't contribute
+	{
+		Vector3 ac = c - a;
+		Vector3 ad = d - a;
+		Vector3 normal = CrossProduct(ac, ad).GetNormalized();
+		float dot = Abs(DotProduct(normal, m_point - a));
+
+		if (dot > bestDot)
+		{
+			bestDot = dot;
+			coordinateToRemove = 1;
+		}
+	}
+	
+	if (baryCoords.z < 0.f) // C doesn't contribute
+	{
+		Vector3 ab = b - a;
+		Vector3 ad = d - a;
+		Vector3 normal = CrossProduct(ab, ad).GetNormalized();
+		float dot = Abs(DotProduct(normal, m_point - a));
+
+		if (dot > bestDot)
+		{
+			bestDot = dot;
+			coordinateToRemove = 2;
+		}
+	}
+	
+	if (baryCoords.w < 0.f) // D doesn't contribute
+	{
+		Vector3 ab = b - a;
+		Vector3 ac = c - a;
+		Vector3 normal = CrossProduct(ab, ac).GetNormalized();
+		float dot = Abs(DotProduct(normal, m_point - a));
+
+		if (dot > bestDot)
+		{
+			bestDot = dot;
+			coordinateToRemove = 3;
+		}
+	}
+
+	ASSERT_OR_DIE(coordinateToRemove >= 0, "No coordinate selected?");
+
+	switch (coordinateToRemove)
+	{
+	case 0:
 		m_iA = -1;
-		m_numVerts--;
-	}
-
-	// B doesn't contribute
-	if (baryCoords.y <= 0.f)
-	{
+		break;
+	case 1: 
 		m_iB = -1;
-		m_numVerts--;
-	}
-
-	// C doesn't contribute
-	if (baryCoords.z <= 0.f)
-	{
+		break;
+	case 2: 
 		m_iC = -1;
-		m_numVerts--;
+		break;
+	case 3: 
+		m_iD = -1;
+		break;
+	default:
+		break;
 	}
 
-	// D doesn't contribute
-	if (baryCoords.w <= 0.f)
-	{
-		m_iD = -1;
-		m_numVerts--;
-	}
+	m_numVerts--;
 
 	ASSERT_OR_DIE(m_numVerts > 0, "Removed all the points?");
 	CleanUpVertices();
