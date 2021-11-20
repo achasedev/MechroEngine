@@ -85,7 +85,7 @@ public:
 
 	void					Clear();
 	void					GenerateHalfEdgeStructure();
-
+	
 	int						AddVertex(const Vector3& vertex);
 	int						AddFace(const std::vector<int>& indices);
 
@@ -114,8 +114,11 @@ public:
 	Vector3					GetEdgeDirectionNormalized(int edgeIndex) const;
 	bool					HasGeneratedHalfEdges() const { return m_edges.size() > 0; }
 
+	// General
 	void					GetTransformed(const Matrix4& matrix, Polyhedron& out_polygon) const;
 	Vector3					GetCenter() const;
+	bool					IsConvex() const;
+	bool					IsConcave() const { return !IsConvex(); }
 
 
 private:

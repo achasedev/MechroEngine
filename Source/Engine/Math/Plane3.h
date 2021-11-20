@@ -35,6 +35,7 @@ public:
 	Plane3() {}
 	Plane3(const Vector3& normal, float distance);
 	Plane3(const Vector3& normal, const Vector3& pointOnPlane);
+	Plane3(const Vector3& ptA, const Vector3& ptB, const Vector3& ptC);
 
 	void	SetNormal(const Vector3& normal) { m_normal = normal; }
 	void	SetDistance(float distance) { m_distance = distance; }

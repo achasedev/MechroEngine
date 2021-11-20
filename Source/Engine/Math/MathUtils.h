@@ -141,6 +141,7 @@ Vector2	RotateDirectionByEulerAngleDegrees(const Vector2& direction, float angle
 Vector3	RotateDirectionByEulerAnglesDegrees(const Vector3& direction, const Vector3& eulerAnglesDegrees);
 Vector3 CalculateNormalForTriangle(const Vector3& a, const Vector3& b, const Vector3& c);
 bool	AreAllComponentsGreaterThanZero(const Vector3& v);
+bool	AreAllComponentsGreaterThanZero(const Vector4& v);
 
 
 //-------------------------------------------------------------------------------------------------

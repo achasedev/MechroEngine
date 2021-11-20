@@ -454,6 +454,33 @@ Vector3 Polyhedron::GetCenter() const
 
 
 //-------------------------------------------------------------------------------------------------
+bool Polyhedron::IsConvex() const
+{
+	for (int iPlane = 0; iPlane < (int)m_faces.size(); ++iPlane)
+	{
+		Plane3 plane = GetFaceSupportPlane(iPlane);
+
+		for (int iCheckFace = 0; iCheckFace < (int)m_faces.size(); ++iCheckFace)
+		{
+			if (iPlane == iCheckFace)
+				continue;
+
+			const PolyhedronFace& face = m_faces[iCheckFace];
+			for (int iVertex : face.m_indices)
+			{
+				Vector3 vertex = GetVertexPosition(iVertex);
+				
+				if (plane.GetDistanceFromPlane(vertex) > 0.f)
+					return false;
+			}
+		}
+	}
+
+	return true;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void Polyhedron::GetAllFacesAdjacentTo(int faceIndex, std::vector<const PolyhedronFace*>& out_faces) const
 {
 	const PolyhedronFace& face = m_faces[faceIndex];

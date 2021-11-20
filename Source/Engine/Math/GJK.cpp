@@ -34,9 +34,9 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-GJKSolver::GJKSolver()
+GJKSolver2D::GJKSolver2D()
 {
-	for (int i = 0; i < MAX_SIMPLEX_VERTS; ++i)
+	for (int i = 0; i < 3; ++i)
 	{
 		m_iVert[i] = -1;
 	}
@@ -44,7 +44,7 @@ GJKSolver::GJKSolver()
 
 
 //-------------------------------------------------------------------------------------------------
-float GJKSolver::Solve(const Vector2& point, const Polygon2* poly, Vector2& out_closestPt)
+float GJKSolver2D::Solve(const Vector2& point, const Polygon2* poly, Vector2& out_closestPt)
 {
 	ASSERT_RETURN(poly->IsConvex(), 0.f, "Polygon not convex!");
 
@@ -80,7 +80,7 @@ float GJKSolver::Solve(const Vector2& point, const Polygon2* poly, Vector2& out_
 
 
 //-------------------------------------------------------------------------------------------------
-float GJKSolver::Solve(const Vector3& point, const Polygon3* poly3, Vector3& out_closestPt)
+float GJKSolver2D::Solve(const Vector3& point, const Polygon3* poly3, Vector3& out_closestPt)
 {
 	ASSERT_RETURN(poly3->IsConvex(), 0.f, "Polygon not convex!");
 
@@ -100,7 +100,7 @@ float GJKSolver::Solve(const Vector3& point, const Polygon3* poly3, Vector3& out
 
 
 //-------------------------------------------------------------------------------------------------
-void GJKSolver::StartEvolution()
+void GJKSolver2D::StartEvolution()
 {
 	// Arbitrarily choose a to be the first vertex
 	m_iA = 0;
@@ -109,7 +109,7 @@ void GJKSolver::StartEvolution()
 
 
 //-------------------------------------------------------------------------------------------------
-bool GJKSolver::EvolveFromPoint()
+bool GJKSolver2D::EvolveFromPoint()
 {
 	Vector2 aToPt = m_point - m_poly->GetVertex(m_iA);
 
@@ -120,8 +120,8 @@ bool GJKSolver::EvolveFromPoint()
 	if (m_iA == m_iB)
 	{
 		// Closest point is a vertex
-		m_closestPt.xy = b;
-		m_minDist = (m_point - m_closestPt.xy).GetLength();
+		m_closestPt = b;
+		m_minDist = (m_point - m_closestPt).GetLength();
 		return true;
 	}
 
@@ -130,7 +130,7 @@ bool GJKSolver::EvolveFromPoint()
 
 
 //-------------------------------------------------------------------------------------------------
-bool GJKSolver::EvolveFromSegment()
+bool GJKSolver2D::EvolveFromSegment()
 {
 	Vector2 a = m_poly->GetVertex(m_iA);
 	Vector2 b = m_poly->GetVertex(m_iB);
@@ -161,7 +161,7 @@ bool GJKSolver::EvolveFromSegment()
 
 
 //-------------------------------------------------------------------------------------------------
-bool GJKSolver::EvolveFromTriangle()
+bool GJKSolver2D::EvolveFromTriangle()
 {
 	Vector2 a = m_poly->GetVertex(m_iA);
 	Vector2 b = m_poly->GetVertex(m_iB);
@@ -206,13 +206,268 @@ bool GJKSolver::EvolveFromTriangle()
 
 //-------------------------------------------------------------------------------------------------
 // Shift elements to fill in gaps, maintaining order
-void GJKSolver::CleanUpVertices()
+void GJKSolver2D::CleanUpVertices()
 {
 	bool done = false;
 	while (!done)
 	{
 		done = true;
-		for (int i = 0; i < MAX_SIMPLEX_VERTS - 1; ++i)
+		for (int i = 0; i < 2; ++i)
+		{
+			if (m_iVert[i] == -1 && m_iVert[i + 1] != -1)
+			{
+				m_iVert[i] = m_iVert[i + 1];
+				m_iVert[i + 1] = -1;
+				done = false;
+			}
+		}
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+GJKSolver3D::GJKSolver3D()
+{
+	for (int i = 0; i < 4; ++i)
+	{
+		m_iVert[i] = -1;
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float GJKSolver3D::Solve(const Vector3& point, const Polyhedron* poly, Vector3& out_closestPt)
+{
+	ASSERT_RETURN(poly->IsConvex(), 0.f, "Polygon not convex!");
+
+	m_point = point;
+	m_poly = poly;
+
+	bool done = false;
+	while (!done)
+	{
+		switch (m_numVerts)
+		{
+		case 0:
+			StartEvolution();
+			break;
+		case 1:
+			done = EvolveFromPoint();
+			break;
+		case 2:
+			done = EvolveFromSegment();
+			break;
+		case 3:
+			done = EvolveFromTriangle();
+			break;
+		case 4:
+			done = EvolveFromTetrahedron();
+			break;
+		default:
+			ERROR_AND_DIE("Bad number of verts!");
+			break;
+		}
+	}
+
+	out_closestPt = m_closestPt;
+	return m_minDist;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void GJKSolver3D::StartEvolution()
+{
+	// Arbitrarily choose a to be the first vertex
+	m_iA = 0;
+	m_numVerts = 1;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool GJKSolver3D::EvolveFromPoint()
+{
+	Vector3 aToPt = m_point - m_poly->GetVertexPosition(m_iA);
+
+	Vector3 b;
+	m_iB = m_poly->GetSupportPoint(aToPt, b);
+	m_numVerts = 2;
+
+	if (m_iA == m_iB)
+	{
+		// Closest point is a vertex
+		m_closestPt = b;
+		m_minDist = (m_point - m_closestPt).GetLength();
+		return true;
+	}
+
+	return false;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool GJKSolver3D::EvolveFromSegment()
+{
+	Vector3 a = m_poly->GetVertexPosition(m_iA);
+	Vector3 b = m_poly->GetVertexPosition(m_iB);
+
+	Vector3 aToB = b - a;
+	Vector3 aToPt = m_point - a;
+	Vector3 ref = CrossProduct(aToPt, aToB);
+	Vector3 searchDir = CrossProduct(aToB, ref);
+
+	// Make sure we search towards the point
+	if (DotProduct(aToPt, searchDir) < 0.f)
+	{
+		searchDir *= -1.0f;
+	}
+
+	Vector3 c;
+	m_iC = m_poly->GetSupportPoint(searchDir, c);
+	m_numVerts = 3;
+
+	if (m_iC == m_iA || m_iC == m_iB)
+	{
+		// Closest point will be on this segment
+		m_minDist = FindNearestPoint(m_point, LineSegment3(a, b), m_closestPt);
+		return true;
+	}
+
+	return false;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool GJKSolver3D::EvolveFromTriangle()
+{
+	Vector3 a = m_poly->GetVertexPosition(m_iA);
+	Vector3 b = m_poly->GetVertexPosition(m_iB);
+	Vector3 c = m_poly->GetVertexPosition(m_iC);
+
+	Vector3 ab = b - a;
+	Vector3 ac = c - a;
+	Vector3 normal = CrossProduct(ab, ac);
+
+	Vector3 aToPt = m_point - a;
+
+	// Make sure we search towards the point
+	if (DotProduct(aToPt, normal) < 0.f)
+	{
+		normal *= -1.0f;
+	}
+
+	Vector3 d;
+	m_iD = m_poly->GetSupportPoint(normal, d);
+	m_numVerts = 4;
+
+	Tetrahedron tetra(a, b, c, d);
+	bool dIsDuplicate = (m_iD == m_iA) || (m_iD == m_iB) || (m_iD == m_iC);
+	bool tetraDegenerate = (tetra.CalculateUnsignedVolume() == 0.f);
+
+	if (dIsDuplicate || tetraDegenerate)
+	{
+		m_iD = -1;
+		m_numVerts--;
+
+		Vector3 triBaryCoords = ComputeBarycentricCoordinates(m_point, Triangle3(a, b, c));
+
+		if (triBaryCoords.u >= 0.f && triBaryCoords.v >= 0.f && triBaryCoords.w >= 0.f)
+		{
+			m_closestPt = triBaryCoords.u * a + triBaryCoords.v * b + triBaryCoords.w * c;
+			m_minDist = (m_closestPt - m_point).GetLength();
+			return true;
+		}
+
+		// Try to find a face we're in front of?
+		if (triBaryCoords.u < 0.f)
+		{
+			m_iA = -1;
+			m_numVerts--;
+		}
+
+		if (triBaryCoords.v < 0.f)
+		{
+			m_iB = -1;
+			m_numVerts--;
+		}
+		
+		if (triBaryCoords.w < 0.f)
+		{
+			m_iC = -1;
+			m_numVerts--;
+		}
+
+		CleanUpVertices();
+	}
+
+	return false;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool GJKSolver3D::EvolveFromTetrahedron()
+{
+	Vector3 a = m_poly->GetVertexPosition(m_iA);
+	Vector3 b = m_poly->GetVertexPosition(m_iB);
+	Vector3 c = m_poly->GetVertexPosition(m_iC);
+	Vector3 d = m_poly->GetVertexPosition(m_iD);
+	Tetrahedron tetra(a, b, c, d);
+
+	Vector4 baryCoords = ComputeBarycentricCoordinates(m_point, tetra);
+
+	if (AreAllComponentsGreaterThanZero(baryCoords))
+	{
+		// Point is inside tetrahedron == point is inside the polygon
+		// We don't know the penetration, so just return 0
+		m_minDist = 0.f;
+		m_closestPt = m_point;
+		return true;
+	}
+
+	// Point is outside tetrahedron, so evolve
+
+	// A doesn't contribute
+	if (baryCoords.x <= 0.f)
+	{
+		m_iA = -1;
+		m_numVerts--;
+	}
+
+	// B doesn't contribute
+	if (baryCoords.y <= 0.f)
+	{
+		m_iB = -1;
+		m_numVerts--;
+	}
+
+	// C doesn't contribute
+	if (baryCoords.z <= 0.f)
+	{
+		m_iC = -1;
+		m_numVerts--;
+	}
+
+	// D doesn't contribute
+	if (baryCoords.w <= 0.f)
+	{
+		m_iD = -1;
+		m_numVerts--;
+	}
+
+	ASSERT_OR_DIE(m_numVerts > 0, "Removed all the points?");
+	CleanUpVertices();
+
+	return false;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void GJKSolver3D::CleanUpVertices()
+{
+	bool done = false;
+	while (!done)
+	{
+		done = true;
+		for (int i = 0; i < (4 - 1); ++i)
 		{
 			if (m_iVert[i] == -1 && m_iVert[i + 1] != -1)
 			{

@@ -47,6 +47,17 @@ Plane3::Plane3(const Vector3& normal, const Vector3& pointOnPlane)
 
 
 //-------------------------------------------------------------------------------------------------
+Plane3::Plane3(const Vector3& ptA, const Vector3& ptB, const Vector3& ptC)
+{
+	Vector3 ab = ptB - ptA;
+	Vector3 ac = ptC - ptA;
+	m_normal = CrossProduct(ab, ac).GetNormalized();
+
+	m_distance = DotProduct(m_normal, ptA);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 bool Plane3::ContainsPoint(const Vector3& point) const
 {
 	return (AreMostlyEqual(GetDistanceFromPlane(point), 0.f));

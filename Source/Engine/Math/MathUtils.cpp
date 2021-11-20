@@ -721,6 +721,13 @@ bool AreAllComponentsGreaterThanZero(const Vector3& v)
 
 
 //-------------------------------------------------------------------------------------------------
+bool AreAllComponentsGreaterThanZero(const Vector4& v)
+{
+	return v.x > 0.f && v.y > 0.f && v.z > 0.f && v.w > 0.f;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 bool IsBitSet(const unsigned int bits, unsigned int indexFromRight)
 {
 	unsigned int bitmask = (1 << indexFromRight);
@@ -1588,9 +1595,9 @@ float FindNearestPoint(const Vector2& point, const Triangle2& triangle, Vector2&
 float FindNearestPoint(const Vector3& point, const LineSegment3& lineSegment, Vector3& out_closestPt)
 {
 	Vector3 ab = lineSegment.m_b - lineSegment.m_a;
-	float length = ab.GetLength();
+	float lengthSqr = ab.GetLengthSquared();
 	float dot = DotProduct(point - lineSegment.m_a, ab);
-	float t = dot / length;
+	float t = dot / lengthSqr;
 
 	if (t < 0.f)
 	{
@@ -1644,7 +1651,7 @@ float FindNearestPoint(const Vector3& point, const Triangle3& triangle, Vector3&
 //-------------------------------------------------------------------------------------------------
 float FindNearestPoint(const Vector2& point, const Polygon2& polygon, Vector2& out_closestPt)
 {
-	GJKSolver solver;
+	GJKSolver2D solver;
 	return solver.Solve(point, &polygon, out_closestPt);
 }
 
@@ -1652,7 +1659,7 @@ float FindNearestPoint(const Vector2& point, const Polygon2& polygon, Vector2& o
 //-------------------------------------------------------------------------------------------------
 float FindNearestPoint(const Vector3& point, const Polygon3& polygon, Vector3& out_closestPt)
 {
-	GJKSolver solver;
+	GJKSolver2D solver;
 	return solver.Solve(point, &polygon, out_closestPt);
 }
 
@@ -1737,6 +1744,14 @@ float FindNearestPoint(const Vector3& point, const Tetrahedron& tetrahedron, Vec
 
 	out_closestPt = closestPt.Get();
 	return (out_closestPt - point).GetLength();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float FindNearestPoint(const Vector3& point, const Polyhedron& polyhedron, Vector3& out_closestPt)
+{
+	GJKSolver3D solver;
+	return solver.Solve(point, &polyhedron, out_closestPt);
 }
 
 
