@@ -72,6 +72,7 @@ public:
 	void SetMaxLateralSpeed(float maxLateralSpeed) { m_maxLateralSpeed = maxLateralSpeed; }
 	void SetMaxVerticalSpeed(float maxVerticalSpeed) { m_maxVerticalSpeed = maxVerticalSpeed; }
 
+	Vector3 GetCenterOfMassLs() const { return m_centerOfMassLs; }
 	Vector3	GetCenterOfMassWs() const;
 	Vector3 GetLastFrameAcceleration() const { return m_lastFrameAccelerationWs; }
 	float	GetInverseMass() const { return m_iMass; }
