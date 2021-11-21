@@ -179,6 +179,7 @@
     <ClCompile Include="Math\GJK.cpp" />
     <ClCompile Include="Math\Matrix2.cpp" />
     <ClCompile Include="Math\Matrix3.cpp" />
+    <ClCompile Include="Math\Point.cpp" />
     <ClCompile Include="Math\Polygon3.cpp" />
     <ClCompile Include="Math\ScaledAxisRotation.cpp" />
     <ClCompile Include="Math\Tetrahedron.cpp" />
@@ -322,6 +323,7 @@
     <ClInclude Include="Math\LineSegment3.h" />
     <ClInclude Include="Math\Matrix2.h" />
     <ClInclude Include="Math\Matrix3.h" />
+    <ClInclude Include="Math\Point.h" />
     <ClInclude Include="Math\Polygon3.h" />
     <ClInclude Include="Math\ScaledAxisRotation.h" />
     <ClInclude Include="Math\Tetrahedron.h" />
@@ -451,6 +453,9 @@
     <ClInclude Include="Utility\StringUtils.h" />
     <ClInclude Include="Utility\XMLUtils.h" />
     <ClInclude Include="Voxel\QEFLoader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Math\GJK.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -18,6 +18,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+class Point;
 class Polygon2;
 class Polygon3;
 class Polyhedron;
@@ -81,52 +82,60 @@ private:
 
 
 //-------------------------------------------------------------------------------------------------
+template <class A, class B>
 class GJKSolver3D
 {
 public:
 	//-----Public Methods-----
 
-	GJKSolver3D();
-	float Solve(const Vector3& point, const Polyhedron* poly, Vector3& out_closestPt);
+	GJKSolver3D(const A& a, const B& b);
+	GJKSolver3D(const GJKSolver3D<A, B>& copy);
+
+	void Solve();
+
+	Vector3 GetSeparationNormal() const { return m_separationNormal; }
+	float GetSeparationDistance() const { return m_separation; }
 
 
 private:
 	//-----Private Methods-----
 
-	void StartEvolution();
-	bool EvolveFromPoint();
-	bool EvolveFromSegment();
-	bool EvolveFromTriangle();
-	bool EvolveFromTetrahedron();
+	bool CheckSimplexLineSegment();
+	bool CheckSimplexTriangle();
+	bool CheckSimplexTetrahedron();
 	void CleanUpVertices();
+
+	void ExpandSimplex();
+	Vector3 GetMinkowskiSupportPoint(const Vector3& direction) const;
+	bool IsSimplexDegenerate() const;
 
 
 private:
 	//-----Private Data-----
 
-	// Input
-	Vector3				m_point = Vector3::ZERO;
-	const Polyhedron*	m_poly = nullptr;
+	const A& m_a;
+	const B& m_b;
 
 	// Simplex vertices - as index into poly vertices
 	union
 	{
-		int	m_iVert[4];
+		Maybe<Vector3> m_simplexVerts[4];
 		struct
 		{
-			int m_iA;
-			int m_iB;
-			int m_iC;
-			int m_iD;
+			Maybe<Vector3> m_simplexA;
+			Maybe<Vector3> m_simplexB;
+			Maybe<Vector3> m_simplexC;
+			Maybe<Vector3> m_simplexD;
 		};
 	};
 	int m_numVerts = 0;
 
 	// Results
-	Vector3			m_closestPt = Vector3::ZERO;
-	float			m_minDist = -1.0f;
+	Vector3 m_separationNormal = Vector3::ZERO;
+	float m_separation = 0.f;
 
 };
+
 
 #pragma warning(default : 4201)
 

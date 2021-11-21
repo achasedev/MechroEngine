@@ -7,12 +7,13 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
-#include "Engine/Math/GJK.h"
+#include "Engine/Math/GJK.inl"
 #include "Engine/Math/LineSegment2.h"
 #include "Engine/Math/LineSegment3.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Math/Matrix3.h"
 #include "Engine/Math/OBB3.h"
+#include "Engine/Math/Point.h"
 #include "Engine/Math/Tetrahedron.h"
 #include "Engine/Math/Triangle2.h"
 #include "Engine/Math/Triangle3.h"
@@ -1750,8 +1751,19 @@ float FindNearestPoint(const Vector3& point, const Tetrahedron& tetrahedron, Vec
 //-------------------------------------------------------------------------------------------------
 float FindNearestPoint(const Vector3& point, const Polyhedron& polyhedron, Vector3& out_closestPt)
 {
-	GJKSolver3D solver;
-	return solver.Solve(point, &polyhedron, out_closestPt);
+	GJKSolver3D<Point, Polyhedron> solver = GJKSolver3D<Point, Polyhedron>(Point(point), polyhedron);
+	solver.Solve();
+
+	float separation = solver.GetSeparationDistance();
+	if (separation <= 0.f)
+	{
+		out_closestPt = point;
+		return 0.f;
+	}
+
+	Vector3 normal = solver.GetSeparationNormal();
+	out_closestPt = point - normal * separation;
+	return separation;
 }
 
 

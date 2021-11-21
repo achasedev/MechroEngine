@@ -1,13 +1,14 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// Author: Andrew Chase
-/// Date Created: Oct 26th, 2021
-/// Description: Class to represent a value that has no invalid value, and needs to be distinguished as being valid; basically std::optional
+/// Date Created: Nov 21st, 2021
+/// Description: Class just for GJK - need Vector3 to have a support point function
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #pragma once
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Math/Vector3.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -26,60 +27,17 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-template <typename T>
-class Maybe
+class Point : public Vector3
 {
 public:
 	//-----Public Methods-----
 
-	Maybe() {}
-	Maybe(const Maybe<T>& copy)
-		: m_value(copy.m_value), m_isValid(copy.m_isValid) {}
-	explicit Maybe(const T& value)
-		: m_value(value), m_isValid(true) {}
-	void operator=(const Maybe<T>& copy);
+	explicit Point(const Vector3& position);
 
-	void	Set(const T& value);
-	T		Get() const { return m_value; }
-	void	Invalidate() { m_isValid = false; }
-	bool	IsValid() const { return m_isValid; }
-
-
-public:
-	//-----Public Data-----
-
-	static const Maybe INVALID;
-
-
-private:
-	//-----Private Data-----
-
-	T		m_value;
-	bool	m_isValid = false;
+	int		GetSupportPoint(const Vector3& direction, Vector3& out_supportPt) const;
+	Vector3 GetCenter() const { return Vector3(x, y, z); }
 
 };
-
-//-------------------------------------------------------------------------------------------------
-template <typename T>
-void Maybe<T>::operator=(const Maybe<T>& copy)
-{
-	m_value = copy.m_value;
-	m_isValid = copy.m_isValid;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-// Sets the value, ensuring it's also marked as valid
-template <typename T>
-void Maybe<T>::Set(const T& value)
-{
-	m_value = value;
-	m_isValid = true;
-}
-
-
-template <typename T>
-const Maybe<T> Maybe<T>::INVALID = Maybe<T>();
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// C FUNCTIONS
