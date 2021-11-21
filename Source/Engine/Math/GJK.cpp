@@ -238,7 +238,11 @@ GJKSolver3D::GJKSolver3D()
 //-------------------------------------------------------------------------------------------------
 float GJKSolver3D::Solve(const Vector3& point, const Polyhedron* poly, Vector3& out_closestPt)
 {
-	ASSERT_RETURN(poly->IsConvex(), 0.f, "Polygon not convex!");
+	if (!poly->IsConvex())
+	{
+		bool test = poly->IsConvex();
+		ERROR_RETURN(0.f, "Polygon not convex!");
+	}
 
 	m_point = point;
 	m_poly = poly;
@@ -374,7 +378,7 @@ bool GJKSolver3D::EvolveFromTriangle()
 
 	Tetrahedron tetra(a, b, c, d);
 	bool dIsDuplicate = (m_iD == m_iA) || (m_iD == m_iB) || (m_iD == m_iC);
-	bool tetraDegenerate = (tetra.CalculateUnsignedVolume() == 0.f);
+	bool tetraDegenerate = (AreMostlyEqual(tetra.CalculateUnsignedVolume(), 0.f));
 
 	if (dIsDuplicate || tetraDegenerate)
 	{

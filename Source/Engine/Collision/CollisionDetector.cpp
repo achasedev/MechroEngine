@@ -30,9 +30,9 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 GenerateContactsFunction CollisionDetector::s_colliderMatrix[NUM_COLLIDER_TYPES][NUM_COLLIDER_TYPES] =
 {
-	{ nullptr, nullptr, &CollisionDetector::GenerateContacts_HalfSpaceSphere,	&CollisionDetector::GenerateContacts_HalfSpaceCapsule,	&CollisionDetector::GenerateContacts_HalfSpaceBox,	&CollisionDetector::GenerateContacts_HalfSpaceCylinder, &CollisionDetector::GenerateContacts_HalfSpacePolygon },
+	{ nullptr, nullptr, &CollisionDetector::GenerateContacts_HalfSpaceSphere,	&CollisionDetector::GenerateContacts_HalfSpaceCapsule,	&CollisionDetector::GenerateContacts_HalfSpaceBox,	&CollisionDetector::GenerateContacts_HalfSpaceCylinder, &CollisionDetector::GenerateContacts_HalfSpaceHull },
 	{ nullptr, nullptr, &CollisionDetector::GenerateContacts_PlaneSphere,		&CollisionDetector::GenerateContacts_PlaneCapsule,		&CollisionDetector::GenerateContacts_PlaneBox,		&CollisionDetector::GenerateContacts_PlaneCylinder,		nullptr },
-	{ nullptr, nullptr,	&CollisionDetector::GenerateContacts_SphereSphere,		&CollisionDetector::GenerateContacts_SphereCapsule,		&CollisionDetector::GenerateContacts_SphereBox,		&CollisionDetector::GenerateContacts_SphereCylinder,	nullptr },
+	{ nullptr, nullptr,	&CollisionDetector::GenerateContacts_SphereSphere,		&CollisionDetector::GenerateContacts_SphereCapsule,		&CollisionDetector::GenerateContacts_SphereBox,		&CollisionDetector::GenerateContacts_SphereCylinder,	&CollisionDetector::GenerateContacts_SphereHull },
 	{ nullptr, nullptr, nullptr,												&CollisionDetector::GenerateContacts_CapsuleCapsule,	&CollisionDetector::GenerateContacts_CapsuleBox,	&CollisionDetector::GenerateContacts_CapsuleCylinder,	nullptr },
 	{ nullptr, nullptr, nullptr,												nullptr,												&CollisionDetector::GenerateContacts_BoxBox,		nullptr,												nullptr },
 	{ nullptr, nullptr, nullptr,												nullptr,												nullptr,											nullptr,												nullptr },
@@ -298,7 +298,7 @@ int CollisionDetector::GenerateContacts_HalfSpaceCylinder(const Collider* a, con
 
 
 //-------------------------------------------------------------------------------------------------
-int CollisionDetector::GenerateContacts_HalfSpacePolygon(const Collider* a, const Collider* b, Contact* out_contacts, int limit)
+int CollisionDetector::GenerateContacts_HalfSpaceHull(const Collider* a, const Collider* b, Contact* out_contacts, int limit)
 {
 	const HalfSpaceCollider* aHalfSpaceCol = a->GetAsType<HalfSpaceCollider>();
 	const ConvexHullCollider* bPolyCollider = b->GetAsType<ConvexHullCollider>();
@@ -510,6 +510,65 @@ int CollisionDetector::GenerateContacts_SphereCylinder(const Collider* a, const 
 	if (numContacts > 0)
 	{
 		out_contacts->CheckValuesAreReasonable();
+	}
+
+	return numContacts;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionDetector::GenerateContacts_SphereHull(const Collider* a, const Collider* b, Contact* out_contacts, int limit)
+{
+	if (limit <= 0)
+		return 0;
+
+	int numContacts = 0;
+	const SphereCollider* aSphereCol = a->GetAsType<SphereCollider>();
+	const ConvexHullCollider* bHullCol = b->GetAsType<ConvexHullCollider>();
+	ASSERT_OR_DIE(aSphereCol != nullptr && bHullCol != nullptr, "Colliders are of wrong type!");
+
+	const Sphere sphereWs = aSphereCol->GetDataInWorldSpace();
+	const Polyhedron polyWs = bHullCol->GetDataInWorldSpace();
+
+	Vector3 hullPt;
+	float dist = FindNearestPoint(sphereWs.m_center, polyWs, hullPt);
+
+	if (dist <= 0.f)
+	{
+		// Deep contact
+		int numFaces = polyWs.GetNumFaces();
+		float minPen = -1.f;
+		Vector3 normal = Vector3::ZERO;
+
+		for (int iFace = 0; iFace < numFaces; ++iFace)
+		{
+			const Plane3 plane = polyWs.GetFaceSupportPlane(iFace);
+			float pen = -1.0f * plane.GetDistanceFromPlane(sphereWs.m_center);
+
+			if (pen > 0.f && (minPen < 0.f || pen < minPen))
+			{
+				minPen = pen;
+				normal = plane.GetNormal();
+			}
+		}
+
+		ASSERT_OR_DIE(minPen < 0.f, "Shallow contact not found!");
+		out_contacts[0].position = (sphereWs.m_center - (sphereWs.m_radius - minPen) * normal);
+		out_contacts[0].normal = normal;
+		out_contacts[0].penetration = minPen;
+		FillOutColliderInfo(&out_contacts[0], aSphereCol, bHullCol);
+		out_contacts[0].CheckValuesAreReasonable();
+		numContacts++;
+	}
+	else if (dist < sphereWs.m_radius)
+	{
+		// Shallow contact
+		out_contacts[0].position = hullPt;
+		out_contacts[0].normal = (sphereWs.m_center - hullPt) / dist;
+		out_contacts[0].penetration = sphereWs.m_radius - dist;
+		FillOutColliderInfo(&out_contacts[0], aSphereCol, bHullCol);
+		out_contacts[0].CheckValuesAreReasonable();
+		numContacts++;
 	}
 
 	return numContacts;

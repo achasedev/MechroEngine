@@ -470,7 +470,7 @@ bool Polyhedron::IsConvex() const
 			{
 				Vector3 vertex = GetVertexPosition(iVertex);
 				
-				if (plane.GetDistanceFromPlane(vertex) > 0.000001f)
+				if (plane.GetDistanceFromPlane(vertex) > DEFAULT_EPSILON)
 					return false;
 			}
 		}
