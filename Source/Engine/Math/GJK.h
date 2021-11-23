@@ -94,7 +94,9 @@ public:
 	void Solve();
 
 	Vector3 GetSeparationNormal() const { return m_separationNormal; }
-	float GetSeparationDistance() const { return m_separation; }
+	float	GetSeparationDistance() const { return m_separation; }
+	Vector3 GetClosestPointOnA() const { return m_closestPtA; }
+	Vector3 GetClosestPointOnB() const { return m_closestPtB; }
 
 
 private:
@@ -103,11 +105,12 @@ private:
 	bool CheckSimplexLineSegment();
 	bool CheckSimplexTriangle();
 	bool CheckSimplexTetrahedron();
-	void CleanUpVertices();
+	void CleanUpSimplexPoints();
 
-	void ExpandSimplex();
-	Vector3 GetMinkowskiSupportPoint(const Vector3& direction) const;
-	bool IsSimplexDegenerate() const;
+	void	ExpandSimplex();
+	Vector3 GetMinkowskiSupportPoint(const Vector3& direction);
+	bool	IsSimplexDegenerate() const;
+	void	ComputeClosestPoints();
 
 
 private:
@@ -119,7 +122,7 @@ private:
 	// Simplex vertices - as index into poly vertices
 	union
 	{
-		Maybe<Vector3> m_simplexVerts[4];
+		Maybe<Vector3> m_simplexPts[4];
 		struct
 		{
 			Maybe<Vector3> m_simplexA;
@@ -130,9 +133,14 @@ private:
 	};
 	int m_numVerts = 0;
 
+	// Minkowski inputs for simplexes
+	Vector3 m_minkowskiInputs[8];
+
 	// Results
 	Vector3 m_separationNormal = Vector3::ZERO;
-	float m_separation = 0.f;
+	float	m_separation = 0.f;
+	Vector3 m_closestPtA = Vector3::ZERO;
+	Vector3 m_closestPtB = Vector3::ZERO;
 
 };
 

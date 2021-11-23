@@ -11,6 +11,7 @@
 #include "Engine/Math/GJK.h"
 #include "Engine/Math/LineSegment3.h"
 #include "Engine/Math/MathUtils.h"
+#include "Engine/Math/Matrix3.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -39,7 +40,7 @@ GJKSolver3D<A, B>::GJKSolver3D(const A& a, const B& b)
 {
 	for (int i = 0; i < 4; ++i)
 	{
-		m_simplexVerts[i].Invalidate();
+		m_simplexPts[i].Invalidate();
 	}
 }
 
@@ -88,9 +89,9 @@ void GJKSolver3D<A, B>::Solve()
 		}
 	}
 
-	if (!AreMostlyEqual(m_separationNormal, Vector3::ZERO))
+	if (m_separation > 0.f)
 	{
-		ASSERT_OR_DIE(AreMostlyEqual(m_separationNormal.GetLength(), 1.0f), "Normal not unit!");
+		ComputeClosestPoints();
 	}
 }
 
@@ -101,6 +102,9 @@ bool GJKSolver3D<A, B>::CheckSimplexLineSegment()
 {
 	if (IsSimplexDegenerate())
 	{
+		m_simplexB.Invalidate();
+		m_numVerts--;
+
 		// Closest point is a vertex (simplexA == simplexB)
 		m_separationNormal = (m_simplexA.Get() - Vector3::ZERO);
 		m_separation = m_separationNormal.Normalize();
@@ -117,6 +121,9 @@ bool GJKSolver3D<A, B>::CheckSimplexTriangle()
 {
 	if (IsSimplexDegenerate())
 	{
+		m_simplexC.Invalidate();
+		m_numVerts--;
+
 		// Closest point will be on this segment
 		Vector3 closestPt;
 		m_separation = FindNearestPoint(Vector3::ZERO, LineSegment3(m_simplexA.Get(), m_simplexB.Get()), closestPt);
@@ -270,14 +277,14 @@ bool GJKSolver3D<A, B>::CheckSimplexTetrahedron()
 	}
 
 	m_numVerts--;
-	CleanUpVertices();
+	CleanUpSimplexPoints();
 	return false;
 }
 
 
 //-------------------------------------------------------------------------------------------------
 template <class A, class B>
-void GJKSolver3D<A, B>::CleanUpVertices()
+void GJKSolver3D<A, B>::CleanUpSimplexPoints()
 {
 	bool done = false;
 	while (!done)
@@ -285,10 +292,18 @@ void GJKSolver3D<A, B>::CleanUpVertices()
 		done = true;
 		for (int i = 0; i < (4 - 1); ++i)
 		{
-			if (!m_simplexVerts[i].IsValid() && m_simplexVerts[i + 1].IsValid())
+			if (!m_simplexPts[i].IsValid() && m_simplexPts[i + 1].IsValid())
 			{
-				m_simplexVerts[i] = m_simplexVerts[i + 1];
-				m_simplexVerts[i + 1].Invalidate();
+				m_simplexPts[i] = m_simplexPts[i + 1];
+				m_simplexPts[i + 1].Invalidate();
+
+				// Also shift inputs
+				m_minkowskiInputs[2 * i] = m_minkowskiInputs[2 * (i + 1)];
+				m_minkowskiInputs[2 * i + 1] = m_minkowskiInputs[2 * (i + 1) + 1];
+
+				m_minkowskiInputs[2 * (i + 1)] = Vector3::ZERO;
+				m_minkowskiInputs[2 * (i + 1) + 1] = Vector3::ZERO;
+
 				done = false;
 			}
 		}
@@ -385,12 +400,99 @@ void GJKSolver3D<A, B>::ExpandSimplex()
 
 //-------------------------------------------------------------------------------------------------
 template <class A, class B>
-Vector3 GJKSolver3D<A, B>::GetMinkowskiSupportPoint(const Vector3& direction) const
+Vector3 GJKSolver3D<A, B>::GetMinkowskiSupportPoint(const Vector3& direction)
 {
 	Vector3 aSupport, bSupport;
 
 	m_a.GetSupportPoint(direction, aSupport);
 	m_b.GetSupportPoint(-1.0f * direction, bSupport);
 
+	m_minkowskiInputs[2 * m_numVerts] = aSupport;
+	m_minkowskiInputs[2 * m_numVerts + 1] = bSupport;
+
 	return aSupport - bSupport;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+template <class A, class B>
+void GJKSolver3D<A, B>::ComputeClosestPoints()
+{
+	switch (m_numVerts)
+	{
+	case 1:
+		m_closestPtA = m_minkowskiInputs[0];
+		m_closestPtB = m_minkowskiInputs[1];
+		break;
+	case 2:
+	{
+		LineSegment3 simplexEdge(m_simplexA.Get(), m_simplexB.Get());
+		Vector2 baryCoords = ComputeBarycentricCoordinates(Vector3::ZERO, simplexEdge);
+
+		if (baryCoords.u < 0.f)
+		{
+			m_closestPtA = m_minkowskiInputs[2];
+			m_closestPtB = m_minkowskiInputs[3];
+		}
+		else if (baryCoords.v < 0.f)
+		{
+			m_closestPtA = m_minkowskiInputs[0];
+			m_closestPtB = m_minkowskiInputs[1];
+		}
+		else
+		{
+			m_closestPtA = m_minkowskiInputs[0] * baryCoords.u + m_minkowskiInputs[2] * baryCoords.v;
+			m_closestPtB = m_minkowskiInputs[1] * baryCoords.u + m_minkowskiInputs[3] * baryCoords.v;
+		}
+	}
+		break;
+	case 3:
+	{
+		Triangle3 simplexFace(m_simplexA.Get(), m_simplexB.Get(), m_simplexC.Get());
+		Vector3 baryCoords = ComputeBarycentricCoordinates(Vector3::ZERO, simplexFace);
+		m_closestPtA = m_minkowskiInputs[0] * baryCoords.u + m_minkowskiInputs[2] * baryCoords.v + m_minkowskiInputs[4] * baryCoords.w;
+		m_closestPtB = m_minkowskiInputs[1] * baryCoords.u + m_minkowskiInputs[3] * baryCoords.v + m_minkowskiInputs[5] * baryCoords.w;
+	}
+		break;
+	default:
+		break;
+	}
+
+	/*Vector3 a = m_simplexA.Get();
+	Vector3 b = m_simplexB.Get();
+	Vector3 c = m_simplexC.Get();
+	Vector3 d = m_simplexD.Get();
+
+	Matrix3 mat;
+	Vector3 vecInput = Vector3(1.f, 0.f, 0.f);
+
+	mat.Ix = 1.f;
+	mat.Iy = DotProduct(b - a, a);
+	mat.Iz = DotProduct(c - a, a);
+
+	mat.Jx = 1.f;
+	mat.Jy = DotProduct(b - a, b);
+	mat.Jz = DotProduct(c - a, b);
+
+	mat.Kx = 1.f;
+	mat.Ky = DotProduct(b - a, c);
+	mat.Kz = DotProduct(c - a, c);
+
+	float det = mat.GetDeterminant();
+	Vector3 lambas;
+
+	for (int i = 0; i < m_numVerts; ++i)
+	{
+		Matrix3 mati = mat;
+		mati.columnVectors[i] = vecInput;
+
+		float deti = mati.GetDeterminant();
+		lambas.data[i] = deti / det;
+	}
+
+	for (int i = 0; i < m_numVerts; ++i)
+	{
+		m_closestPtA += lambas.data[i] * m_minkowskiInputs[2 * i];
+		m_closestPtB += lambas.data[i] * m_minkowskiInputs[2 * i + 1];
+	}*/
 }
