@@ -1395,7 +1395,7 @@ Vector3 SolveLinePlaneIntersection(const Line3& line, const Plane3& plane)
 
 
 //-------------------------------------------------------------------------------------------------
-float FindClosestPointsOnLineSegments(const Vector3& startA, const Vector3& endA, const Vector3& startB, const Vector3& endB, Vector3& out_pointOnA, Vector3& out_pointOnB)
+float FindNearestPoints(const Vector3& startA, const Vector3& endA, const Vector3& startB, const Vector3& endB, Vector3& out_pointOnA, Vector3& out_pointOnB)
 {
 	float EPS = 0.00000001f;
 
@@ -1481,6 +1481,13 @@ float FindClosestPointsOnLineSegments(const Vector3& startA, const Vector3& endA
 	out_pointOnB = startB + (tc * delta41);
 
 	return dP.GetLength();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float FindNearestPoints(const LineSegment3& one, const LineSegment3& two, Vector3& out_pointOnOne, Vector3& out_pointOnTwo)
+{
+	return FindNearestPoints(one.m_a, one.m_b, two.m_a, two.m_b, out_pointOnOne, out_pointOnTwo);
 }
 
 
@@ -1783,13 +1790,13 @@ float FindNearestPoints(const LineSegment3& lineSegment, const Polyhedron& polyh
 	}
 
 	Vector3 normal = solver.GetSeparationNormal();
-	if (!AreMostlyEqual(DotProduct(normal, (lineSegment.m_b - lineSegment.m_a)), 0.f))
-	{
-		lineSegment.GetSupportPoint(-1.0f * normal, out_closestPtOnLine);
-		out_closestPtOnPoly = out_closestPtOnLine - normal * separation;
-	}
-	else
-	{
+	//if (!AreMostlyEqual(DotProduct(normal, (lineSegment.m_b - lineSegment.m_a)), 0.f))
+	//{
+	//	lineSegment.GetSupportPoint(-1.0f * normal, out_closestPtOnLine);
+	//	out_closestPtOnPoly = out_closestPtOnLine - normal * separation;
+	//}
+	//else
+	//{
 		const PolyhedronFace* face = polyhedron.GetFaceMostInDirection(normal);
 
 		bool aWithinEdges = face->IsPointWithinEdges(lineSegment.m_a);
@@ -1804,26 +1811,17 @@ float FindNearestPoints(const LineSegment3& lineSegment, const Polyhedron& polyh
 			out_closestPtOnLine = (aDistance <= bDistance ? lineSegment.m_a : lineSegment.m_b);
 			out_closestPtOnPoly = out_closestPtOnLine - normal * separation;
 		}
-		else if (aWithinEdges || bWithinEdges)
+		else if ((aWithinEdges != bWithinEdges) && AreMostlyEqual(DotProduct(normal, face->m_normal), 1.0f, 0.000001f))
 		{
-			LineSegment3 clippedSegment(lineSegment);
-			face->ClipEdgeToFace(clippedSegment);
-
-			Plane3 facePlane = face->GetSupportPlane();
-			float aDistance = facePlane.GetDistanceFromPlane(clippedSegment.m_a);
-			float bDistance = facePlane.GetDistanceFromPlane(clippedSegment.m_b);
-
-			out_closestPtOnLine = (aDistance <= bDistance ? clippedSegment.m_a : clippedSegment.m_b);
+			out_closestPtOnLine = (aWithinEdges ? lineSegment.m_a : lineSegment.m_b);
 			out_closestPtOnPoly = out_closestPtOnLine - normal * separation;
 		}
 		else
 		{
-			// TODO
-			out_closestPtOnLine = Vector3::ZERO;
-			out_closestPtOnPoly = Vector3::ZERO;
-			return 0.f;
+			LineSegment3 edge = face->GetEdgeInDirection(normal);
+			separation = FindNearestPoints(lineSegment, edge, out_closestPtOnLine, out_closestPtOnPoly);
 		}
-	}
+	//}
 
 	return separation;
 }

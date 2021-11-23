@@ -224,7 +224,6 @@ bool	IsPointOnLineSegment(const Vector2& p, const LineSegment2& lineSegment);
 
 float	CalculateVolumeOfTetrahedron(const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& d);
 Vector3 SolveLinePlaneIntersection(const Line3& line, const Plane3& plane);
-float	FindClosestPointsOnLineSegments(const Vector3& startA, const Vector3& endA, const Vector3& startB, const Vector3& endB, Vector3& out_pointOnA, Vector3& out_pointOnB);
 bool	SolveLineCircleIntersection(const Vector3& point, const Vector3& direction, const Vector3& center, float radius, Vector2& out_tSolutions);
 
 // Line Segment
@@ -232,6 +231,8 @@ float	FindNearestPoint(const Vector2& point, const LineSegment2& lineSegment, Ve
 float	FindNearestPoint(const Vector2& point, const Vector2& segA, const Vector2& segB, Vector2& out_closestPt);
 float	FindNearestPoint(const Vector3& point, const LineSegment3& lineSegment, Vector3& out_closestPt);
 float	FindNearestPoint(const Vector3& point, const Vector3& segA, const Vector3& segB, Vector3& out_closestPt);
+float	FindNearestPoints(const Vector3& startA, const Vector3& endA, const Vector3& startB, const Vector3& endB, Vector3& out_pointOnA, Vector3& out_pointOnB);
+float	FindNearestPoints(const LineSegment3& one, const LineSegment3& two, Vector3& out_pointOnOne, Vector3& out_pointOnTwo);
 
 // Triangle
 float	FindNearestPoint(const Vector2& point, const Triangle2& triangle, Vector2& out_closestPt);

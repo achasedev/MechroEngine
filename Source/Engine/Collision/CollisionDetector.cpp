@@ -1009,7 +1009,7 @@ int CollisionDetector::GenerateContacts_CapsuleCapsule(const Collider* a, const 
 	Capsule3 capsuleB = bCapsuleCol->GetDataInWorldSpace();
 
 	Vector3 ptOnA, ptOnB;
-	float distance = FindClosestPointsOnLineSegments(capsuleA.start, capsuleA.end, capsuleB.start, capsuleB.end, ptOnA, ptOnB);
+	float distance = FindNearestPoints(capsuleA.start, capsuleA.end, capsuleB.start, capsuleB.end, ptOnA, ptOnB);
 	float overlap = (capsuleA.radius + capsuleB.radius) - distance;
 
 	if (overlap > 0.f)
@@ -1166,7 +1166,7 @@ static bool GetMinEdgePen(const OBB3& box, const Capsule3& capsule, float& out_p
 
 		// Get the distance between the closest points on the box edge and the capsule's spine
 		Vector3 capsulePt, boxPt;
-		float distance = FindClosestPointsOnLineSegments(capsule.start, capsule.end, edge.m_start, edge.m_end, capsulePt, boxPt);
+		float distance = FindNearestPoints(capsule.start, capsule.end, edge.m_start, edge.m_end, capsulePt, boxPt);
 
 		// Get these in the box's local space to check Voronoi regions
 		// Only consider edge overlap if the capsule closest point either

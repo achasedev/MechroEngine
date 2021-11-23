@@ -75,7 +75,7 @@ void CapsuleCylinderCollision::InitializeValues()
 	m_cylTopPlane = Plane3(m_cylSpineDir, m_cylinder.m_top);
 	m_cylBottomPlane = Plane3(-1.0f * m_cylSpineDir, m_cylinder.m_bottom);
 
-	m_distBetweenSegs = FindClosestPointsOnLineSegments(m_capsule.start, m_capsule.end, m_cylinder.m_bottom, m_cylinder.m_top, m_capClosestSegPt, m_cylClosestSegPt);
+	m_distBetweenSegs = FindNearestPoints(m_capsule.start, m_capsule.end, m_cylinder.m_bottom, m_cylinder.m_top, m_capClosestSegPt, m_cylClosestSegPt);
 }
 
 
@@ -374,7 +374,7 @@ void CapsuleCylinderCollision::SolveAlternativeMethod()
 	Vector3 cyl1 = m_cylinder.m_top;
 
 	Vector3 pCyl, pCap;
-	float dist0 = FindClosestPointsOnLineSegments(cap0, cap1, cyl0, cyl1, pCap, pCyl);
+	float dist0 = FindNearestPoints(cap0, cap1, cyl0, cyl1, pCap, pCyl);
 
 	if (dist0 > m_cylRadius + m_capRadius)
 		return;
@@ -392,10 +392,10 @@ void CapsuleCylinderCollision::SolveAlternativeMethod()
 	Vector3 pa1 = pr0 + DotProduct(cyl1 - pCyl, cylSpine) * cylSpine;
 
 	Vector3 pCap1, pRprime;
-	float d1 = FindClosestPointsOnLineSegments(cap0, cap1, pr0, pr1, pCap1, pRprime);
+	float d1 = FindNearestPoints(cap0, cap1, pr0, pr1, pCap1, pRprime);
 
 	Vector3 pCap2, pAPrime;
-	float d2 = FindClosestPointsOnLineSegments(cap0, cap1, pa0, pa1, pCap2, pAPrime);
+	float d2 = FindNearestPoints(cap0, cap1, pa0, pa1, pCap2, pAPrime);
 
 	float d = Min(d1, d2);
 

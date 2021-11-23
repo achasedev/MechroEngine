@@ -667,6 +667,37 @@ void PolyhedronFace::ClipFaceToFace(Polygon3& inout_FaceToClip) const
 }
 
 
+//-------------------------------------------------------------------------------------------------
+LineSegment3 PolyhedronFace::GetEdgeInDirection(const Vector3& direction) const
+{
+	int bestIndex = -1;
+	float bestDot = -1.f;
+
+	for (int iSidePlane = 0; iSidePlane < (int)m_sidePlanes.size(); ++iSidePlane)
+	{
+		const Plane3& sidePlane = m_sidePlanes[iSidePlane];
+		float dot = DotProduct(sidePlane.m_normal, direction);
+
+		if (bestIndex == -1 || dot > bestDot)
+		{
+			bestDot = dot;
+			bestIndex = iSidePlane;
+		}
+	}
+
+	const HalfEdge* edge = m_poly->GetEdge(m_iHalfEdge);
+	for (int iEdge = 0; iEdge < bestIndex; ++iEdge)
+	{
+		edge = m_poly->GetEdge(edge->m_nextEdgeIndex);
+	}
+
+	Vector3 a = m_poly->GetVertexPosition(edge->m_vertexIndex);
+	Vector3 b = m_poly->GetVertexPosition(m_poly->GetEdge(edge->m_nextEdgeIndex)->m_vertexIndex);
+
+	return LineSegment3(a, b);
+}
+
+
 ////-------------------------------------------------------------------------------------------------
 void PolyhedronFace::CalculateNormalAndSidePlanes()
 {

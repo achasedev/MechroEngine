@@ -53,11 +53,12 @@ public:
 	PolyhedronFace(const Polyhedron& polyhedron);
 	PolyhedronFace(const Polyhedron& polyhedron, const std::vector<int> indices);
 
-	Plane3		GetSupportPlane() const;
-	int			GetAllAdjacentFaces(std::vector<const PolyhedronFace*>& out_faces) const;
-	bool		IsPointWithinEdges(const Vector3& point) const;
-	bool		ClipEdgeToFace(LineSegment3& inout_edge) const;
-	void		ClipFaceToFace(Polygon3& inout_FaceToClip) const;
+	Plane3			GetSupportPlane() const;
+	int				GetAllAdjacentFaces(std::vector<const PolyhedronFace*>& out_faces) const;
+	bool			IsPointWithinEdges(const Vector3& point) const;
+	bool			ClipEdgeToFace(LineSegment3& inout_edge) const;
+	void			ClipFaceToFace(Polygon3& inout_FaceToClip) const;
+	LineSegment3	GetEdgeInDirection(const Vector3& direction) const;
 
 
 private:
