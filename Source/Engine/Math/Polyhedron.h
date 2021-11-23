@@ -22,6 +22,9 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class OBB3;
+class LineSegment3;
+class Polygon3;
+class Polyhedron;
 
 //-------------------------------------------------------------------------------------------------
 struct PolyhedronVertex
@@ -40,15 +43,41 @@ struct PolyhedronVertex
 
 
 //-------------------------------------------------------------------------------------------------
-struct PolyhedronFace
+class PolyhedronFace
 {
-	PolyhedronFace() {}
-	PolyhedronFace(const std::vector<int> indices)
-		: m_indices(indices) {}
+	friend class Polyhedron;
+
+public:
+	//-----Public Methods-----
+
+	PolyhedronFace(const Polyhedron& polyhedron);
+	PolyhedronFace(const Polyhedron& polyhedron, const std::vector<int> indices);
+
+	Plane3		GetSupportPlane() const;
+	int			GetAllAdjacentFaces(std::vector<const PolyhedronFace*>& out_faces) const;
+	bool		IsPointWithinEdges(const Vector3& point) const;
+	bool		ClipEdgeToFace(LineSegment3& inout_edge) const;
+	void		ClipFaceToFace(Polygon3& inout_FaceToClip) const;
 
 
+private:
+	//-----Private Methods-----
+
+	void		CalculateNormalAndSidePlanes();
+	void		ApplyTransform(const Matrix4& transform);
+
+
+public:
+	//-----Public Data-----
+
+	const Polyhedron*   m_poly = nullptr;
 	std::vector<int>	m_indices;
-	int					m_halfEdgeIndex = -1;
+	int					m_iHalfEdge = -1;
+
+	// Cached for performance
+	Vector3				m_normal = Vector3::ZERO;
+	std::vector<Plane3> m_sidePlanes;
+
 };
 
 
@@ -82,6 +111,7 @@ public:
 	Polyhedron() {}
 	~Polyhedron() {}
 	Polyhedron(const OBB3& box);
+	Polyhedron(const Polyhedron& copy);
 
 	void					Clear();
 	void					GenerateHalfEdgeStructure();
@@ -100,10 +130,10 @@ public:
 	int						GetNumFaces() const { return (int)m_faces.size(); }
 	const PolyhedronFace*	GetFace(int faceIndex) const;
 	int						GetIndexOfFaceMostInDirection(const Vector3& direction) const;
+	const PolyhedronFace*	GetFaceMostInDirection(const Vector3& direction) const;
 	Vector3					GetFaceNormal(int faceIndex) const;
 	Plane3					GetFaceSupportPlane(int faceIndex) const;
-	void					GetAllFacesAdjacentTo(int faceIndex, std::vector<const PolyhedronFace*>& out_faces) const;
-	void					GetAllSidePlanesForFace(int faceIndex, std::vector<Plane3>& out_planes) const;
+	int						GetAllAdjacentFaces(int faceIndex, std::vector<const PolyhedronFace*>& out_faces) const;
 
 	// Edges
 	int						GetNumEdges() const { return (int)m_edges.size(); }

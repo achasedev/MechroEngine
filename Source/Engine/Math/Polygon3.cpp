@@ -90,6 +90,13 @@ int Polygon3::AddVertex(const Vector3& vertex)
 
 
 //-------------------------------------------------------------------------------------------------
+void Polygon3::SetVertex(int iVertex, const Vector3& vertex)
+{
+	m_vertices[iVertex] = vertex;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void Polygon3::TransformSelfInto2DBasis(Polygon2& out_poly2) const
 {
 	out_poly2.Clear();

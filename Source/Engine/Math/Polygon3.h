@@ -39,6 +39,7 @@ public:
 	Polygon3(const std::vector<Vector3>& vertices);
 
 	int			AddVertex(const Vector3& vertex);
+	void		SetVertex(int iVertex, const Vector3& vertex);
 	Vector3		GetVertex(int index) const { return m_vertices[index]; }
 	int			GetNumVertices() const { return (int)m_vertices.size(); }
 	void		TransformSelfInto2DBasis(Polygon2& out_poly2) const;

@@ -87,6 +87,11 @@ void GJKSolver3D<A, B>::Solve()
 			break;
 		}
 	}
+
+	if (!AreMostlyEqual(m_separationNormal, Vector3::ZERO))
+	{
+		ASSERT_OR_DIE(AreMostlyEqual(m_separationNormal.GetLength(), 1.0f), "Normal not unit!");
+	}
 }
 
 
@@ -176,7 +181,7 @@ bool GJKSolver3D<A, B>::CheckSimplexTetrahedron()
 		if (baryCoords.x >= 0.f && baryCoords.y >= 0.f && baryCoords.z >= 0.f && baryCoords.w >= 0.f)
 		{
 			// Origin is inside tetrahedron == Origin is inside the Minkowski Difference
-			// TODO: EPA here to get correct pen and normal
+			// If desired, the user of the solver can perform EPA to get the pen and normal
 			m_separation = 0.f;
 			return true;
 		}
@@ -308,7 +313,7 @@ bool GJKSolver3D<A, B>::IsSimplexDegenerate() const
 	case 4:
 	{
 		Tetrahedron tetra(m_simplexA.Get(), m_simplexB.Get(), m_simplexC.Get(), m_simplexD.Get());
-		isDegenerate = (AreMostlyEqual(tetra.CalculateUnsignedVolume(), 0.f));
+		isDegenerate = (AreMostlyEqual(tetra.CalculateUnsignedVolume(), 0.f, 0.001f));
 	}
 		break;
 	default:

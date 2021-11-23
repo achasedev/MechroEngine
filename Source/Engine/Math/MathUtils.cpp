@@ -1768,6 +1768,68 @@ float FindNearestPoint(const Vector3& point, const Polyhedron& polyhedron, Vecto
 
 
 //-------------------------------------------------------------------------------------------------
+float FindNearestPoints(const LineSegment3& lineSegment, const Polyhedron& polyhedron, Vector3& out_closestPtOnLine, Vector3& out_closestPtOnPoly)
+{
+	GJKSolver3D<LineSegment3, Polyhedron> solver = GJKSolver3D<LineSegment3, Polyhedron>(lineSegment, polyhedron);
+	solver.Solve();
+
+	float separation = solver.GetSeparationDistance();
+	if (separation <= 0.f)
+	{
+		// TODO: EPA
+		out_closestPtOnLine = Vector3::ZERO;
+		out_closestPtOnPoly = Vector3::ZERO;
+		return 0.f;
+	}
+
+	Vector3 normal = solver.GetSeparationNormal();
+	if (!AreMostlyEqual(DotProduct(normal, (lineSegment.m_b - lineSegment.m_a)), 0.f))
+	{
+		lineSegment.GetSupportPoint(-1.0f * normal, out_closestPtOnLine);
+		out_closestPtOnPoly = out_closestPtOnLine - normal * separation;
+	}
+	else
+	{
+		const PolyhedronFace* face = polyhedron.GetFaceMostInDirection(normal);
+
+		bool aWithinEdges = face->IsPointWithinEdges(lineSegment.m_a);
+		bool bWithinEdges = face->IsPointWithinEdges(lineSegment.m_b);
+
+		if (aWithinEdges && bWithinEdges)
+		{
+			Plane3 facePlane = face->GetSupportPlane();
+			float aDistance = facePlane.GetDistanceFromPlane(lineSegment.m_a);
+			float bDistance = facePlane.GetDistanceFromPlane(lineSegment.m_b);
+
+			out_closestPtOnLine = (aDistance <= bDistance ? lineSegment.m_a : lineSegment.m_b);
+			out_closestPtOnPoly = out_closestPtOnLine - normal * separation;
+		}
+		else if (aWithinEdges || bWithinEdges)
+		{
+			LineSegment3 clippedSegment(lineSegment);
+			face->ClipEdgeToFace(clippedSegment);
+
+			Plane3 facePlane = face->GetSupportPlane();
+			float aDistance = facePlane.GetDistanceFromPlane(clippedSegment.m_a);
+			float bDistance = facePlane.GetDistanceFromPlane(clippedSegment.m_b);
+
+			out_closestPtOnLine = (aDistance <= bDistance ? clippedSegment.m_a : clippedSegment.m_b);
+			out_closestPtOnPoly = out_closestPtOnLine - normal * separation;
+		}
+		else
+		{
+			// TODO
+			out_closestPtOnLine = Vector3::ZERO;
+			out_closestPtOnPoly = Vector3::ZERO;
+			return 0.f;
+		}
+	}
+
+	return separation;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 Vector2 ComputeBarycentricCoordinates(const Vector2& point, const LineSegment2& lineSegment)
 {
 	Vector2 dir = (lineSegment.m_b - lineSegment.m_a);
@@ -1825,7 +1887,8 @@ Vector4 ComputeBarycentricCoordinates(const Vector3& point, const Tetrahedron& t
 		baryCoords.data[i] = partialVolume * invTotalVolume;
 	}
 
-	ASSERT_OR_DIE(AreMostlyEqual(baryCoords.x + baryCoords.y + baryCoords.z + baryCoords.w, 1.0f), "Barycentric coordinates don't add up!");
+	float sum = baryCoords.x + baryCoords.y + baryCoords.z + baryCoords.w;
+	ASSERT_OR_DIE(AreMostlyEqual(sum, 1.0f, 0.001f), "Barycentric coordinates don't add up!");
 	return baryCoords;
 }
 

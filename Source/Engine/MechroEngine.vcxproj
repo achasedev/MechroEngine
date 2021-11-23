@@ -177,6 +177,7 @@
     <ClCompile Include="Math\Cylinder.cpp" />
     <ClCompile Include="Math\Frustrum.cpp" />
     <ClCompile Include="Math\GJK.cpp" />
+    <ClCompile Include="Math\LineSegment3.cpp" />
     <ClCompile Include="Math\Matrix2.cpp" />
     <ClCompile Include="Math\Matrix3.cpp" />
     <ClCompile Include="Math\Point.cpp" />

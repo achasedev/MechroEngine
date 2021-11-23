@@ -246,6 +246,7 @@ float	FindNearestPoint(const Vector3& point, const Tetrahedron& tetrahedron, Vec
 
 // Polyhedron
 float	FindNearestPoint(const Vector3& point, const Polyhedron& polyhedron, Vector3& out_closestPt);
+float	FindNearestPoints(const LineSegment3& lineSegment, const Polyhedron& polyhedron, Vector3& out_closestPtOnLine, Vector3& out_closestPtOnPoly);
 
 // Barycentric Coords
 Vector2 ComputeBarycentricCoordinates(const Vector2& point, const LineSegment2& lineSegment);

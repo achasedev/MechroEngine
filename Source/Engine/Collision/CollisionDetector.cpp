@@ -552,7 +552,7 @@ int CollisionDetector::GenerateContacts_SphereHull(const Collider* a, const Coll
 			}
 		}
 
-		ASSERT_OR_DIE(minPen < 0.f, "Shallow contact not found!");
+		ASSERT_OR_DIE(minPen > 0.f, "Deep contact not found!");
 		out_contacts[0].position = (sphereWs.m_center - (sphereWs.m_radius - minPen) * normal);
 		out_contacts[0].normal = normal;
 		out_contacts[0].penetration = minPen;
