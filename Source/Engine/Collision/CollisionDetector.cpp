@@ -33,7 +33,7 @@ GenerateContactsFunction CollisionDetector::s_colliderMatrix[NUM_COLLIDER_TYPES]
 	{ nullptr, nullptr, &CollisionDetector::GenerateContacts_HalfSpaceSphere,	&CollisionDetector::GenerateContacts_HalfSpaceCapsule,	&CollisionDetector::GenerateContacts_HalfSpaceBox,	&CollisionDetector::GenerateContacts_HalfSpaceCylinder, &CollisionDetector::GenerateContacts_HalfSpaceHull },
 	{ nullptr, nullptr, &CollisionDetector::GenerateContacts_PlaneSphere,		&CollisionDetector::GenerateContacts_PlaneCapsule,		&CollisionDetector::GenerateContacts_PlaneBox,		&CollisionDetector::GenerateContacts_PlaneCylinder,		nullptr },
 	{ nullptr, nullptr,	&CollisionDetector::GenerateContacts_SphereSphere,		&CollisionDetector::GenerateContacts_SphereCapsule,		&CollisionDetector::GenerateContacts_SphereBox,		&CollisionDetector::GenerateContacts_SphereCylinder,	&CollisionDetector::GenerateContacts_SphereHull },
-	{ nullptr, nullptr, nullptr,												&CollisionDetector::GenerateContacts_CapsuleCapsule,	&CollisionDetector::GenerateContacts_CapsuleBox,	&CollisionDetector::GenerateContacts_CapsuleCylinder,	nullptr },
+	{ nullptr, nullptr, nullptr,												&CollisionDetector::GenerateContacts_CapsuleCapsule,	&CollisionDetector::GenerateContacts_CapsuleBox,	&CollisionDetector::GenerateContacts_CapsuleCylinder,	&CollisionDetector::GenerateContacts_CapsuleHull },
 	{ nullptr, nullptr, nullptr,												nullptr,												&CollisionDetector::GenerateContacts_BoxBox,		nullptr,												nullptr },
 	{ nullptr, nullptr, nullptr,												nullptr,												nullptr,											nullptr,												nullptr },
 	{ nullptr, nullptr, nullptr,												nullptr,												nullptr,											nullptr,												nullptr }
@@ -1307,6 +1307,44 @@ int CollisionDetector::GenerateContacts_CapsuleCylinder(const Collider* a, const
 	for (int i = 0; i < numContacts; ++i)
 	{
 		FillOutColliderInfo(&out_contacts[i], aCapsuleCol, bCylinderCol);
+	}
+
+	return numContacts;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionDetector::GenerateContacts_CapsuleHull(const Collider* a, const Collider* b, Contact* out_contacts, int limit)
+{
+	if (limit <= 0)
+		return 0;
+
+	int numContacts = 0;
+	const CapsuleCollider* aCapsuleCol = a->GetAsType<CapsuleCollider>();
+	const ConvexHullCollider* bHullCol = b->GetAsType<ConvexHullCollider>();
+	ASSERT_OR_DIE(aCapsuleCol != nullptr && bHullCol != nullptr, "Colliders are of wrong type!");
+
+	Capsule3 capsuleWs = aCapsuleCol->GetDataInWorldSpace();
+	Polyhedron polyWs = bHullCol->GetDataInWorldSpace();
+
+	LineSegment3 capSpine(capsuleWs.start, capsuleWs.end);
+	Vector3 closestPtOnSpine, closestPtOnHull;
+	float dist = FindNearestPoints(capSpine, polyWs, closestPtOnSpine, closestPtOnHull);
+
+	if (dist <= 0.f)
+	{
+		// Deep contact
+
+	}
+	else if (dist < capsuleWs.radius)
+	{
+		// Shallow contact
+		out_contacts[0].position = closestPtOnHull;
+		out_contacts[0].normal = (closestPtOnSpine - closestPtOnHull).GetNormalized(); // I don't divide by distance to avoid propogating error
+		out_contacts[0].penetration = capsuleWs.radius - dist;
+		FillOutColliderInfo(&out_contacts[0], aCapsuleCol, bHullCol);
+		out_contacts[0].CheckValuesAreReasonable();
+		numContacts++;
 	}
 
 	return numContacts;
