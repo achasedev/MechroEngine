@@ -49,7 +49,7 @@ Polyhedron::Polyhedron(const OBB3& box)
 	}
 
 	// Back
-	PolyhedronFace back(*this);
+	PolyhedronFace back;
 	back.m_indices.push_back(0);
 	back.m_indices.push_back(1);
 	back.m_indices.push_back(2);
@@ -57,7 +57,7 @@ Polyhedron::Polyhedron(const OBB3& box)
 	m_faces.push_back(back);
 
 	// Front
-	PolyhedronFace front(*this);
+	PolyhedronFace front;
 	front.m_indices.push_back(4);
 	front.m_indices.push_back(5);
 	front.m_indices.push_back(6);
@@ -65,7 +65,7 @@ Polyhedron::Polyhedron(const OBB3& box)
 	m_faces.push_back(front);
 
 	// Left
-	PolyhedronFace left(*this);
+	PolyhedronFace left;
 	left.m_indices.push_back(7);
 	left.m_indices.push_back(6);
 	left.m_indices.push_back(1);
@@ -73,7 +73,7 @@ Polyhedron::Polyhedron(const OBB3& box)
 	m_faces.push_back(left);
 
 	// Right
-	PolyhedronFace right(*this);
+	PolyhedronFace right;
 	right.m_indices.push_back(3);
 	right.m_indices.push_back(2);
 	right.m_indices.push_back(5);
@@ -81,7 +81,7 @@ Polyhedron::Polyhedron(const OBB3& box)
 	m_faces.push_back(right);
 
 	// Bottom
-	PolyhedronFace bottom(*this);
+	PolyhedronFace bottom;
 	bottom.m_indices.push_back(7);
 	bottom.m_indices.push_back(0);
 	bottom.m_indices.push_back(3);
@@ -89,7 +89,7 @@ Polyhedron::Polyhedron(const OBB3& box)
 	m_faces.push_back(bottom);
 
 	// Top
-	PolyhedronFace top(*this);
+	PolyhedronFace top;
 	top.m_indices.push_back(1);
 	top.m_indices.push_back(6);
 	top.m_indices.push_back(5);
@@ -97,21 +97,6 @@ Polyhedron::Polyhedron(const OBB3& box)
 	m_faces.push_back(top);
 
 	GenerateHalfEdgeStructure();
-}
-
-
-//-------------------------------------------------------------------------------------------------
-// Copy constructor to ensure faces point to the right polygon
-Polyhedron::Polyhedron(const Polyhedron& copy)
-{
-	m_vertices = copy.m_vertices;
-	m_faces = copy.m_faces;
-	for (int iFace = 0; iFace < (int)m_faces.size(); ++iFace)
-	{
-		m_faces[iFace].m_poly = this;
-	}
-
-	m_edges = copy.m_edges;
 }
 
 
@@ -204,10 +189,10 @@ void Polyhedron::GenerateHalfEdgeStructure()
 				currHalfEdge.m_mirrorEdgeIndex = mirrorEdgeIndex;
 				mirrorHalfEdge.m_mirrorEdgeIndex = currEdgeIndex;
 			}
-			
+
 
 			// Connect this face to any half edge inside it
-			face.m_iHalfEdge = currEdgeIndex;
+			face.m_halfEdgeIndex = currEdgeIndex;
 
 			// Connect this vertex to any half edge going out of it
 			m_vertices[vertexIndexI].m_halfEdgeIndex = currEdgeIndex;
@@ -230,18 +215,12 @@ void Polyhedron::GenerateHalfEdgeStructure()
 
 	for (int faceIndex = 0; faceIndex < numFaces; ++faceIndex)
 	{
-		ASSERT_OR_DIE(m_faces[faceIndex].m_iHalfEdge != -1, "Invalid half edge!");
+		ASSERT_OR_DIE(m_faces[faceIndex].m_halfEdgeIndex != -1, "Invalid half edge!");
 	}
 
 	for (int vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 	{
 		ASSERT_OR_DIE(m_vertices[vertexIndex].m_halfEdgeIndex != -1, "Invalid half edge!");
-	}
-
-	// Now we can build edge planes for all the faces
-	for (int iFace = 0; iFace < (int)m_faces.size(); ++iFace)
-	{
-		m_faces[iFace].CalculateNormalAndSidePlanes();
 	}
 }
 
@@ -263,7 +242,7 @@ int Polyhedron::AddFace(const std::vector<int>& indices)
 {
 	ASSERT_OR_DIE(!HasGeneratedHalfEdges(), "Cannot edit a Polygon3d after half edges are generated!");
 
-	m_faces.push_back(PolyhedronFace(*this, indices));
+	m_faces.push_back(PolyhedronFace(indices));
 	return (int)(m_faces.size() - 1);
 }
 
@@ -278,6 +257,8 @@ const PolyhedronVertex* Polyhedron::GetVertex(int vertexIndex) const
 //-------------------------------------------------------------------------------------------------
 void Polyhedron::GetTransformed(const Matrix4& matrix, Polyhedron& out_polygon) const
 {
+	out_polygon.Clear();
+
 	int numVertices = (int)m_vertices.size();
 	for (int vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 	{
@@ -285,15 +266,8 @@ void Polyhedron::GetTransformed(const Matrix4& matrix, Polyhedron& out_polygon) 
 		out_polygon.m_vertices.push_back(PolyhedronVertex(position, m_vertices[vertexIndex].m_halfEdgeIndex));
 	}
 
-	// Edges first, since faces depend on them
-	out_polygon.m_edges = m_edges;
-
 	out_polygon.m_faces = m_faces;
-	for (int iFace = 0; iFace < (int)m_faces.size(); ++iFace)
-	{
-		out_polygon.m_faces[iFace].m_poly = &out_polygon; // Ensure they point to the new polyhedron
-		out_polygon.m_faces[iFace].ApplyTransform(matrix);
-	}
+	out_polygon.m_edges = m_edges;
 }
 
 
@@ -308,16 +282,15 @@ Vector3 Polyhedron::GetVertexPosition(int vertexIndex) const
 void Polyhedron::GetAllVerticesInFace(int faceIndex, std::vector<Vector3>& out_vertices) const
 {
 	out_vertices.clear();
-	int startingEdge = GetFace(faceIndex)->m_iHalfEdge;
+	int startingEdge = GetFace(faceIndex)->m_halfEdgeIndex;
 	int edgeIndex = startingEdge;
 
-	do 
+	do
 	{
 		const HalfEdge* edge = GetEdge(edgeIndex);
 		out_vertices.push_back(GetVertexPosition(edge->m_vertexIndex));
 		edgeIndex = edge->m_nextEdgeIndex;
-	} 
-	while (edgeIndex != startingEdge);
+	} while (edgeIndex != startingEdge);
 }
 
 
@@ -325,6 +298,14 @@ void Polyhedron::GetAllVerticesInFace(int faceIndex, std::vector<Vector3>& out_v
 const PolyhedronFace* Polyhedron::GetFace(int faceIndex) const
 {
 	return &m_faces[faceIndex];
+}
+
+
+//-------------------------------------------------------------------------------------------------
+const PolyhedronFace* Polyhedron::GetFaceMostInDirection(const Vector3& direction) const
+{
+	int iFace = GetIndexOfFaceMostInDirection(direction);
+	return &m_faces[iFace];
 }
 
 
@@ -353,25 +334,33 @@ int Polyhedron::GetIndexOfFaceMostInDirection(const Vector3& direction) const
 
 
 //-------------------------------------------------------------------------------------------------
-const PolyhedronFace* Polyhedron::GetFaceMostInDirection(const Vector3& direction) const
-{
-	int faceIndex = GetIndexOfFaceMostInDirection(direction);
-	return &m_faces[faceIndex];
-}
-
-
-//-------------------------------------------------------------------------------------------------
 Vector3 Polyhedron::GetFaceNormal(int faceIndex) const
 {
-	return m_faces[faceIndex].m_normal;
+	const PolyhedronFace* face = GetFace(faceIndex);
+	ASSERT_OR_DIE(face->m_indices.size() > 2, "Not enough vertices!");
+
+	// Get the positions
+	Vector3 a = GetVertexPosition(face->m_indices[0]);
+	Vector3 b = GetVertexPosition(face->m_indices[1]);
+	Vector3 c = GetVertexPosition(face->m_indices[2]);
+
+	return CalculateNormalForTriangle(a, b, c);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Plane3 Polyhedron::GetFaceSupportPlane(int faceIndex) const
 {
-	const PolyhedronFace& face = m_faces[faceIndex];
-	return face.GetSupportPlane();
+	Vector3 normal = GetFaceNormal(faceIndex);
+
+	// Get a position on the plane
+	const PolyhedronFace* face = GetFace(faceIndex);
+	Vector3 p = GetVertexPosition(face->m_indices[0]);
+
+	// Get the distance between origin and plane
+	float distance = DotProduct(normal, p);
+
+	return Plane3(normal, distance);
 }
 
 
@@ -487,7 +476,7 @@ bool Polyhedron::IsConvex() const
 			for (int iVertex : face.m_indices)
 			{
 				Vector3 vertex = GetVertexPosition(iVertex);
-				
+
 				if (plane.GetDistanceFromPlane(vertex) > DEFAULT_EPSILON)
 					return false;
 			}
@@ -499,10 +488,127 @@ bool Polyhedron::IsConvex() const
 
 
 //-------------------------------------------------------------------------------------------------
-int Polyhedron::GetAllAdjacentFaces(int faceIndex, std::vector<const PolyhedronFace*>& out_faces) const
+void Polyhedron::GetAllFacesAdjacentTo(int faceIndex, std::vector<const PolyhedronFace*>& out_faces) const
 {
 	const PolyhedronFace& face = m_faces[faceIndex];
-	return face.GetAllAdjacentFaces(out_faces);
+
+	const HalfEdge* startingEdge = GetEdge(face.m_halfEdgeIndex);
+	const HalfEdge* currEdge = startingEdge;
+
+	do
+	{
+		// Get my mirror, then the face my mirror points to
+		const HalfEdge* mirrorEdge = GetEdge(currEdge->m_mirrorEdgeIndex);
+		const PolyhedronFace* currFace = GetFace(mirrorEdge->m_faceIndex);
+
+		bool alreadyIncluded = std::find(out_faces.begin(), out_faces.end(), currFace) != out_faces.end();
+
+		if (!alreadyIncluded)
+		{
+			out_faces.push_back(currFace);
+		}
+
+		currEdge = GetEdge(currEdge->m_nextEdgeIndex);
+	} while (currEdge != startingEdge);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Polyhedron::GetFaceSidePlanes(int faceIndex, std::vector<Plane3>& out_planes) const
+{
+	out_planes.clear();
+
+	const PolyhedronFace* refFace = GetFace(faceIndex);
+	Vector3 refFaceNormal = GetFaceNormal(faceIndex);
+
+	int startingEdgeIndex = refFace->m_halfEdgeIndex;
+	int edgeIndex = startingEdgeIndex;
+
+	do
+	{
+		Vector3 edgeDir = GetEdgeDirection(edgeIndex);
+		Vector3 refEdgeNormal = CrossProduct(edgeDir, refFaceNormal); // Outward pointing normal, assuming clockwise winding
+		refEdgeNormal.Normalize();
+
+		const HalfEdge* edge = GetEdge(edgeIndex);
+		float d = DotProduct(refEdgeNormal, GetVertexPosition(edge->m_vertexIndex));
+		out_planes.push_back(Plane3(refEdgeNormal, d));
+
+		edgeIndex = edge->m_nextEdgeIndex;
+	} while (edgeIndex != startingEdgeIndex);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Returns true if the segment is over the face and was even up for consideration for clipping
+bool Polyhedron::ClipEdgeToFace(int faceIndex, LineSegment3& inout_edge) const
+{
+	Vector3 faceNormal = GetFaceNormal(faceIndex);
+
+	std::vector<Plane3> sidePlanes;
+	GetFaceSidePlanes(faceIndex, sidePlanes);
+
+	// Can't clip the segment if it never even crosses the face
+	for (int iSidePlane = 0; iSidePlane < (int)sidePlanes.size(); ++iSidePlane)
+	{
+		const Plane3& sidePlane = sidePlanes[iSidePlane];
+
+		float aDistance = sidePlane.GetDistanceFromPlane(inout_edge.m_a);
+		float bDistance = sidePlane.GetDistanceFromPlane(inout_edge.m_b);
+
+		// Positive distance is outside this edge's plane
+		// One being positive and one being negative means for certain the edge is over the face
+		// Both negative could mean both are over face, but also could mean they're so far 
+		// behind they're off the face in the other direction - in that case, we'll get a 
+		// double positive in the opposite edge plane case
+		// Double positive means for certain it's not over the face
+		if (aDistance > 0.f && bDistance > 0.f)
+			return false;
+	}
+
+	for (int iSidePlane = 0; iSidePlane < (int)sidePlanes.size(); ++iSidePlane)
+	{
+		const Plane3& sidePlane = sidePlanes[iSidePlane];
+
+		for (int i = 0; i < 2; ++i)
+		{
+			Vector3& clipPt = (i == 0 ? inout_edge.m_a : inout_edge.m_b);
+			Vector3& otherPt = (i == 0 ? inout_edge.m_b : inout_edge.m_a);
+
+			if (sidePlane.GetDistanceFromPlane(clipPt) > 0.f)
+			{
+				// From the above check, this should be true
+				ASSERT_OR_DIE(sidePlane.GetDistanceFromPlane(otherPt) <= 0.f, "Other end point wasn't inside the edge!");
+
+				// New clip location will be where the segment crosses the edge plane
+				Vector3 dir = (otherPt - clipPt);
+				clipPt = SolveLinePlaneIntersection(Line3(clipPt, dir), sidePlane);
+			}
+		}
+	}
+
+	return true;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Polyhedron::ClipFaceToFace(int faceIndex, Polygon3& inout_faceToClip) const
+{
+	int numVerts = (int)inout_faceToClip.GetNumVertices();
+
+	for (int iVertex = 0; iVertex < numVerts; ++iVertex)
+	{
+		int iNextVertex = (iVertex + 1) % numVerts;
+
+		LineSegment3 edge(inout_faceToClip.GetVertex(iVertex), inout_faceToClip.GetVertex(iNextVertex));
+		bool wasElgibleForClip = ClipEdgeToFace(faceIndex, edge);
+
+		if (wasElgibleForClip)
+		{
+			inout_faceToClip.SetVertex(iVertex, edge.m_a);
+			inout_faceToClip.SetVertex(iNextVertex, edge.m_b);
+		}
+	}
 }
 
 
@@ -535,222 +641,4 @@ const HalfEdge* UniqueHalfEdgeIterator::GetNext()
 	}
 
 	return nullptr;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-PolyhedronFace::PolyhedronFace(const Polyhedron& polyhedron, const std::vector<int> indices)
-	: m_poly(&polyhedron), m_indices(indices)
-{
-}
-
-
-//-------------------------------------------------------------------------------------------------
-PolyhedronFace::PolyhedronFace(const Polyhedron& polyhedron)
-	: m_poly(&polyhedron)
-{
-}
-
-
-//-------------------------------------------------------------------------------------------------
-Plane3 PolyhedronFace::GetSupportPlane() const
-{
-	return Plane3(m_normal, m_poly->GetVertexPosition(m_indices[0]));
-}
-
-
-//-------------------------------------------------------------------------------------------------
-int PolyhedronFace::GetAllAdjacentFaces(std::vector<const PolyhedronFace*>& out_faces) const
-{
-	const HalfEdge* startingEdge = m_poly->GetEdge(m_iHalfEdge);
-	const HalfEdge* currEdge = startingEdge;
-
-	do
-	{
-		// Get my mirror, then the face my mirror points to
-		const HalfEdge* mirrorEdge = m_poly->GetEdge(currEdge->m_mirrorEdgeIndex);
-		const PolyhedronFace* currFace = m_poly->GetFace(mirrorEdge->m_faceIndex);
-
-		bool alreadyIncluded = std::find(out_faces.begin(), out_faces.end(), currFace) != out_faces.end();
-
-		if (!alreadyIncluded)
-		{
-			out_faces.push_back(currFace);
-		}
-
-		currEdge = m_poly->GetEdge(currEdge->m_nextEdgeIndex);
-	} 
-	while (currEdge != startingEdge);
-
-	return (int)out_faces.size();
-}
-
-
-//-------------------------------------------------------------------------------------------------
-bool PolyhedronFace::IsPointWithinEdges(const Vector3& point) const
-{
-	for (Plane3 plane : m_sidePlanes)
-	{
-		if (plane.IsPointInFront(point))
-			return false;
-	}
-
-	return true;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-// Returns true if the segment is over the face and was even up for consideration for clipping
-bool PolyhedronFace::ClipEdgeToFace(LineSegment3& inout_edge) const
-{
-	// Can't clip the segment if it never even crosses the face
-	for (int iSidePlane = 0; iSidePlane < (int)m_sidePlanes.size(); ++iSidePlane)
-	{
-		const Plane3& sidePlane = m_sidePlanes[iSidePlane];
-		
-		float aDistance = sidePlane.GetDistanceFromPlane(inout_edge.m_a);
-		float bDistance = sidePlane.GetDistanceFromPlane(inout_edge.m_b);
-		
-		// Positive distance is outside this edge's plane
-		// One being positive and one being negative means for certain it's over the face
-		// Both negative could mean both are over face, but also could mean they're so far 
-		// behind they're off the face in the other direction - in that case, we'll get a 
-		// double positive in the opposite edge plane case
-		// Double positive means for certain it's not over the face
-		if (aDistance > 0.f && bDistance > 0.f)
-			return false;
-	}
-
-	for (int iSidePlane = 0; iSidePlane < (int)m_sidePlanes.size(); ++iSidePlane)
-	{
-		const Plane3& sidePlane = m_sidePlanes[iSidePlane];
-
-		for (int i = 0; i < 2; ++i)
-		{
-			Vector3& clipPt = (i == 0 ? inout_edge.m_a : inout_edge.m_b);
-			Vector3& otherPt = (i == 0 ? inout_edge.m_b : inout_edge.m_a);
-
-			if (sidePlane.GetDistanceFromPlane(clipPt) > 0.f)
-			{
-				// From the above check, this should be true
-				ASSERT_OR_DIE(sidePlane.GetDistanceFromPlane(otherPt) <= 0.f, "Other end point wasn't inside the edge!");
-
-				// New clip location will be where the segment crosses the edge plane
-				Vector3 dir = (otherPt - clipPt);
-				clipPt = SolveLinePlaneIntersection(Line3(clipPt, dir), sidePlane);
-			}
-		}	
-	}
-
-	return true;
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void PolyhedronFace::ClipFaceToFace(Polygon3& inout_FaceToClip) const
-{
-	int numVerts = (int)inout_FaceToClip.GetNumVertices();
-
-	for (int iVertex = 0; iVertex < numVerts; ++iVertex)
-	{
-		int iNextVertex = (iVertex + 1) % numVerts;
-
-		LineSegment3 edge(inout_FaceToClip.GetVertex(iVertex), inout_FaceToClip.GetVertex(iNextVertex));
-		bool wasElgibleForClip = ClipEdgeToFace(edge);
-
-		if (wasElgibleForClip)
-		{
-			inout_FaceToClip.SetVertex(iVertex, edge.m_a);
-			inout_FaceToClip.SetVertex(iNextVertex, edge.m_b);
-		}
-	}
-}
-
-
-//-------------------------------------------------------------------------------------------------
-LineSegment3 PolyhedronFace::GetEdgeInDirection(const Vector3& direction) const
-{
-	int bestIndex = -1;
-	float bestDot = -1.f;
-
-	for (int iSidePlane = 0; iSidePlane < (int)m_sidePlanes.size(); ++iSidePlane)
-	{
-		const Plane3& sidePlane = m_sidePlanes[iSidePlane];
-		float dot = DotProduct(sidePlane.m_normal, direction);
-
-		if (bestIndex == -1 || dot > bestDot)
-		{
-			bestDot = dot;
-			bestIndex = iSidePlane;
-		}
-	}
-
-	const HalfEdge* edge = m_poly->GetEdge(m_iHalfEdge);
-	for (int iEdge = 0; iEdge < bestIndex; ++iEdge)
-	{
-		edge = m_poly->GetEdge(edge->m_nextEdgeIndex);
-	}
-
-	Vector3 a = m_poly->GetVertexPosition(edge->m_vertexIndex);
-	Vector3 b = m_poly->GetVertexPosition(m_poly->GetEdge(edge->m_nextEdgeIndex)->m_vertexIndex);
-
-	return LineSegment3(a, b);
-}
-
-
-////-------------------------------------------------------------------------------------------------
-void PolyhedronFace::CalculateNormalAndSidePlanes()
-{
-	ASSERT_OR_DIE(m_indices.size() > 2, "Degenerate polyhedron face!");
-	ASSERT_OR_DIE(m_iHalfEdge != -1, "Half edges not set up!");
-
-	// Compute normal
-	Vector3 a = m_poly->GetVertexPosition(m_indices[0]);
-	Vector3 b = m_poly->GetVertexPosition(m_indices[1]);
-	Vector3 c = m_poly->GetVertexPosition(m_indices[2]);
-	m_normal = CalculateNormalForTriangle(a, b, c);
-
-	// Build list of side planes
-	m_sidePlanes.clear();
-	int iStartingEdge = m_iHalfEdge;
-	int iCurrEdge = iStartingEdge;
-
-	do
-	{
-		Vector3 edgeDir = m_poly->GetEdgeDirection(iCurrEdge);
-		Vector3 edgeNormal = CrossProduct(edgeDir, m_normal); // Outward pointing normal, assuming clockwise winding
-		edgeNormal.Normalize();
-
-		const HalfEdge* edge = m_poly->GetEdge(iCurrEdge);
-		float d = DotProduct(edgeNormal, m_poly->GetVertexPosition(edge->m_vertexIndex));
-		m_sidePlanes.push_back(Plane3(edgeNormal, d));
-
-		iCurrEdge = edge->m_nextEdgeIndex;
-	} 
-	while (iCurrEdge != iStartingEdge);
-
-	ASSERT_OR_DIE(m_sidePlanes.size() == m_indices.size(), "Edges and indices don't match up!");
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void PolyhedronFace::ApplyTransform(const Matrix4& transform)
-{
-	m_normal = transform.TransformDirection(m_normal);
-	ASSERT_OR_DIE(AreMostlyEqual(m_normal.GetLength(), 1.0f), "Not normal!");
-
-	int iCurrEdge = m_iHalfEdge;
-	int numSidePlanes = (int)m_sidePlanes.size();
-	for (int iSidePlane = 0; iSidePlane < numSidePlanes; ++iSidePlane)
-	{
-		Plane3& sidePlane = m_sidePlanes[iSidePlane];
-		const HalfEdge* edge = m_poly->GetEdge(iCurrEdge);
-
-		Vector3 newSideNormal = transform.TransformDirection(sidePlane.m_normal);
-		ASSERT_OR_DIE(AreMostlyEqual(newSideNormal.GetLength(), 1.0f), "Not normal!");
-
-		sidePlane = Plane3(newSideNormal, m_poly->GetVertexPosition(edge->m_vertexIndex));
-
-		iCurrEdge = edge->m_nextEdgeIndex;
-	}
 }
