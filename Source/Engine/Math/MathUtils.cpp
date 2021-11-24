@@ -1353,6 +1353,16 @@ bool IsPointOnLineSegment(const Vector2& p, const LineSegment2& lineSegment)
 
 
 //-------------------------------------------------------------------------------------------------
+bool ArePointsColinear(const Vector3& a, const Vector3& b, const Vector3& c)
+{
+	Vector3 ab = b - a;
+	Vector3 ac = c - a;
+
+	return (CrossProduct(ab, ac).GetLengthSquared() < DEFAULT_EPSILON * DEFAULT_EPSILON);
+}
+
+
+//-------------------------------------------------------------------------------------------------
 float CalculateVolumeOfTetrahedron(const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& d)
 {
 	return (1.f / 6.f) * Abs(DotProduct(CrossProduct(b - a, c - a), d - a));

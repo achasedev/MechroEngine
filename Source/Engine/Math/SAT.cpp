@@ -64,27 +64,59 @@ static inline Vector2 ComputeAxisProjection(const A& shape, const Vector3 &axis)
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-bool SAT::GetMinPenAxis(const Capsule3& capsule, const Polyhedron& polyhedron, Vector3& out_axis, float& out_minPen)
+bool SAT::GetMinPenAxis(const Capsule3& capsule, const Polyhedron& polyhedron, SATResult_CapsuleHull& out_result)
 {
-	out_minPen = FLT_MAX;
-	out_axis = Vector3::ZERO;
+	out_result.m_pen = FLT_MAX;
+	out_result.m_axis = Vector3::ZERO;
+	out_result.m_iFaceOrEdge = -1;
+	out_result.m_isFaceAxis = false;
 
-	// Assemble the list of axes to check
-	std::vector<Vector3> axes;
-
-	// Push face normals
+	// Compute pens on face normals
 	int numFaces = polyhedron.GetNumFaces();
 	for (int iFace = 0; iFace < numFaces; ++iFace)
 	{
 		Vector3 normal = polyhedron.GetFaceNormal(iFace);
-		axes.push_back(normal);
+
+		// If this face has a normal colinear but opposite one we've already seen, choose it if
+		// the capsule is penning this face less
+		if (AreMostlyEqual(normal, -1.0f * out_result.m_axis))
+		{
+			Plane3 currPlane = polyhedron.GetFaceSupportPlane(iFace);
+			Plane3 minPlane = polyhedron.GetFaceSupportPlane(out_result.m_iFaceOrEdge);
+
+			Vector3 currFurthest, minFurthest;
+			capsule.GetSupportPoint(-1.0f * normal, currFurthest);
+			capsule.GetSupportPoint(-1.0f * out_result.m_axis, minFurthest);
+
+			if (Abs(currPlane.GetDistanceFromPlane(currFurthest)) < Abs(minPlane.GetDistanceFromPlane(minFurthest)))
+			{
+				out_result.m_axis = normal;
+				out_result.m_iFaceOrEdge = iFace;
+			}
+		}
+		else
+		{
+			float pen = ComputePenetrationOnAxis(capsule, polyhedron, normal);
+
+			if (pen < 0.f)
+				return false;
+
+			if (pen < out_result.m_pen)
+			{
+				out_result.m_pen = pen;
+				out_result.m_axis = normal;
+				out_result.m_isFaceAxis = true;
+				out_result.m_iFaceOrEdge = iFace;
+			}
+		}
 	}
 
-	// Push spine/edge cross product normals
+	// No separating axis exists on face normals
+	// Now compute for spine/edge axes
 	UniqueHalfEdgeIterator edgeIter(polyhedron);
 	const HalfEdge* edge = edgeIter.GetNext();
 	Vector3 spineDir = (capsule.end - capsule.start).GetNormalized();
-
+	
 	while (edge != nullptr)
 	{
 		Vector3 edgeDir = polyhedron.GetEdgeDirectionNormalized(edge->m_edgeIndex);
@@ -94,31 +126,27 @@ bool SAT::GetMinPenAxis(const Capsule3& capsule, const Polyhedron& polyhedron, V
 		if (!AreMostlyEqual(axis.GetLengthSquared(), 0.f))
 		{
 			// Keep axis pointing at A for consistency
-			if (DotProduct(polyhedron.GetCenter() - capsule.GetCenter(), out_axis) > 0.f)
+			if (DotProduct(polyhedron.GetCenter() - capsule.GetCenter(), axis) > 0.f)
 			{
-				out_axis *= -1.0f;
+				axis *= -1.0f;
 			}
 
 			axis.Normalize();
-			axes.push_back(axis);
+			float pen = ComputePenetrationOnAxis(capsule, polyhedron, axis);
+
+			if (pen < 0.f)
+				return false;
+
+			if (pen < out_result.m_pen)
+			{
+				out_result.m_pen = pen;
+				out_result.m_axis = axis;
+				out_result.m_iFaceOrEdge = edge->m_edgeIndex;
+				out_result.m_isFaceAxis = false;
+			}
 		}
 
 		edge = edgeIter.GetNext();
-	}
-
-	int numAxes = (int)axes.size();
-	for (int iAxis = 0; iAxis < numAxes; ++iAxis)
-	{
-		float pen = ComputePenetrationOnAxis(capsule, polyhedron, axes[iAxis]);
-
-		if (pen < 0.f)
-			return false;
-
-		if (pen < out_minPen)
-		{
-			out_minPen = pen;
-			out_axis = axes[iAxis];
-		}
 	}
 
 	return true;

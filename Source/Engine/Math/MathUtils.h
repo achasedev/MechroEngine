@@ -221,6 +221,7 @@ bool	DoLineSegmentsIntersect(const Vector2& a, const Vector2& b, const Vector2& 
 bool	DoLineSegmentsIntersect(const LineSegment2& a, const LineSegment2& b);
 bool	DoPointsWindClockwise(const Vector2& a, const Vector2& b, const Vector2& c);
 bool	IsPointOnLineSegment(const Vector2& p, const LineSegment2& lineSegment);
+bool	ArePointsColinear(const Vector3& a, const Vector3& b, const Vector3& c);
 
 float	CalculateVolumeOfTetrahedron(const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& d);
 Vector3 SolveLinePlaneIntersection(const Line3& line, const Plane3& plane);

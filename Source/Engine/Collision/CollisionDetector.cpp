@@ -1335,20 +1335,46 @@ int CollisionDetector::GenerateContacts_CapsuleHull(const Collider* a, const Col
 	if (dist <= 0.f)
 	{
 		// Deep contact - use SAT to find the best axis
-		Vector3 normal;
-		float pen;
-		bool areOverlapping = SAT::GetMinPenAxis(capsuleWs, polyWs, normal, pen);
+		SATResult_CapsuleHull result;
+		bool areOverlapping = SAT::GetMinPenAxis(capsuleWs, polyWs, result);
 		ASSERT_OR_DIE(areOverlapping, "Found an axis of separation?");
 
-		Vector3 capsulePt;
-		capsuleWs.GetSupportPoint(-1.0f * normal, capsulePt);
-		ConsolePrintf(Rgba::ORANGE, 5.f, "Normal: (%.3f, %.3f, %.3f)", normal.x, normal.y, normal.z);
-		out_contacts[0].position = capsulePt + normal * pen;
-		out_contacts[0].normal = normal; 
-		out_contacts[0].penetration = pen;
-		FillOutColliderInfo(&out_contacts[0], aCapsuleCol, bHullCol);
-		out_contacts[0].CheckValuesAreReasonable();
-		numContacts++;
+		if (result.m_isFaceAxis)
+		{
+			// Clip capsule segment to the face
+			LineSegment3 clippedSpine = capSpine;
+			polyWs.ClipEdgeToFace(result.m_iFaceOrEdge, clippedSpine);
+			Plane3 facePlane = polyWs.GetFaceSupportPlane(result.m_iFaceOrEdge);
+
+			numContacts = Min(limit, 2);
+			for (int iContact = 0; iContact < numContacts; ++iContact)
+			{
+				Vector3 endPoint = (iContact == 0 ? clippedSpine.m_a : clippedSpine.m_b);
+				float pen = capsuleWs.radius - facePlane.GetDistanceFromPlane(endPoint);
+
+				if (pen >= 0.f)
+				{
+					out_contacts[iContact].position = facePlane.GetProjectedPointOntoPlane(endPoint);
+					out_contacts[iContact].normal = facePlane.m_normal;
+					out_contacts[iContact].penetration = pen;
+					FillOutColliderInfo(&out_contacts[iContact], aCapsuleCol, bHullCol);
+					out_contacts[iContact].CheckValuesAreReasonable();
+				}
+			}
+		}
+		else
+		{
+			// Find closest points between the capsule spine and the edge
+			LineSegment3 hullEdge = polyWs.GetEdgeSegment(result.m_iFaceOrEdge);
+			dist = FindNearestPoints(capSpine, hullEdge, closestPtOnSpine, closestPtOnHull);
+
+			out_contacts[0].position = 0.5f * (closestPtOnSpine + closestPtOnHull); // Position contact halfway between capsule and hull
+			out_contacts[0].normal = result.m_axis;
+			out_contacts[0].penetration = result.m_pen;
+			FillOutColliderInfo(&out_contacts[0], aCapsuleCol, bHullCol);
+			out_contacts[0].CheckValuesAreReasonable();
+			numContacts = 1;
+		}
 	}
 	else if (dist < capsuleWs.radius)
 	{

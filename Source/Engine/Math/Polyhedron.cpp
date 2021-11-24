@@ -365,6 +365,20 @@ Plane3 Polyhedron::GetFaceSupportPlane(int faceIndex) const
 
 
 //-------------------------------------------------------------------------------------------------
+LineSegment3 Polyhedron::GetEdgeSegment(int edgeIndex) const
+{
+	const HalfEdge* edge = GetEdge(edgeIndex);
+	const HalfEdge* nextEdge = GetEdge(edge->m_nextEdgeIndex);
+
+	LineSegment3 segment;
+	segment.m_a = GetVertexPosition(edge->m_vertexIndex);
+	segment.m_b = GetVertexPosition(nextEdge->m_vertexIndex);
+
+	return segment;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 const HalfEdge* Polyhedron::GetEdge(int edgeIndex) const
 {
 	ASSERT_OR_DIE(HasGeneratedHalfEdges(), "No edges!");
@@ -388,17 +402,6 @@ Vector3 Polyhedron::GetEdgeDirection(const HalfEdge* edge) const
 	Vector3 end = GetVertexPosition(nextEdge->m_vertexIndex);
 
 	return (end - start);
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void Polyhedron::GetEdgeEndPoints(int edgeIndex, Vector3& out_start, Vector3& out_end) const
-{
-	const HalfEdge* edge = GetEdge(edgeIndex);
-	const HalfEdge* nextEdge = GetEdge(edge->m_nextEdgeIndex);
-
-	out_start = GetVertexPosition(edge->m_vertexIndex);
-	out_end = GetVertexPosition(nextEdge->m_vertexIndex);
 }
 
 

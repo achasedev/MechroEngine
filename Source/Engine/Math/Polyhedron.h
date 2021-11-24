@@ -112,10 +112,10 @@ public:
 
 	// Edges
 	int						GetNumEdges() const { return (int)m_edges.size(); }
+	LineSegment3			GetEdgeSegment(int edgeIndex) const;
 	const HalfEdge*			GetEdge(int edgeIndex) const;
 	Vector3					GetEdgeDirection(int edgeIndex) const;
 	Vector3					GetEdgeDirection(const HalfEdge* edge) const;
-	void					GetEdgeEndPoints(int edgeIndex, Vector3& out_start, Vector3& out_end) const;
 	Vector3					GetEdgeDirectionNormalized(int edgeIndex) const;
 	bool					HasGeneratedHalfEdges() const { return m_edges.size() > 0; }
 

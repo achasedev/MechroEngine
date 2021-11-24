@@ -323,7 +323,7 @@ bool GJKSolver3D<A, B>::IsSimplexDegenerate() const
 		isDegenerate = AreMostlyEqual(m_simplexA.Get(), m_simplexB.Get());
 		break;
 	case 3: 
-		isDegenerate = (AreMostlyEqual(m_simplexC.Get(), m_simplexA.Get()) || AreMostlyEqual(m_simplexC.Get(), m_simplexB.Get()));
+		isDegenerate = (AreMostlyEqual(m_simplexC.Get(), m_simplexA.Get()) || AreMostlyEqual(m_simplexC.Get(), m_simplexB.Get()) || ArePointsColinear(m_simplexA.Get(), m_simplexB.Get(), m_simplexC.Get()));
 		break;
 	case 4:
 	{
