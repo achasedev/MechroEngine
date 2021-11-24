@@ -33,32 +33,30 @@
 template <class A, class B>
 static float ComputePenetrationOnAxis(const A& a, const B& b, const Vector3 &axis)
 {
-	Vector3 aCenter = a.GetCenter();
-	Vector3 bCenter = b.GetCenter();
-	Vector3 aToB = bCenter - aCenter;
-
 	// Project the half-size of one onto axis
-	float aProj = ComputeAxisProjection(a, axis);
-	float bProj = ComputeAxisProjection(b, axis);
+	Vector2 aProj = ComputeAxisProjection(a, axis);
+	Vector2 bProj = ComputeAxisProjection(b, axis);
 
-	// Project this onto the axis
-	float aToBProj = Abs(DotProduct(aToB, axis));
+	// x is min, y is max
+	float pen1 = aProj.y - bProj.x;
+	float pen2 = bProj.y - aProj.x;
 
-	// Return the overlap (i.e. positive indicates
-	// overlap, negative indicates separation).
-	return aProj + bProj - aToBProj;
+	return Min(pen1, pen2);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 template <class A>
-static inline float ComputeAxisProjection(const A& shape, const Vector3 &axis)
+static inline Vector2 ComputeAxisProjection(const A& shape, const Vector3 &axis)
 {
-	Vector3 supportPt;
-	shape.GetSupportPoint(axis, supportPt);
-	Vector3 centerPt = shape.GetCenter();
+	Vector3 supportPtA, supportPtB;
+	shape.GetSupportPoint(axis, supportPtA);
+	shape.GetSupportPoint(-1.0f * axis, supportPtB);
 
-	return Abs(DotProduct(supportPt - centerPt, axis));
+	float dot1 = DotProduct(supportPtA, axis);
+	float dot2 = DotProduct(supportPtB, axis);
+
+	return Vector2(Min(dot1, dot2), Max(dot1, dot2));
 }
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -95,6 +93,12 @@ bool SAT::GetMinPenAxis(const Capsule3& capsule, const Polyhedron& polyhedron, V
 		// Don't check axes created from colinear inputs
 		if (!AreMostlyEqual(axis.GetLengthSquared(), 0.f))
 		{
+			// Keep axis pointing at A for consistency
+			if (DotProduct(polyhedron.GetCenter() - capsule.GetCenter(), out_axis) > 0.f)
+			{
+				out_axis *= -1.0f;
+			}
+
 			axis.Normalize();
 			axes.push_back(axis);
 		}
@@ -115,12 +119,6 @@ bool SAT::GetMinPenAxis(const Capsule3& capsule, const Polyhedron& polyhedron, V
 			out_minPen = pen;
 			out_axis = axes[iAxis];
 		}
-	}
-
-	// Keep axis pointing at A for consistency
-	if (DotProduct(polyhedron.GetCenter() - capsule.GetCenter(), out_axis) > 0.f)
-	{
-		out_axis *= -1.0f;
 	}
 
 	return true;
