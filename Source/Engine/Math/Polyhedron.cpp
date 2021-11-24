@@ -614,7 +614,7 @@ void Polyhedron::ClipFaceToFace(int faceIndex, Polygon3& inout_faceToClip) const
 
 //-------------------------------------------------------------------------------------------------
 UniqueHalfEdgeIterator::UniqueHalfEdgeIterator(const Polyhedron& polygon)
-	: m_polygon(polygon)
+	: m_polyhedron(polygon)
 {
 }
 
@@ -622,10 +622,10 @@ UniqueHalfEdgeIterator::UniqueHalfEdgeIterator(const Polyhedron& polygon)
 //-------------------------------------------------------------------------------------------------
 const HalfEdge* UniqueHalfEdgeIterator::GetNext()
 {
-	for (m_currIndex; m_currIndex < m_polygon.GetNumEdges(); ++m_currIndex)
+	for (m_currIndex; m_currIndex < m_polyhedron.GetNumEdges(); ++m_currIndex)
 	{
 		// Get the next edge
-		const HalfEdge* currEdge = m_polygon.GetEdge(m_currIndex);
+		const HalfEdge* currEdge = m_polyhedron.GetEdge(m_currIndex);
 
 		// Check if this edge's mirror has been visited already
 		bool mirrorVisited = std::find(m_visitedList.begin(), m_visitedList.end(), currEdge->m_mirrorEdgeIndex) != m_visitedList.end();

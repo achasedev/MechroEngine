@@ -16,6 +16,7 @@
 #include "Engine/Core/Entity.h"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Math/Matrix3.h"
+#include "Engine/Math/SAT.h"
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// DEFINES
@@ -1333,14 +1334,27 @@ int CollisionDetector::GenerateContacts_CapsuleHull(const Collider* a, const Col
 
 	if (dist <= 0.f)
 	{
-		// Deep contact
+		// Deep contact - use SAT to find the best axis
+		Vector3 normal;
+		float pen;
+		bool areOverlapping = SAT::GetMinPenAxis(capsuleWs, polyWs, normal, pen);
+		ASSERT_OR_DIE(areOverlapping, "Found an axis of separation?");
 
+		Vector3 capsulePt;
+		capsuleWs.GetSupportPoint(-1.0f * normal, capsulePt);
+		ConsolePrintf(Rgba::ORANGE, 5.f, "Normal: (%.3f, %.3f, %.3f)", normal.x, normal.y, normal.z);
+		out_contacts[0].position = capsulePt + normal * pen;
+		out_contacts[0].normal = normal; 
+		out_contacts[0].penetration = pen;
+		FillOutColliderInfo(&out_contacts[0], aCapsuleCol, bHullCol);
+		out_contacts[0].CheckValuesAreReasonable();
+		numContacts++;
 	}
 	else if (dist < capsuleWs.radius)
 	{
 		// Shallow contact
 		out_contacts[0].position = closestPtOnHull;
-		out_contacts[0].normal = (closestPtOnSpine - closestPtOnHull).GetNormalized(); // I don't divide by distance to avoid propogating error
+		out_contacts[0].normal = (closestPtOnSpine - closestPtOnHull).GetNormalized(); // I don't divide by distance to avoid propagating error
 		out_contacts[0].penetration = capsuleWs.radius - dist;
 		FillOutColliderInfo(&out_contacts[0], aCapsuleCol, bHullCol);
 		out_contacts[0].CheckValuesAreReasonable();

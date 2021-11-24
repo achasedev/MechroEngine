@@ -182,6 +182,7 @@
     <ClCompile Include="Math\Matrix3.cpp" />
     <ClCompile Include="Math\Point.cpp" />
     <ClCompile Include="Math\Polygon3.cpp" />
+    <ClCompile Include="Math\SAT.cpp" />
     <ClCompile Include="Math\ScaledAxisRotation.cpp" />
     <ClCompile Include="Math\Tetrahedron.cpp" />
     <ClCompile Include="Math\Triangle3.cpp" />
@@ -326,6 +327,7 @@
     <ClInclude Include="Math\Matrix3.h" />
     <ClInclude Include="Math\Point.h" />
     <ClInclude Include="Math\Polygon3.h" />
+    <ClInclude Include="Math\SAT.h" />
     <ClInclude Include="Math\ScaledAxisRotation.h" />
     <ClInclude Include="Math\Tetrahedron.h" />
     <ClInclude Include="Math\Triangle2.h" />

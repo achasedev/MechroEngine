@@ -152,7 +152,7 @@ public:
 private:
 	//-----Private Data-----
 
-	const Polyhedron&		m_polygon;
+	const Polyhedron&	m_polyhedron;
 	int					m_currIndex = 0;
 	std::vector<int>	m_visitedList;
 

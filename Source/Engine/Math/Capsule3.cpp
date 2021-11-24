@@ -55,3 +55,21 @@ bool Capsule3::ContainsPoint(const Vector3& point) const
 	return distance < radius;
 }
 
+
+//-------------------------------------------------------------------------------------------------
+Vector3 Capsule3::GetCenter() const
+{
+	return 0.5f * (end + start);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Capsule3::GetSupportPoint(const Vector3& direction, Vector3& out_point) const
+{
+	float startDot = DotProduct(start, direction);
+	float endDot = DotProduct(end, direction);
+
+	Vector3 endPoint = (startDot > endDot ? start : end);	
+	out_point = endPoint + radius * direction.GetNormalized();
+}
+
