@@ -1346,19 +1346,20 @@ int CollisionDetector::GenerateContacts_CapsuleHull(const Collider* a, const Col
 			polyWs.ClipEdgeToFace(result.m_iFaceOrEdge, clippedSpine);
 			Plane3 facePlane = polyWs.GetFaceSupportPlane(result.m_iFaceOrEdge);
 
-			numContacts = Min(limit, 2);
-			for (int iContact = 0; iContact < numContacts; ++iContact)
+			int maxContacts = Min(limit, 2);
+			for (int iContact = 0; iContact < maxContacts; ++iContact)
 			{
 				Vector3 endPoint = (iContact == 0 ? clippedSpine.m_a : clippedSpine.m_b);
 				float pen = capsuleWs.radius - facePlane.GetDistanceFromPlane(endPoint);
 
 				if (pen >= 0.f)
 				{
-					out_contacts[iContact].position = facePlane.GetProjectedPointOntoPlane(endPoint);
-					out_contacts[iContact].normal = facePlane.m_normal;
-					out_contacts[iContact].penetration = pen;
-					FillOutColliderInfo(&out_contacts[iContact], aCapsuleCol, bHullCol);
-					out_contacts[iContact].CheckValuesAreReasonable();
+					out_contacts[numContacts].position = facePlane.GetProjectedPointOntoPlane(endPoint);
+					out_contacts[numContacts].normal = facePlane.m_normal;
+					out_contacts[numContacts].penetration = pen;
+					FillOutColliderInfo(&out_contacts[numContacts], aCapsuleCol, bHullCol);
+					out_contacts[numContacts].CheckValuesAreReasonable();
+					numContacts++;
 				}
 			}
 		}
@@ -1378,13 +1379,44 @@ int CollisionDetector::GenerateContacts_CapsuleHull(const Collider* a, const Col
 	}
 	else if (dist < capsuleWs.radius)
 	{
-		// Shallow contact
-		out_contacts[0].position = closestPtOnHull;
-		out_contacts[0].normal = (closestPtOnSpine - closestPtOnHull).GetNormalized(); // I don't divide by distance to avoid propagating error
-		out_contacts[0].penetration = capsuleWs.radius - dist;
-		FillOutColliderInfo(&out_contacts[0], aCapsuleCol, bHullCol);
-		out_contacts[0].CheckValuesAreReasonable();
-		numContacts++;
+		// Shallow contact - check if it's with an edge or a face
+		Vector3 normalFromGJK = (closestPtOnSpine - closestPtOnHull).GetNormalized();
+		int faceIndex = polyWs.GetIndexOfFaceMostInDirection(normalFromGJK);
+
+		if (AreMostlyEqual(DotProduct(normalFromGJK, polyWs.GetFaceNormal(faceIndex)), 1.0f))
+		{
+			// Shallow contact on face - we can generate 2 contacts!
+			LineSegment3 clippedSpine = capSpine;
+			polyWs.ClipEdgeToFace(faceIndex, clippedSpine);
+			Plane3 facePlane = polyWs.GetFaceSupportPlane(faceIndex);
+
+			int maxContacts = Min(limit, 2);
+			for (int iContact = 0; iContact < maxContacts; ++iContact)
+			{
+				Vector3 endPoint = (iContact == 0 ? clippedSpine.m_a : clippedSpine.m_b);
+				float pen = capsuleWs.radius - facePlane.GetDistanceFromPlane(endPoint);
+
+				if (pen >= 0.f)
+				{
+					out_contacts[numContacts].position = facePlane.GetProjectedPointOntoPlane(endPoint);
+					out_contacts[numContacts].normal = facePlane.m_normal;
+					out_contacts[numContacts].penetration = pen;
+					FillOutColliderInfo(&out_contacts[numContacts], aCapsuleCol, bHullCol);
+					out_contacts[numContacts].CheckValuesAreReasonable();
+					numContacts++;
+				}
+			}
+		}
+		else
+		{
+			// Shallow contact on edge
+			out_contacts[0].position = closestPtOnHull;
+			out_contacts[0].normal = normalFromGJK; // I don't divide by distance to avoid propagating error
+			out_contacts[0].penetration = capsuleWs.radius - dist;
+			FillOutColliderInfo(&out_contacts[0], aCapsuleCol, bHullCol);
+			out_contacts[0].CheckValuesAreReasonable();
+			numContacts = 1;
+		}
 	}
 
 	return numContacts;
