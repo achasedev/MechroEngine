@@ -36,6 +36,8 @@ public:
 	Cylinder(const Vector3& bottom, const Vector3& top, float radius);
 
 	Vector3 GetFurthestEdgePointInDirection(const Vector3& direction, bool* onTop = nullptr) const;
+	Vector3 GetCenter() const;
+	void	GetSupportPoint(const Vector3& direction, Vector3& out_point) const;
 
 
 public:

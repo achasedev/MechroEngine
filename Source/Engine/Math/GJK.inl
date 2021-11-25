@@ -7,6 +7,7 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Core/DevConsole.h"
 #include "Engine/Core/EngineCommon.h"
 #include "Engine/Math/GJK.h"
 #include "Engine/Math/LineSegment3.h"
@@ -62,10 +63,12 @@ GJKSolver3D<A, B>::GJKSolver3D(const GJKSolver3D<A, B>& copy)
 
 //-------------------------------------------------------------------------------------------------
 template <class A, class B>
-void GJKSolver3D<A, B>::Solve()
+bool GJKSolver3D<A, B>::Solve()
 {
-	bool done = false;
-	while (!done)
+	const int maxIterations = 20;
+	bool foundSolution = false;
+
+	for (int i = 0; i < maxIterations; ++i)
 	{
 		ExpandSimplex();
 
@@ -75,24 +78,34 @@ void GJKSolver3D<A, B>::Solve()
 			// Do nothing
 			break;
 		case 2:
-			done = CheckSimplexLineSegment();
+			foundSolution = CheckSimplexLineSegment();
 			break;
 		case 3:
-			done = CheckSimplexTriangle();
+			foundSolution = CheckSimplexTriangle();
 			break;
 		case 4:
-			done = CheckSimplexTetrahedron();
+			foundSolution = CheckSimplexTetrahedron();
 			break;
 		default:
 			ERROR_AND_DIE("Bad number of verts!");
 			break;
 		}
+
+		if (foundSolution)
+			break;
 	}
 
-	if (m_separation > 0.f)
+	if (!foundSolution)
+	{
+		ConsoleWarningf(2.f, "Hit iteration cap in GJK!");
+	}
+
+	if (foundSolution && m_separation > 0.f)
 	{
 		ComputeClosestPoints();
 	}
+
+	return foundSolution;
 }
 
 
@@ -152,7 +165,7 @@ bool GJKSolver3D<A, B>::CheckSimplexTetrahedron()
 
 		Vector3 triBaryCoords = ComputeBarycentricCoordinates(Vector3::ZERO, Triangle3(a, b, c));
 
-		if (triBaryCoords.u >= 0.f && triBaryCoords.v >= 0.f && triBaryCoords.w >= 0.f)
+		if (triBaryCoords.u >= -DEFAULT_EPSILON && triBaryCoords.v >= -DEFAULT_EPSILON && triBaryCoords.w >= -DEFAULT_EPSILON)
 		{
 			// Since D made it degenerate and we're inside this triangle, closest point will be the projection to this face
 			Vector3 trianglePt = triBaryCoords.u * a + triBaryCoords.v * b + triBaryCoords.w * c;
@@ -323,7 +336,7 @@ bool GJKSolver3D<A, B>::IsSimplexDegenerate() const
 		isDegenerate = AreMostlyEqual(m_simplexA.Get(), m_simplexB.Get());
 		break;
 	case 3: 
-		isDegenerate = (AreMostlyEqual(m_simplexC.Get(), m_simplexA.Get()) || AreMostlyEqual(m_simplexC.Get(), m_simplexB.Get()) || ArePointsColinear(m_simplexA.Get(), m_simplexB.Get(), m_simplexC.Get()));
+		isDegenerate = (AreMostlyEqual(m_simplexC.Get(), m_simplexA.Get(), 0.001f) || AreMostlyEqual(m_simplexC.Get(), m_simplexB.Get(), 0.001f) || ArePointsColinear(m_simplexA.Get(), m_simplexB.Get(), m_simplexC.Get()));
 		break;
 	case 4:
 	{
@@ -457,42 +470,4 @@ void GJKSolver3D<A, B>::ComputeClosestPoints()
 	default:
 		break;
 	}
-
-	/*Vector3 a = m_simplexA.Get();
-	Vector3 b = m_simplexB.Get();
-	Vector3 c = m_simplexC.Get();
-	Vector3 d = m_simplexD.Get();
-
-	Matrix3 mat;
-	Vector3 vecInput = Vector3(1.f, 0.f, 0.f);
-
-	mat.Ix = 1.f;
-	mat.Iy = DotProduct(b - a, a);
-	mat.Iz = DotProduct(c - a, a);
-
-	mat.Jx = 1.f;
-	mat.Jy = DotProduct(b - a, b);
-	mat.Jz = DotProduct(c - a, b);
-
-	mat.Kx = 1.f;
-	mat.Ky = DotProduct(b - a, c);
-	mat.Kz = DotProduct(c - a, c);
-
-	float det = mat.GetDeterminant();
-	Vector3 lambas;
-
-	for (int i = 0; i < m_numVerts; ++i)
-	{
-		Matrix3 mati = mat;
-		mati.columnVectors[i] = vecInput;
-
-		float deti = mati.GetDeterminant();
-		lambas.data[i] = deti / det;
-	}
-
-	for (int i = 0; i < m_numVerts; ++i)
-	{
-		m_closestPtA += lambas.data[i] * m_minkowskiInputs[2 * i];
-		m_closestPtB += lambas.data[i] * m_minkowskiInputs[2 * i + 1];
-	}*/
 }

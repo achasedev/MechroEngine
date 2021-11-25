@@ -14,6 +14,7 @@
 #include "Engine/Core/DevConsole.h"
 #include "Engine/Core/EngineCommon.h"
 #include "Engine/Core/Entity.h"
+#include "Engine/Math/GJK.inl"
 #include "Engine/Math/MathUtils.h"
 #include "Engine/Math/Matrix3.h"
 #include "Engine/Math/SAT.h"
@@ -1296,18 +1297,40 @@ int CollisionDetector::GenerateContacts_CapsuleCylinder(const Collider* a, const
 	if (limit <= 0)
 		return 0;
 
+	int numContacts = 0;
 	const CapsuleCollider* aCapsuleCol = a->GetAsType<CapsuleCollider>();
 	const CylinderCollider* bCylinderCol = b->GetAsType<CylinderCollider>();
 	ASSERT_OR_DIE(aCapsuleCol != nullptr && bCylinderCol != nullptr, "Colliders are of wrong type!");
 
-	CapsuleCylinderCollision collision(aCapsuleCol, bCylinderCol, out_contacts, limit);
-	collision.Solve();
+	Capsule3 capsuleWs = aCapsuleCol->GetDataInWorldSpace();
+	Cylinder cylinderWs = bCylinderCol->GetDataInWorldSpace();
 
-	// This is bad, but bear with me
-	int numContacts = collision.GetNumContacts();
-	for (int i = 0; i < numContacts; ++i)
+	LineSegment3 capsuleSpine(capsuleWs.start, capsuleWs.end);
+
+	GJKSolver3D<LineSegment3, Cylinder> solver(capsuleSpine, cylinderWs);
+	bool foundSolution = solver.Solve();
+
+	if (foundSolution)
 	{
-		FillOutColliderInfo(&out_contacts[i], aCapsuleCol, bCylinderCol);
+		float separation = solver.GetSeparationDistance();
+		if (separation <= 0.f)
+		{
+
+		}
+		else if (separation < capsuleWs.radius)
+		{
+			Vector3 capsulePt = solver.GetClosestPointOnA();
+			Vector3 cylinderPt = solver.GetClosestPointOnB();
+			Vector3 normal = solver.GetSeparationNormal();
+
+			out_contacts[0].normal = normal;
+			out_contacts[0].penetration = capsuleWs.radius - separation;
+			out_contacts[0].position = cylinderPt;
+			FillOutColliderInfo(&out_contacts[0], aCapsuleCol, bCylinderCol);
+			out_contacts[0].CheckValuesAreReasonable();
+
+			numContacts = 1;
+		}
 	}
 
 	return numContacts;

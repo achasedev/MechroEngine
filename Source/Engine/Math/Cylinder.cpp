@@ -79,3 +79,39 @@ Vector3 Cylinder::GetFurthestEdgePointInDirection(const Vector3& direction, bool
 
 	return endPoint + discVector * m_radius;
 }
+
+
+//-------------------------------------------------------------------------------------------------
+Vector3 Cylinder::GetCenter() const
+{
+	return 0.5f * (m_bottom + m_top);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Cylinder::GetSupportPoint(const Vector3& direction, Vector3& out_point) const
+{
+	float bottomDot = DotProduct(direction, m_bottom);
+	float topDot = DotProduct(direction, m_top);
+	Vector3 endPoint = (bottomDot >= topDot ? m_bottom : m_top); // In tie cases, default to bottom
+	Vector3 spineDir = (bottomDot >= topDot ? (m_bottom - m_top) : (m_top - m_bottom));
+
+	spineDir.Normalize();
+
+	// Project onto the spine vector
+	float dot = DotProduct(spineDir, direction);
+
+	// Get the projection of the endPointToPlane onto the disc of the cylinder
+	Vector3 discVector = direction - spineDir * dot;
+
+	if (AreMostlyEqual(discVector, Vector3::ZERO))
+	{
+		discVector = Vector3::ZERO;
+	}
+	else
+	{
+		discVector.SafeNormalize(Vector3::ZERO);
+	}
+
+	out_point = endPoint + discVector * m_radius;
+}

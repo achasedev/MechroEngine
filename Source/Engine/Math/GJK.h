@@ -91,7 +91,7 @@ public:
 	GJKSolver3D(const A& a, const B& b);
 	GJKSolver3D(const GJKSolver3D<A, B>& copy);
 
-	void Solve();
+	bool Solve();
 
 	Vector3 GetSeparationNormal() const { return m_separationNormal; }
 	float	GetSeparationDistance() const { return m_separation; }
