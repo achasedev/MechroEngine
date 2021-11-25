@@ -1370,7 +1370,7 @@ float CalculateVolumeOfTetrahedron(const Vector3& a, const Vector3& b, const Vec
 
 
 //-------------------------------------------------------------------------------------------------
-Vector3 SolveLinePlaneIntersection(const Line3& line, const Plane3& plane)
+Maybe<Vector3> SolveLinePlaneIntersection(const Line3& line, const Plane3& plane)
 {
 	const Vector3 p = line.GetPoint();
 	const Vector3 dir = line.GetDirection();
@@ -1380,14 +1380,14 @@ Vector3 SolveLinePlaneIntersection(const Line3& line, const Plane3& plane)
 	// Check for no solution
 	float dot = DotProduct(dir, n);
 
-	if (AreMostlyEqual(dot, 0.f))
+	if (AreMostlyEqual(dot, 0.f, 0.001f))
 	{
 		if (plane.ContainsPoint(p))
 		{
-			ERROR_RETURN(p, "Line falls in the plane, infinite solutions!");
+			return Maybe<Vector3>(p);
 		}
 
-		ERROR_RETURN(Vector3::ZERO, "No solution!");
+		return Maybe<Vector3>::INVALID;
 	}
 
 	// We need to find a p0 such that:
@@ -1400,7 +1400,26 @@ Vector3 SolveLinePlaneIntersection(const Line3& line, const Plane3& plane)
 	// => t = (d - dot(p, n) / dot(dir, n)), and we already know dot(dir, n) is nonzero from the check above
 
 	float t = (d - DotProduct(p, n)) / dot;
-	return line.FindPointAtT(t);
+	return Maybe<Vector3>(line.FindPointAtT(t));
+}
+
+
+//-------------------------------------------------------------------------------------------------
+Maybe<Vector3> ComputeIntersection(const LineSegment3& lineSegment, const Plane3& plane)
+{
+	Line3 line(lineSegment.m_a, lineSegment.m_b - lineSegment.m_a);
+	Maybe<Vector3> intersectionPt = SolveLinePlaneIntersection(line, plane);
+
+	if (intersectionPt.IsValid())
+	{
+		// Determine if the intersection is within the endpoints
+		Vector2 uv = ComputeBarycentricCoordinates(intersectionPt.Get(), lineSegment);
+
+		if (uv.u >= 0.f && uv.v >= 0.f)
+			return Maybe<Vector3>(intersectionPt);
+	}
+
+	return Maybe<Vector3>::INVALID;
 }
 
 

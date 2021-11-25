@@ -38,9 +38,10 @@ public:
 	Polygon3() {}
 	Polygon3(const std::vector<Vector3>& vertices);
 
-	int			AddVertex(const Vector3& vertex);
-	void		SetVertex(int iVertex, const Vector3& vertex);
-	Vector3		GetVertex(int index) const { return m_vertices[index]; }
+	void		PerformChecks(bool checkForDuplicates, bool checkForCoplanarity, bool checkForConvexity, bool checkForSelfIntersections, bool checkForColinearPoints) const;
+	void		Clear();
+
+
 	int			GetNumVertices() const { return (int)m_vertices.size(); }
 	void		TransformSelfInto2DBasis(Polygon2& out_poly2) const;
 	Vector2		TransformPointInto2DBasis(const Vector3& point) const;
@@ -48,7 +49,10 @@ public:
 
 	bool		IsSelfIntersecting() const;
 	bool		IsConvex() const;
-	bool		IsConvave() const { return !IsConvex(); }
+	bool		IsConcave() const { return !IsConvex(); }
+	bool		HasDuplicateVertices() const;
+	bool		HasColinearPoints() const;
+	bool		ArePointsCoplanar() const;
 
 
 private:
@@ -57,10 +61,10 @@ private:
 	void		GetBasis(Matrix3& out_bases) const;
 
 
-private:
-	//-----Private Data-----
+public:
+	//-----Public Data-----
 
-	std::vector<Vector3> m_vertices; // Private so that we can do asserts
+	std::vector<Vector3> m_vertices;
 
 };
 

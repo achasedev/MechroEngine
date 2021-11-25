@@ -112,6 +112,8 @@ private:
 	bool	IsSimplexDegenerate() const;
 	void	ComputeClosestPoints();
 
+	void	PerformEPA();
+
 
 private:
 	//-----Private Data-----

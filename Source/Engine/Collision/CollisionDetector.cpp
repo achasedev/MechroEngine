@@ -38,7 +38,7 @@ GenerateContactsFunction CollisionDetector::s_colliderMatrix[NUM_COLLIDER_TYPES]
 	{ nullptr, nullptr, nullptr,												&CollisionDetector::GenerateContacts_CapsuleCapsule,	&CollisionDetector::GenerateContacts_CapsuleBox,	&CollisionDetector::GenerateContacts_CapsuleCylinder,	&CollisionDetector::GenerateContacts_CapsuleHull },
 	{ nullptr, nullptr, nullptr,												nullptr,												&CollisionDetector::GenerateContacts_BoxBox,		nullptr,												nullptr },
 	{ nullptr, nullptr, nullptr,												nullptr,												nullptr,											nullptr,												nullptr },
-	{ nullptr, nullptr, nullptr,												nullptr,												nullptr,											nullptr,												nullptr }
+	{ nullptr, nullptr, nullptr,												nullptr,												nullptr,											nullptr,												&CollisionDetector::GenerateContacts_HullHull }
 };
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -913,7 +913,73 @@ int CollisionDetector::GenerateContacts_BoxBox(const Collider* a, const Collider
 
 	return 0;
 }
+
 #undef CHECK_OVERLAP
+
+//-------------------------------------------------------------------------------------------------
+int CollisionDetector::GenerateContacts_HullHull(const Collider* a, const Collider* b, Contact* out_contacts, int limit)
+{
+	if (limit <= 0)
+		return 0;
+
+	int numContacts = 0;
+	const ConvexHullCollider* aHullCol = a->GetAsType<ConvexHullCollider>();
+	const ConvexHullCollider* bHullCol = b->GetAsType<ConvexHullCollider>();
+	ASSERT_OR_DIE(aHullCol != nullptr && bHullCol != nullptr, "Colliders are of wrong type!");
+
+	const Polyhedron aHullWs = aHullCol->GetDataInWorldSpace();
+	const Polyhedron bHullWs = bHullCol->GetDataInWorldSpace();
+
+	SATResult_HullHull result;
+	bool hasOverlap = SAT::GetMinPenAxis(aHullWs, bHullWs, result);
+
+	if (hasOverlap)
+	{
+		if (result.m_isFaceAxis)
+		{
+			// Face/face collision, clip incident to the reference face
+			bool aIsRef = (result.m_iFaceOrEdgeA != -1);
+			const Polyhedron& refHull = (aIsRef ? aHullWs : bHullWs);
+			const Polyhedron& incHull = (aIsRef ? bHullWs : aHullWs);
+			int iRefFace = (aIsRef ? result.m_iFaceOrEdgeA : result.m_iFaceOrEdgeB);
+			
+			Plane3 refPlane = refHull.GetFaceSupportPlane(iRefFace);
+			int iIncFace = incHull.GetIndexOfFaceMostInDirection(-1.0f * refPlane.m_normal);
+
+			Polygon3 incFacePoly;
+			incHull.GetFace(iIncFace, incFacePoly);
+			refHull.ClipFaceToFace(iRefFace, incFacePoly);
+
+			int numVerts = (int)incFacePoly.GetNumVertices();
+			int maxContacts = Min(numVerts, limit);
+			int iVertex = 0;
+			while (iVertex < numVerts && numContacts < maxContacts) // while there's still vertices to check and we still have room for more contacts
+			{
+				Vector3 incVertex = incFacePoly.m_vertices[iVertex];
+				float pen = -1.0f * refPlane.GetDistanceFromPlane(incVertex);
+
+				if (pen > 0.f)
+				{
+					out_contacts[numContacts].penetration = pen;
+					out_contacts[numContacts].normal = refPlane.m_normal;
+					out_contacts[numContacts].position = refPlane.GetProjectedPointOntoPlane(incVertex);
+					FillOutColliderInfo(&out_contacts[numContacts], (aIsRef ? b : a), (aIsRef ? a : b));
+					out_contacts[numContacts].CheckValuesAreReasonable();
+
+					numContacts++;
+				}
+
+				iVertex++;
+			}
+		}
+		else
+		{
+
+		}
+	}
+
+	return numContacts;
+}
 
 
 //-------------------------------------------------------------------------------------------------
@@ -1392,8 +1458,16 @@ int CollisionDetector::GenerateContacts_CapsuleHull(const Collider* a, const Col
 			LineSegment3 hullEdge = polyWs.GetEdgeSegment(result.m_iFaceOrEdge);
 			dist = FindNearestPoints(capSpine, hullEdge, closestPtOnSpine, closestPtOnHull);
 
+			Vector3 normal = result.m_axis;
+
+			// Keep axis pointing towards capsule
+			if (DotProduct(polyWs.GetCenter() - capsuleWs.GetCenter(), normal) > 0.f)
+			{
+				normal *= -1.0f;
+			}
+
 			out_contacts[0].position = 0.5f * (closestPtOnSpine + closestPtOnHull); // Position contact halfway between capsule and hull
-			out_contacts[0].normal = result.m_axis;
+			out_contacts[0].normal = normal;
 			out_contacts[0].penetration = result.m_pen;
 			FillOutColliderInfo(&out_contacts[0], aCapsuleCol, bHullCol);
 			out_contacts[0].CheckValuesAreReasonable();

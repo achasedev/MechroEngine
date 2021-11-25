@@ -31,7 +31,7 @@
 
 //-------------------------------------------------------------------------------------------------
 template <class A, class B>
-static float ComputePenetrationOnAxis(const A& a, const B& b, const Vector3 &axis)
+static float ComputeAxisOverlap(const A& a, const B& b, const Vector3 &axis)
 {
 	// Project the half-size of one onto axis
 	Vector2 aProj = ComputeAxisProjection(a, axis);
@@ -75,39 +75,21 @@ bool SAT::GetMinPenAxis(const Capsule3& capsule, const Polyhedron& polyhedron, S
 	int numFaces = polyhedron.GetNumFaces();
 	for (int iFace = 0; iFace < numFaces; ++iFace)
 	{
-		Vector3 normal = polyhedron.GetFaceNormal(iFace);
+		Plane3 facePlane = polyhedron.GetFaceSupportPlane(iFace);
+		Vector3 capPt;
+		capsule.GetSupportPoint(-1.0f * facePlane.GetNormal(), capPt);
 
-		// If this face has a normal colinear but opposite one we've already seen, choose it if
-		// the capsule is penning this face less
-		if (AreMostlyEqual(normal, -1.0f * out_result.m_axis))
+		float pen = -1.0f * facePlane.GetDistanceFromPlane(capPt);
+
+		if (pen < 0.f)
+			return false;
+
+		if (pen < out_result.m_pen)
 		{
-			Plane3 currPlane = polyhedron.GetFaceSupportPlane(iFace);
-			Plane3 minPlane = polyhedron.GetFaceSupportPlane(out_result.m_iFaceOrEdge);
-
-			Vector3 currFurthest, minFurthest;
-			capsule.GetSupportPoint(-1.0f * normal, currFurthest);
-			capsule.GetSupportPoint(-1.0f * out_result.m_axis, minFurthest);
-
-			if (Abs(currPlane.GetDistanceFromPlane(currFurthest)) < Abs(minPlane.GetDistanceFromPlane(minFurthest)))
-			{
-				out_result.m_axis = normal;
-				out_result.m_iFaceOrEdge = iFace;
-			}
-		}
-		else
-		{
-			float pen = ComputePenetrationOnAxis(capsule, polyhedron, normal);
-
-			if (pen < 0.f)
-				return false;
-
-			if (pen < out_result.m_pen)
-			{
-				out_result.m_pen = pen;
-				out_result.m_axis = normal;
-				out_result.m_isFaceAxis = true;
-				out_result.m_iFaceOrEdge = iFace;
-			}
+			out_result.m_pen = pen;
+			out_result.m_axis = facePlane.GetNormal();
+			out_result.m_isFaceAxis = true;
+			out_result.m_iFaceOrEdge = iFace;
 		}
 	}
 
@@ -125,14 +107,8 @@ bool SAT::GetMinPenAxis(const Capsule3& capsule, const Polyhedron& polyhedron, S
 		// Don't check axes created from colinear inputs
 		if (!AreMostlyEqual(axis.GetLengthSquared(), 0.f))
 		{
-			// Keep axis pointing at A for consistency
-			if (DotProduct(polyhedron.GetCenter() - capsule.GetCenter(), axis) > 0.f)
-			{
-				axis *= -1.0f;
-			}
-
 			axis.Normalize();
-			float pen = ComputePenetrationOnAxis(capsule, polyhedron, axis);
+			float pen = ComputeAxisOverlap(capsule, polyhedron, axis);
 
 			if (pen < 0.f)
 				return false;
@@ -150,4 +126,132 @@ bool SAT::GetMinPenAxis(const Capsule3& capsule, const Polyhedron& polyhedron, S
 	}
 
 	return true;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+static void QueryFaceDirections(const Polyhedron& faceHull, const Polyhedron& pointHull, bool faceHullIsA, SATResult_HullHull& out_result)
+{
+	int numFaces = faceHull.GetNumFaces();
+	for (int iFace = 0; iFace < numFaces; ++iFace)
+	{
+		Plane3 facePlane = faceHull.GetFaceSupportPlane(iFace);
+		Vector3 pt;
+		pointHull.GetSupportPoint(-1.0f * facePlane.m_normal, pt);
+
+		float pen = -1.0f * facePlane.GetDistanceFromPlane(pt);
+
+		if (pen < out_result.m_pen)
+		{
+			out_result.m_pen = pen;
+			out_result.m_axis = facePlane.m_normal;
+
+			if (faceHullIsA)
+			{
+				out_result.m_iFaceOrEdgeA = iFace;
+				out_result.m_iFaceOrEdgeB = -1;
+			}
+			else
+			{
+				out_result.m_iFaceOrEdgeB = iFace;
+				out_result.m_iFaceOrEdgeA = -1;
+			}
+
+			out_result.m_isFaceAxis = true;
+
+			// This axis is a separating axis so just signal to stop
+			if (pen < 0.f)
+				return;
+		}
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+static void QueryEdgeDirections(const Polyhedron& a, const Polyhedron& b, SATResult_HullHull& out_result)
+{
+	UniqueHalfEdgeIterator aEdgeIter(a);
+	UniqueHalfEdgeIterator bEdgeIter(b);
+
+	const HalfEdge* aEdge = aEdgeIter.GetNext();
+	const HalfEdge* bEdge = bEdgeIter.GetNext();
+
+	while (aEdge != nullptr)
+	{
+		Vector3 aEdgeDir = a.GetEdgeDirection(aEdge);
+
+		while (bEdge != nullptr)
+		{
+			Vector3 bEdgeDir = b.GetEdgeDirection(bEdge);
+
+			Vector3 axis = CrossProduct(aEdgeDir, bEdgeDir);
+
+			if (AreMostlyEqual(axis, Vector3::ZERO))
+			{
+				bEdge = bEdgeIter.GetNext();
+				continue;
+			}
+
+			axis.Normalize();
+
+			// Ensure the axis points towards a
+			Vector3 outOfA = a.GetVertexPosition(aEdge->m_vertexIndex) - a.GetCenter();
+			if (DotProduct(axis, outOfA) > 0.f)
+			{
+				axis *= -1.0f;
+			}
+
+			// Since normal points into A, put the plane on B
+			Vector3 bSupportPt;
+			b.GetSupportPoint(axis, bSupportPt);
+			Plane3 plane(axis, bSupportPt);
+
+			// Get the furthest a point into the plane 
+			Vector3 aSupportPt;
+			a.GetSupportPoint(-1.0f * axis, aSupportPt);
+
+			float pen = -1.0f * plane.GetDistanceFromPlane(aSupportPt);
+
+			if (pen < out_result.m_pen)
+			{
+				out_result.m_pen = pen;
+				out_result.m_axis = axis;
+				out_result.m_isFaceAxis = false;
+				out_result.m_iFaceOrEdgeA = aEdge->m_edgeIndex;
+				out_result.m_iFaceOrEdgeB = bEdge->m_edgeIndex;
+
+				// Early out if a separating axis was found
+				if (pen < 0.f)
+					return;
+			}
+
+			bEdge = bEdgeIter.GetNext();
+		}
+
+		aEdge = aEdgeIter.GetNext();
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool SAT::GetMinPenAxis(const Polyhedron& a, const Polyhedron& b, SATResult_HullHull& out_result)
+{
+	out_result = SATResult_HullHull();
+
+	QueryFaceDirections(a, b, true, out_result);
+	if (out_result.m_pen < 0.f)
+		return false;
+
+	QueryFaceDirections(b, a, false, out_result);
+	if (out_result.m_pen < 0.f)
+		return false;
+
+	QueryEdgeDirections(a, b, out_result);
+
+	if (out_result.m_isFaceAxis)
+	{
+		ASSERT_OR_DIE(out_result.m_iFaceOrEdgeA == -1 && out_result.m_iFaceOrEdgeB != -1 || out_result.m_iFaceOrEdgeA != -1 && out_result.m_iFaceOrEdgeB == -1, "Both face indices set!");
+	}
+
+	return (out_result.m_pen > 0.f);
 }

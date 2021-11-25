@@ -1073,7 +1073,7 @@ void MeshBuilder::PushPolygon(const Polygon3& poly, const Rgba& color /*= Rgba::
 
 		for (int iVertex = 0; iVertex < numVertices; ++iVertex)
 		{
-			PushVertex(poly.GetVertex(iVertex));
+			PushVertex(poly.m_vertices[iVertex]);
 		}
 
 		for (int iVertex = 1; iVertex < numVertices - 1; ++iVertex)
@@ -1087,9 +1087,9 @@ void MeshBuilder::PushPolygon(const Polygon3& poly, const Rgba& color /*= Rgba::
 	{
 		for (int iVertex = 1; iVertex < numVertices - 1; ++iVertex)
 		{
-			PushVertex(poly.GetVertex(0));
-			PushVertex(poly.GetVertex(iVertex));
-			PushVertex(poly.GetVertex(iVertex + 1));
+			PushVertex(poly.m_vertices[0]);
+			PushVertex(poly.m_vertices[iVertex]);
+			PushVertex(poly.m_vertices[iVertex + 1]);
 		}
 	}
 }

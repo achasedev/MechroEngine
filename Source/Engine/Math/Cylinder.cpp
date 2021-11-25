@@ -110,7 +110,7 @@ void Cylinder::GetSupportPoint(const Vector3& direction, Vector3& out_point) con
 	}
 	else
 	{
-		discVector.SafeNormalize(Vector3::ZERO);
+		discVector.Normalize();
 	}
 
 	out_point = endPoint + discVector * m_radius;

@@ -471,3 +471,11 @@ void GJKSolver3D<A, B>::ComputeClosestPoints()
 		break;
 	}
 }
+
+
+//-------------------------------------------------------------------------------------------------
+template <class A, class B>
+void GJKSolver3D<A, B>::PerformEPA()
+{
+	UNIMPLEMENTED();
+}

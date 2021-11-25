@@ -36,63 +36,46 @@
 //-------------------------------------------------------------------------------------------------
 Polygon3::Polygon3(const std::vector<Vector3>& vertices)
 {
-	for (Vector3 vertex : vertices)
-	{
-		AddVertex(vertex);
-	}
+	m_vertices = vertices;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-int Polygon3::AddVertex(const Vector3& vertex)
+void Polygon3::PerformChecks(bool checkForDuplicates, bool checkForCoplanarity, bool checkForConvexity, bool checkForSelfIntersections, bool checkForColinearPoints) const
 {
 #ifndef DISABLE_ASSERTS
-
-	// Check for duplicates
-	for (int i = 0; i < (int)m_vertices.size(); ++i)
+	if (checkForDuplicates)
 	{
-		ASSERT_OR_DIE(!AreMostlyEqual(m_vertices[i], vertex), "Duplicate vertex!");	
+		ASSERT_OR_DIE(!HasDuplicateVertices(), "Duplicate vertex found!");
 	}
 
-	if (m_vertices.size() > 2)
+	if (checkForCoplanarity)
 	{
-		// Check all are coplanar
-		Vector3 ab = m_vertices[1] - m_vertices[0];
-		Vector3 bc = m_vertices[2] - m_vertices[0];
-		Vector3 normal = CrossProduct(ab, bc);
-		normal.Normalize();
-
-		Plane3 plane(normal, m_vertices[0]);
-		float dist = plane.GetDistanceFromPlane(vertex);
-		ASSERT_OR_DIE(AreMostlyEqual(dist, 0.f), "Vertex not in plane!");
+		ASSERT_OR_DIE(ArePointsCoplanar(), "Points not coplanar!");
 	}
 
-	// Check that this point isn't inline with the previous 2
-	if (m_vertices.size() > 1)
+	if (checkForConvexity)
 	{
-		int iLast = (int)m_vertices.size() - 1;
-		Vector3 a = m_vertices[iLast - 1];
-		Vector3 b = m_vertices[iLast];
-
-		Vector3 ab = (b - a).GetNormalized();
-		Vector3 ac = (vertex - a).GetNormalized();
-
-		ASSERT_OR_DIE(!AreMostlyEqual(DotProduct(ab, ac), 1.0f), "Vertices in line!");
+		ASSERT_OR_DIE(IsConvex(), "Polygon not convex!");
 	}
 
+	if (checkForSelfIntersections)
+	{
+		ASSERT_OR_DIE(!IsSelfIntersecting(), "Polygon self intersects!");
+	}
+
+	if (checkForColinearPoints)
+	{
+		ASSERT_OR_DIE(!HasColinearPoints(), "Colinear point found!");
+	}
 #endif
-
-	m_vertices.push_back(vertex);
-	ASSERT_OR_DIE(!IsSelfIntersecting(), "Polygon self intersects!");
-
-	return (int)m_vertices.size() - 1;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void Polygon3::SetVertex(int iVertex, const Vector3& vertex)
+void Polygon3::Clear()
 {
-	m_vertices[iVertex] = vertex;
+	m_vertices.clear();
 }
 
 
@@ -161,6 +144,67 @@ bool Polygon3::IsConvex() const
 	TransformSelfInto2DBasis(poly2);
 
 	return poly2.IsConvex();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool Polygon3::HasDuplicateVertices() const
+{
+	for (int iFirst = 0; iFirst < (int)m_vertices.size() - 1; ++iFirst)
+	{
+		for (int iSecond = iFirst + 1; iSecond < (int)m_vertices.size(); ++iSecond)
+		{
+			if (AreMostlyEqual(m_vertices[iFirst], m_vertices[iSecond]))
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool Polygon3::HasColinearPoints() const
+{
+	if (m_vertices.size() > 2)
+	{
+		for (int iVertex = 0; iVertex < (int)m_vertices.size() - 2; ++iVertex)
+		{
+			Vector3 a = m_vertices[iVertex];
+			Vector3 b = m_vertices[iVertex + 1];
+			Vector3 c = m_vertices[iVertex + 2];
+			bool pointsColinear = ArePointsColinear(a, b, c);
+
+			if (pointsColinear)
+				return true;
+		}
+	}
+
+	return false;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool Polygon3::ArePointsCoplanar() const
+{
+	if (m_vertices.size() > 3)
+	{
+		Vector3 ab = m_vertices[1] - m_vertices[0];
+		Vector3 bc = m_vertices[2] - m_vertices[0];
+		Vector3 normal = CrossProduct(ab, bc);
+		Plane3 plane(normal, m_vertices[0]);
+
+		for (int iVertex = 3; iVertex < (int)m_vertices.size(); ++iVertex)
+		{
+			float dist = plane.GetDistanceFromPlane(m_vertices[iVertex]);
+			if (!AreMostlyEqual(dist, 0.f))
+				return false;
+		}
+	}
+
+	return true;
 }
 
 

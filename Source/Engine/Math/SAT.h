@@ -27,6 +27,18 @@ struct SATResult_CapsuleHull
 	int		m_iFaceOrEdge = -1;
 };
 
+struct SATResult_HullHull
+{
+	Vector3 m_axis = Vector3::ZERO;
+	float	m_pen = FLT_MAX;
+
+	bool	m_isFaceAxis = false;
+
+	int		m_iFaceOrEdgeA = -1;
+	int		m_iFaceOrEdgeB = -1;
+
+};
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -42,6 +54,7 @@ public:
 	//-----Public Methods-----
 
 	static bool GetMinPenAxis(const Capsule3& capsule, const Polyhedron& polyhedron, SATResult_CapsuleHull& out_result);
+	static bool GetMinPenAxis(const Polyhedron& a, const Polyhedron& b, SATResult_HullHull& out_result);
 
 };
 

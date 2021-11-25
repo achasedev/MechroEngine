@@ -81,6 +81,7 @@ private:
 	// [5][X]
 
 	// [6][X]
+	int GenerateContacts_HullHull(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
 
 
 private:

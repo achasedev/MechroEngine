@@ -101,6 +101,7 @@ public:
 	// Faces
 	int						GetNumFaces() const { return (int)m_faces.size(); }
 	const PolyhedronFace*	GetFace(int faceIndex) const;
+	void					GetFace(int faceIndex, Polygon3& out_face) const;
 	const PolyhedronFace*	GetFaceMostInDirection(const Vector3& direction) const;
 	int						GetIndexOfFaceMostInDirection(const Vector3& direction) const;
 	Vector3					GetFaceNormal(int faceIndex) const;

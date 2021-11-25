@@ -302,6 +302,24 @@ const PolyhedronFace* Polyhedron::GetFace(int faceIndex) const
 
 
 //-------------------------------------------------------------------------------------------------
+void Polyhedron::GetFace(int faceIndex, Polygon3& out_face) const
+{
+	out_face.Clear();
+
+	const PolyhedronFace* face = GetFace(faceIndex);
+	int numIndices = (int)face->m_indices.size();
+
+	for (int iIndex = 0; iIndex < numIndices; ++iIndex)
+	{
+		int iVertex = face->m_indices[iIndex];
+		Vector3 vertex = GetVertexPosition(iVertex);
+
+		out_face.m_vertices.push_back(vertex);
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------------
 const PolyhedronFace* Polyhedron::GetFaceMostInDirection(const Vector3& direction) const
 {
 	int iFace = GetIndexOfFaceMostInDirection(direction);
@@ -585,7 +603,12 @@ bool Polyhedron::ClipEdgeToFace(int faceIndex, LineSegment3& inout_edge) const
 
 				// New clip location will be where the segment crosses the edge plane
 				Vector3 dir = (otherPt - clipPt);
-				clipPt = SolveLinePlaneIntersection(Line3(clipPt, dir), sidePlane);
+
+				Maybe<Vector3> result = SolveLinePlaneIntersection(Line3(clipPt, dir), sidePlane);
+				if (result.IsValid())
+				{
+					clipPt = result.Get();
+				}
 			}
 		}
 	}
@@ -597,19 +620,54 @@ bool Polyhedron::ClipEdgeToFace(int faceIndex, LineSegment3& inout_edge) const
 //-------------------------------------------------------------------------------------------------
 void Polyhedron::ClipFaceToFace(int faceIndex, Polygon3& inout_faceToClip) const
 {
-	int numVerts = (int)inout_faceToClip.GetNumVertices();
+	std::vector<Plane3> edgePlanes;
+	GetFaceSidePlanes(faceIndex, edgePlanes);
 
-	for (int iVertex = 0; iVertex < numVerts; ++iVertex)
+	for (Plane3 plane : edgePlanes)
 	{
-		int iNextVertex = (iVertex + 1) % numVerts;
+		std::vector<Vector3> input = inout_faceToClip.m_vertices;
+		inout_faceToClip.Clear();
 
-		LineSegment3 edge(inout_faceToClip.GetVertex(iVertex), inout_faceToClip.GetVertex(iNextVertex));
-		bool wasElgibleForClip = ClipEdgeToFace(faceIndex, edge);
-
-		if (wasElgibleForClip)
+		int numVertices = (int)input.size();
+		for (int iCurrVertex = 0; iCurrVertex < numVertices; ++iCurrVertex)
 		{
-			inout_faceToClip.SetVertex(iVertex, edge.m_a);
-			inout_faceToClip.SetVertex(iNextVertex, edge.m_b);
+			int iPrevVertex = (iCurrVertex == 0 ? numVertices - 1 : iCurrVertex - 1);
+
+			Vector3 curr = input[iCurrVertex];
+			Vector3 prev = input[iPrevVertex];
+
+			bool currInside = plane.GetDistanceFromPlane(curr) < 0.f;
+			bool prevInside = plane.GetDistanceFromPlane(prev) < 0.f;
+
+			if (currInside)
+			{
+				if (!prevInside)
+				{
+					Maybe<Vector3> intersectionPt = ComputeIntersection(LineSegment3(prev, curr), plane);
+					if (!intersectionPt.IsValid())
+					{
+						int x = 0;
+						x = 4;
+					}
+					ASSERT_OR_DIE(intersectionPt.IsValid(), "Couldn't find clip point!");
+
+					inout_faceToClip.m_vertices.push_back(intersectionPt.Get());
+				}
+
+				inout_faceToClip.m_vertices.push_back(curr);
+			}
+			else if (prevInside)
+			{
+				Maybe<Vector3> intersectionPt = ComputeIntersection(LineSegment3(prev, curr), plane);
+				if (!intersectionPt.IsValid())
+				{
+					int x = 0;
+					x = 4;
+				}
+				ASSERT_OR_DIE(intersectionPt.IsValid(), "Couldn't find clip point!");
+
+				inout_faceToClip.m_vertices.push_back(intersectionPt.Get());
+			}
 		}
 	}
 }
@@ -619,6 +677,7 @@ void Polyhedron::ClipFaceToFace(int faceIndex, Polygon3& inout_faceToClip) const
 UniqueHalfEdgeIterator::UniqueHalfEdgeIterator(const Polyhedron& polygon)
 	: m_polyhedron(polygon)
 {
+	ASSERT_OR_DIE(polygon.HasGeneratedHalfEdges(), "Edges aren't generated!");
 }
 
 

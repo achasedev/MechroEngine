@@ -223,9 +223,10 @@ bool	DoPointsWindClockwise(const Vector2& a, const Vector2& b, const Vector2& c)
 bool	IsPointOnLineSegment(const Vector2& p, const LineSegment2& lineSegment);
 bool	ArePointsColinear(const Vector3& a, const Vector3& b, const Vector3& c);
 
-float	CalculateVolumeOfTetrahedron(const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& d);
-Vector3 SolveLinePlaneIntersection(const Line3& line, const Plane3& plane);
-bool	SolveLineCircleIntersection(const Vector3& point, const Vector3& direction, const Vector3& center, float radius, Vector2& out_tSolutions);
+float			CalculateVolumeOfTetrahedron(const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& d);
+Maybe<Vector3>	SolveLinePlaneIntersection(const Line3& line, const Plane3& plane);
+Maybe<Vector3>	ComputeIntersection(const LineSegment3& lineSegment, const Plane3& plane);
+bool			SolveLineCircleIntersection(const Vector3& point, const Vector3& direction, const Vector3& center, float radius, Vector2& out_tSolutions);
 
 // Line Segment
 float	FindNearestPoint(const Vector2& point, const LineSegment2& lineSegment, Vector2& out_closestPt);
