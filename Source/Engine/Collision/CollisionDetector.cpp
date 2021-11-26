@@ -33,7 +33,7 @@
 GenerateContactsFunction CollisionDetector::s_colliderMatrix[NUM_COLLIDER_TYPES][NUM_COLLIDER_TYPES] =
 {
 	{ nullptr, nullptr, &CollisionDetector::GenerateContacts_HalfSpaceSphere,	&CollisionDetector::GenerateContacts_HalfSpaceCapsule,	&CollisionDetector::GenerateContacts_HalfSpaceBox,	&CollisionDetector::GenerateContacts_HalfSpaceCylinder, &CollisionDetector::GenerateContacts_HalfSpaceHull },
-	{ nullptr, nullptr, &CollisionDetector::GenerateContacts_PlaneSphere,		&CollisionDetector::GenerateContacts_PlaneCapsule,		&CollisionDetector::GenerateContacts_PlaneBox,		&CollisionDetector::GenerateContacts_PlaneCylinder,		nullptr },
+	{ nullptr, nullptr, &CollisionDetector::GenerateContacts_PlaneSphere,		&CollisionDetector::GenerateContacts_PlaneCapsule,		&CollisionDetector::GenerateContacts_PlaneBox,		&CollisionDetector::GenerateContacts_PlaneCylinder,		&CollisionDetector::GenerateContacts_PlaneHull },
 	{ nullptr, nullptr,	&CollisionDetector::GenerateContacts_SphereSphere,		&CollisionDetector::GenerateContacts_SphereCapsule,		&CollisionDetector::GenerateContacts_SphereBox,		&CollisionDetector::GenerateContacts_SphereCylinder,	&CollisionDetector::GenerateContacts_SphereHull },
 	{ nullptr, nullptr, nullptr,												&CollisionDetector::GenerateContacts_CapsuleCapsule,	&CollisionDetector::GenerateContacts_CapsuleBox,	&CollisionDetector::GenerateContacts_CapsuleCylinder,	&CollisionDetector::GenerateContacts_CapsuleHull },
 	{ nullptr, nullptr, nullptr,												nullptr,												&CollisionDetector::GenerateContacts_BoxBox,		nullptr,												nullptr },
@@ -1994,3 +1994,87 @@ int CollisionDetector::GenerateContacts_PlaneCylinder(const Collider* a, const C
 }
 
 
+//-------------------------------------------------------------------------------------------------
+int CollisionDetector::GenerateContacts_PlaneHull(const Collider* a, const Collider* b, Contact* out_contacts, int limit)
+{
+	const PlaneCollider* aPlaneCol = a->GetAsType<PlaneCollider>();
+	const ConvexHullCollider* bHullCol = b->GetAsType<ConvexHullCollider>();
+	ASSERT_OR_DIE(aPlaneCol != nullptr && bHullCol != nullptr, "Colliders are of wrong type!");
+
+	if (limit <= 0)
+		return 0;
+
+	Plane3 planeWs = aPlaneCol->GetDataInWorldSpace();
+	Polyhedron polyWs = bHullCol->GetDataInWorldSpace();
+
+	// Keep track of which points are in front/behind the plane
+	std::vector<Vector3> frontPts;
+	std::vector<Vector3> backPts;
+	
+	// And distances for the sake of sorting
+	std::vector<float> frontDists;
+	std::vector<float> backDists;
+
+	// ...and the "worst" we've seen on each side
+	float maxFrontDist = -1.f;
+	float maxBackDist = -1.f;
+
+	int numVerts = polyWs.GetNumVertices();
+	for (int iVert = 0; iVert < numVerts; ++iVert)
+	{
+		Vector3 vert = polyWs.GetVertexPosition(iVert);
+		float dist = planeWs.GetDistanceFromPlane(vert);
+
+		bool inFront = (dist >= 0.f);
+
+		dist = Abs(dist);
+		std::vector<Vector3>& points = (inFront ? frontPts : backPts);
+		std::vector<float>& distances = (inFront ? frontDists : backDists);
+		float& maxDist = (inFront ? maxFrontDist : maxBackDist);
+		maxDist = Max(maxDist, dist);
+
+		// Insert the point in the right array, sorted by descending distance
+		int index = -1;
+		for (int i = 0; i < (int)distances.size(); ++i)
+		{
+			if (dist > distances[i])
+			{
+				index = i;
+				break;
+			}
+		}
+
+		if (index >= 0)
+		{
+			points.insert(points.begin() + index, vert);
+			distances.insert(distances.begin() + index, dist);
+		}
+		else
+		{
+			points.push_back(vert);
+			distances.push_back(dist);
+		}
+	}
+
+	// If we're not intersecting the plane, don't do anything
+	if (frontPts.size() == 0 || backPts.size() == 0)
+		return 0;
+
+	// Choose to generate contacts on the side that's closer to the plane
+	bool pushBehindPlane = (maxFrontDist < maxBackDist);
+	const std::vector<Vector3>& positions = (pushBehindPlane ? frontPts : backPts);
+	const std::vector<float>& pens = (pushBehindPlane ? frontDists : backDists);
+	Vector3 normal = (pushBehindPlane ? -1.0f * planeWs.m_normal : planeWs.m_normal);
+
+	int numContacts = Min((int)positions.size(), limit);
+	for (int iContact = 0; iContact < numContacts; ++iContact)
+	{
+		out_contacts[iContact].position = positions[iContact];
+		out_contacts[iContact].normal = normal;
+		out_contacts[iContact].penetration = pens[iContact];
+		FillOutColliderInfo(&out_contacts[iContact], bHullCol, aPlaneCol);
+		out_contacts[iContact].CheckValuesAreReasonable();
+	}
+
+	return numContacts;
+}
