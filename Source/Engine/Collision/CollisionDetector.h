@@ -78,6 +78,7 @@ private:
 
 	// [4][X]
 	int GenerateContacts_BoxBox(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
+	int GenerateContacts_BoxHull(const Collider* a, const Collider* b, Contact* out_contacts, int limit);
 
 	// [5][X]
 

@@ -36,7 +36,7 @@ GenerateContactsFunction CollisionDetector::s_colliderMatrix[NUM_COLLIDER_TYPES]
 	{ nullptr, nullptr, &CollisionDetector::GenerateContacts_PlaneSphere,		&CollisionDetector::GenerateContacts_PlaneCapsule,		&CollisionDetector::GenerateContacts_PlaneBox,		&CollisionDetector::GenerateContacts_PlaneCylinder,		&CollisionDetector::GenerateContacts_PlaneHull },
 	{ nullptr, nullptr,	&CollisionDetector::GenerateContacts_SphereSphere,		&CollisionDetector::GenerateContacts_SphereCapsule,		&CollisionDetector::GenerateContacts_SphereBox,		&CollisionDetector::GenerateContacts_SphereCylinder,	&CollisionDetector::GenerateContacts_SphereHull },
 	{ nullptr, nullptr, nullptr,												&CollisionDetector::GenerateContacts_CapsuleCapsule,	&CollisionDetector::GenerateContacts_CapsuleBox,	&CollisionDetector::GenerateContacts_CapsuleCylinder,	&CollisionDetector::GenerateContacts_CapsuleHull },
-	{ nullptr, nullptr, nullptr,												nullptr,												&CollisionDetector::GenerateContacts_BoxBox,		nullptr,												nullptr },
+	{ nullptr, nullptr, nullptr,												nullptr,												&CollisionDetector::GenerateContacts_BoxBox,		nullptr,												&CollisionDetector::GenerateContacts_BoxHull },
 	{ nullptr, nullptr, nullptr,												nullptr,												nullptr,											nullptr,												nullptr },
 	{ nullptr, nullptr, nullptr,												nullptr,												nullptr,											nullptr,												&CollisionDetector::GenerateContacts_HullHull }
 };
@@ -917,19 +917,9 @@ int CollisionDetector::GenerateContacts_BoxBox(const Collider* a, const Collider
 #undef CHECK_OVERLAP
 
 //-------------------------------------------------------------------------------------------------
-int CollisionDetector::GenerateContacts_HullHull(const Collider* a, const Collider* b, Contact* out_contacts, int limit)
+static int GenerateContacts_HullHullInternal(const Collider* a, const Collider* b, const Polyhedron& aHullWs, const Polyhedron& bHullWs, Contact* out_contacts, int limit)
 {
-	if (limit <= 0)
-		return 0;
-
 	int numContacts = 0;
-	const ConvexHullCollider* aHullCol = a->GetAsType<ConvexHullCollider>();
-	const ConvexHullCollider* bHullCol = b->GetAsType<ConvexHullCollider>();
-	ASSERT_OR_DIE(aHullCol != nullptr && bHullCol != nullptr, "Colliders are of wrong type!");
-
-	const Polyhedron aHullWs = aHullCol->GetDataInWorldSpace();
-	const Polyhedron bHullWs = bHullCol->GetDataInWorldSpace();
-
 	SATResult_HullHull result;
 	bool hasOverlap = SAT::GetMinPenAxis(aHullWs, bHullWs, result);
 
@@ -942,7 +932,7 @@ int CollisionDetector::GenerateContacts_HullHull(const Collider* a, const Collid
 			const Polyhedron& refHull = (aIsRef ? aHullWs : bHullWs);
 			const Polyhedron& incHull = (aIsRef ? bHullWs : aHullWs);
 			int iRefFace = (aIsRef ? result.m_iFaceOrEdgeA : result.m_iFaceOrEdgeB);
-			
+
 			Plane3 refPlane = refHull.GetFaceSupportPlane(iRefFace);
 			int iIncFace = incHull.GetIndexOfFaceMostInDirection(-1.0f * refPlane.m_normal);
 
@@ -998,6 +988,41 @@ int CollisionDetector::GenerateContacts_HullHull(const Collider* a, const Collid
 	}
 
 	return numContacts;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionDetector::GenerateContacts_BoxHull(const Collider* a, const Collider* b, Contact* out_contacts, int limit)
+{
+	if (limit <= 0)
+		return 0;
+
+	const BoxCollider* aBoxCol = a->GetAsType<BoxCollider>();
+	const ConvexHullCollider* bHullCol = b->GetAsType<ConvexHullCollider>();
+	ASSERT_OR_DIE(aBoxCol != nullptr && bHullCol != nullptr, "Colliders are of wrong type!");
+
+	const OBB3 aBoxWs = aBoxCol->GetDataInWorldSpace();
+	const Polyhedron aHullWs = OBB3(aBoxWs);
+	const Polyhedron bHullWs = bHullCol->GetDataInWorldSpace();
+
+	return GenerateContacts_HullHullInternal(a, b, aHullWs, bHullWs, out_contacts, limit);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+int CollisionDetector::GenerateContacts_HullHull(const Collider* a, const Collider* b, Contact* out_contacts, int limit)
+{
+	if (limit <= 0)
+		return 0;
+
+	const ConvexHullCollider* aHullCol = a->GetAsType<ConvexHullCollider>();
+	const ConvexHullCollider* bHullCol = b->GetAsType<ConvexHullCollider>();
+	ASSERT_OR_DIE(aHullCol != nullptr && bHullCol != nullptr, "Colliders are of wrong type!");
+
+	const Polyhedron aHullWs = aHullCol->GetDataInWorldSpace();
+	const Polyhedron bHullWs = bHullCol->GetDataInWorldSpace();
+
+	return GenerateContacts_HullHullInternal(a, b, aHullWs, bHullWs, out_contacts, limit);
 }
 
 
