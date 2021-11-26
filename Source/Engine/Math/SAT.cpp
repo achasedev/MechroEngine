@@ -179,6 +179,7 @@ static void QueryEdgeDirections(const Polyhedron& a, const Polyhedron& b, SATRes
 	while (aEdge != nullptr)
 	{
 		Vector3 aEdgeDir = a.GetEdgeDirection(aEdge);
+		Vector3 aEdgePt = a.GetVertexPosition(aEdge->m_vertexIndex);
 
 		while (bEdge != nullptr)
 		{
@@ -202,13 +203,26 @@ static void QueryEdgeDirections(const Polyhedron& a, const Polyhedron& b, SATRes
 			}
 
 			// Since normal points into A, put the plane on B
+			Vector3 bEdgePt = b.GetVertexPosition(bEdge->m_vertexIndex);
+			Plane3 plane(axis, bEdgePt);
+
+			// If this plane bisects B, don't even consider it
 			Vector3 bSupportPt;
 			b.GetSupportPoint(axis, bSupportPt);
-			Plane3 plane(axis, bSupportPt);
+			if (plane.GetDistanceFromPlane(bSupportPt) > 0.f)
+			{
+				return;
+			}
 
-			// Get the furthest a point into the plane 
+			// Get the furthest a point behind the plane 
 			Vector3 aSupportPt;
 			a.GetSupportPoint(-1.0f * axis, aSupportPt);
+
+			{
+				Plane3 aPlane(-1.0f * axis, aEdgePt);
+				if (aPlane.GetDistanceFromPlane(aSupportPt) > 0.f)
+					return;
+			}
 
 			float pen = -1.0f * plane.GetDistanceFromPlane(aSupportPt);
 

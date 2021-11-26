@@ -974,7 +974,26 @@ int CollisionDetector::GenerateContacts_HullHull(const Collider* a, const Collid
 		}
 		else
 		{
+			const LineSegment3 aEdge = aHullWs.GetEdgeSegment(result.m_iFaceOrEdgeA);
+			const LineSegment3 bEdge = bHullWs.GetEdgeSegment(result.m_iFaceOrEdgeB);
 
+			Vector3 aPt, bPt;
+			float distance = FindNearestPoints(aEdge, bEdge, aPt, bPt);
+
+			Vector3 normal = CrossProduct(aEdge.m_b - aEdge.m_a, bEdge.m_b - bEdge.m_a).GetNormalized();
+			Vector3 outOfA = aPt - aHullWs.GetCenter();
+			if (DotProduct(outOfA, normal) > 0.f)
+			{
+				normal *= -1.0f;
+			}
+
+			out_contacts[0].penetration = distance;
+			out_contacts[0].normal = normal;
+			out_contacts[0].position = 0.5f * (aPt + bPt);
+			FillOutColliderInfo(&out_contacts[0], a, b);
+			out_contacts[0].CheckValuesAreReasonable();
+
+			numContacts = 1;
 		}
 	}
 
