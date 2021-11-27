@@ -165,7 +165,6 @@
     <ClCompile Include="..\ThirdParty\mikkt\mikktspace.c" />
     <ClCompile Include="..\ThirdParty\tinyxml2\tinyxml2.cpp" />
     <ClCompile Include="Collision\BoundingVolumeHierarchy\BoundingVolume.cpp" />
-    <ClCompile Include="Collision\CollisionCases\CapsuleCylinderCollision.cpp" />
     <ClCompile Include="Collision\CollisionDetector.cpp" />
     <ClCompile Include="Collision\Collider.cpp" />
     <ClCompile Include="Collision\Contact.cpp" />
@@ -306,7 +305,6 @@
     <ClInclude Include="..\ThirdParty\tinyxml2\tinyxml2.h" />
     <ClInclude Include="Collision\BoundingVolumeHierarchy\BoundingVolume.h" />
     <ClInclude Include="Collision\BoundingVolumeHierarchy\BVHNode.h" />
-    <ClInclude Include="Collision\CollisionCases\CapsuleCylinderCollision.h" />
     <ClInclude Include="Collision\CollisionDetector.h" />
     <ClInclude Include="Collision\Collider.h" />
     <ClInclude Include="Collision\CollisionScene.h" />

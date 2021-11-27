@@ -9,7 +9,6 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Collision/CollisionDetector.h"
 #include "Engine/Collision/Collider.h"
-#include "Engine/Collision/CollisionCases/CapsuleCylinderCollision.h"
 #include "Engine/Collision/Contact.h"
 #include "Engine/Core/DevConsole.h"
 #include "Engine/Core/EngineCommon.h"
