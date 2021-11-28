@@ -163,6 +163,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\ThirdParty\mikkt\mikktspace.c" />
+    <ClCompile Include="..\ThirdParty\squirrel\RawNoise.cpp" />
+    <ClCompile Include="..\ThirdParty\squirrel\SmoothNoise.cpp" />
     <ClCompile Include="..\ThirdParty\tinyxml2\tinyxml2.cpp" />
     <ClCompile Include="Collision\BoundingVolumeHierarchy\BoundingVolume.cpp" />
     <ClCompile Include="Collision\CollisionDetector.cpp" />
@@ -182,6 +184,7 @@
     <ClCompile Include="Math\Point.cpp" />
     <ClCompile Include="Math\Polygon3.cpp" />
     <ClCompile Include="Math\SAT.cpp" />
+    <ClCompile Include="Math\ScalarField3.cpp" />
     <ClCompile Include="Math\ScaledAxisRotation.cpp" />
     <ClCompile Include="Math\Tetrahedron.cpp" />
     <ClCompile Include="Math\Triangle3.cpp" />
@@ -209,6 +212,7 @@
     <ClCompile Include="Render\Light.cpp" />
     <ClCompile Include="Render\Material\MaterialInstance.cpp" />
     <ClCompile Include="Render\Material\MaterialPropertyBlock.cpp" />
+    <ClCompile Include="Render\Mesh\MarchingCubes.cpp" />
     <ClCompile Include="Render\RenderScene.cpp" />
     <ClCompile Include="Render\Buffer\PropertyBlockDescription.cpp" />
     <ClCompile Include="Render\Buffer\PropertyDescription.cpp" />
@@ -300,6 +304,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\ThirdParty\mikkt\mikktspace.h" />
+    <ClInclude Include="..\ThirdParty\squirrel\RawNoise.hpp" />
+    <ClInclude Include="..\ThirdParty\squirrel\SmoothNoise.hpp" />
     <ClInclude Include="..\ThirdParty\stb\stb_image.h" />
     <ClInclude Include="..\ThirdParty\stb\stb_image_write.h" />
     <ClInclude Include="..\ThirdParty\tinyxml2\tinyxml2.h" />
@@ -326,6 +332,7 @@
     <ClInclude Include="Math\Point.h" />
     <ClInclude Include="Math\Polygon3.h" />
     <ClInclude Include="Math\SAT.h" />
+    <ClInclude Include="Math\ScalarField3.h" />
     <ClInclude Include="Math\ScaledAxisRotation.h" />
     <ClInclude Include="Math\Tetrahedron.h" />
     <ClInclude Include="Math\Triangle2.h" />
@@ -356,6 +363,7 @@
     <ClInclude Include="Render\Light.h" />
     <ClInclude Include="Render\Material\MaterialInstance.h" />
     <ClInclude Include="Render\Material\MaterialPropertyBlock.h" />
+    <ClInclude Include="Render\Mesh\MarchingCubes.h" />
     <ClInclude Include="Render\RenderScene.h" />
     <ClInclude Include="Render\Buffer\PropertyBlockDescription.h" />
     <ClInclude Include="Render\Buffer\PropertyDescription.h" />

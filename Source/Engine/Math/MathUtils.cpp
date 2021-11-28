@@ -892,7 +892,8 @@ float SmoothStop4(float t)
 //
 float SmoothStep3(float t)
 {
-	return ((1 - t) * SmoothStart2(t)) + (t * SmoothStop2(t));
+	// Equivalent to ((1 - t) * SmoothStart2(t)) + (t * SmoothStop2(t))
+	return 3.f * (t * t) - 2.f * (t * t * t);
 }
 
 

@@ -1,11 +1,11 @@
 //-----------------------------------------------------------------------------------------------
 // SmoothNoise.cpp
 //
-#include "Engine/Math/RawNoise.hpp"
-#include "Engine/Math/MathUtilities.hpp"
-#include "Engine/Math/Vector2.hpp"
-#include "Engine/Math/Vector3.hpp"
-#include "Engine/Math/Vector4.hpp"
+#include "Thirdparty/Squirrel/RawNoise.hpp"
+#include "Engine/Math/MathUtils.h"
+#include "Engine/Math/Vector2.h"
+#include "Engine/Math/Vector3.h"
+#include "Engine/Math/Vector4.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // For all fractal (and Perlin) noise functions, the following internal naming conventions
@@ -17,7 +17,7 @@
 // 3D noise: also Z (+above / -below)
 // 4D noise: also T (+after / -before)
 /////////////////////////////////////////////////////////////////////////////////////////////////
-
+const static float fSQRT_3_OVER_3 = 0.577350269189625f;
 
 //-----------------------------------------------------------------------------------------------
 float Compute1dFractalNoise( float position, float scale, unsigned int numOctaves, float octavePersistence, float octaveScale, bool renormalize, unsigned int seed )

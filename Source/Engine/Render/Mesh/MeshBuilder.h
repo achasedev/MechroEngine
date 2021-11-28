@@ -114,6 +114,8 @@ public:
 	template <typename VERT_TYPE>
 	void UpdateMesh(Mesh& out_mesh) const
 	{
+		ASSERT_OR_DIE(!m_isBuilding, "Finish building before creating/updating a mesh!");
+
 		// Convert the list of VertexMasters to the specified vertex type
 		uint32 vertexCount = (uint32)m_vertices.size();
 		uint32 indexCount = (uint32)m_indices.size();
