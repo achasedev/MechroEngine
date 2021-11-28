@@ -61,7 +61,7 @@ public:
 	void	SetNormal(const Vector3& normal);
 	void	SetTangent(const Vector4& tangent);
 	void	GenerateFlatNormals();
-
+	
 	void	SetDrawInstruction(const DrawInstruction& instruction);
 
 	uint32	PushVertex(const Vector3& position);
