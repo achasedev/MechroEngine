@@ -43,6 +43,12 @@ ScalarField3::ScalarField3(const IntVector3& dimensions, float initialValue)
 	: m_dimensions(dimensions)
 {
 	m_data = (float*)malloc(sizeof(float) * dimensions.x * dimensions.y * dimensions.z);
+	int numValues = dimensions.x * dimensions.y * dimensions.z;
+
+	for (int i = 0; i < numValues; ++i)
+	{
+		m_data[i] = initialValue;
+	}
 }
 
 

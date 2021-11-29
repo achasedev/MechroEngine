@@ -335,44 +335,6 @@ const int MarchingCubes::TRI_TABLE[256][16] =
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-int ConvertToTheirEdgeIndex(int myEdgeIndex)
-{
-	const int table[12] = { 0, 1, 2, 3, 6, 5, 4, 7, 8, 9, 10, 11 };
-	return table[myEdgeIndex];
-}
-
-
-//-------------------------------------------------------------------------------------------------
-int ConvertToTheirVertexIndex(int myVertexIndex)
-{
-	const int table[8] = { 0, 1, 2, 3, 7, 6, 5, 4 };
-	return table[myVertexIndex];
-}
-
-
-//-------------------------------------------------------------------------------------------------
-int ConvertToMyEdgeIndex(int theirEdgeIndex)
-{
-	if (theirEdgeIndex == -1)
-		return -1;
-
-	const int table[12] = { 0, 1, 2, 3, 6, 5, 4, 7, 8, 9, 10, 11 };
-	return table[theirEdgeIndex];
-}
-
-
-//-------------------------------------------------------------------------------------------------
-int ConvertToMyVertexIndex(int theirVertexIndex)
-{
-	if (theirVertexIndex == -1)
-		return -1;
-
-	const int table[8] = { 0, 1, 2, 3, 7, 6, 5, 4 };
-	return table[theirVertexIndex];
-}
-
-
-//-------------------------------------------------------------------------------------------------
 static void GetEdgeEndpoints(int edgeIndex, const IntVector3& offset, IntVector3& out_v1, IntVector3& out_v2)
 {
 	out_v1 = offset;
@@ -448,7 +410,15 @@ static Vector3 FindIntersection(int edgeIndex, float isoLevel, const IntVector3&
 	float t = GetFractionInRange(isoLevel, v1Val, v2Val);
 	ASSERT_OR_DIE(t >= 0.f && t <= 1.0f, "Bad t value!");
 
-	Vector3 pt = Interpolate(Vector3(v1), Vector3(v2), t);
+	Vector3 pt;
+	if (AreMostlyEqual(v1Val, v2Val))
+	{
+		pt = Vector3(v1);
+	}
+	else
+	{
+		pt = Interpolate(Vector3(v1), Vector3(v2), t);
+	}
 
 	return pt;
 }
@@ -484,8 +454,7 @@ Mesh* MarchingCubes::CreateMesh(const ScalarField3& scalarField, float isoLevel)
 				if (scalarField.GetValue(x + 1,	y + 1,	z + 1) < isoLevel)	{ tableIndex |= 32; }
 				if (scalarField.GetValue(x,		y + 1,	z + 1) < isoLevel)	{ tableIndex |= 64; }
 				if (scalarField.GetValue(x,		y,		z + 1) < isoLevel)	{ tableIndex |= 128; }
-
-				
+		
 				if (EDGE_TABLE[tableIndex] != 0) 
 				{
 					if (EDGE_TABLE[tableIndex] & 8) 
@@ -583,7 +552,7 @@ Mesh* MarchingCubes::CreateMesh(const ScalarField3& scalarField, float isoLevel)
 						if (AreMostlyEqual(a, b) || AreMostlyEqual(a, c) || AreMostlyEqual(b, c))
 							continue;
 
-						mb.PushTriangle3(a, b, c, Rgba(0.8f, 0.8f, 0.8f, 1.0f));
+						mb.PushTriangle3(a, b, c, Rgba(25, 140, 255, 255));
 					}
 				}
 			}
