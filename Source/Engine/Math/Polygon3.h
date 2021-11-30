@@ -46,6 +46,7 @@ public:
 	void		TransformSelfInto2DBasis(Polygon2& out_poly2) const;
 	Vector2		TransformPointInto2DBasis(const Vector3& point) const;
 	Vector3		TransformPointOutOf2DBasis(const Vector2& point) const;
+	void		GetSupportPlane(Plane3& out_plane) const;
 
 	bool		IsSelfIntersecting() const;
 	bool		IsConvex() const;
@@ -58,7 +59,7 @@ public:
 private:
 	//-----Private Methods-----
 
-	void		GetBasis(Matrix3& out_bases) const;
+	int GetComponentToFlatten(Plane3& out_plane) const;
 
 
 public:

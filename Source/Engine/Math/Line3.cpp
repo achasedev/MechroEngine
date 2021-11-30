@@ -33,5 +33,5 @@
 //-------------------------------------------------------------------------------------------------
 Vector3 Line3::FindPointAtT(float t) const
 {
-	return m_direction * t + m_point;
+	return m_direction * t + m_origin;
 }

@@ -29,6 +29,38 @@
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
+//-------------------------------------------------------------------------------------------------
+// "Flattens" the point to the plane x/y/z = 0 depending on compToFlatten
+// The point must be on the plane before flattening, hence the plane parameter
+static Vector2 FlattenPoint(const Vector3& point, int compToFlatten, const Plane3& plane)
+{
+	// Need to project onto plane first
+	Vector3 projPt = plane.GetProjectedPointOntoPlane(point);
+
+	Vector2 flatPt;
+
+	switch (compToFlatten)
+	{
+	case 0:
+		// Flatten to x = 0 plane
+		flatPt = projPt.yz;
+		break;
+	case 1:
+		// Flatten to y = 0 plane
+		flatPt = projPt.xz;
+		break;
+	case 2:
+		// Flatten to z = 0 plane
+		flatPt = projPt.xy;
+		break;
+	default:
+		ERROR_AND_DIE("Bad component index!");
+		break;
+	}
+
+	return flatPt;
+}
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -84,40 +116,75 @@ void Polygon3::TransformSelfInto2DBasis(Polygon2& out_poly2) const
 {
 	out_poly2.Clear();
 
-	Matrix3 basis;
-	GetBasis(basis);
-	basis.Invert();
+	Plane3 plane;
+	int compToFlatten = GetComponentToFlatten(plane);
 
-	for (Vector3 vertex3 : m_vertices)
+	int numVerts = (int)m_vertices.size();
+	for (int iVertex = 0; iVertex < numVerts; ++iVertex)
 	{
-		Vector2 vertex2 = (basis * (vertex3 - m_vertices[0])).xy;
-		out_poly2.AddVertex(vertex2);
+		Vector2 vert2 = FlattenPoint(m_vertices[iVertex], compToFlatten, plane);
+		out_poly2.AddVertex(vert2);
 	}
-
-	// Sanity checks
-	ASSERT_OR_DIE(AreMostlyEqual(out_poly2.GetVertex(0), Vector2::ZERO), "First point isn't origin!");
-	ASSERT_OR_DIE(AreMostlyEqual(out_poly2.GetVertex(1).y, 0.f), "Second point isn't I vector!");
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Vector2 Polygon3::TransformPointInto2DBasis(const Vector3& point) const
 {
-	Matrix3 basis;
-	GetBasis(basis);
-	basis.Invert();
+	Plane3 plane;
+	int compToFlatten = GetComponentToFlatten(plane);
 
-	return (basis * (point - m_vertices[0])).xy;
+	return FlattenPoint(point, compToFlatten, plane);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Vector3 Polygon3::TransformPointOutOf2DBasis(const Vector2& point) const
 {
-	Matrix3 basisVectors;
-	GetBasis(basisVectors);
+	Plane3 plane;
+	int zeroComp = GetComponentToFlatten(plane);
 
-	return basisVectors.iBasis * point.x + basisVectors.jBasis * point.y + m_vertices[0];
+	Line3 line;
+	switch (zeroComp)
+	{
+	case 0:
+		// Flatten to x = 0 plane
+		line.m_origin = Vector3(0.f, point.x, point.y);
+		line.m_direction = Vector3::X_AXIS;
+		break;
+	case 1:
+		// Flatten to y = 0 plane
+		line.m_origin = Vector3(point.x, 0.f, point.y);
+		line.m_direction = Vector3::Y_AXIS;
+		break;
+	case 2:
+		// Flatten to z = 0 plane
+		line.m_origin = Vector3(point.x, point.y, 0.f);
+		line.m_direction = Vector3::Z_AXIS;
+		break;
+	default:
+		ERROR_AND_DIE("Bad component index!");
+		break;
+	}
+
+	Maybe<Vector3> ptOnPlane = SolveLinePlaneIntersection(line, plane);
+	ASSERT_OR_DIE(ptOnPlane.IsValid(), "No solution?");
+
+	return ptOnPlane.Get();
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void Polygon3::GetSupportPlane(Plane3& out_plane) const
+{
+	ASSERT_OR_DIE(m_vertices.size() > 2, "Not enough points!");
+
+	Vector3 ab = m_vertices[1] - m_vertices[0];
+	Vector3 ac = m_vertices[2] - m_vertices[0];
+	Vector3 normal = CrossProduct(ab, ac);
+	normal.SafeNormalize(Vector3::ZERO);
+	ASSERT_OR_DIE(!AreMostlyEqual(normal, Vector3::ZERO), "Degenerate triangle!");
+	out_plane = Plane3(normal, m_vertices[0]);
 }
 
 
@@ -192,8 +259,8 @@ bool Polygon3::ArePointsCoplanar() const
 	if (m_vertices.size() > 3)
 	{
 		Vector3 ab = m_vertices[1] - m_vertices[0];
-		Vector3 bc = m_vertices[2] - m_vertices[0];
-		Vector3 normal = CrossProduct(ab, bc);
+		Vector3 ac = m_vertices[2] - m_vertices[0];
+		Vector3 normal = CrossProduct(ab, ac);
 		Plane3 plane(normal, m_vertices[0]);
 
 		for (int iVertex = 3; iVertex < (int)m_vertices.size(); ++iVertex)
@@ -209,14 +276,24 @@ bool Polygon3::ArePointsCoplanar() const
 
 
 //-------------------------------------------------------------------------------------------------
-void Polygon3::GetBasis(Matrix3& out_bases) const
+int Polygon3::GetComponentToFlatten(Plane3& out_plane) const
 {
-	ASSERT_OR_DIE(m_vertices.size() > 2, "Not enough vertices!");
+	GetSupportPlane(out_plane);
 
-	Vector3 i = (m_vertices[1] - m_vertices[0]).GetNormalized();
-	Vector3 inPlaneRef = (m_vertices[2] - m_vertices[0]); // Keep things ortho
-	Vector3 k = CrossProduct(i, inPlaneRef).GetNormalized();
-	Vector3 j = CrossProduct(k, i);
+	float max = Max(Abs(out_plane.m_normal.x), Abs(out_plane.m_normal.y), Abs(out_plane.m_normal.z));
 
-	out_bases = Matrix3(i, j, k);
+	if (max == Abs(out_plane.m_normal.y))
+	{
+		// Give priority to flattening on Y first
+		return 1;
+	}
+	else if (max == Abs(out_plane.m_normal.z))
+	{
+		// Then prioritize z
+		return 2;
+	}
+	else
+	{
+		return 0;
+	}
 }

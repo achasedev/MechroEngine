@@ -34,19 +34,19 @@ public:
 
 	Line3() {}
 	Line3(const Vector3& point, const Vector3& direction)
-		: m_point(point), m_direction(direction) {}
+		: m_origin(point), m_direction(direction) {}
 
 	bool	IsValid() const { return m_direction != Vector3::ZERO; }
-	Vector3 GetPoint() const { return m_point; }
+	Vector3 GetPoint() const { return m_origin; }
 	Vector3 GetDirection() const { return m_direction; }
 
 	Vector3 FindPointAtT(float t) const;
 
 
-private:
-	//-----Private Data-----
+public:
+	//-----Public Data-----
 
-	Vector3 m_point = Vector3::ZERO;
+	Vector3 m_origin = Vector3::ZERO;
 	Vector3 m_direction = Vector3::ZERO;
 
 };
