@@ -171,7 +171,7 @@ int CollisionDetector::GenerateContacts_HalfSpaceSphere(const Collider* a, const
 	if (distance >= 0)
 		return 0;
 
-	out_contacts->normal = planeWs.GetNormal();
+	out_contacts->normal = planeWs.m_normal;
 	out_contacts->penetration = -distance;
 	out_contacts->position = planeWs.GetProjectedPointOntoPlane(sphereWs.m_center);
 	FillOutColliderInfo(out_contacts, bSphereCol, aHalfspaceCol);
@@ -549,7 +549,7 @@ int CollisionDetector::GenerateContacts_SphereHull(const Collider* a, const Coll
 			if (pen > 0.f && (minPen < 0.f || pen < minPen))
 			{
 				minPen = pen;
-				normal = plane.GetNormal();
+				normal = plane.m_normal;
 			}
 		}
 
@@ -1048,7 +1048,7 @@ int CollisionDetector::GenerateContacts_HalfSpaceCapsule(const Collider* a, cons
 	Contact* contactToFill = &out_contacts[0];
 	if (startDistance < 0.f)
 	{
-		contactToFill->normal = planeWs.GetNormal();
+		contactToFill->normal = planeWs.m_normal;
 		contactToFill->penetration = -startDistance;
 		contactToFill->position = capsuleWs.start - capsuleWs.radius * contactToFill->normal;
 		FillOutColliderInfo(contactToFill, bCapsuleCol, aHalfSpaceCol);
@@ -1062,7 +1062,7 @@ int CollisionDetector::GenerateContacts_HalfSpaceCapsule(const Collider* a, cons
 
 	if (endDistance < 0.f)
 	{
-		contactToFill->normal = planeWs.GetNormal();
+		contactToFill->normal = planeWs.m_normal;
 		contactToFill->penetration = -endDistance;
 		contactToFill->position = capsuleWs.end - capsuleWs.radius * contactToFill->normal;
 		FillOutColliderInfo(contactToFill, bCapsuleCol, aHalfSpaceCol);
@@ -1585,12 +1585,12 @@ int CollisionDetector::GenerateContacts_PlaneSphere(const Collider* a, const Col
 	// Find the direction to push the sphere
 	if (distance > 0.f)
 	{
-		out_contacts->normal = planeWs.GetNormal();
+		out_contacts->normal = planeWs.m_normal;
 		out_contacts->penetration = sphereWs.m_radius - distance;
 	}
 	else
 	{
-		out_contacts->normal = -1.f * planeWs.GetNormal();
+		out_contacts->normal = -1.f * planeWs.m_normal;
 		out_contacts->penetration = sphereWs.m_radius - Abs(distance);
 	}
 

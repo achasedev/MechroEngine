@@ -1375,8 +1375,8 @@ Maybe<Vector3> SolveLinePlaneIntersection(const Line3& line, const Plane3& plane
 {
 	const Vector3 p = line.GetPoint();
 	const Vector3 dir = line.GetDirection();
-	const Vector3 n = plane.GetNormal();
-	const float d = plane.GetDistance();
+	const Vector3 n = plane.m_normal;
+	const float d = plane.m_d;
 
 	// Check for no solution
 	float dot = DotProduct(dir, n);

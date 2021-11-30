@@ -127,7 +127,7 @@ void HalfSpaceCollider::ShowDebug()
 Plane3 HalfSpaceCollider::GetDataInWorldSpace() const
 {
 	Vector3 normalWs = m_entity->transform.TransformDirection(m_dataLs.m_normal);
-	Vector3 positionLs = m_dataLs.m_normal * m_dataLs.m_distance;
+	Vector3 positionLs = m_dataLs.m_normal * m_dataLs.m_d;
 	Vector3 positionWs = m_entity->transform.TransformPosition(positionLs);
 
 	return Plane3(normalWs, positionWs);
@@ -219,7 +219,7 @@ void PlaneCollider::ShowDebug()
 Plane3 PlaneCollider::GetDataInWorldSpace() const
 {
 	Vector3 normalWs = m_entity->transform.TransformDirection(m_dataLs.m_normal);
-	Vector3 positionLs = m_dataLs.m_normal * m_dataLs.m_distance;
+	Vector3 positionLs = m_dataLs.m_normal * m_dataLs.m_d;
 	Vector3 positionWs = m_entity->transform.TransformPosition(positionLs);
 
 	return Plane3(normalWs, positionWs);

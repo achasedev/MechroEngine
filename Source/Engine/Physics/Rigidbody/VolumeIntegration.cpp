@@ -278,8 +278,8 @@ static void ConvertEnginePolyToThirdPartyPoly(const Polyhedron& enginePoly, POLY
 		}
 
 		Plane3 facePlane = enginePoly.GetFaceSupportPlane(i);
-		tpFace->w = -1.0f * facePlane.GetDistance();
-		Vector3 normal = facePlane.GetNormal();
+		tpFace->w = -1.0f * facePlane.m_d;
+		Vector3 normal = facePlane.m_normal;
 		for (int j = 0; j < 3; ++j)
 		{
 			tpFace->norm[j] = static_cast<double>(normal.data[j]);

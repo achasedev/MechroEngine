@@ -33,7 +33,7 @@
 
 //-------------------------------------------------------------------------------------------------
 Plane3::Plane3(const Vector3& normal, float distance)
-	: m_normal(normal), m_distance(distance)
+	: m_normal(normal), m_d(distance)
 {
 }
 
@@ -42,7 +42,7 @@ Plane3::Plane3(const Vector3& normal, float distance)
 Plane3::Plane3(const Vector3& normal, const Vector3& pointOnPlane)
 	: m_normal(normal)
 {
-	m_distance = DotProduct(normal, pointOnPlane);
+	m_d = DotProduct(normal, pointOnPlane);
 }
 
 
@@ -53,7 +53,7 @@ Plane3::Plane3(const Vector3& ptA, const Vector3& ptB, const Vector3& ptC)
 	Vector3 ac = ptC - ptA;
 	m_normal = CrossProduct(ab, ac).GetNormalized();
 
-	m_distance = DotProduct(m_normal, ptA);
+	m_d = DotProduct(m_normal, ptA);
 }
 
 
@@ -81,7 +81,7 @@ bool Plane3::IsPointBehind(const Vector3& point) const
 //-------------------------------------------------------------------------------------------------
 float Plane3::GetDistanceFromPlane(const Vector3& point) const
 {
-	return DotProduct(m_normal, point) - m_distance;
+	return DotProduct(m_normal, point) - m_d;
 }
 
 

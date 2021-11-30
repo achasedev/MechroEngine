@@ -631,9 +631,9 @@ void RenderContext::DrawPlane3(const Plane3& plane, const Rgba& color /*= Rgba::
 	MeshBuilder mb;
 	mb.BeginBuilding(TOPOLOGY_TRIANGLE_LIST, true);
 
-	Vector3 position = plane.GetNormal() * plane.GetDistance();
-	Vector3 right = CrossProduct(Vector3::Y_AXIS, plane.GetNormal());
-	Vector3 up = CrossProduct(plane.GetNormal(), right);
+	Vector3 position = plane.m_normal * plane.m_d;
+	Vector3 right = CrossProduct(Vector3::Y_AXIS, plane.m_normal);
+	Vector3 up = CrossProduct(plane.m_normal, right);
 
 	mb.PushQuad3D(position, Vector2(5.f), AABB2::ZERO_TO_ONE, color, right, up);
 	mb.PushQuad3D(position, Vector2(5.f), AABB2::ZERO_TO_ONE, color, -1.0f * right, up);
@@ -646,7 +646,7 @@ void RenderContext::DrawPlane3(const Plane3& plane, const Rgba& color /*= Rgba::
 	DrawMeshWithMaterial(m_immediateMesh, &material);
 
 	// Draw the normal
-	DrawLine3D(position, position + plane.GetNormal(), color, shader);
+	DrawLine3D(position, position + plane.m_normal, color, shader);
 }
 
 

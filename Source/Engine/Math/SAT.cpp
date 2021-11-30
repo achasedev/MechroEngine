@@ -77,7 +77,7 @@ bool SAT::GetMinPenAxis(const Capsule3& capsule, const Polyhedron& polyhedron, S
 	{
 		Plane3 facePlane = polyhedron.GetFaceSupportPlane(iFace);
 		Vector3 capPt;
-		capsule.GetSupportPoint(-1.0f * facePlane.GetNormal(), capPt);
+		capsule.GetSupportPoint(-1.0f * facePlane.m_normal, capPt);
 
 		float pen = -1.0f * facePlane.GetDistanceFromPlane(capPt);
 
@@ -87,7 +87,7 @@ bool SAT::GetMinPenAxis(const Capsule3& capsule, const Polyhedron& polyhedron, S
 		if (pen < out_result.m_pen)
 		{
 			out_result.m_pen = pen;
-			out_result.m_axis = facePlane.GetNormal();
+			out_result.m_axis = facePlane.m_normal;
 			out_result.m_isFaceAxis = true;
 			out_result.m_iFaceOrEdge = iFace;
 		}

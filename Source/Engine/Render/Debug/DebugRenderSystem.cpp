@@ -262,7 +262,7 @@ DebugRenderObjectHandle DebugDrawPlane(const Plane3& plane, const DebugRenderOpt
 	Vector3 reference = AreMostlyEqual(Abs(DotProduct(normal, Vector3::X_AXIS)), 1.0f) ? Vector3::Z_AXIS : Vector3::X_AXIS;
 	Vector3 bitangent = CrossProduct(reference, normal).GetNormalized();
 	Vector3 tangent = CrossProduct(normal, bitangent);
-	Vector3 position = plane.m_normal * plane.m_distance;
+	Vector3 position = plane.m_normal * plane.m_d;
 
 	Matrix4 modelMat = Matrix4(tangent, bitangent, normal, position);
 	modelMat = modelMat * Matrix4::MakeScale(Vector3(200.f));
