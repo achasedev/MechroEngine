@@ -30,6 +30,38 @@
 /// C FUNCTIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 
+//-------------------------------------------------------------------------------------------------
+// "Flattens" the point to the plane x/y/z = 0 depending on compToFlatten
+// The point must be on the plane before flattening, hence the plane parameter
+static Vector2 FlattenPoint(const Vector3& point, int compToFlatten, const Plane3& plane)
+{
+	// Need to project onto plane first
+	Vector3 projPt = plane.GetProjectedPointOntoPlane(point);
+
+	Vector2 flatPt;
+
+	switch (compToFlatten)
+	{
+	case 0:
+		// Flatten to x = 0 plane
+		flatPt = projPt.yz;
+		break;
+	case 1:
+		// Flatten to y = 0 plane
+		flatPt = projPt.xz;
+		break;
+	case 2:
+		// Flatten to z = 0 plane
+		flatPt = projPt.xy;
+		break;
+	default:
+		ERROR_AND_DIE("Bad component index!");
+		break;
+	}
+
+	return flatPt;
+}
+
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// CLASS IMPLEMENTATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -46,45 +78,60 @@ void Triangle3::operator=(const Triangle3& copy)
 //-------------------------------------------------------------------------------------------------
 void Triangle3::TransformSelfInto2DBasis(Triangle2& out_triangle2) const
 {
-	Matrix3 basis;
-	GetBasis(basis);
-	basis.Invert();
+	Plane3 plane;
+	int compToFlatten = GetComponentToFlatten(plane);
 
-	// Choose a to be origin, b - a is i vector
-	out_triangle2.m_a = Vector2::ZERO;
-	out_triangle2.m_b = (basis * (m_b - m_a)).xy;
-	out_triangle2.m_c = (basis * (m_c - m_a)).xy;
+	out_triangle2.m_a = FlattenPoint(m_a, compToFlatten, plane);
+	out_triangle2.m_b = FlattenPoint(m_b, compToFlatten, plane);
+	out_triangle2.m_c = FlattenPoint(m_c, compToFlatten, plane);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Vector2 Triangle3::TransformPointInto2DBasis(const Vector3& point) const
 {
-	Matrix3 basis;
-	GetBasis(basis);
-	basis.Invert();
+	Plane3 plane;
+	int compToFlatten = GetComponentToFlatten(plane);
 
-	return (basis * (point - m_a)).xy;
+	return FlattenPoint(point, compToFlatten, plane);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 Vector3 Triangle3::TransformPointOutOf2DBasis(const Vector2& point) const
 {
-	Matrix3 basisVectors;
-	GetBasis(basisVectors);
+	Triangle2 flatTri;
+	TransformSelfInto2DBasis(flatTri);
+	Vector3 baryCoords = ComputeBarycentricCoordinates(point, flatTri);
 
-	return basisVectors.iBasis * point.x + basisVectors.jBasis * point.y + m_a;
+	return baryCoords.u * m_a + baryCoords.v * m_b + baryCoords.w * m_c;
 }
 
 
 //-------------------------------------------------------------------------------------------------
-void Triangle3::GetBasis(Matrix3& out_bases) const
+int Triangle3::GetComponentToFlatten(Plane3& out_plane) const
 {
-	Vector3 i = (m_b - m_a).GetNormalized();
-	Vector3 inPlaneRef = (m_c - m_a); // Keep things ortho
-	Vector3 k = CrossProduct(i, inPlaneRef).GetNormalized();
-	Vector3 j = CrossProduct(k, i);
+	Vector3 ab = m_b - m_a;
+	Vector3 ac = m_c - m_a;
+	Vector3 normal = CrossProduct(ab, ac);
+	normal.SafeNormalize(Vector3::ZERO);
+	ASSERT_OR_DIE(!AreMostlyEqual(normal, Vector3::ZERO), "Degenerate triangle!");
+	out_plane = Plane3(normal, m_a);
 
-	out_bases = Matrix3(i, j, k);
+	float max = Max(Abs(normal.x), Abs(normal.y), Abs(normal.z));
+
+	if (max == Abs(normal.y))
+	{
+		// Give priority to flattening on Y first
+		return 1;
+	}
+	else if (max == Abs(normal.z))
+	{
+		// Then prioritize z
+		return 2;
+	}
+	else
+	{
+		return 0;
+	}
 }

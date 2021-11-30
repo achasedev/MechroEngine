@@ -65,6 +65,8 @@ GJKSolver3D<A, B>::GJKSolver3D(const GJKSolver3D<A, B>& copy)
 template <class A, class B>
 bool GJKSolver3D<A, B>::Solve()
 {
+	Clear();
+
 	const int maxIterations = 20;
 	bool foundSolution = false;
 
@@ -108,6 +110,27 @@ bool GJKSolver3D<A, B>::Solve()
 	return foundSolution;
 }
 
+
+//-------------------------------------------------------------------------------------------------
+template <class A, class B>
+void GJKSolver3D<A, B>::Clear()
+{
+	m_simplexA.Invalidate();
+	m_simplexB.Invalidate();
+	m_simplexC.Invalidate();
+	m_simplexD.Invalidate();
+	m_numVerts = 0;
+
+	for (int i = 0; i < 8; ++i)
+	{
+		m_minkowskiInputs[i] = Vector3::ZERO;
+	}
+
+	m_separationNormal = Vector3::ZERO;
+	m_separation = 0.f;
+	m_closestPtA = Vector3::ZERO;
+	m_closestPtB = Vector3::ZERO;
+}
 
 //-------------------------------------------------------------------------------------------------
 template <class A, class B>
