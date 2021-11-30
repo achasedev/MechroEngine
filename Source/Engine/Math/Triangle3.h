@@ -18,6 +18,7 @@
 /// ENUMS, TYPEDEFS, STRUCTS, FORWARD DECLARATIONS
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Matrix3;
+class Plane3;
 class Triangle2;
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -49,7 +50,7 @@ public:
 private:
 	//-----Private Methods-----
 
-	void GetBasis(Matrix3& out_bases) const;
+	int			GetComponentToFlatten(Plane3& out_plane) const;
 
 
 public:
