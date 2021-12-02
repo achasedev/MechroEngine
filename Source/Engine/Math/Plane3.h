@@ -44,6 +44,12 @@ public:
 	Vector3	GetProjectedPointOntoPlane(const Vector3& point) const;
 
 
+private:
+	//-----Private Methods-----
+
+	float GetTFromPlane(const Vector3& point) const;
+
+
 public:
 	//-----Public Data-----
 

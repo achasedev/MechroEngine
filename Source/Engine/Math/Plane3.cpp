@@ -60,27 +60,33 @@ Plane3::Plane3(const Vector3& ptA, const Vector3& ptB, const Vector3& ptC)
 //-------------------------------------------------------------------------------------------------
 bool Plane3::ContainsPoint(const Vector3& point) const
 {
-	return (AreMostlyEqual(GetDistanceFromPlane(point), 0.f));
+	float t = GetTFromPlane(point);
+	return (Abs(t) < DEFAULT_EPSILON);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 bool Plane3::IsPointInFront(const Vector3& point) const
 {
-	return (GetDistanceFromPlane(point) > -DEFAULT_EPSILON);
+	float t = GetTFromPlane(point);
+	return (t > -DEFAULT_EPSILON);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 bool Plane3::IsPointBehind(const Vector3& point) const
 {
-	return (GetDistanceFromPlane(point) < DEFAULT_EPSILON);
+	float t = GetTFromPlane(point);
+	return (t < DEFAULT_EPSILON);
 }
 
 
 //-------------------------------------------------------------------------------------------------
 float Plane3::GetDistanceFromPlane(const Vector3& point) const
 {
+	float lengthSqr = m_normal.GetLengthSquared();
+	ASSERT_OR_DIE(AreMostlyEqual(lengthSqr, 1.0f), "Attempting to get distance with non-unit normal!");
+
 	return DotProduct(m_normal, point) - m_d;
 }
 
@@ -88,6 +94,25 @@ float Plane3::GetDistanceFromPlane(const Vector3& point) const
 //-------------------------------------------------------------------------------------------------
 Vector3 Plane3::GetProjectedPointOntoPlane(const Vector3& point) const
 {
-	float distance = GetDistanceFromPlane(point);
-	return point - (m_normal * distance);
+	float t = GetTFromPlane(point);
+	return point - t * m_normal;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+float Plane3::GetTFromPlane(const Vector3& point) const
+{
+	float lengthSqr = m_normal.GetLengthSquared();
+	float t = -1.f;
+
+	if (AreMostlyEqual(lengthSqr, 1.0f, DEFAULT_EPSILON))
+	{
+		t = DotProduct(m_normal, point) - m_d;
+	}
+	else
+	{
+		t = (DotProduct(m_normal, point) - m_d) / lengthSqr;
+	}
+
+	return t;
 }
