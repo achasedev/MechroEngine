@@ -103,15 +103,11 @@ Vector3 Plane3::GetProjectedPointOntoPlane(const Vector3& point) const
 float Plane3::GetTFromPlane(const Vector3& point) const
 {
 	float lengthSqr = m_normal.GetLengthSquared();
-	float t = -1.f;
+	float t = DotProduct(m_normal, point) - m_d;
 
-	if (AreMostlyEqual(lengthSqr, 1.0f, DEFAULT_EPSILON))
+	if (!AreMostlyEqual(lengthSqr, 1.0f, DEFAULT_EPSILON))
 	{
-		t = DotProduct(m_normal, point) - m_d;
-	}
-	else
-	{
-		t = (DotProduct(m_normal, point) - m_d) / lengthSqr;
+		t /= lengthSqr;
 	}
 
 	return t;
