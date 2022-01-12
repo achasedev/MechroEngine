@@ -356,6 +356,9 @@ void DebugRenderSystem::SetCamera(Camera* camera)
 //-------------------------------------------------------------------------------------------------
 void DebugRenderSystem::Render()
 {
+	if (m_camera == nullptr)
+		return;
+
 	g_renderContext->BeginCamera(m_camera);
 
 	// Update axes to stay in front of the camera

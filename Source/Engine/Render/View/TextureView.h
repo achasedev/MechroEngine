@@ -71,6 +71,7 @@ class TextureView
 {
 	friend class Texture;
 	friend class Texture2DArray;
+	friend class RenderContext;
 
 public:
 	//-----Public Methods-----

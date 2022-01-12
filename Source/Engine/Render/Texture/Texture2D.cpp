@@ -223,11 +223,11 @@ RenderTargetView* Texture2D::CreateOrGetColorTargetView(const TextureViewCreateI
 	if (viewInfo == nullptr)
 	{
 		// Make sure we use the right default
-		TextureViewCreateInfo cubeViewInfo;
-		cubeViewInfo.m_viewDimension = VIEW_DIMENSION_TEXTURE2D;
-		cubeViewInfo.m_viewUsage = TEXTURE_USAGE_RENDER_TARGET_BIT;
+		TextureViewCreateInfo viewInfo;
+		viewInfo.m_viewDimension = VIEW_DIMENSION_TEXTURE2D;
+		viewInfo.m_viewUsage = TEXTURE_USAGE_RENDER_TARGET_BIT;
 
-		return Texture::CreateOrGetColorTargetView(&cubeViewInfo);
+		return Texture::CreateOrGetColorTargetView(&viewInfo);
 	}
 
 	return Texture::CreateOrGetColorTargetView(viewInfo);

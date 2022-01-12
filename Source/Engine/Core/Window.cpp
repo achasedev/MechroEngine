@@ -242,6 +242,9 @@ void Window::ResizeWindowToWindowsRect()
 	args.Set("client-aspect", GetClientAspect());
 	args.Set("client-width", static_cast<int>(m_clientPixelBounds.GetWidth()));
 	args.Set("client-height", static_cast<int>(m_clientPixelBounds.GetHeight()));
+	args.Set("window-bounds", m_windowPixelBounds);
+	args.Set("window-width", static_cast<int>(m_windowPixelBounds.GetWidth()));
+	args.Set("window-height", static_cast<int>(m_windowPixelBounds.GetHeight()));
 
 	FireEvent("window-resize", args);
 }

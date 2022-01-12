@@ -182,6 +182,8 @@ void RenderContext::EndFrame()
 		ConsolePrintf(Rgba::WHITE, 5.f, "Screenshot saved to %s and %s", latestPath.c_str(), timestampPath.c_str());
 		ConsoleLogf(Rgba::WHITE, "Screenshot saved to %s and %s", latestPath.c_str(), timestampPath.c_str());
 	}
+
+	DX_SAFE_RELEASE(backbuffer);
 }
 
 
@@ -819,6 +821,8 @@ void RenderContext::PostDxInit()
 //-------------------------------------------------------------------------------------------------
 void RenderContext::InitDefaultColorAndDepthViews()
 {
+	ASSERT_OR_DIE(m_defaultColorTarget == nullptr && m_defaultDepthStencil == nullptr, "Re-initing default targets!");
+
 	// Get current back buffer
 	ID3D11Texture2D* backbuffer = nullptr;
 	m_dxSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backbuffer);
@@ -828,23 +832,13 @@ void RenderContext::InitDefaultColorAndDepthViews()
 	backbuffer->GetDesc(&desc);
 
 	// Color target
-	if (m_defaultColorTarget == nullptr)
-	{
-		m_defaultColorTarget = new Texture2D();
-	}
-
+	m_defaultColorTarget = new Texture2D();
 	m_defaultColorTarget->CreateWithNoData(desc.Width, desc.Height, TEXTURE_FORMAT_R8G8B8A8_UNORM, TEXTURE_USAGE_SHADER_RESOURCE_BIT | TEXTURE_USAGE_RENDER_TARGET_BIT, GPU_MEMORY_USAGE_GPU);
-
-	// Depth target
-	if (m_defaultDepthStencil == nullptr)
-	{
-		m_defaultDepthStencil = new Texture2D();
-	}
-
-	m_defaultDepthStencil->CreateWithNoData(desc.Width, desc.Height, TEXTURE_FORMAT_R24G8_TYPELESS, TEXTURE_USAGE_DEPTH_STENCIL_BIT, GPU_MEMORY_USAGE_GPU);
-
-	// Create default views for both
 	m_defaultColorTarget->CreateOrGetColorTargetView();
+	
+	// Depth target
+	m_defaultDepthStencil = new Texture2D();
+	m_defaultDepthStencil->CreateWithNoData(desc.Width, desc.Height, TEXTURE_FORMAT_R24G8_TYPELESS, TEXTURE_USAGE_DEPTH_STENCIL_BIT, GPU_MEMORY_USAGE_GPU);
 	m_defaultDepthStencil->CreateOrGetDepthStencilView();
 
 	DX_SAFE_RELEASE(backbuffer);
@@ -956,16 +950,69 @@ DepthStencilView* RenderContext::GetDefaultDepthStencilView() const
 //-------------------------------------------------------------------------------------------------
 bool RenderContext::Event_WindowResize(NamedProperties& args)
 {
-	m_defaultDepthStencil->Clear();
-	m_defaultColorTarget->Clear();
+	// Release all handles without destroy the objects, to preserve references	
+	ASSERT_OR_DIE(m_defaultColorTarget->m_views.size() == 1, "Multiple views!");
+	RenderTargetView* colorView = m_defaultColorTarget->CreateOrGetColorTargetView();
+	m_defaultColorTarget->m_views.clear();
+	DX_SAFE_RELEASE(colorView->m_dxView);
+	DX_SAFE_RELEASE(m_defaultColorTarget->m_dxHandle);
 
-	int clientWidth = args.Get("client-width", 0);
-	int clientHeight = args.Get("client-height", 0);
+	ASSERT_OR_DIE(m_defaultDepthStencil->m_views.size() == 1, "Multiple views!");
+	DepthStencilView* depthView = m_defaultDepthStencil->CreateOrGetDepthStencilView();
+	m_defaultDepthStencil->m_views.clear();
+	DX_SAFE_RELEASE(depthView->m_dxView);
+	DX_SAFE_RELEASE(m_defaultDepthStencil->m_dxHandle);
+	
+	// Resize the backbuffer
+	{
+		int clientWidth = args.Get("client-width", 0);
+		int clientHeight = args.Get("client-height", 0);
 
-	HRESULT hr = m_dxSwapChain->ResizeBuffers(0, clientWidth, clientHeight, DXGI_FORMAT_UNKNOWN, 0);
-	ASSERT_OR_DIE(hr == S_OK, "Couldn't resize back buffers!");
+		HRESULT hr = m_dxSwapChain->ResizeBuffers(0, clientWidth, clientHeight, DXGI_FORMAT_UNKNOWN, 0);
+		ASSERT_OR_DIE(hr == S_OK, "Couldn't resize back buffers!");
 
-	InitDefaultColorAndDepthViews();
+		// Update the backbuffer textures
+		ID3D11Texture2D* backbuffer = nullptr;
+		m_dxSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backbuffer);
+
+		// Get the back buffer bounds
+		D3D11_TEXTURE2D_DESC desc;
+		backbuffer->GetDesc(&desc);
+
+		// Color target
+		m_defaultColorTarget->CreateWithNoData(desc.Width, desc.Height, TEXTURE_FORMAT_R8G8B8A8_UNORM, TEXTURE_USAGE_SHADER_RESOURCE_BIT | TEXTURE_USAGE_RENDER_TARGET_BIT, GPU_MEMORY_USAGE_GPU);
+
+		// Depth target
+		m_defaultDepthStencil->CreateWithNoData(desc.Width, desc.Height, TEXTURE_FORMAT_R24G8_TYPELESS, TEXTURE_USAGE_DEPTH_STENCIL_BIT, GPU_MEMORY_USAGE_GPU);
+		DX_SAFE_RELEASE(backbuffer);
+	}
+	// Recreate the default color view
+	{
+		ID3D11RenderTargetView* dxRTV = nullptr;
+
+		HRESULT hr = m_dxDevice->CreateRenderTargetView(m_defaultColorTarget->m_dxHandle, nullptr, &dxRTV);
+		ASSERT_OR_DIE(SUCCEEDED(hr), "Couldn't refresh color target view after resize!");
+
+		colorView->m_dxRTV = dxRTV;
+		colorView->m_byteSize = m_defaultColorTarget->GetSize(); // Update size
+		m_defaultColorTarget->m_views.push_back(colorView);
+	}
+
+	// Recreate the default depth view
+	{
+		D3D11_DEPTH_STENCIL_VIEW_DESC depthDesc;
+		memset(&depthDesc, 0, sizeof(D3D11_DEPTH_STENCIL_VIEW_DESC));
+		depthDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+		depthDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+
+		ID3D11DepthStencilView* dxDSV = nullptr;
+		HRESULT hr = m_dxDevice->CreateDepthStencilView(m_defaultDepthStencil->m_dxHandle, &depthDesc, &dxDSV);
+		ASSERT_OR_DIE(SUCCEEDED(hr), "Couldn't refresh depth target view after resize!");
+
+		depthView->m_dxDSV = dxDSV;
+		depthView->m_byteSize = m_defaultDepthStencil->GetSize(); // Update size
+		m_defaultDepthStencil->m_views.push_back(depthView);
+	}
 
 	return false;
 }

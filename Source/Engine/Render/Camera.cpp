@@ -396,12 +396,20 @@ Frustrum Camera::GetPartialFrustrum(float nearClip, float farClip)
 //-------------------------------------------------------------------------------------------------
 bool Camera::Event_WindowResize(NamedProperties& args)
 {
-	if (m_currentProjection == CAMERA_PROJECTION_ORTHOGRAPHIC && m_colorTargetView == g_renderContext->GetDefaultColorTargetView())
+	if (m_colorTargetView == g_renderContext->GetDefaultColorTargetView())
 	{
-		// Preserve height
-		float height = m_orthoBounds.GetHeight();
 		float aspect = args.Get("client-aspect", m_orthoBounds.GetAspect());
-		SetProjectionOrthographic(height, aspect);
+
+		if (m_currentProjection == CAMERA_PROJECTION_ORTHOGRAPHIC)
+		{
+			// Preserve height
+			float height = m_orthoBounds.GetHeight();
+			SetProjectionOrthographic(height, aspect);
+		}
+		else if (m_currentProjection == CAMERA_PROJECTION_PERSPECTIVE)
+		{
+			SetProjectionPerspective(m_fovDegrees, aspect, m_nearClipZ, m_farClipZ);
+		}
 	}
 
 	return false;

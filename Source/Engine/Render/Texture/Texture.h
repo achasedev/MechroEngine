@@ -47,6 +47,8 @@ enum TextureFormat
 //-------------------------------------------------------------------------------------------------
 class Texture : public Resource
 {
+	friend class RenderContext;
+
 public:
 	//-----Public Methods-----
 
