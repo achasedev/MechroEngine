@@ -965,10 +965,7 @@ bool RenderContext::Event_WindowResize(NamedProperties& args)
 	
 	// Resize the backbuffer
 	{
-		int clientWidth = args.Get("client-width", 0);
-		int clientHeight = args.Get("client-height", 0);
-
-		HRESULT hr = m_dxSwapChain->ResizeBuffers(0, clientWidth, clientHeight, DXGI_FORMAT_UNKNOWN, 0);
+		HRESULT hr = m_dxSwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
 		ASSERT_OR_DIE(hr == S_OK, "Couldn't resize back buffers!");
 
 		// Update the backbuffer textures

@@ -127,7 +127,7 @@ static bool WindowMessageHandler(unsigned int msg, size_t wParam, size_t lParam)
 
 	switch (msg)
 	{
-	case WM_SIZE: // Window was resized
+	case WM_EXITSIZEMOVE: // Window was resized
 	{
 		g_window->ResizeWindowToWindowsRect();
 		return true;
