@@ -950,6 +950,8 @@ DepthStencilView* RenderContext::GetDefaultDepthStencilView() const
 //-------------------------------------------------------------------------------------------------
 bool RenderContext::Event_WindowResize(NamedProperties& args)
 {
+	UNUSED(args);
+
 	// Release all handles without destroy the objects, to preserve references	
 	ASSERT_OR_DIE(m_defaultColorTarget->m_views.size() == 1, "Multiple views!");
 	RenderTargetView* colorView = m_defaultColorTarget->CreateOrGetColorTargetView();

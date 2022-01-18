@@ -8,6 +8,7 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Math/GJK.inl"
+#include "Engine/Math/IntVector3.h"
 #include "Engine/Math/LineSegment2.h"
 #include "Engine/Math/LineSegment3.h"
 #include "Engine/Math/MathUtils.h"
@@ -1066,6 +1067,18 @@ Vector2 Abs(const Vector2& inValue)
 Vector3 Abs(const Vector3& inValue)
 {
 	Vector3 result;
+	result.x = abs(inValue.x);
+	result.y = abs(inValue.y);
+	result.z = abs(inValue.z);
+
+	return result;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+IntVector3 Abs(const IntVector3& inValue)
+{
+	IntVector3 result;
 	result.x = abs(inValue.x);
 	result.y = abs(inValue.y);
 	result.z = abs(inValue.z);

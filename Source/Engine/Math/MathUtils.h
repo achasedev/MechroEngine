@@ -56,17 +56,18 @@ const float DEFAULT_EPSILON = 0.0001f;
 
 //-------------------------------------------------------------------------------------------------
 // Math wrappers
-int		Ceiling(float value);
-int		Floor(float value);
-float 	Log2(float value);
-float 	Log10(float value);
-float 	ModFloat(float x, float y);
-float	Sqrt(float value);
-float	Pow(float base, float exponent);
-int		Abs(int inValue);
-float	Abs(float inValue);
-Vector2	Abs(const Vector2& inValue);
-Vector3	Abs(const Vector3& inValue);
+int			Ceiling(float value);
+int			Floor(float value);
+float 		Log2(float value);
+float 		Log10(float value);
+float 		ModFloat(float x, float y);
+float		Sqrt(float value);
+float		Pow(float base, float exponent);
+int			Abs(int inValue);
+float		Abs(float inValue);
+Vector2		Abs(const Vector2& inValue);
+Vector3		Abs(const Vector3& inValue);
+IntVector3	Abs(const IntVector3& inValue);
 
 
 //-------------------------------------------------------------------------------------------------
