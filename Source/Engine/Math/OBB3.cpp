@@ -47,6 +47,13 @@ OBB3::OBB3(const Vector3& center, const Vector3& extents, const Quaternion& rota
 
 
 //-------------------------------------------------------------------------------------------------
+OBB3::OBB3(const AABB3& aabb)
+	: center(aabb.GetCenter()), extents(aabb.GetDimensions() * 0.5f), rotation(Quaternion::IDENTITY)
+{
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void OBB3::GetPoints(Vector3 out_points[8]) const
 {
 	//out_points[0] = rotation.RotatePoint(center) + Vector3(-extents.x, -extents.y, -extents.z); // Left, Bottom, Back

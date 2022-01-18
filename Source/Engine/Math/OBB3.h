@@ -39,6 +39,7 @@ public:
 	OBB3() {}
 	OBB3(const Vector3& center, const Vector3& extents, const Vector3& rotation);
 	OBB3(const Vector3& center, const Vector3& extents, const Quaternion& rotation);
+	OBB3(const AABB3& aabb);
 
 	Vector3		GetCenter() const { return center; }
 	Vector3		GetExtents() const { return extents; }
