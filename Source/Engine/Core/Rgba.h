@@ -49,6 +49,7 @@ public:
 	float		GetAlphaFloat() const;
 	Vector4		GetAsFloats() const;
 	Rgba		operator*(float uniformScaler) const;
+	friend const Rgba	operator*(float uniformScale, const Rgba& color);
 
 	static Rgba GetRandomColor();
 

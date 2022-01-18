@@ -151,6 +151,12 @@ Rgba Rgba::operator*(float uniformScaler) const
 	return Rgba(asFloats);
 }
 
+//-------------------------------------------------------------------------------------------------
+const Rgba operator*(float uniformScale, const Rgba& color)
+{
+	return color * uniformScale;
+}
+
 
 //-------------------------------------------------------------------------------------------------
 Rgba Rgba::GetRandomColor()
