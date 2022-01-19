@@ -162,7 +162,7 @@ bool Rgba::operator==(const Rgba& other) const
 //-------------------------------------------------------------------------------------------------
 bool Rgba::operator!=(const Rgba& other) const
 {
-	return r != other.r && g != other.g && b != other.b && a != other.a;
+	return r != other.r || g != other.g || b != other.b || a != other.a;
 }
 
 
