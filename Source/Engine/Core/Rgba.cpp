@@ -151,6 +151,21 @@ Rgba Rgba::operator*(float uniformScaler) const
 	return Rgba(asFloats);
 }
 
+
+//-------------------------------------------------------------------------------------------------
+bool Rgba::operator==(const Rgba& other) const
+{
+	return r == other.r && g == other.g && b == other.b && a == other.a;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+bool Rgba::operator!=(const Rgba& other) const
+{
+	return r != other.r && g != other.g && b != other.b && a != other.a;
+}
+
+
 //-------------------------------------------------------------------------------------------------
 const Rgba operator*(float uniformScale, const Rgba& color)
 {
