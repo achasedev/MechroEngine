@@ -37,9 +37,9 @@ class IntVector3
 public:
 	//-----Public Methods-----
 
-	IntVector3(int initialValue);
 	IntVector3() {}
 	IntVector3(const IntVector3& copyFrom);
+	explicit IntVector3(int initialValue);
 	explicit IntVector3(int initialX, int initialY, int initialZ);
 	explicit IntVector3(uint32 initialX, uint32 initialY, uint32 initialZ);
 	explicit IntVector3(float initialX, float initialY, float initialZ);
