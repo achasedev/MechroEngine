@@ -9,7 +9,6 @@
 /// INCLUDES
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 #include "Engine/Core/Rgba.h"
-#include "Engine/Core/Entity.h"
 #include "Engine/Render/Renderable.h"
 #include <map>
 
@@ -51,11 +50,11 @@ public:
 	~RenderScene() {}
 
 	// List mutators
-	void			AddRenderable(EntityID id, const Renderable& renderable, const RenderOptions& options = RenderOptions());
+	RenderSceneId	AddRenderable(Renderable& renderable, const RenderOptions& options = RenderOptions());
 	void			AddLight(Light* light);
 	void			AddCamera(Camera* camera);
 
-	void			RemoveRenderable(EntityID entityId);
+	void			RemoveRenderable(RenderSceneId id);
 	void			RemoveLight(Light* toRemove);
 	void			RemoveCamera(Camera* toRemove);
 	void			Clear();
@@ -70,7 +69,7 @@ public:
 	int				GetRenderableCount() const { (int)m_renderables.size(); }
 	int				GetCameraCount() const { return (int)m_cameras.size(); }
 	Skybox*			GetSkybox() const { return m_skybox; }
-	Renderable*		GetRenderable(EntityID entityId);
+	Renderable*		GetRenderable(RenderSceneId id);
 
 
 private:
@@ -78,7 +77,7 @@ private:
 
 	RenderScene(const RenderScene& copy) = delete;
 
-	bool			DoesRenderableExist(EntityID entityId) const;
+	bool			DoesRenderableExist(RenderSceneId id) const;
 	bool			DoesLightExist(Light* light) const;
 	bool			DoesCameraExist(Camera* camera) const;
 
@@ -86,13 +85,15 @@ private:
 private:
 	//-----Private Data-----
 
-	std::string													m_name;
-	std::map<EntityID, std::pair<Renderable, RenderOptions>>	m_renderables;
-	std::vector<Light*>											m_lights;
-	std::vector<Camera*>										m_cameras;
+	std::string														m_name;
+	std::map<RenderSceneId, std::pair<Renderable, RenderOptions>>	m_renderables;
+	std::vector<Light*>												m_lights;
+	std::vector<Camera*>											m_cameras;
 
 	Rgba														m_ambience = Rgba::WHITE;
 	Skybox*														m_skybox = nullptr;
+
+	RenderSceneId												m_nextAvailableId = 0;
 
 };
 

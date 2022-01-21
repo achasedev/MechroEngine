@@ -44,12 +44,23 @@ RenderScene::RenderScene(const std::string& name)
 
 //-------------------------------------------------------------------------------------------------
 // Adds the renderable to the scene
-void RenderScene::AddRenderable(EntityID id, const Renderable& renderable, const RenderOptions& options /*= RenderOptions()*/)
+RenderSceneId RenderScene::AddRenderable(Renderable& renderable, const RenderOptions& options /*= RenderOptions()*/)
 {
-	ASSERT_RETURN(!DoesRenderableExist(id), NO_RETURN_VAL, "Renderable already exists in the scene!");
-	ASSERT_RETURN(renderable.IsReadyForDrawing(), NO_RETURN_VAL, "Renderable isn't complete!");
+	if (renderable.GetScene() != nullptr)
+	{
+		ASSERT_OR_DIE(renderable.GetScene() == this, "Renderable already belongs to another scene!");
+		ASSERT_RETURN(!DoesRenderableExist(renderable.GetSceneId()), INVALID_RENDER_SCENE_ID, "Renderable already exists in the scene!");
+	}
 
-	m_renderables[id] = std::pair<Renderable, RenderOptions>(renderable, options);
+	ASSERT_RETURN(renderable.IsReadyForDrawing(), INVALID_RENDER_SCENE_ID, "Renderable isn't complete!");
+
+	renderable.m_scene = this;
+	renderable.m_sceneId = m_nextAvailableId;
+	m_renderables[renderable.m_sceneId] = std::pair<Renderable, RenderOptions>(renderable, options);
+
+	m_nextAvailableId++;
+
+	return renderable.m_sceneId;
 }
 
 
@@ -73,19 +84,17 @@ void RenderScene::AddCamera(Camera* camera)
 
 //-------------------------------------------------------------------------------------------------
 // Removes the renderable from the scene
-void RenderScene::RemoveRenderable(EntityID entityId)
+void RenderScene::RemoveRenderable(RenderSceneId id)
 {
-	bool entityExists = m_renderables.find(entityId) != m_renderables.end();
+	bool rendExists = m_renderables.find(id) != m_renderables.end();
 
-	if (!entityExists)
+	if (!rendExists)
 	{
-		ConsoleLogErrorf("Tried to remove entity %i but it doesn't exist!", entityId);
+		ConsoleLogErrorf("Tried to remove entity %i but it doesn't exist!", id);
 		return;
 	}
 
-	m_renderables.erase(entityId);
-
-	ConsoleLogWarningf("Tried to remove a renderable but it doesn't exist!");
+	m_renderables.erase(id);
 }
 
 
@@ -117,6 +126,7 @@ void RenderScene::RemoveCamera(Camera* toRemove)
 		if (m_cameras[i] == toRemove)
 		{
 			m_cameras.erase(m_cameras.begin() + i);
+			return;
 		}
 	}
 
@@ -167,21 +177,21 @@ void RenderScene::SortCameras()
 
 //-------------------------------------------------------------------------------------------------
 // Returns the renderable for the given entity; returns a sketchy pointer so don't cache it off
-Renderable* RenderScene::GetRenderable(EntityID entityId)
+Renderable* RenderScene::GetRenderable(RenderSceneId id)
 {
-	if (!DoesRenderableExist(entityId))
+	if (!DoesRenderableExist(id))
 	{
-		ConsoleLogWarningf("Tried to get renderable for entity %i but it doesn't exist in the scene!", entityId);
+		ConsoleLogWarningf("Tried to get renderable for entity %i but it doesn't exist in the scene!", id);
 		return nullptr;
 	}
 
-	return &m_renderables.at(entityId).first;
+	return &m_renderables.at(id).first;
 }
 
 
 //-------------------------------------------------------------------------------------------------
 // Returns true if the renderable is currently in the scene; assumes one renderable per entity
-bool RenderScene::DoesRenderableExist(EntityID id) const
+bool RenderScene::DoesRenderableExist(RenderSceneId id) const
 {
 	return (m_renderables.find(id) != m_renderables.end());
 }

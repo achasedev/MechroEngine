@@ -22,12 +22,16 @@
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 class Mesh;
 class Material;
+class RenderScene;
 struct RenderableDraw
 {
 	Matrix4		m_drawMatrix;
 	Mesh*		m_mesh = nullptr;
 	Material*	m_material = nullptr;
 };
+
+typedef int RenderSceneId;
+#define INVALID_RENDER_SCENE_ID (-1)
 
 ///--------------------------------------------------------------------------------------------------------------------------------------------------
 /// GLOBALS AND STATICS
@@ -40,6 +44,8 @@ struct RenderableDraw
 //-------------------------------------------------------------------------------------------------
 class Renderable
 {
+	friend class RenderScene;
+
 public:
 	//-----Public Methods-----
 
@@ -58,6 +64,8 @@ public:
 	uint32			GetNumDrawCalls() const { return (uint32)m_draws.size(); }
 	RenderableDraw	GetDraw(uint32 drawIndex) const;
 	Matrix4			GetModelMatrix() const { return m_modelMatrix; }
+	RenderScene*	GetScene() const { return m_scene; }
+	RenderSceneId	GetSceneId() const { return m_sceneId; }
 
 	bool			IsReadyForDrawing() const;
 
@@ -69,6 +77,9 @@ private:
 	std::vector<RenderableDraw>		m_draws;
 	EntityID						m_owningEntity = INVALID_ENTITY_ID;
 
+	// Scene
+	RenderScene*					m_scene = nullptr;
+	RenderSceneId					m_sceneId = INVALID_RENDER_SCENE_ID;
 };
 
 
