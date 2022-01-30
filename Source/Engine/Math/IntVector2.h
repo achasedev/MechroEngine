@@ -36,9 +36,9 @@ class IntVector2
 public:
 	//-----Public Methods-----
 
-	IntVector2(int initialValue);
 	IntVector2() {}
 	IntVector2(const IntVector2& copyFrom);	
+	explicit IntVector2(int initialValue);
 	explicit IntVector2(int initialX, int initialY);
 	explicit IntVector2(uint32 initialX, uint32 initialY);
 	explicit IntVector2(float initialX, float initialY);
