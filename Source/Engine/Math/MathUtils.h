@@ -182,6 +182,7 @@ const IntVector2	Interpolate(const IntVector2& start, const IntVector2& end, flo
 const Vector3		Interpolate(const Vector3& start, const Vector3& end, float fractionTowardEnd);
 const AABB2			Interpolate(const AABB2& start, const AABB2& end, float fractionTowardEnd);		// Interpolates the mins/maxes of the boxes
 const Matrix4		Interpolate(const Matrix4& start, const Matrix4& end, float fractionTowardEnd);
+Rgba				Interpolate(const Rgba& start, const Rgba end, float fractionTowardEnd);
 float				GetFractionInRange(float inValue, float rangeStart, float rangeEnd);
 float				RangeMapFloat(float inValue, float inStart, float inEnd, float outStart, float outEnd);
 Vector2				RangeMap(Vector2 inValue, Vector2 inStart, Vector2 inEnd, Vector2 outStart, Vector2 outEnd);

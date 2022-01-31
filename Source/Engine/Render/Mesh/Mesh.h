@@ -56,6 +56,8 @@ class Mesh : public Resource
 public:
 	//-----Public Methods-----
 
+	~Mesh();
+
 	void Load(const char* filepath);
 	void Clear();
 

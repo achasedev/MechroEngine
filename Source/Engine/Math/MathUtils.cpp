@@ -1008,6 +1008,20 @@ const Matrix4 Interpolate(const Matrix4& start, const Matrix4& end, float fracti
 
 
 //-------------------------------------------------------------------------------------------------
+Rgba Interpolate(const Rgba& start, const Rgba end, float fractionTowardEnd)
+{
+	Rgba result;
+
+	result.r = Interpolate(start.r, end.r, fractionTowardEnd);
+	result.g = Interpolate(start.g, end.g, fractionTowardEnd);
+	result.b = Interpolate(start.b, end.b, fractionTowardEnd);
+	result.a = Interpolate(start.a, end.a, fractionTowardEnd);
+
+	return result;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 // Finds the roots of the quadratic function given by the coefficients a, b, and c, and stores them
 // in solutions
 // Returns true if roots were found, false otherwise

@@ -32,6 +32,13 @@
 
 
 //-------------------------------------------------------------------------------------------------
+Mesh::~Mesh()
+{
+	Clear();
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void Mesh::Load(const char* filepath)
 {
 	UNIMPLEMENTED();
@@ -49,7 +56,11 @@ void Mesh::Load(const char* filepath)
 //-------------------------------------------------------------------------------------------------
 void Mesh::Clear()
 {
-	UNIMPLEMENTED();
+	m_vertexBuffer.Reset();
+	m_indexBuffer.Reset();
+
+	m_vertexLayout = nullptr;
+	m_instruction = DrawInstruction();
 }
 
 

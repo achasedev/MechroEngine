@@ -52,6 +52,8 @@ public:
 	RenderBuffer() {}
 	virtual ~RenderBuffer();
 
+	void Reset();
+
 	size_t			GetBufferSize() const { return m_bufferSizeBytes; }
 	ID3D11Buffer*	GetDxHandle() const { return m_dxHandle; }
 
@@ -62,7 +64,6 @@ public:
 protected:
 	//-----Protected Methods-----
 
-	void Reset();
 	bool CreateOnGPU(const void* data, size_t byteSize, size_t elementSize, RenderBufferUsageBitFlags bufferUsage, GPUMemoryUsage memoryUsage);
 	bool CopyToGPU(const void* data, size_t byteSize);
 

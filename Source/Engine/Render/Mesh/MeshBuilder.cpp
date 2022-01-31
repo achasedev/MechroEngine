@@ -648,19 +648,35 @@ void MeshBuilder::PushLine3D(const Vector3& start, const Vector3& end, const Rgb
 
 
 //-------------------------------------------------------------------------------------------------
-void MeshBuilder::PushTriangle3(const Vector3& first, const Vector3& second, const Vector3& third, const Rgba& tint /*= Rgba::WHITE*/)
+void MeshBuilder::PushTriangle3(const Vector3& a, const Vector3& b, const Vector3& c, const Rgba& tint /*= Rgba::WHITE*/)
+{
+	PushTriangle3(a, b, c, tint, tint, tint);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void MeshBuilder::PushTriangle3(const Triangle3& triangle, const Rgba& tint /*= Rgba::WHITE*/)
+{
+	PushTriangle3(triangle.m_a, triangle.m_b, triangle.m_c, tint, tint, tint);
+}
+
+
+//-------------------------------------------------------------------------------------------------
+void MeshBuilder::PushTriangle3(const Vector3& a, const Vector3& b, const Vector3& c, const Rgba& aColor, const Rgba& bColor, const Rgba& cColor)
 {
 	AssertBuildState(true, TOPOLOGY_TRIANGLE_LIST);
 
-	SetColor(tint);
-	Vector3 ab = second - first;
-	Vector3 ac = third - first;
+	Vector3 ab = b - a;
+	Vector3 ac = c - a;
 	Vector3 normal = CrossProduct(ab, ac).GetNormalized();
 	SetNormal(normal);
 
-	uint32 index = PushVertex(first);
-	PushVertex(second);
-	PushVertex(third);
+	SetColor(aColor);
+	uint32 index = PushVertex(a);
+	SetColor(bColor);
+	PushVertex(b);
+	SetColor(cColor);
+	PushVertex(c);
 
 	if (m_instruction.m_useIndices)
 	{
@@ -668,13 +684,6 @@ void MeshBuilder::PushTriangle3(const Vector3& first, const Vector3& second, con
 		PushIndex(index + 1);
 		PushIndex(index + 2);
 	}
-}
-
-
-//-------------------------------------------------------------------------------------------------
-void MeshBuilder::PushTriangle3(const Triangle3& triangle, const Rgba& tint /*= Rgba::WHITE*/)
-{
-	PushTriangle3(triangle.m_a, triangle.m_b, triangle.m_c, tint);
 }
 
 

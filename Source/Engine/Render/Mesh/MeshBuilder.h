@@ -81,7 +81,8 @@ public:
 	// 3D Helpers
 	void		PushLine3D(const Vector3& start, const Vector3& end, const Rgba& color = Rgba::WHITE);
 	void		PushTriangle3(const Triangle3& triangle, const Rgba& tint = Rgba::WHITE);
-	void		PushTriangle3(const Vector3& first, const Vector3& second, const Vector3& third, const Rgba& tint = Rgba::WHITE);
+	void		PushTriangle3(const Vector3& a, const Vector3& b, const Vector3& c, const Rgba& tint = Rgba::WHITE);
+	void		PushTriangle3(const Vector3& a, const Vector3& b, const Vector3& c, const Rgba& aColor, const Rgba& bColor, const Rgba& cColor);
 	void		PushQuad3D(const Vector3& bottomLeft, const Vector3& topLeft, const Vector3& topRight, const Vector3& bottomRight, const AABB2& uvs = AABB2::ZERO_TO_ONE, const Rgba& tint = Rgba::WHITE);
 	void		PushQuad3D(const Vector3& position, const Vector2& dimensions, const AABB2& uvs = AABB2::ZERO_TO_ONE, const Rgba& tint = Rgba::WHITE, const Vector3& rightVector = Vector3::X_AXIS, const Vector3& upVector = Vector3::Y_AXIS, const Vector2& pivot = Vector2(0.5f, 0.5f));
 	void		PushCube(const Vector3& center, const Vector3& dimensions, const AABB2& topUVs = AABB2::ZERO_TO_ONE, const AABB2& sideUVs = AABB2::ZERO_TO_ONE, const AABB2& bottomUVs = AABB2::ZERO_TO_ONE, const Rgba& tint = Rgba::WHITE);
