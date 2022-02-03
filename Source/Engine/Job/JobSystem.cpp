@@ -370,6 +370,26 @@ void JobSystem::BlockUntilAllJobsOfTypeAreFinalized(int jobType)
 
 
 //-------------------------------------------------------------------------------------------------
+void JobSystem::AbortAllQueuedJobsOfType(int jobType)
+{
+	m_queuedLock.lock_shared();
+	{
+		int numQueued = (int)m_queuedJobs.size();
+
+		for (int queuedIndex = numQueued - 1; queuedIndex >= 0; --queuedIndex)
+		{
+			if (m_queuedJobs[queuedIndex]->m_jobType == jobType)
+			{
+				delete m_queuedJobs[queuedIndex];
+				m_queuedJobs.erase(m_queuedJobs.begin() + queuedIndex);
+			}
+		}
+	}
+	m_queuedLock.unlock_shared();
+}
+
+
+//-------------------------------------------------------------------------------------------------
 void JobSystem::DestroyAllJobs()
 {
 	// Queued - just delete them

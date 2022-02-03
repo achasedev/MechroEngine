@@ -69,6 +69,7 @@ public:
 	void				FinalizeAllFinishedJobsOfType(int jobType);
 	void				BlockUntilJobIsFinalized(int jobID);
 	void				BlockUntilAllJobsOfTypeAreFinalized(int jobType);
+	void				AbortAllQueuedJobsOfType(int jobType);
 
 
 private:
